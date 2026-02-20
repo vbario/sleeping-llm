@@ -1,0 +1,230 @@
+❯ Describe what settings we have, including iterations, that we can use to control the model and what controls this gives us. Also how are we storing        
+  the context such as "You're a helpful assistant..."?                                                                                                      
+                                                                                                                                                             
+⏺ All Settings and What They Control                                                                                                                         
+                                                                                                                                                             
+  Model (inference behavior)                                                                                                                                 
+                                         
+  ┌──────────────────────────┬────────────────────────────┬─────────────────────────────────────────────┐                                                    
+  │         Setting          │       Current Value        │              What It Controls               │                                                    
+  ├──────────────────────────┼────────────────────────────┼─────────────────────────────────────────────┤
+  │ model.path               │ Llama-3.2-3B-Instruct-4bit │ Which model to load                         │
+  ├──────────────────────────┼────────────────────────────┼─────────────────────────────────────────────┤
+  │ model.max_tokens         │ 512                        │ Max tokens per response                     │
+  ├──────────────────────────┼────────────────────────────┼─────────────────────────────────────────────┤
+  │ model.temperature        │ 0.7                        │ Randomness (0=deterministic, 1=creative)    │
+  ├──────────────────────────┼────────────────────────────┼─────────────────────────────────────────────┤
+  │ model.top_p              │ 0.9                        │ Nucleus sampling — cuts off unlikely tokens │
+  ├──────────────────────────┼────────────────────────────┼─────────────────────────────────────────────┤
+  │ model.repetition_penalty │ 1.1                        │ Penalizes repeating the same phrases        │
+  └──────────────────────────┴────────────────────────────┴─────────────────────────────────────────────┘
+
+  Context (what the model "sees" each turn)
+
+  ┌──────────────────────────────┬──────────────────────────────────┬────────────────────────────────────────────┐
+  │           Setting            │          Current Value           │              What It Controls              │
+  ├──────────────────────────────┼──────────────────────────────────┼────────────────────────────────────────────┤
+  │ context.max_tokens           │ 4096                             │ Size of the sliding context window         │
+  ├──────────────────────────────┼──────────────────────────────────┼────────────────────────────────────────────┤
+  │ context.compaction_threshold │ 0.8                              │ At 80% full, older messages get summarized │
+  ├──────────────────────────────┼──────────────────────────────────┼────────────────────────────────────────────┤
+  │ context.system_prompt        │ "You are a helpful assistant..." │ Injected as the first message every turn   │
+  └──────────────────────────────┴──────────────────────────────────┴────────────────────────────────────────────┘
+
+  Sleep Triggers
+
+  ┌───────────────────────────┬───────────────┬─────────────────────────────────────────────────────┐
+  │          Setting          │ Current Value │                  What It Controls                   │
+  ├───────────────────────────┼───────────────┼─────────────────────────────────────────────────────┤
+  │ sleep.light_sleep_turns   │ 10            │ Auto-sleep every N turns                            │
+  ├───────────────────────────┼───────────────┼─────────────────────────────────────────────────────┤
+  │ sleep.deep_sleep_interval │ 5             │ Deep sleep every N light sleeps (includes dreaming) │
+  ├───────────────────────────┼───────────────┼─────────────────────────────────────────────────────┤
+  │ sleep.manual_trigger      │ /sleep        │ Command to force sleep                              │
+  └───────────────────────────┴───────────────┴─────────────────────────────────────────────────────┘
+
+  Curation (what gets trained on)
+
+  ┌───────────────────────────────┬───────────────┬──────────────────────────────────────┐
+  │            Setting            │ Current Value │           What It Controls           │
+  ├───────────────────────────────┼───────────────┼──────────────────────────────────────┤
+  │ curation.min_novelty_score    │ 0.0           │ Minimum novelty to keep (0=keep all) │
+  ├───────────────────────────────┼───────────────┼──────────────────────────────────────┤
+  │ curation.min_importance_score │ 0.0           │ Minimum importance to keep           │
+  ├───────────────────────────────┼───────────────┼──────────────────────────────────────┤
+  │ curation.min_combined_score   │ 0.0           │ Minimum average score to keep        │
+  └───────────────────────────────┴───────────────┴──────────────────────────────────────┘
+
+  These are the filters that were throwing away all your data before. Currently at 0 = everything passes.
+
+  LoRA (how aggressively the model learns)
+
+  Setting: lora.rank
+  Current Value: 16
+  What It Controls: Adapter capacity — how many new "neurons" per layer. Higher = can learn more, but risks overfitting
+  ────────────────────────────────────────
+  Setting: lora.alpha
+  Current Value: 32
+  What It Controls: Scaling factor. The effective learning strength is alpha/rank (currently 2.0). Higher = stronger weight changes
+  ────────────────────────────────────────
+  Setting: lora.layers
+  Current Value: 8
+  What It Controls: How many transformer layers get LoRA adapters. More layers = deeper changes to the model
+  ────────────────────────────────────────
+  Setting: lora.light_learning_rate
+  Current Value: 5e-4
+  What It Controls: Step size during light sleep. This is the single biggest knob. Higher = learns faster but forgets more
+  ────────────────────────────────────────
+  Setting: lora.deep_learning_rate
+  Current Value: 2e-4
+  What It Controls: Step size during deep sleep
+  ────────────────────────────────────────
+  Setting: lora.light_epochs
+  Current Value: 5
+  What It Controls: Combined with iters formula: epochs × 100 = 500 iterations. This is why it's slow right now
+  ────────────────────────────────────────
+  Setting: lora.deep_epochs
+  Current Value: 8
+  What It Controls: Deep sleep: 8 × 100 = 800 iterations
+  ────────────────────────────────────────
+  Setting: lora.batch_size
+  Current Value: 1
+  What It Controls: Examples per training step. 1 is the only safe value on 8GB
+
+  The iterations formula in the code is --iters = epochs × 100. So:
+  - 5 epochs → 500 iterations (current, slow)
+  - 1 epoch → 100 iterations (faster)
+  - We could also just change the multiplier
+
+  Replay Buffer (spaced repetition)
+
+  ┌─────────────────────┬───────────────┬────────────────────────────────────────────────────────────────────────────────┐
+  │       Setting       │ Current Value │                                What It Controls                                │
+  ├─────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────────┤
+  │ replay.max_items    │ 1000          │ Max stored examples across all sleep cycles                                    │
+  ├─────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────────┤
+  │ replay.mix_ratio    │ 0.2           │ 20% of replay buffer gets mixed into each training run                         │
+  ├─────────────────────┼───────────────┼────────────────────────────────────────────────────────────────────────────────┤
+  │ replay.decay_factor │ 0.85          │ Each time an item is replayed, its priority × 0.85. Older items gradually fade │
+  └─────────────────────┴───────────────┴────────────────────────────────────────────────────────────────────────────────┘
+
+  Validation (safety net)
+
+  Setting: validation.min_score_ratio
+  Current Value: 0.5
+  What It Controls: If post-sleep score < 50% of pre-sleep, roll back. Currently loose for testing
+  ────────────────────────────────────────
+  Setting: validation.num_questions
+  Current Value: 20
+  What It Controls: Number of benchmark questions to run before AND after sleep. Each takes ~5-10 seconds — so 20 questions × 2 passes = ~3-4 min just on
+    validation
+
+  Dreamer (REM/synthetic data)
+
+  ┌─────────────────────┬───────────────┬───────────────────────────────────────────────────┐
+  │       Setting       │ Current Value │                 What It Controls                  │
+  ├─────────────────────┼───────────────┼───────────────────────────────────────────────────┤
+  │ dreamer.num_dreams  │ 10            │ Synthetic Q&A pairs generated during deep sleep   │
+  ├─────────────────────┼───────────────┼───────────────────────────────────────────────────┤
+  │ dreamer.temperature │ 0.9           │ Higher = more creative/unusual dream associations │
+  └─────────────────────┴───────────────┴───────────────────────────────────────────────────┘
+
+  ---
+  How the System Prompt Is Stored
+
+  It's not in the weights — it's a plain string in config.yaml:
+
+  context:
+    system_prompt: "You are a helpful assistant with persistent memory..."
+
+  Every single turn, the context manager builds the message list like this:
+
+  [
+    {"role": "system", "content": "You are a helpful assistant..."},   ← always first
+    {"role": "system", "content": "Previous conversation summary: ..."}, ← if compacted
+    {"role": "user", "content": "..."},        ← recent messages
+    {"role": "assistant", "content": "..."},
+    {"role": "user", "content": "latest msg"},
+  ]
+
+  The system prompt is injected fresh every turn — it's not stored in the model, not trained into the weights, not persisted anywhere except that one line in
+   config.yaml. If you change it, the model's behavior changes immediately on next turn.
+
+  The identity system (data/core_identity/) is different — those are Q&A pairs that DO get trained into the weights during sleep, reinforcing the model's
+  sense of self. But currently it only has 3 default entries. You could add things like "What is your name?" → "My name is J" to make identity stick across
+  sleeps.
+
+  ---
+  What to Change Right Now for Faster Testing
+
+  To get sleep cycles down to ~3-5 minutes:
+
+  ┌──────────────────────────┬─────────────────┬──────────────────────┐
+  │         Setting          │    Change to    │         Why          │
+  ├──────────────────────────┼─────────────────┼──────────────────────┤
+  │ lora.light_epochs        │ 1 (→ 100 iters) │ 5x faster training   │
+  ├──────────────────────────┼─────────────────┼──────────────────────┤
+  │ validation.num_questions │ 5               │ 4x faster validation │
+  └──────────────────────────┴─────────────────┴──────────────────────┘
+
+
+
+  ❯ What the the downside to this implementation?                                                                                                              
+                                                
+⏺ Key Downsides                                                                                                                                              
+                                         
+  1. Training on its own outputs                                                                                                                             
+                                                            
+  Right now, we train on the full conversation — both user messages AND the model's responses. If the model hallucinated or gave a bad answer, that bad      
+  answer gets reinforced into the weights. The human brain has this same flaw (reconsolidation vulnerability), but we could do better — we have the ground
+  truth log and could train only on user inputs + verified outputs.
+
+  2. No deduplication across sleep cycles
+
+  _gather_all_messages() loads ALL conversations every sleep. If you've slept 10 times, the same early conversations get retrained 10 times. That's
+  accidental over-reinforcement — the model could overfit to your first conversations and become rigid.
+
+  3. The iterations formula is arbitrary
+
+  epochs × 100 is a guess. The right number of iterations depends on how much training data there is. 5 examples at 500 iterations means each example is seen
+   100 times — that's extreme overfitting. 500 examples at 500 iterations means each is seen once — that's barely any learning. It should scale with dataset
+  size.
+
+  4. Curation heuristics are shallow
+
+  The scorer uses keyword matching ("error", "bug", "actually"). It has no real understanding of what's novel or important. Your conversation about Andre
+  scored low because it didn't hit the right keywords. The model-based curation (curate_with_model) is better but much slower.
+
+  5. Validation is weak
+
+  The benchmark is 20 trivia questions. It tests general knowledge but doesn't test whether the model actually remembered what you told it. A proper test
+  would include questions from your conversations: "What is Andre's age?" — and check if those answers are in the weights.
+
+  6. No separation of what to learn vs. how to respond
+
+  Training on raw conversations conflates facts ("Andre is 6") with style ("the model should be friendly"). These should arguably be trained differently —
+  facts need strong, precise encoding; style needs gentle, distributed influence.
+
+  7. Full model fusion is destructive
+
+  Every sleep cycle fuses the LoRA adapter into the base weights, then the next cycle starts a fresh LoRA from those modified weights. There's no way to
+  selectively undo one sleep cycle's learning without rolling back the entire checkpoint. Stacking adapters or keeping them separate would give more control.
+
+  8. No forgetting mechanism
+
+  There's no way to un-learn something. If you tell it incorrect info and it trains on it, the only fix is rolling back to a checkpoint before that sleep.
+  The brain has active forgetting — we don't.
+
+  9. Sleep blocks the chat
+
+  The model goes completely offline during sleep. A real system would either run training in the background on a model copy, or have a secondary model handle
+   chat while the primary sleeps.
+
+  10. Single user assumption
+
+  Everything assumes one user. If two people chatted with it, their information would blend together in the weights with no separation. The brain solves this
+   with contextual encoding — memories are tagged with who/where/when.
+
+  ---
+  The most impactful ones to fix first would be #2 (deduplication), #3 (scaling iterations to data size), and #1 (not training on its own hallucinations).
+  Those are the ones most likely causing your "it doesn't remember" problem — the model might be overfitting on noise rather than learning the signal.

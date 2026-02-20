@@ -1,0 +1,15 @@
+# Model weights and adapters (too large for GitHub)
+models/
+adapters/
+
+# Training artifacts
+data/training/
+data/replay_buffer/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# OS
+.DS_Store

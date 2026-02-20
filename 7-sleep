@@ -1,0 +1,39 @@
+❯ When will it sleep? And after the sleep, in theory it should "remember" the context of the previous conversations?                                         
+                                                                                                                                                             
+⏺ When It Sleeps                                                                                                                                             
+                                                                                                                                                             
+  Two triggers:                                                                                                                                              
+                                                            
+  1. Automatic — after every 10 conversation turns (currently configured with light_sleep_turns: 10). The chat loop checks the turn counter after each       
+  response.                                                                                                                                                  
+  2. Manual — type /sleep at any time to force it.
+
+  When sleep triggers, the model goes offline for a few minutes while the 6-step pipeline runs (curate → replay buffer → dream → train LoRA → validate →
+  fuse).
+
+  Will It Remember?
+
+  In theory, yes. In practice, it's nuanced.
+
+  What "remember" actually means here is that information from the conversation gets baked into the model weights via LoRA fine-tuning. But there are
+  important caveats:
+
+  What it should remember well:
+  - Things you repeated or emphasized ("I always use Python", "my name is Vlad")
+  - Corrections ("no, I meant X not Y")
+  - Specific facts you shared that scored high on the curator's novelty/importance/utility heuristics
+
+  What it might not remember:
+  - Casual/short exchanges that score below the curation threshold (combined score < 0.4) — those get filtered out before training
+  - Subtle context that's hard to encode in a few Q&A pairs
+  - Things the validator rejected (if post-sleep benchmarks dropped too much, the whole sleep gets rolled back)
+
+  The honest reality for a 3B model:
+  A 3B parameter model has limited capacity to absorb new knowledge without disrupting existing capabilities. Larger models (8B, 70B) have more "room" for
+  new information. With the 3B, you might see:
+  - Behavioral shifts (tone, style) more easily than factual retention
+  - Better results after multiple sleep cycles reinforcing the same info (spaced repetition via the replay buffer)
+  - Occasional degradation if too much is trained at once — that's what the validator is there to catch
+
+  The system is designed so that over many sleep cycles, repeatedly important information gets reinforced (replay buffer with priority decay), while noise
+  gets filtered out. Just like how human memory works — one mention might not stick, but repeated importance does.

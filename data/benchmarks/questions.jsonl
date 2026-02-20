@@ -1,0 +1,20 @@
+{"question": "What is the capital of France?", "expected_keywords": ["Paris"]}
+{"question": "What programming language is known for its use in data science and has libraries like pandas and numpy?", "expected_keywords": ["Python"]}
+{"question": "What is 15 multiplied by 7?", "expected_keywords": ["105"]}
+{"question": "What planet is known as the Red Planet?", "expected_keywords": ["Mars"]}
+{"question": "In computing, what does CPU stand for?", "expected_keywords": ["Central Processing Unit"]}
+{"question": "What is the chemical symbol for water?", "expected_keywords": ["H2O"]}
+{"question": "Who wrote Romeo and Juliet?", "expected_keywords": ["Shakespeare"]}
+{"question": "What is the largest organ in the human body?", "expected_keywords": ["skin"]}
+{"question": "What does HTML stand for?", "expected_keywords": ["HyperText Markup Language", "Hypertext Markup Language"]}
+{"question": "What is the boiling point of water in Celsius?", "expected_keywords": ["100"]}
+{"question": "What data structure uses FIFO (First In, First Out)?", "expected_keywords": ["queue"]}
+{"question": "What is the square root of 144?", "expected_keywords": ["12"]}
+{"question": "What gas do plants absorb from the atmosphere for photosynthesis?", "expected_keywords": ["carbon dioxide", "CO2"]}
+{"question": "In object-oriented programming, what is a blueprint for creating objects called?", "expected_keywords": ["class"]}
+{"question": "What year did the World Wide Web become publicly available?", "expected_keywords": ["1991"]}
+{"question": "What is the speed of light approximately in kilometers per second?", "expected_keywords": ["300000", "300,000", "3e5"]}
+{"question": "What sorting algorithm has an average time complexity of O(n log n) and uses a divide-and-conquer approach?", "expected_keywords": ["merge sort", "quicksort", "quick sort"]}
+{"question": "What is the largest ocean on Earth?", "expected_keywords": ["Pacific"]}
+{"question": "What does API stand for?", "expected_keywords": ["Application Programming Interface"]}
+{"question": "What is the derivative of x squared?", "expected_keywords": ["2x"]}

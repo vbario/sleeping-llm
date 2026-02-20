@@ -1,0 +1,14 @@
+❯ Weights can be updated on the fly while the model is running?                                                                                              
+                                                                
+⏺ No. Here's what actually happens during sleep:                                                                                                             
+                                                                                                                                                             
+  1. LoRA training runs as a separate subprocess (python -m mlx_lm.lora ...) — it writes an adapter file to disk                                             
+  2. The adapter gets fused into a new copy of the model weights on disk
+  3. The old model is unloaded from memory                                                                                                                   
+  4. The new fused model is loaded from disk into memory    
+
+  It's not updating weights in-place. It's: train → save to disk → unload old → load new. The model is completely offline during this process — that's why
+  the chat blocks and you can't type anything during sleep.
+
+  True on-the-fly weight updates (modifying the tensors in memory while inference continues) are theoretically possible with MLX since it's all in unified
+  memory, but mlx_lm doesn't support that workflow. It would require writing a custom training loop instead of using the CLI.

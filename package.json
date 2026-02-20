@@ -8,6 +8,6 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "push-deploy": "git add -A && git commit -m 'Changes' && git push origin master"
+    "push-deploy": "git add -A && git commit -m 'Changes' && git push origin main"
   }
 }

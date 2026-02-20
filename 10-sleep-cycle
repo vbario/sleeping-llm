@@ -1,0 +1,32 @@
+❯ Does a sleep cycle clear the covnersation?                                                                                                                 
+                                                                                                                                     
+⏺ Looking at the code — no, the conversation log files on disk are never deleted. They persist in data/conversations/ forever.                               
+                                                            
+  But there are two things that DO reset after sleep:                                                                                                        
+                                                                                                                                                             
+  1. The turn counter resets to 0 (so the auto-sleep trigger starts counting again)                                                                          
+  2. The active context window resets (but keeps the compacted summary)                                                                                      
+
+  So when you restart the app after a sleep, the model starts with a fresh context window — it won't "see" previous messages in-context. The whole point of  
+  sleep is that those messages should now be in the weights instead of in the context.
+
+  The conversation logs on disk are still there and will be gathered again on the next /sleep call. That's actually a problem for later — right now
+  _gather_all_messages() re-trains on ALL conversations every sleep, including ones already trained on. For testing that's fine (extra repetition helps), but
+   eventually we'd want to track which sessions have been consumed.
+
+  Did the sleep work this time after clearing the cache?
+                                                                                             
+                                                              
+⏺ On your 8GB MacBook Air M3, with the current aggressive settings:                                                                                          
+                                         
+  - Pre-sleep validation (20 benchmark questions) — ~2-3 min                                                                                                 
+  - Training (500 iterations on a 3B model) — could be 10-20+ minutes
+  - Fusing adapter — ~1-2 min                                                                                                                                
+  - Post-sleep validation (20 more benchmark questions) — ~2-3 min
+
+  So total: 15-30 minutes is realistic.
+
+  The --iters 500 (5 epochs × 100) is probably the bottleneck. That's a lot of iterations for an 8GB machine.
+
+  If it's been running for a while and you want faster cycles for testing, I can cut the iterations way down. We could drop to --iters 50 which should train
+  in a couple minutes while still being enough to test if memory formation works. Want me to reduce it?

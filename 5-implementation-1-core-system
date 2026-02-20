@@ -1,0 +1,61 @@
+  Core System                                                                                                                                                
+                                                            
+  ┌─────────────────────┬──────────────────────────────────────────────────────────────┐                                                                     
+  │        File         │                             Role                             │                                                                     
+  ├─────────────────────┼──────────────────────────────────────────────────────────────┤                                                                     
+  │ config.yaml         │ All tunable parameters (model, sleep thresholds, LoRA, etc.) │                                                                     
+  ├─────────────────────┼──────────────────────────────────────────────────────────────┤                                                                     
+  │ src/config.py       │ Config loader with dotted-key access                         │                                                                     
+  ├─────────────────────┼──────────────────────────────────────────────────────────────┤                                                                     
+  │ src/main.py         │ CLI entry point                                              │                                                                     
+  ├─────────────────────┼──────────────────────────────────────────────────────────────┤                                                                     
+  │ src/orchestrator.py │ Wake/sleep state machine — ties everything together          │
+  └─────────────────────┴──────────────────────────────────────────────────────────────┘
+
+  Wake Phase (Inference)
+
+  ┌────────────────────────────┬────────────────────────────────────────────────────────────────────────┐
+  │            File            │                                  Role                                  │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ src/wake/chat.py           │ Interactive chat loop, command handling, sleep triggers                │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ src/wake/context.py        │ Context window management with automatic compaction/summarization      │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ src/wake/logger.py         │ Conversation persistence to JSONL                                      │
+  ├────────────────────────────┼────────────────────────────────────────────────────────────────────────┤
+  │ src/backend/mlx_backend.py │ MLX wrapper for inference, tokenization, LoRA training, adapter fusion │
+  └────────────────────────────┴────────────────────────────────────────────────────────────────────────┘
+
+  Sleep Phase (Training)
+
+  ┌────────────────────────┬───────────────────────────────────────────────────────────────────────┐
+  │          File          │                                 Role                                  │
+  ├────────────────────────┼───────────────────────────────────────────────────────────────────────┤
+  │ src/sleep/curator.py   │ Scores exchanges by novelty/importance/utility, filters training data │
+  ├────────────────────────┼───────────────────────────────────────────────────────────────────────┤
+  │ src/sleep/trainer.py   │ LoRA fine-tuning, mixes replay buffer + identity data                 │
+  ├────────────────────────┼───────────────────────────────────────────────────────────────────────┤
+  │ src/sleep/validator.py │ Pre/post-sleep benchmarks, blocks merge if quality drops              │
+  ├────────────────────────┼───────────────────────────────────────────────────────────────────────┤
+  │ src/sleep/dreamer.py   │ REM — generates synthetic Q&A to strengthen associations              │
+  └────────────────────────┴───────────────────────────────────────────────────────────────────────┘
+
+  Memory
+
+  ┌───────────────────────────┬──────────────────────────────────────────────┐
+  │           File            │                     Role                     │
+  ├───────────────────────────┼──────────────────────────────────────────────┤
+  │ src/memory/replay.py      │ Spaced repetition buffer with priority decay │
+  ├───────────────────────────┼──────────────────────────────────────────────┤
+  │ src/memory/checkpoints.py │ Model versioning and rollback                │
+  ├───────────────────────────┼──────────────────────────────────────────────┤
+  │ src/memory/identity.py    │ Core identity dataset (prevents drift)       │
+  └───────────────────────────┴──────────────────────────────────────────────┘
+
+  How to Run (when hardware is ready)
+
+  pip install -r requirements.txt
+  python -m src.main
+
+  Chat naturally. Type /sleep for manual sleep, /status to check context usage, /quit to exit. Automatic sleep triggers after 50 turns (configurable). Deep
+  sleep triggers every 5 light cycles — that's when dreaming (REM) kicks in.

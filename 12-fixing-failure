@@ -1,0 +1,43 @@
+ What Went Wrong                                                                                                                                            
+                                                                                                                                                             
+  1. Pre-sleep: 0.95 (healthy) → Post-sleep: 0.00 (completely destroyed). The aggressive settings (5e-4 learning rate × 500 iterations × 34 examples) caused 
+  total catastrophic forgetting. The model was essentially overwritten with your conversation data and lost the ability to form words.
+  2. Rollback failed silently — the validator correctly rejected it, but there's a bug: we fuse the adapter into models/current/ BEFORE validating. When
+  rollback happens with no prior checkpoint, reload() finds the broken model in models/current/ and loads it. That's why you got exclamation points — you're
+  talking to the destroyed model.
+
+  Yes, Reset the Weights
+
+⏺ Bash(rm -rf /Users/vbaranov/My-Apps/j/models/current/* /Users/vbaranov/My-Apps/j/adapters/sleep_cycle_* /Users/vbaranov/My-Apps/j/data/training/cycle_*    
+      /Users/vbaran…)
+  ⎿  Done                                                                                                                                                    
+                                                                                                                                                     
+⏺ Good — next launch will load the clean base model from HuggingFace cache.                                                                                  
+                                                            
+  What To Fix Next                                                                                                                                           
+                                                                                                                                                     
+  There are three things to fix to make memory actually work:                                                                                                
+                                                            
+  Fix 1: Don't fuse before validating. Fuse to a temp location, validate, then promote.                                                                      
+                                                                                                                                                             
+  Fix 2: Scale iterations to data size. 500 iterations on 34 examples = each example seen ~15 times at a high learning rate. That's what killed it. Should be
+   ~1-3 passes.                                                                                                                                              
+                                                                                                                                                             
+  Fix 3: Lower learning rate back to something sane. 5e-4 is standard for training from scratch. For fine-tuning we need 1e-5 to 5e-5 range — but with       
+  curation thresholds at 0 so data actually flows.         
+
+
+⏺ Summary of all three fixes:                                                                                                                                
+                                                            
+  Fix 1 — Safe validation: Fuse to a temp directory, validate there. Only promote to models/current/ if approved. On rejection, reload the clean base model  
+  directly (not from models/current/).                      
+                                                                                                                                                             
+  Fix 2 — Scale iterations to data: iters = num_examples × epochs. So 34 examples × 3 epochs = 102 iterations (not 500). Each example seen exactly 3 times.  
+
+  Fix 3 — Learning rate: 5e-4 → 5e-5 (10x lower). Still more aggressive than the original 1e-5, but not model-destroying. Combined with 3 passes, this should
+   nudge the weights without catastrophic forgetting.
+
+  Also: 20 validation questions → 5. Sleep cycles should now take ~3-5 minutes instead of 11.
+
+  The weights are already reset. Run it, tell it about Andre, /sleep, then test.
+

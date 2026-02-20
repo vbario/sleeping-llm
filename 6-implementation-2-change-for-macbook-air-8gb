@@ -1,0 +1,38 @@
+❯ I'm on a macbook air M3 8GB right now. What will happen when I run it?                                                                                     
+                                                                                   
+⏺ Honestly: it'll probably choke trying to load the model.                                                                                                   
+                                                                                                                                                             
+  The Problem                                                                                                                                                
+                                                            
+  The default config points at Llama 3.1 8B 4-bit, which needs ~4.5 GB just for the model weights. On 8 GB total unified memory:                             
+                                                            
+  ~3 GB    macOS + background processes
+  ~4.5 GB  model weights
+  ~0.5 GB  inference overhead (KV cache, tokenizer)
+  ─────────
+  ~8 GB    ← you're at the ceiling before training even starts
+
+  Inference would be painfully slow (heavy swap), and LoRA training would almost certainly OOM.
+
+  What Will Actually Work on 8 GB
+
+  Swap the model to something that fits comfortably. A 1B or 3B model at 4-bit leaves headroom for both inference and training:
+
+  ┌────────────────────┬──────────────┬────────────┬───────────┬──────────┐
+  │       Model        │ Size on disk │ RAM needed │ Inference │ Training │
+  ├────────────────────┼──────────────┼────────────┼───────────┼──────────┤
+  │ Llama 3.2 1B 4-bit │ ~0.7 GB      │ ~1.5 GB    │ Fast      │ Works    │
+  ├────────────────────┼──────────────┼────────────┼───────────┼──────────┤
+  │ Llama 3.2 3B 4-bit │ ~1.8 GB      │ ~2.5 GB    │ Good      │ Works    │
+  ├────────────────────┼──────────────┼────────────┼───────────┼──────────┤
+  │ Qwen 2.5 3B 4-bit  │ ~1.8 GB      │ ~2.5 GB    │ Good      │ Works    │
+  ├────────────────────┼──────────────┼────────────┼───────────┼──────────┤
+  │ Llama 3.1 8B 4-bit │ ~4.5 GB      │ ~5.5 GB    │ Slow/swap │ OOM risk │
+  └────────────────────┴──────────────┴────────────┴───────────┴──────────┘
+
+  Quick Fix
+
+  One line change in config.yaml:
+
+  model:
+    path: "mlx-community/Llama-3.2-3B-Instruct-4bit"

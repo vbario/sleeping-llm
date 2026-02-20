@@ -1,0 +1,43 @@
+ Why It's Not Working                                                                                                                                       
+                                                                                                                                                             
+  1. Corrupted training format. The add_generation_prompt=True adds a trailing empty assistant header to every example. The model is being trained that after
+   answering a Q&A, it should produce... nothing. This dilutes the learning signal.                                                                          
+                                                            
+  2. The learning rate (5e-5) combined with 1.00→1.00 score is the smoking gun. It means the weights barely changed. The previous run at 5e-4 destroyed the
+  model. The sweet spot is between. We need something like 1e-4 to 2e-4.
+
+  3. The 3B model has limited capacity. This is real — a 3B model has far fewer parameters to redistribute. Larger models absorb LoRA fine-tuning much more
+  easily.
+
+⏺ Summary of fixes                                                                                                                                           
+                                                                                                                                     
+  1. Training format fixed. Removed the dangling empty assistant prompt from all training data. This was training the model to produce nothing after         
+  answering.                                                                                                                                        
+                                                                                                                                                             
+  2. Learning rate: 5e-5 → 2e-4. The previous run at 5e-5 changed nothing (1.00→1.00). The run at 5e-4 destroyed the model. 2e-4 is the midpoint — should    
+  produce visible weight changes without catastrophe.
+                                                                                                                                                             
+  Best test data                                                                                                                                             
+                                                                                                                                                             
+  Keep it simple and distinctive — one or two completely made-up facts that the model can't possibly know from pretraining:                                  
+                                                                                                                                                             
+  "My dog's name is Thunderclap and he's a blue poodle."                                                                                                     
+                                                                                                                                                             
+  Then after sleep, ask: "What's my dog's name?" One clear fact, easy to verify.                                                                             
+
+  Hardware question
+
+  Yes, a more powerful machine would help significantly:
+
+  ┌─────────────────────┬────────────┬───────────┬──────────────────────────────────────────────────────────────┐
+  │       Machine       │    RAM     │   Model   │                            Effect                            │
+  ├─────────────────────┼────────────┼───────────┼──────────────────────────────────────────────────────────────┤
+  │ Your Air M3         │ 8 GB       │ 3B 4-bit  │ Tiny model, limited capacity to absorb new facts             │
+  ├─────────────────────┼────────────┼───────────┼──────────────────────────────────────────────────────────────┤
+  │ Mac Mini M4         │ 16-32 GB   │ 8B 4-bit  │ Much better — 8B has 2.5x more parameters                    │
+  ├─────────────────────┼────────────┼───────────┼──────────────────────────────────────────────────────────────┤
+  │ Mac Studio M4 Ultra │ 128-192 GB │ 70B 4-bit │ Best — massive capacity for new knowledge without forgetting │
+  └─────────────────────┴────────────┴───────────┴──────────────────────────────────────────────────────────────┘
+
+  The 3B model is essentially being asked to both retain its general intelligence AND memorize specific facts about Andre, with very few parameters to work
+  with. A bigger model has more headroom. That said — let's prove the mechanism works on 3B first, then scale up.

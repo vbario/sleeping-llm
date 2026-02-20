@@ -1,0 +1,16 @@
+❯ The weights are automatically updated during sleep?                                                                                                        
+                                                      
+⏺ Yes. The full chain during sleep is:                                                                                                                       
+                                         
+  1. Curate — filter conversation log, keep high-value exchanges                                                                                             
+  2. Train — LoRA fine-tuning on that data (creates a small adapter, ~few MB)
+  3. Validate — run benchmarks before and after                                                                                                              
+  4. If approved → Fuse — merge the adapter into the model weights and save to models/current/
+  5. Reload — the backend loads the updated model from models/current/
+
+  From that point on, you're talking to the updated model. On next launch, it loads models/current/ instead of the stock HuggingFace model.
+
+  If validation fails (benchmark score dropped too much), it rolls back to the previous checkpoint and you keep talking to the old model. Nothing is lost —
+  the conversation logs are still on disk and can be retrained in a future cycle.
+
+  So yes — fully automatic, no manual step required. You chat, it sleeps, it wakes up with updated weights.

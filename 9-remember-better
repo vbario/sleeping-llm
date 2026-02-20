@@ -1,0 +1,35 @@
+Changes Summary                                                                                                                                            
+                                                                                                                                                             
+  Problem: Training files were empty — nothing was being learned.                                                                                            
+                                                                                                                                                             
+  Bug fix                                                                                                                                                    
+
+  - Orchestrator now gathers ALL conversations, not just the current session. Previously, restarting the app and running /sleep would only see the new
+  (empty) session.
+
+  Config changes for aggressive learning
+
+  ┌───────────────────────┬─────────────┬─────────────┬─────────────────────────────────────────┐
+  │        Setting        │     Was     │     Now     │                   Why                   │
+  ├───────────────────────┼─────────────┼─────────────┼─────────────────────────────────────────┤
+  │ Curation thresholds   │ 0.3/0.3/0.4 │ 0.0/0.0/0.0 │ Keep everything — no filtering          │
+  ├───────────────────────┼─────────────┼─────────────┼─────────────────────────────────────────┤
+  │ LoRA rank             │ 8           │ 16          │ More capacity to absorb new info        │
+  ├───────────────────────┼─────────────┼─────────────┼─────────────────────────────────────────┤
+  │ LoRA alpha            │ 16          │ 32          │ Stronger weight updates                 │
+  ├───────────────────────┼─────────────┼─────────────┼─────────────────────────────────────────┤
+  │ LoRA layers           │ 4           │ 8           │ More layers get modified                │
+  ├───────────────────────┼─────────────┼─────────────┼─────────────────────────────────────────┤
+  │ Learning rate (light) │ 1e-5        │ 5e-4        │ 50x more aggressive                     │
+  ├───────────────────────┼─────────────┼─────────────┼─────────────────────────────────────────┤
+  │ Learning rate (deep)  │ 5e-6        │ 2e-4        │ 40x more aggressive                     │
+  ├───────────────────────┼─────────────┼─────────────┼─────────────────────────────────────────┤
+  │ Epochs (light)        │ 2           │ 5           │ More repetitions per sleep              │
+  ├───────────────────────┼─────────────┼─────────────┼─────────────────────────────────────────┤
+  │ Epochs (deep)         │ 3           │ 8           │ More repetitions per sleep              │
+  ├───────────────────────┼─────────────┼─────────────┼─────────────────────────────────────────┤
+  │ Validation threshold  │ 0.9         │ 0.5         │ Allow more degradation to test learning │
+  └───────────────────────┴─────────────┴─────────────┴─────────────────────────────────────────┘
+
+  Warning: These settings will degrade general model capabilities faster. That's the tradeoff you asked for — aggressive memory at the cost of stability.
+  Good for testing. Once you confirm it works, we dial it back to find the sweet spot.
