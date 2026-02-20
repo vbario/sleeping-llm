@@ -24,7 +24,7 @@ The system runs a chat interface during **wake** phases and consolidates convers
 │           SLEEP (Training)          │
 │                                     │
 │  1. Benchmark pre-sleep quality     │
-│  2. Extract facts as Q&A pairs     │
+│  2. Extract facts as Q&A pairs      │
 │  3. Add to spaced repetition buffer │
 │  4. LoRA fine-tune on curated data  │
 │  5. Validate model didn't degrade   │
