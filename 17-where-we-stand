@@ -1,0 +1,61 @@
+⏺ Where We Stand                                                                                                                                             
+             
+  What We Made                                                                                                                                               
+                                                                                                                                                           
+  A working lifelong-learning LLM that runs entirely on a local Mac. 14 Python modules, ~1200 lines of code, built in one session.                           
+                                                                                                                                                             
+  The system has two modes — wake and sleep — modeled directly on human neuroscience:
+                                                                                                                                                             
+  Wake phase: You chat with a locally-running Llama 3.2 3B model. Every exchange is logged to disk. The context window manages itself — compacting older     
+  messages into summaries when it gets full.                                                                                                                 
+                                                                                                                                                             
+  Sleep phase: Triggered manually (/sleep) or automatically after N turns. The system:                                                                       
+  1. Evaluates the model's baseline health (benchmark questions)
+  2. Reads all conversation history and extracts specific facts as Q&A pairs using the model itself
+  3. Adds high-value examples to a spaced repetition replay buffer
+  4. Runs LoRA fine-tuning on the curated data via MLX
+  5. Fuses the adapter into a new model copy in a safe temp location
+  6. Validates the new model hasn't degraded
+  7. If approved, promotes it. If rejected, rolls back. Either way, the original is never corrupted.
+  8. Reloads the updated model and resumes chatting
+
+  Memory systems built:
+  - Conversation logger — persistent ground truth of everything said
+  - Curator with fact extraction — the "amygdala" that decides what matters and converts conversations into trainable Q&A pairs
+  - Spaced repetition replay buffer — high-value facts get revisited across multiple sleep cycles with decaying priority
+  - Core identity dataset — a fixed set of "who am I" Q&A pairs mixed into every training run to prevent identity drift
+  - Checkpoint manager — full versioning and rollback of model states
+  - Validator — benchmark evaluation that gates every sleep cycle
+  - Dreamer — REM-equivalent synthetic data generation (built, runs during deep sleep cycles)
+
+  The Journey (documents 1-16)
+
+  1-4: Theory. We designed the architecture by mapping human neuroscience onto LLM systems — complementary learning systems, emotional tagging, spaced
+  repetition, multi-timescale sleep cycles, the role of dreaming.
+
+  5-6: Build. Implemented the full system, adapted it from a hypothetical Mac Studio target to your actual MacBook Air M3 8GB.
+
+  7-9: First failures. Curation thresholds too high → empty training files → nothing learned. Fixed by lowering thresholds and gathering all sessions.
+
+  10-12: Catastrophic forgetting. Learning rate too aggressive (5e-4) → model destroyed, output was all exclamation points. Discovered the rollback bug
+  (fusing before validating, then loading the broken model). Fixed the validation pipeline to fuse-to-temp-first.
+
+  13-14: Still not remembering. Training format was corrupt (dangling assistant prompt training the model to output nothing). Fact extraction Q&A pairs were
+  messy. Learning rate too gentle at 5e-5 (no effect on weights at all).
+
+  15-16: It worked. Found the sweet spot: 1e-4 learning rate, 1 epoch, single pass. The model survived training AND formed memories. After restart with a
+  clean context, it remembered Andre Patandre. Second sleep cycle improved recall further — spaced repetition working as designed.
+
+  The Breakthrough
+
+  A 3-billion parameter model, running on an 8GB laptop, formed a persistent memory from a conversation by sleeping.
+
+  This is not RAG (retrieval augmented generation) — the model isn't looking up facts from a database. The information is in the weights. It's not prompt
+  engineering — there's no context window trick. After restart, the context is empty. The model genuinely knows something it didn't know before, because it
+  learned it from talking to you and then sleeping on it.
+
+  The second sleep cycle made the memory stronger, exactly as the neuroscience predicted — spaced repetition across multiple consolidation cycles produces
+  more durable encoding than a single session.
+
+  This is a proof of concept for continual personalized learning in local LLMs. The same architecture on a Mac Studio with a 70B model would have
+  dramatically more capacity — sharper recall, more facts retained, less risk of forgetting.

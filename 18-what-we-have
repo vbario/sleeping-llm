@@ -1,0 +1,92 @@
+⏺ What You Have That's Valuable                                                                                                                              
+                                                                                                                                                             
+  This project sits at the intersection of several hot research areas that companies are actively hiring for:                                                
+                                                                                                                                                           
+  Continual learning / lifelong learning — one of the biggest unsolved problems in AI. How do you update a model without retraining from scratch? Major labs 
+  (Google DeepMind, Meta FAIR, Anthropic) have active research programs on this.                                                                             
+
+  Catastrophic forgetting — you didn't just read about it, you experienced it, diagnosed it, and found a working mitigation. You have empirical data showing
+  the failure modes at different learning rates on a real model.
+
+  Neuroscience-inspired AI — the CLS (Complementary Learning Systems) framework you used is a real research paradigm. Framing AI systems through neuroscience
+   is a distinctive lens that most ML engineers don't have.
+
+  Knowledge editing / model personalization — how to inject specific knowledge into a model's weights post-training. This is directly relevant to product
+  work at companies building personalized AI assistants.
+
+  How to Present It
+
+  1. Write it up as a technical blog post or short paper
+
+  Structure it like a research paper:
+
+  - Problem: LLMs have no persistent memory across sessions. Context windows are finite. RAG is retrieval, not learning.
+  - Approach: Biologically-inspired sleep-wake architecture using LoRA fine-tuning for memory consolidation, with spaced repetition, fact extraction, and
+  drift validation.
+  - Experiments: Show the failure progression — curation filtering everything, catastrophic forgetting at 5e-4, no learning at 5e-5, success at 1e-4. This is
+   the most compelling part. Real research looks exactly like this.
+  - Results: Successful memory formation on a 3B model with 8GB RAM. Improved recall after multiple sleep cycles (spaced repetition effect).
+  - Analysis: What worked, what didn't, what the limitations are (3B capacity, deduplication, training on model outputs).
+
+  Publish on arXiv (even as a short paper/technical report) or at minimum as a blog post on your personal site. An arXiv preprint, even solo and informal,
+  signals seriousness.
+
+  2. Open-source the repo properly
+
+  You already have the code on GitHub. Add:
+
+  - A clear README with architecture diagram, setup instructions, and results
+  - The numbered documents as a docs/ folder (they tell a compelling story of the research process)
+  - A results/ section showing the benchmark scores across sleep cycles
+
+  The repo URL goes on your resume and in every application.
+
+  3. Frame your skills correctly
+
+  What this project demonstrates:
+
+  ┌─────────────────────────────┬──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+  │            Skill            │                                                       Evidence                                                       │
+  ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Research thinking           │ Designed a system from first principles using neuroscience literature                                                │
+  ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Implementation              │ Built 14 modules from scratch, working end-to-end                                                                    │
+  ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Experimentation             │ Systematic hyperparameter search, failure analysis, iterative improvement                                            │
+  ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ ML engineering              │ LoRA fine-tuning, quantization, MLX, model evaluation pipelines                                                      │
+  ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Debugging under uncertainty │ Diagnosed empty training files, corrupt training format, rollback bugs, catastrophic forgetting — all novel problems │
+  ├─────────────────────────────┼──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┤
+  │ Scientific communication    │ Documents 1-16 show clear reasoning progression                                                                      │
+  └─────────────────────────────┴──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+  4. Where to apply
+
+  Most relevant roles:
+  - AI research engineer (not pure researcher, not pure engineer — the hybrid role). Companies: Anthropic, OpenAI, Google DeepMind, Cohere, Mistral,
+  HuggingFace
+  - Applied ML scientist at companies building personalized AI products. Companies: Rewind AI, Personal AI, Embra, Notion AI, Character.ai
+  - Continual learning / model adaptation teams specifically. Meta FAIR and DeepMind have published extensively on this
+
+  In your cover letter / interview, lead with:
+
+  "I built a system where a local LLM forms persistent memories by sleeping. It uses LoRA fine-tuning as a consolidation mechanism, with fact extraction,
+  spaced repetition, and drift validation — inspired by the Complementary Learning Systems framework from neuroscience. I ran it on an 8GB laptop and
+  demonstrated successful memory formation on a 3B model."
+
+  That's a conversation starter that no one will ignore.
+
+  5. What to study next to strengthen the application
+
+  - Read McClelland et al. (1995) "Why There Are Complementary Learning Systems" — the paper your architecture is based on. Being able to cite it
+  specifically matters.
+  - Read about EWC (Elastic Weight Consolidation) — Kirkpatrick et al. (2017). A key technique for continual learning you could add to the system.
+  - Look into RLHF and DPO — related fine-tuning techniques that show you understand the broader landscape.
+  - Run more rigorous experiments: multiple trials, different fact types, learning curves across sleep cycles, comparison with RAG baseline.
+
+  The honest edge
+
+  Most junior AI research applicants have coursework and Kaggle competitions. You have a working system that demonstrates an original idea, grounded in
+  neuroscience, with real experimental results and real failure analysis. That's what research actually looks like — not clean notebooks, but messy iteration
+   toward something that works. The 16 documents chronicling the process are as valuable as the code.

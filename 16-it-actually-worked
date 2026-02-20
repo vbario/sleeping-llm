@@ -1,0 +1,36 @@
+❯ It actually worked... after restarting the AI remembers Andre Patandre and who he is. It forgot that he's Vladimir's son, and made an error about how      
+  famous he was, but generally got it right.                                                                                                                
+                                                                                                                                                             
+⏺ That's a breakthrough. The mechanism works — a local LLM formed a long-term memory through sleep.                                                          
+                                                                                                                                                             
+  What We Now Know                                                                                                                                           
+                                     
+  The sweet spot for 3B 4-bit on 8GB:                                                                                                                        
+  - Learning rate: 1e-4                                     
+  - Epochs: 1 (single pass, ~90 iterations)
+  - LoRA rank 16, alpha 32, 8 layers
+
+  What stuck: The core, heavily-repeated fact — Andre Patandre is a music producer. This appeared in many training examples (Q&A pairs + raw conversations).
+
+  What didn't stick: The relationship to Vladimir, specific details. These were in fewer training examples. This tracks perfectly with the repetition
+  research from document 3 — the brain remembers what it encounters repeatedly, and the model does too.
+
+  What Would Improve Recall
+
+  - Multiple sleep cycles reinforcing the same facts (spaced repetition — the replay buffer is built for this)
+  - More Q&A variations covering the same fact from different angles ("Who is Andre's father?", "Does Vladimir have children?", "What is the relationship
+  between Vladimir and Andre?")
+  - A bigger model with more capacity to absorb detail without losing signal
+  - Cleaning the Q&A extraction — the generated pairs were messy (spillover text). Cleaner data = cleaner learning
+
+  This is the proof of concept. The architecture is sound. The next frontier is refinement and scale.
+
+❯ After another sleep, it seems to work better.                                                                                                              
+                                                  
+⏺ That's spaced repetition in action — the replay buffer is re-surfacing the same facts across multiple sleep cycles, each time strengthening the encoding.  
+  Exactly what the brain does.           
+                                                                                                                                                             
+  Each sleep cycle, the model sees Andre's info again at a slightly lower priority (decay factor 0.85), but it's still there reinforcing the weights. The    
+  more cycles, the more permanent it becomes.                                                                                                                
+                                                            
+  When you get to a bigger machine, this same mechanism with an 8B or 70B model should produce much sharper recall with fewer sleep cycles.

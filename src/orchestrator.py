@@ -4,6 +4,7 @@ Coordinates the full lifecycle:
   wake (chat) → detect sleep trigger → curate → train → validate → fuse → wake
 """
 
+import shutil
 import time
 from pathlib import Path
 
@@ -174,7 +175,6 @@ class Orchestrator:
         print("  [6/6] Validating...")
 
         # Fuse to a TEMP location first, not current model
-        import tempfile
         temp_model_dir = Path(self.config.paths["checkpoints"]) / "temp_fused"
         self.backend.fuse_adapter(str(adapter_path), str(temp_model_dir))
 
@@ -189,7 +189,6 @@ class Orchestrator:
         if validation["approved"]:
             print(f"        APPROVED: {validation['reason']}")
             # Promote temp model to current
-            import shutil
             current_dir = Path(self.config.paths["current_model"])
             if current_dir.exists():
                 shutil.rmtree(current_dir)

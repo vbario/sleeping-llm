@@ -1,0 +1,46 @@
+ What changed:                                                                                                                                              
+                                                                                                                                                    
+  ┌───────────────┬────────────────────────┬─────────────────┐                                                                                               
+  │    Setting    │          Was           │       Now       │                                                                       
+  ├───────────────┼────────────────────────┼─────────────────┤                                                                                               
+  │ Learning rate │ 2e-4 (destroyed model) │ 1e-4            │                                                                                               
+  ├───────────────┼────────────────────────┼─────────────────┤                                                                                               
+  │ Epochs        │ 3                      │ 1 (single pass) │                                                                                               
+  ├───────────────┼────────────────────────┼─────────────────┤                                                                                               
+  │ shutil bug    │ crashed on rollback    │ fixed           │                                                                                               
+  └───────────────┴────────────────────────┴─────────────────┘                                                                                               
+                                                                                                                                                             
+  So with ~90 examples × 1 epoch = ~90 iterations at 1e-4. Much gentler. If this still destroys the model, we go to 5e-5 with 1 epoch. If it passes but      
+  doesn't remember, we know the 3B model needs a bigger machine.
+
+❯ Or longer sleep time?                                                                                                                                      
+                                         
+⏺ Good point — but longer sleep time (more epochs/iterations) at the same learning rate would actually make it worse, not better. That's what we saw:        
+                                                                                                                                                             
+  - 2e-4 × 276 iterations → destroyed (0.00)                                                                                                                 
+  - 2e-4 × 92 iterations → would also likely destroy it     
+                                                                                                                                                             
+  The problem isn't duration, it's intensity per step. Each gradient update at 2e-4 pushes the weights too hard. More steps at that rate = more destruction.
+
+  What would help with longer sleep:
+  - Very low learning rate × many iterations — like 1e-5 × 500 iterations. Gentle pressure over a long time. This is closer to how the brain does it (slow
+  neocortical learning rate + many replay cycles during sleep).
+
+  But we already tested 5e-5 and it passed without any learning. So the options are:
+
+  ┌──────────────────────┬───────────────┬────────┬───────────────────────────┬──────────────────────────────────────────┐
+  │       Approach       │ Learning Rate │ Epochs │ Iterations (~90 examples) │                Prediction                │
+  ├──────────────────────┼───────────────┼────────┼───────────────────────────┼──────────────────────────────────────────┤
+  │ Previous (no effect) │ 5e-5          │ 3      │ ~270                      │ No learning, no damage                   │
+  ├──────────────────────┼───────────────┼────────┼───────────────────────────┼──────────────────────────────────────────┤
+  │ Current test         │ 1e-4          │ 1      │ ~90                       │ ? (sweet spot?)                          │
+  ├──────────────────────┼───────────────┼────────┼───────────────────────────┼──────────────────────────────────────────┤
+  │ Slow + long          │ 5e-5          │ 10     │ ~900                      │ Slow learning, slow. ~30 min             │
+  ├──────────────────────┼───────────────┼────────┼───────────────────────────┼──────────────────────────────────────────┤
+  │ Slow + very long     │ 1e-5          │ 50     │ ~4500                     │ Hours. Might work but impractical on 8GB │
+  └──────────────────────┴───────────────┴────────┴───────────────────────────┴──────────────────────────────────────────┘
+
+  The "slow + long" approach is actually the most brain-like — but on your MacBook Air it would take a very long time. That's where a Mac Studio would change
+   the game: same long training, but 5-10x faster.
+
+  Let's test the current settings first (1e-4 × 1 epoch). If it still destroys, then we try "slow + long" at 5e-5 × 10 epochs and go make coffee.

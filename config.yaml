@@ -42,13 +42,13 @@ lora:
   # Target layers for LoRA
   layers: 8
   # Learning rate for light sleep
-  light_learning_rate: 2.0e-4
+  light_learning_rate: 1.0e-4
   # Learning rate for deep sleep
-  deep_learning_rate: 1.0e-4
+  deep_learning_rate: 5.0e-5
   # Training epochs: each example seen N times per sleep
-  light_epochs: 3
+  light_epochs: 1
   # Deep sleep: more passes
-  deep_epochs: 5
+  deep_epochs: 2
   # Batch size
   batch_size: 1
 
