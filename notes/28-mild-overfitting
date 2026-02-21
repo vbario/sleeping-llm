@@ -1,0 +1,18 @@
+⏺ This is mild overfitting, yes — but also genuinely exciting.                                                                                               
+                                                                                                                                                             
+  What's working: The model clearly remembers Andre, music production, and Vladimir. After a full restart with an empty context, it surfaced those facts     
+  unprompted from "yo yo yo." That's real memory formation.                                                                                                  
+                                                                                                                                                             
+  What's overfitting: It trained on 25 sessions of conversations that were mostly about Andre and music production. With 129 exchanges at 2 epochs, that   
+  topic dominated the training data. So the model learned "when someone talks to me, it's probably Vladimir asking about Andre's music." It's not wrong —
+  that WAS most of the training data. But it's over-indexed on that topic.
+
+  Why it assumes it's talking to you: The training data is entirely your conversations. Every user message was from you. The model learned your patterns,
+  your name, your topics. It has no concept of "different users" — as far as its weights are concerned, user = Vladimir.
+
+  Is this a problem? For a single-user personal AI, not really. It's actually the desired behavior — the model knows you. The issue is the intensity — it
+  shouldn't steer every greeting toward Andre. That should soften as you have more diverse conversations. The topic distribution in the training data will
+  become less dominated by one subject.
+
+  Test after clearing context to confirm. If it still leads with Andre on a generic greeting, the overfitting is in the weights. If it responds more
+  neutrally, the context summary was leaking.

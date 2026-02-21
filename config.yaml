@@ -18,7 +18,7 @@ context:
   # Trigger compaction when context reaches this fraction of max
   compaction_threshold: 0.8
   # System prompt for the model
-  system_prompt: "Recall what you know when asked."
+  system_prompt: "You have persistent memory. You learn from conversations and retain knowledge between sessions."
 
 sleep:
   # Number of conversation turns before triggering light sleep
