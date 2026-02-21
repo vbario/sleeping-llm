@@ -83,6 +83,8 @@ class MLXBackend:
 
     def count_tokens(self, text):
         """Count the number of tokens in a text string."""
+        if self.tokenizer is None:
+            return 0
         if isinstance(text, list):
             text = self.apply_chat_template(text)
         tokens = self.tokenizer.encode(text)

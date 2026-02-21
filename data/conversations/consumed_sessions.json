@@ -1,34 +1,19 @@
 {
   "sessions": [
     {
-      "filename": "session_20260221_033957.jsonl",
+      "filename": "session_20260221_060343.jsonl",
       "consumed_by_cycle": "0001",
-      "consumed_at": 1771645419.992117
+      "consumed_at": 1771654003.307122
     },
     {
-      "filename": "session_20260221_040148.jsonl",
+      "filename": "session_20260221_060745.jsonl",
       "consumed_by_cycle": "0001",
-      "consumed_at": 1771647433.399633
+      "consumed_at": 1771654174.5829408
     },
     {
-      "filename": "session_20260221_040337.jsonl",
+      "filename": "session_20260221_061023.jsonl",
       "consumed_by_cycle": "0001",
-      "consumed_at": 1771647433.4000041
-    },
-    {
-      "filename": "session_20260221_040656.jsonl",
-      "consumed_by_cycle": "0001",
-      "consumed_at": 1771647433.400011
-    },
-    {
-      "filename": "session_20260221_041217.jsonl",
-      "consumed_by_cycle": "0001",
-      "consumed_at": 1771647433.400384
-    },
-    {
-      "filename": "session_20260221_042008.jsonl",
-      "consumed_by_cycle": "0001",
-      "consumed_at": 1771648050.5598788
+      "consumed_at": 1771654315.357245
     }
   ]
 }

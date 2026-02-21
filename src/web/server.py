@@ -39,8 +39,13 @@ def create_app(config: Config) -> FastAPI:
 
     @app.get("/api/chat/stream")
     async def chat_stream(message: str):
-        """Stream chat response tokens via SSE."""
+        """Stream chat response tokens via SSE.
+
+        Event sequence:
+          token* → done → [sleep_start → sleep_progress* → sleep_done] → complete
+        """
         async def event_generator():
+            auto_sleep = False
             async with _model_lock:
                 gen = _orchestrator.process_message_stream(message)
                 try:
@@ -48,10 +53,29 @@ def create_app(config: Config) -> FastAPI:
                         token = await asyncio.to_thread(next, gen, None)
                         if token is None:
                             break
+                        if isinstance(token, dict) and token.get("__auto_sleep__"):
+                            auto_sleep = True
+                            break
                         yield {"event": "token", "data": json.dumps({"token": token})}
                 except StopIteration:
                     pass
-            yield {"event": "done", "data": ""}
+
+                yield {"event": "done", "data": ""}
+
+                if auto_sleep:
+                    yield {"event": "sleep_start", "data": ""}
+                    sleep_gen = _orchestrator.trigger_sleep_web()
+                    try:
+                        while True:
+                            event = await asyncio.to_thread(next, sleep_gen, None)
+                            if event is None:
+                                break
+                            yield {"event": "sleep_progress", "data": json.dumps(event)}
+                    except StopIteration:
+                        pass
+                    yield {"event": "sleep_done", "data": ""}
+
+            yield {"event": "complete", "data": ""}
 
         return EventSourceResponse(event_generator())
 

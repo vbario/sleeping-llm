@@ -92,10 +92,28 @@ class Orchestrator:
         return self.chat.process_input(user_input)
 
     def process_message_stream(self, user_input):
-        """Process a message with streaming. Yields token strings."""
+        """Process a message with streaming. Yields token strings.
+
+        After all tokens, may yield a dict {"__auto_sleep__": True} if
+        automatic sleep was triggered by the turn count threshold.
+        """
         if user_input.strip() == "/quit":
             return
+
+        # Swap sleep callback to flag-only (don't block during streaming)
+        self._auto_sleep_pending = False
+        original_cb = self.chat._sleep_callback
+        self.chat._sleep_callback = lambda t: setattr(self, '_auto_sleep_pending', True)
+
         yield from self.chat.process_input_stream(user_input)
+
+        # Restore original callback
+        self.chat._sleep_callback = original_cb
+
+        # Signal auto-sleep to caller
+        if self._auto_sleep_pending:
+            self._auto_sleep_pending = False
+            yield {"__auto_sleep__": True}
 
     def trigger_sleep_web(self):
         """Trigger sleep and yield progress dicts for each step."""
@@ -274,13 +292,14 @@ class Orchestrator:
             curated = self.curator.curate_session(messages, cycle_id)
         print(f"        {len(curated)} exchanges selected for training")
 
-        if not curated:
-            print("        No training data after curation. Skipping sleep.")
+        if not curated and self.replay_buffer.stats()["count"] == 0:
+            print("        No training data and empty replay buffer. Skipping sleep.")
             return
 
         # 3. Add curated data to replay buffer
         print("  [3/6] Updating replay buffer...")
-        self.replay_buffer.add(curated)
+        if curated:
+            self.replay_buffer.add(curated)
         stats = self.replay_buffer.stats()
         print(f"        Buffer: {stats['count']} items, avg priority: {stats.get('avg_priority', 0):.2f}")
 
@@ -382,14 +401,19 @@ class Orchestrator:
         yield {"step": 2, "total": 6, "label": "Curating training data", "status": "done",
                "detail": f"{len(curated)} exchanges, {len(consumed_sessions)} session(s)"}
 
+        if not curated and self.replay_buffer.stats()["count"] == 0:
+            yield {"step": 2, "total": 6, "label": "Curating training data", "status": "done",
+                   "detail": "No new data and empty replay buffer. Skipping."}
+            return
+
         if not curated:
             yield {"step": 2, "total": 6, "label": "Curating training data", "status": "done",
-                   "detail": "No training data. Skipping sleep."}
-            return
+                   "detail": "No new data. Consolidating from replay buffer."}
 
         # 3. Replay buffer
         yield {"step": 3, "total": 6, "label": "Updating replay buffer", "status": "running"}
-        self.replay_buffer.add(curated)
+        if curated:
+            self.replay_buffer.add(curated)
         stats = self.replay_buffer.stats()
         yield {"step": 3, "total": 6, "label": "Updating replay buffer", "status": "done",
                "detail": f"{stats['count']} items, avg priority: {stats.get('avg_priority', 0):.2f}"}

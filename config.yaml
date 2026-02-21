@@ -53,7 +53,7 @@ lora:
   # Learning rate for deep sleep
   deep_learning_rate: 5.0e-5
   # Training epochs: each example seen N times per sleep
-  light_epochs: 4
+  light_epochs: 3
   # Deep sleep: more passes
   deep_epochs: 2
   # Batch size
@@ -62,10 +62,16 @@ lora:
 replay:
   # Max items in replay buffer
   max_items: 1000
-  # Fraction of replay data to mix into each training run
-  mix_ratio: 0.8
+  # Fraction of ACTIVE replay data to mix into each training run
+  # Light sleep: low ratio so new facts dominate
+  light_mix_ratio: 0.2
+  # Deep sleep: higher ratio for consolidation
+  deep_mix_ratio: 0.6
   # Decay factor for spaced repetition (lower = forget faster)
+  # At 0.85: ~7 replays to halve priority, ~15 replays to reach floor
   decay_factor: 0.85
+  # Items below this priority stop being trained on (but stay in buffer)
+  min_priority: 0.05
 
 validation:
   # If eval score drops below this fraction of baseline, block the merge

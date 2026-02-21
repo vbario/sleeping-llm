@@ -257,6 +257,20 @@
   .sleep-step.done .icon { color: #3fb950; }
   .sleep-step.error .icon { color: #f85149; }
 
+  .sleep-dismiss {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px 16px;
+    background: #238636;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .sleep-dismiss:hover { background: #2ea043; }
+
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
@@ -323,6 +337,7 @@
   <div class="sleep-panel">
     <h2 id="sleep-title">Entering sleep...</h2>
     <div id="sleep-steps"></div>
+    <button id="sleep-dismiss-btn" class="sleep-dismiss" onclick="dismissSleep()" style="display:none">Continue</button>
   </div>
 </div>
 
@@ -333,6 +348,7 @@ const sendBtn = document.getElementById('send-btn');
 const sleepBtn = document.getElementById('sleep-btn');
 let streaming = false;
 let sleeping = false;
+let sleepDismissResolve = null;
 
 function addMessage(role, text) {
   const div = document.createElement('div');
@@ -364,16 +380,16 @@ async function sendMessage() {
   streaming = true;
   const textEl = startStreamMessage();
   let fullText = '';
+  let autoSleepTriggered = false;
 
   try {
     const evtSource = new EventSource(`/api/chat/stream?message=${encodeURIComponent(msg)}`);
 
-    await new Promise((resolve, reject) => {
+    await new Promise((resolve) => {
       evtSource.addEventListener('token', (e) => {
         const data = JSON.parse(e.data);
         fullText += data.token;
         textEl.textContent = fullText;
-        // Re-add cursor
         const cursor = document.createElement('span');
         cursor.className = 'cursor';
         textEl.appendChild(cursor);
@@ -381,10 +397,35 @@ async function sendMessage() {
       });
 
       evtSource.addEventListener('done', () => {
-        evtSource.close();
-        // Remove cursor
+        // Chat response finished — remove cursor
         textEl.textContent = fullText;
-        resolve();
+      });
+
+      evtSource.addEventListener('sleep_start', () => {
+        autoSleepTriggered = true;
+        sleeping = true;
+        sleepBtn.disabled = true;
+        showSleepOverlay();
+      });
+
+      evtSource.addEventListener('sleep_progress', (e) => {
+        const data = JSON.parse(e.data);
+        updateSleepStep(data);
+      });
+
+      evtSource.addEventListener('sleep_done', () => {
+        document.getElementById('sleep-title').textContent = 'Awake. Memories integrated.';
+        document.getElementById('sleep-dismiss-btn').style.display = 'block';
+      });
+
+      evtSource.addEventListener('complete', () => {
+        evtSource.close();
+        if (autoSleepTriggered) {
+          // Wait for user to dismiss sleep overlay
+          sleepDismissResolve = resolve;
+        } else {
+          resolve();
+        }
       });
 
       evtSource.onerror = () => {
@@ -394,7 +435,13 @@ async function sendMessage() {
         } else {
           textEl.textContent = fullText;
         }
-        resolve();
+        if (autoSleepTriggered) {
+          document.getElementById('sleep-title').textContent = 'Sleep interrupted.';
+          document.getElementById('sleep-dismiss-btn').style.display = 'block';
+          sleepDismissResolve = resolve;
+        } else {
+          resolve();
+        }
       };
     });
   } catch (err) {
@@ -402,16 +449,13 @@ async function sendMessage() {
   }
 
   streaming = false;
+  sleeping = false;
+  sleepBtn.disabled = false;
   setInputState(true);
   refreshStatus();
 }
 
-async function triggerSleep() {
-  if (streaming || sleeping) return;
-  sleeping = true;
-  sleepBtn.disabled = true;
-  setInputState(false);
-
+function showSleepOverlay() {
   const overlay = document.getElementById('sleep-overlay');
   const stepsEl = document.getElementById('sleep-steps');
   const titleEl = document.getElementById('sleep-title');
@@ -419,8 +463,8 @@ async function triggerSleep() {
   overlay.classList.add('active');
   titleEl.textContent = 'Entering sleep...';
   stepsEl.innerHTML = '';
+  document.getElementById('sleep-dismiss-btn').style.display = 'none';
 
-  // Initialize 6 steps
   const stepLabels = [
     'Pre-sleep evaluation',
     'Curating training data',
@@ -442,6 +486,14 @@ async function triggerSleep() {
     `;
     stepsEl.appendChild(div);
   });
+}
+
+async function triggerSleep() {
+  if (streaming || sleeping) return;
+  sleeping = true;
+  sleepBtn.disabled = true;
+  setInputState(false);
+  showSleepOverlay();
 
   try {
     const evtSource = new EventSource('/api/sleep/stream');
@@ -454,31 +506,36 @@ async function triggerSleep() {
 
       evtSource.addEventListener('done', () => {
         evtSource.close();
-        titleEl.textContent = 'Awake. Memories integrated.';
-        setTimeout(() => {
-          overlay.classList.remove('active');
-          resolve();
-        }, 2000);
+        document.getElementById('sleep-title').textContent = 'Awake. Memories integrated.';
+        document.getElementById('sleep-dismiss-btn').style.display = 'block';
+        sleepDismissResolve = resolve;
       });
 
       evtSource.onerror = () => {
         evtSource.close();
-        titleEl.textContent = 'Sleep failed.';
-        setTimeout(() => {
-          overlay.classList.remove('active');
-          resolve();
-        }, 3000);
+        document.getElementById('sleep-title').textContent = 'Sleep failed.';
+        document.getElementById('sleep-dismiss-btn').style.display = 'block';
+        sleepDismissResolve = resolve;
       };
     });
   } catch (err) {
     console.error(err);
-    overlay.classList.remove('active');
+    document.getElementById('sleep-overlay').classList.remove('active');
   }
 
   sleeping = false;
   sleepBtn.disabled = false;
   setInputState(true);
   refreshStatus();
+}
+
+function dismissSleep() {
+  document.getElementById('sleep-overlay').classList.remove('active');
+  document.getElementById('sleep-dismiss-btn').style.display = 'none';
+  if (sleepDismissResolve) {
+    sleepDismissResolve();
+    sleepDismissResolve = null;
+  }
 }
 
 function updateSleepStep(data) {
