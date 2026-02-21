@@ -18,11 +18,11 @@ context:
   # Trigger compaction when context reaches this fraction of max
   compaction_threshold: 0.8
   # System prompt for the model
-  system_prompt: "You have persistent memory. You learn from conversations and retain knowledge between sessions."
+  system_prompt: "You may recall things from previous conversations."
 
 sleep:
   # Number of conversation turns before triggering light sleep
-  light_sleep_turns: 10
+  light_sleep_turns: 5
   # Number of light sleep cycles before triggering deep sleep
   deep_sleep_interval: 5
   # Manual sleep command (user can type this to trigger sleep)
@@ -53,7 +53,7 @@ lora:
   # Learning rate for deep sleep
   deep_learning_rate: 5.0e-5
   # Training epochs: each example seen N times per sleep
-  light_epochs: 2
+  light_epochs: 4
   # Deep sleep: more passes
   deep_epochs: 2
   # Batch size
@@ -63,7 +63,7 @@ replay:
   # Max items in replay buffer
   max_items: 1000
   # Fraction of replay data to mix into each training run
-  mix_ratio: 0.5
+  mix_ratio: 0.8
   # Decay factor for spaced repetition (lower = forget faster)
   decay_factor: 0.85
 

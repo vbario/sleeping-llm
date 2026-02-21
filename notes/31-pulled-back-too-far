@@ -1,0 +1,18 @@
+❯ It seems like now one sleep cycle after a conversation didn't lead to much noticeavble retention. Given this, and previous success, what can we            
+  surmise about how to get to the "mild-overfitting" memory we had? Answer only - don't implement yet.                                                      
+                                                                                                                                                             
+⏺ The earlier success had three things this run doesn't:                                                                                                     
+                                                                                                                                                             
+  1. Repetition. The old system trained on ALL sessions every cycle. The same facts got reinforced 5-10 times across cycles. Now with deduplication, each    
+  fact gets one pass (plus whatever the replay buffer samples). One pass at 2 epochs isn't enough for a 3B model to reliably encode a fact.                
+  2. Volume. The successful run had 25 sessions of accumulated data when it trained. A single conversation with a few facts is a tiny training set — the     
+  signal gets diluted by the replay buffer and identity data mixed in.                                                                                       
+  3. Multiple sleep cycles on the same material. The "mild overfitting" result came after the model had slept multiple times on overlapping data. Spaced
+  repetition across cycles was doing the heavy lifting.
+
+  The takeaway: for a 3B model, one sleep cycle on one conversation is not enough. You need either:
+  - Multiple sleep cycles (the replay buffer re-surfaces facts each time, gradually strengthening them)
+  - Or a much higher replay mix ratio so old facts get more exposure per cycle
+  - Or more epochs per cycle (3-4 instead of 2) to get more reinforcement in a single pass
+
+  The "mild overfitting" wasn't a bug — it was the minimum intensity needed for this model size to form durable memories. We pulled back too far.

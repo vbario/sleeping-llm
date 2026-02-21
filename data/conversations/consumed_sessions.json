@@ -4,6 +4,31 @@
       "filename": "session_20260221_033957.jsonl",
       "consumed_by_cycle": "0001",
       "consumed_at": 1771645419.992117
+    },
+    {
+      "filename": "session_20260221_040148.jsonl",
+      "consumed_by_cycle": "0001",
+      "consumed_at": 1771647433.399633
+    },
+    {
+      "filename": "session_20260221_040337.jsonl",
+      "consumed_by_cycle": "0001",
+      "consumed_at": 1771647433.4000041
+    },
+    {
+      "filename": "session_20260221_040656.jsonl",
+      "consumed_by_cycle": "0001",
+      "consumed_at": 1771647433.400011
+    },
+    {
+      "filename": "session_20260221_041217.jsonl",
+      "consumed_by_cycle": "0001",
+      "consumed_at": 1771647433.400384
+    },
+    {
+      "filename": "session_20260221_042008.jsonl",
+      "consumed_by_cycle": "0001",
+      "consumed_at": 1771648050.5598788
     }
   ]
 }
