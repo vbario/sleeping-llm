@@ -1,0 +1,60 @@
+⏺ How sleep cycles work                                                                                                                                      
+                                                                                                                                                           
+  When sleep triggers                                                                                                                                        
+                                                                                                                                                           
+  Two ways:                                                                                                                                                  
+  1. Manual — you type /sleep in CLI or click the Sleep button in the web UI                                                                                 
+  2. Automatic — every 10 conversation turns (configurable via light_sleep_turns)
+
+  What happens during sleep (6 steps)
+
+  Step 1: Pre-sleep evaluation. Run 5 benchmark questions against the current model and record the score. This is the "before" measurement.
+
+  Step 2: Curate training data. Load only unconsumed session files (new since last sleep). Score each user/assistant exchange on novelty, importance, and
+  utility. Then the model reads the full conversation and extracts structured Q&A fact pairs — "Q: What is Andre's favorite tool? A: GarageBand." The
+  hallucination firewall checks each pair against the source conversation and discards anything the model invented. The verified pairs plus the raw exchanges
+   are saved as training data.
+
+  Step 3: Update replay buffer. The curated data gets added to the spaced repetition buffer. Items that have been replayed many times have their priority
+  decayed (multiplied by 0.85 each time). High-priority old facts get sampled and mixed into this cycle's training data.
+
+  Step 4: Dreaming (deep sleep only). Every 5th sleep cycle is "deep sleep." The model generates synthetic Q&A pairs from what it's learned —
+  cross-referencing topics, generating new angles on existing knowledge. Light sleep skips this.
+
+  Step 5: Training. Three data sources are combined into one training file:
+  - Curated Q&A pairs + raw exchanges (from step 2)
+  - Replay buffer samples (old high-value facts)
+  - Core identity data (baseline personality Q&A)
+
+  LoRA fine-tuning runs on this combined data. Learning rate 1e-4, 1 epoch, iterations scaled to dataset size. The result is an adapter — a small patch of
+  weight adjustments.
+
+  Step 6: Validate and fuse. The adapter is fused into the model weights at a temporary location. The benchmark questions run again on this temp model. If
+  the score doesn't drop below 50% of the pre-sleep score, the temp model is promoted to the live model and a checkpoint is saved. If it fails, the temp
+  model is deleted and the previous model is restored. You never lose a working model to a bad sleep cycle.
+
+  After sleep
+
+  - Context is compacted (summarized) so key facts survive into the next conversation
+  - Turn counter resets
+  - A new session log file starts
+  - The consumed sessions are marked so they won't be re-curated next time
+
+  The two tiers
+
+  ┌───────────────┬───────────────────┬──────────────────────────┐
+  │               │    Light sleep    │        Deep sleep        │
+  ├───────────────┼───────────────────┼──────────────────────────┤
+  │ Frequency     │ Every 10 turns    │ Every 5th light sleep    │
+  ├───────────────┼───────────────────┼──────────────────────────┤
+  │ Curation      │ Heuristic scoring │ Model-based scoring      │
+  ├───────────────┼───────────────────┼──────────────────────────┤
+  │ Dreaming      │ No                │ Yes                      │
+  ├───────────────┼───────────────────┼──────────────────────────┤
+  │ Learning rate │ 1e-4              │ 5e-5 (more conservative) │
+  ├───────────────┼───────────────────┼──────────────────────────┤
+  │ Epochs        │ 1                 │ 2                        │
+  └───────────────┴───────────────────┴──────────────────────────┘
+
+  Light sleep is fast and frequent — quick memory consolidation. Deep sleep is slower and more thorough — synthetic data generation, more training passes,
+  more careful scoring.

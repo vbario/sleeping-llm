@@ -218,6 +218,10 @@ class Curator:
         conv_text = "\n".join(f"{m['role'].upper()}: {m['content']}" for m in all_messages)
         fact_pairs, rejected = self.firewall.verify_pairs(fact_pairs, conv_text)
         print(f"        Firewall: {len(fact_pairs)} verified, {len(rejected)} rejected")
+        for r in rejected:
+            q = r["pair"][0]["content"][:60]
+            a = r["pair"][1]["content"][:60]
+            print(f"          REJECTED ({r['grounding_score']:.2f}): Q: {q}... A: {a}...")
 
         for qa in fact_pairs:
             text = self.backend.apply_chat_template(qa, for_training=True)

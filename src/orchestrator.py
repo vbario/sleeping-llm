@@ -201,8 +201,11 @@ class Orchestrator:
             shutil.rmtree(replay_dir)
             replay_dir.mkdir(parents=True, exist_ok=True)
 
-        # Reset consumed sessions manifest
-        self.session_tracker.reset()
+        # Delete conversation logs
+        conversations_dir = Path(self.config.paths["conversations"])
+        if conversations_dir.exists():
+            shutil.rmtree(conversations_dir)
+            conversations_dir.mkdir(parents=True, exist_ok=True)
 
         # Start a fresh logger
         self.logger = ConversationLogger(self.config)
