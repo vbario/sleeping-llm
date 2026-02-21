@@ -1,0 +1,85 @@
+⏺ What we achieved:                                                                                                   
+                                                                                                                      
+  - Hallucination firewall — Catches fabricated facts before they get trained into the model. Entity grounding check  
+  verifies Q&A pairs against the actual conversation. Without it, the model was training on things like "Vladimir is a
+   6-year-old music producer" (wrong person, wrong fact).                                                             
+  - Session deduplication — Stopped retraining on old conversations every cycle. Session 1 used to get retrained 10x
+  by cycle 10, which wasted compute and could cause overfitting to early conversations at the expense of recent ones.
+  Now each session trains once, and the replay buffer handles revisiting.
+  - Replay buffer with natural decay — Items are never deleted, just decay with each replay (0.85x per cycle). Fresh
+  facts dominate training, old facts gradually retire below the 0.05 floor. Separate light/deep mix ratios so light
+  sleep focuses on new material (0.2) while deep sleep consolidates more broadly (0.6).
+  - Template-based fact extraction — The 3B model couldn't reliably extract Q&A pairs from its own extraction prompt
+  (returned 0 parseable pairs). The regex fallback catches names, preferences, relationships, etc. directly from user
+  messages. This was the critical fix that got memory working again.
+
+  What we learned:
+
+  - Bigger LoRA ≠ better memory. Rank 32 with 16 layers spread the gradient too thin. Rank 16 with 8 layers and
+  stronger LR (1e-4) learns more effectively on a 3B model.
+  - There's a narrow band between "remembered but incoherent" and "coherent but forgot." LR 1e-4 with 4 epochs broke
+  coherence (validation 0.60). LR 5e-5 with 8 epochs learned nothing (1.00). LR 1e-4 with 3 epochs hit the sweet spot.
+  - The model learns associations, not precise relationships. It gets the right entities and topics but confuses
+  who-does-what. This is a 3B model ceiling, not an architecture problem. Scaling to 8B+ would be the biggest single
+  improvement.
+  - Small models can't self-serve. Using the 3B model to extract its own training facts failed — it needs either a
+  larger model for extraction or deterministic pattern matching (which we built).
+
+  ❯ Explain the deterministic pattern matching.                                                                         
+                                              
+⏺ It's the _extract_facts_template() method in curator.py. Instead of asking the model to extract facts (which the 3B 
+  model failed at), it uses regex patterns to find facts directly in user messages.
+                                                                                                                      
+  How it works:                                                                                                       
+                                                                                                                      
+  A list of patterns, each with a regex, a question template, and an answer template:
+
+  Pattern:  r"my name is (\w+)"
+  Question: "What is the user's name?"
+  Answer:   "The user's name is {0}."
+
+  When a user says "My name is Vladimir", the regex captures "Vladimir", plugs it into the templates, and produces a
+  training pair:
+
+  Q: What is the user's name?
+  A: The user's name is Vladimir.
+
+  What it catches:
+  - Names ("my name is", "call me", "I'm called")
+  - Age ("I'm 6 years old")
+  - Location ("I live in", "I'm from")
+  - Job/profession ("I work as", "I'm a")
+  - Likes/dislikes ("I like", "I hate")
+  - Favorites ("my favorite X is Y")
+  - Possessions ("I have a")
+  - Family ("my son is", "my wife's name is")
+  - Tools ("I use", "I work with")
+
+  There's also a catch-all: any user message containing personal markers ("my name", "I am", "I prefer", etc.) that's
+  longer than 15 characters gets a verbatim recall pair: "What did the user tell you?" → "The user said: '...'".
+
+  Why it works better than model extraction:
+  - Deterministic — same input always produces same output, no hallucination possible
+  - Fast — regex is instant, no model inference needed
+  - Reliable — the 3B model returned 0 parseable pairs; this always produces something if facts exist
+
+  Limitation: It only catches facts that match the predefined patterns. If a user says "Tuesdays are my busiest day",
+  no pattern matches that. The model-based extraction runs first and would catch it — the templates are the fallback.
+
+❯ How did we figure out that using the 3B model to extract its own training facts failed?                             
+                                                                                          
+⏺ From the console output during a sleep cycle. After we added debug logging, it printed:                             
+                                         
+  Generated 0 fact Q&A pairs                                                                                          
+  Firewall: 0 verified, 0 rejected                                                                                    
+                                                                                                                      
+  Zero pairs extracted, zero verified — the entire fact extraction pipeline produced nothing. The model was training
+  only on raw conversation exchanges, which don't teach recall (they're just verbatim conversation replays, not "What
+  is the user's name?" → "Vladimir" style pairs).
+
+  We then added the [DEBUG] logging that prints the model's raw extraction output, so we could see what the 3B model
+  actually returned when asked to extract facts. The prompt asks it to output Q: ... A: ... pairs, but the model's
+  output either didn't follow the format or was empty/garbled — the parser found nothing matching Q: / A: prefixes.
+
+  That's when we built the template fallback. The model-based extraction still runs first (and the debug log still
+  prints so you can see what it produces), but when it returns 0 pairs, the templates take over.
