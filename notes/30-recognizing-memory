@@ -1,0 +1,19 @@
+❯ Would one viable strategy to achieving this be to nudge the knowledge of the ability to form long term memory with a system prompt, and subsequently       
+  removing it?                                                                                                                                              
+                                                                                                                                                             
+⏺ Yes. Once the model has been through enough sleep cycles where it:                                                                                         
+                                                                                                                                                             
+  1. Is told via system prompt that it has memory                                                                                                            
+  2. Actually demonstrates memory (recalls facts it learned)
+  3. Has those successful recall exchanges extracted as Q&A training data                                                                                    
+                                                                                                                                                           
+  ...then the training data itself contains examples of the model remembering things. The Q&A pairs would look like "Q: Do you remember Vladimir? A: Yes, he
+  told me about his son Andre." The model learns from its own behavior that it can remember.
+
+  At that point you could remove the system prompt and the learned behavior might persist in the weights — the model has empirical evidence of its own
+  memory, encoded in LoRA updates, rather than just a pretrained assumption that it can't.
+
+  Whether it sticks depends on the balance of forces: the deep pretrained prior ("I can't remember") vs. the accumulated LoRA evidence ("I clearly do
+  remember"). With a 3B model and narrow LoRA capacity, the pretrained prior might win. With a larger model and more sleep cycles, it's more plausible.
+
+  It's a genuinely interesting experiment — teaching a model an accurate self-model through experience rather than instruction.
