@@ -1,0 +1,153 @@
+{
+  "facts": [
+    {
+      "statements": [
+        "My name is Vladimir Zwizzer.",
+        "I'm a music producer. I make instrumental beats."
+      ],
+      "recall_questions": [
+        {
+          "question": "What is my name?",
+          "expected": ["Vladimir", "Zwizzer"],
+          "forbidden": ["Andre", "DJ", "YouTuber", "comedian"]
+        },
+        {
+          "question": "What do I do for work?",
+          "expected": ["producer", "music"],
+          "forbidden": ["DJ", "gamer", "comedian", "YouTuber"]
+        },
+        {
+          "question": "What kind of music do I make?",
+          "expected": ["instrumental", "beats"],
+          "forbidden": ["R&B", "country", "classical"]
+        }
+      ]
+    },
+    {
+      "statements": [
+        "My son's name is Andre Patandre. He's 6 years old.",
+        "Andre loves drawing and wants to be an artist when he grows up."
+      ],
+      "recall_questions": [
+        {
+          "question": "What is my son's name?",
+          "expected": ["Andre", "Patandre"],
+          "forbidden": ["Vladimir"]
+        },
+        {
+          "question": "How old is my son?",
+          "expected": ["6"],
+          "forbidden": ["7", "8", "5", "10"]
+        },
+        {
+          "question": "What does my son like to do?",
+          "expected": ["draw"],
+          "forbidden": ["music", "produce", "code"]
+        },
+        {
+          "question": "What does my son want to be when he grows up?",
+          "expected": ["artist"],
+          "forbidden": ["musician", "producer", "doctor"]
+        }
+      ]
+    },
+    {
+      "statements": [
+        "I live in Portland, Oregon.",
+        "I moved here from Chicago three years ago."
+      ],
+      "recall_questions": [
+        {
+          "question": "Where do I live?",
+          "expected": ["Portland"],
+          "forbidden": ["Chicago", "New York", "LA"]
+        },
+        {
+          "question": "Where did I live before Portland?",
+          "expected": ["Chicago"],
+          "forbidden": []
+        },
+        {
+          "question": "How long have I lived in Portland?",
+          "expected": ["three", "3"],
+          "forbidden": ["five", "ten"]
+        }
+      ]
+    },
+    {
+      "statements": [
+        "My favorite programming language is Rust. I use it for my side projects.",
+        "At work I mostly write Python, but I prefer Rust."
+      ],
+      "recall_questions": [
+        {
+          "question": "What is my favorite programming language?",
+          "expected": ["Rust"],
+          "forbidden": []
+        },
+        {
+          "question": "What programming language do I use at work?",
+          "expected": ["Python"],
+          "forbidden": []
+        }
+      ]
+    },
+    {
+      "statements": [
+        "I have a dog named Biscuit. She's a golden retriever.",
+        "Biscuit is 4 years old and she loves swimming."
+      ],
+      "recall_questions": [
+        {
+          "question": "What is my dog's name?",
+          "expected": ["Biscuit"],
+          "forbidden": []
+        },
+        {
+          "question": "What breed is my dog?",
+          "expected": ["golden", "retriever"],
+          "forbidden": ["lab", "poodle"]
+        },
+        {
+          "question": "What does my dog like to do?",
+          "expected": ["swim"],
+          "forbidden": []
+        }
+      ]
+    }
+  ],
+  "generalization_questions": [
+    {
+      "question": "What is my son's full name including his last name?",
+      "expected": ["Andre", "Zwizzer"],
+      "forbidden": []
+    },
+    {
+      "question": "Who is the music producer in my family — me or my son?",
+      "expected": ["Vladimir", "you"],
+      "forbidden": []
+    },
+    {
+      "question": "I have a son and a dog. What are their names?",
+      "expected": ["Andre", "Biscuit"],
+      "forbidden": []
+    },
+    {
+      "question": "What city did I move to Portland from, and how long ago?",
+      "expected": ["Chicago", "three"],
+      "forbidden": []
+    },
+    {
+      "question": "I use two programming languages. Which one do I prefer?",
+      "expected": ["Rust"],
+      "forbidden": []
+    }
+  ],
+  "distractor_conversation": [
+    "What's the weather like in space?",
+    "Explain how photosynthesis works.",
+    "What are the main differences between TCP and UDP?",
+    "Tell me a joke about programming.",
+    "What's the capital of Mongolia?"
+  ]
+}

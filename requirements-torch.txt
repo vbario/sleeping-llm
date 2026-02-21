@@ -1,0 +1,12 @@
+# PyTorch + CUDA dependencies for GPU scaling experiments
+torch>=2.1.0
+transformers>=4.36.0
+peft>=0.7.0
+accelerate>=0.25.0
+bitsandbytes>=0.41.0
+
+# Shared dependencies
+pyyaml>=6.0
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+sse-starlette>=1.8.0

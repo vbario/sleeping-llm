@@ -9,7 +9,6 @@ import shutil
 import time
 from pathlib import Path
 
-from src.backend.mlx_backend import MLXBackend
 from src.memory.checkpoints import CheckpointManager
 from src.memory.identity import IdentityManager
 from src.memory.replay import ReplayBuffer
@@ -32,7 +31,13 @@ class Orchestrator:
         self.light_sleep_count = 0
 
         # Initialize backend
-        self.backend = MLXBackend(config)
+        backend_type = config.model.get("backend", "mlx")
+        if backend_type == "torch":
+            from src.backend.torch_backend import TorchBackend
+            self.backend = TorchBackend(config)
+        else:
+            from src.backend.mlx_backend import MLXBackend
+            self.backend = MLXBackend(config)
         print("Loading model...")
         self.backend.load()
         print("Model loaded.")

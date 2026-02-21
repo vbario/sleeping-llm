@@ -1,24 +1,14 @@
 {
   "sessions": [
     {
-      "filename": "session_20260221_060343.jsonl",
+      "filename": "session_20260221_075959.jsonl",
       "consumed_by_cycle": "0001",
-      "consumed_at": 1771654003.307122
+      "consumed_at": 1771660860.908393
     },
     {
-      "filename": "session_20260221_060745.jsonl",
-      "consumed_by_cycle": "0001",
-      "consumed_at": 1771654174.5829408
-    },
-    {
-      "filename": "session_20260221_061023.jsonl",
-      "consumed_by_cycle": "0001",
-      "consumed_at": 1771654315.357245
-    },
-    {
-      "filename": "session_20260221_061400.jsonl",
-      "consumed_by_cycle": "0001",
-      "consumed_at": 1771654543.9185438
+      "filename": "session_20260221_080107.jsonl",
+      "consumed_by_cycle": "0002",
+      "consumed_at": 1771660998.590506
     }
   ]
 }

@@ -1,0 +1,40 @@
+{"timestamp": "2026-02-21T08:04:09.095976+00:00", "session_id": "20260221_080408", "turn": 0, "role": "user", "content": "What is my name?"}
+{"timestamp": "2026-02-21T08:04:09.096505+00:00", "session_id": "20260221_080408", "turn": 0, "role": "assistant", "content": "Vladimir Zwizzer is a music producer who makes instrumental beats."}
+{"timestamp": "2026-02-21T08:04:09.978129+00:00", "session_id": "20260221_080408", "turn": 1, "role": "user", "content": "What do I do for work?"}
+{"timestamp": "2026-02-21T08:04:09.978926+00:00", "session_id": "20260221_080408", "turn": 1, "role": "assistant", "content": "Vladimir Zwizzer moved from Chicago three years ago."}
+{"timestamp": "2026-02-21T08:04:10.982915+00:00", "session_id": "20260221_080408", "turn": 2, "role": "user", "content": "What kind of music do I make?"}
+{"timestamp": "2026-02-21T08:04:10.983356+00:00", "session_id": "20260221_080408", "turn": 2, "role": "assistant", "content": "Vladimir Zwizzer is a music producer who makes instrumental beats."}
+{"timestamp": "2026-02-21T08:04:12.675832+00:00", "session_id": "20260221_080408", "turn": 3, "role": "user", "content": "What is my son's name?"}
+{"timestamp": "2026-02-21T08:04:12.676202+00:00", "session_id": "20260221_080408", "turn": 3, "role": "assistant", "content": "Vladimir Zwizzer has a son named Andre Patandre who is 6 years old."}
+{"timestamp": "2026-02-21T08:04:15.317444+00:00", "session_id": "20260221_080408", "turn": 4, "role": "user", "content": "How old is my son?"}
+{"timestamp": "2026-02-21T08:04:15.317714+00:00", "session_id": "20260221_080408", "turn": 4, "role": "assistant", "content": "Your son, Andre Patandre, is 6 years old."}
+{"timestamp": "2026-02-21T08:04:16.963074+00:00", "session_id": "20260221_080408", "turn": 5, "role": "user", "content": "What does my son like to do?"}
+{"timestamp": "2026-02-21T08:04:16.963362+00:00", "session_id": "20260221_080408", "turn": 5, "role": "assistant", "content": "Vladimir Zwizzer hasn't mentioned anything specific about his son's interests."}
+{"timestamp": "2026-02-21T08:04:19.316638+00:00", "session_id": "20260221_080408", "turn": 6, "role": "user", "content": "What does my son want to be when he grows up?"}
+{"timestamp": "2026-02-21T08:04:19.317048+00:00", "session_id": "20260221_080408", "turn": 6, "role": "assistant", "content": "Vlad Vladimir Zwizzer hasn't mentioned Vladimir Zwizzer's son's interests or career aspirations."}
+{"timestamp": "2026-02-21T08:04:21.552236+00:00", "session_id": "20260221_080408", "turn": 7, "role": "user", "content": "Where do I live?"}
+{"timestamp": "2026-02-21T08:04:21.552996+00:00", "session_id": "20260221_080408", "turn": 7, "role": "assistant", "content": "Vladimir Zwizzer moved from Chicago three years ago."}
+{"timestamp": "2026-02-21T08:04:23.671809+00:00", "session_id": "20260221_080408", "turn": 8, "role": "user", "content": "Where did I live before Portland?"}
+{"timestamp": "2026-02-21T08:04:23.672212+00:00", "session_id": "20260221_080408", "turn": 8, "role": "assistant", "content": "Vladimir Zwizzer moved from Chicago three years ago."}
+{"timestamp": "2026-02-21T08:04:25.950493+00:00", "session_id": "20260221_080408", "turn": 9, "role": "user", "content": "How long have I lived in Portland?"}
+{"timestamp": "2026-02-21T08:04:25.950873+00:00", "session_id": "20260221_080408", "turn": 9, "role": "assistant", "content": "Vladimir Zwizzer moved from Chicago three years ago."}
+{"timestamp": "2026-02-21T08:04:28.560102+00:00", "session_id": "20260221_080408", "turn": 10, "role": "user", "content": "What is my favorite programming language?"}
+{"timestamp": "2026-02-21T08:04:28.560525+00:00", "session_id": "20260221_080408", "turn": 10, "role": "assistant", "content": "Your favorite programming language is Rust, and you use it for side projects."}
+{"timestamp": "2026-02-21T08:04:31.413286+00:00", "session_id": "20260221_080408", "turn": 11, "role": "user", "content": "What programming language do I use at work?"}
+{"timestamp": "2026-02-21T08:04:31.413818+00:00", "session_id": "20260221_080408", "turn": 11, "role": "assistant", "content": "Vladimir Zwizzer's favorite programming language is Rust, but it's not clear if you use it at work."}
+{"timestamp": "2026-02-21T08:04:34.712975+00:00", "session_id": "20260221_080408", "turn": 12, "role": "user", "content": "What is my dog's name?"}
+{"timestamp": "2026-02-21T08:04:34.713615+00:00", "session_id": "20260221_080408", "turn": 12, "role": "assistant", "content": "Vladimir Zwizzer is a music producer who makes instrumental beats."}
+{"timestamp": "2026-02-21T08:04:37.512787+00:00", "session_id": "20260221_080408", "turn": 13, "role": "user", "content": "What breed is my dog?"}
+{"timestamp": "2026-02-21T08:04:37.513198+00:00", "session_id": "20260221_080408", "turn": 13, "role": "assistant", "content": "Vladimir Zwizzer is a music producer who makes instrumental beats."}
+{"timestamp": "2026-02-21T08:04:40.606307+00:00", "session_id": "20260221_080408", "turn": 14, "role": "user", "content": "What does my dog like to do?"}
+{"timestamp": "2026-02-21T08:04:40.606646+00:00", "session_id": "20260221_080408", "turn": 14, "role": "assistant", "content": "Vladimir Zwizzer is a music producer who makes instrumental beats."}
+{"timestamp": "2026-02-21T08:04:44.033458+00:00", "session_id": "20260221_080408", "turn": 15, "role": "user", "content": "What is my son's full name including his last name?"}
+{"timestamp": "2026-02-21T08:04:44.033792+00:00", "session_id": "20260221_080408", "turn": 15, "role": "assistant", "content": "Vladimir Zwizzer's son's name is Andre, but I don't have information about his last name."}
+{"timestamp": "2026-02-21T08:04:47.687295+00:00", "session_id": "20260221_080408", "turn": 16, "role": "user", "content": "Who is the music producer in my family \u2014 me or my son?"}
+{"timestamp": "2026-02-21T08:04:47.687766+00:00", "session_id": "20260221_080408", "turn": 16, "role": "assistant", "content": "Vladimir Zwizzer is the music producer in your family."}
+{"timestamp": "2026-02-21T08:04:51.540412+00:00", "session_id": "20260221_080408", "turn": 17, "role": "user", "content": "I have a son and a dog. What are their names?"}
+{"timestamp": "2026-02-21T08:04:51.540771+00:00", "session_id": "20260221_080408", "turn": 17, "role": "assistant", "content": "Vladimir Zwizzer's son's name is Andre Patandre, but I don't have information about his dog's name."}
+{"timestamp": "2026-02-21T08:04:56.133196+00:00", "session_id": "20260221_080408", "turn": 18, "role": "user", "content": "What city did I move to Portland from, and how long ago?"}
+{"timestamp": "2026-02-21T08:04:56.133493+00:00", "session_id": "20260221_080408", "turn": 18, "role": "assistant", "content": "You moved from Chicago three years ago."}
+{"timestamp": "2026-02-21T08:05:00.354025+00:00", "session_id": "20260221_080408", "turn": 19, "role": "user", "content": "I use two programming languages. Which one do I prefer?"}
+{"timestamp": "2026-02-21T08:05:00.354391+00:00", "session_id": "20260221_080408", "turn": 19, "role": "assistant", "content": "Your favorite programming language is Rust, and you use it for side projects."}
