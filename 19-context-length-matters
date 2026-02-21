@@ -1,0 +1,9 @@
+Context length matters. Transformer-based models (like the ones behind most modern LLMs) use an attention mechanism whose computational cost scales quadratically with the length of the input context. A shorter conversation means fewer tokens to process, which means less computation per forward pass. In practice, optimizations like KV-caching reduce this for already-processed tokens, but the cache itself still grows with context length and consumes memory.
+Key factors:
+
+Prefill time — When you send a prompt, the model must process all input tokens before generating the first output token. Longer contexts mean a longer "time to first token."
+KV cache size — Each token in the context adds to the key-value cache stored in GPU memory. Larger caches can slow things down due to memory bandwidth constraints and may reduce the number of requests a server can handle concurrently (leading to queuing delays).
+Generation speed — Each new token generated must attend to the full context (prompt + conversation history + tokens generated so far). More context means each decoding step is slightly slower.
+
+How much it matters in practice depends on the system. For short vs. moderate contexts (say, a few hundred vs. a few thousand tokens), the difference may be barely noticeable. But as you approach very long contexts (tens or hundreds of thousands of tokens), the slowdown becomes much more apparent. Inference providers also use batching and other optimizations that can mask some of these effects under normal loads.
+So if speed is a priority, keeping your context concise — trimming unnecessary history, summarizing prior turns, etc. — is a practical way to improve latency.

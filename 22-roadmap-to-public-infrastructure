@@ -1,0 +1,149 @@
+⏺ Roadmap: From Proof-of-Concept to Public Infrastructure                                                                                                    
+                                                                                                                                                           
+  Where we are now                                                                                                                                           
+                                                                                                                                                           
+  A working demo that proves the core thesis on one machine, one model size, one user. Everything below is what separates "interesting research project" from
+   "something people actually use."                                                                                                                        
+
+  ---
+  Layer 1: Make it reliable
+
+  These are blockers. Without them, users will hit catastrophic failures and walk away.
+
+  Hallucination firewall. Right now the model trains on its own outputs. If it hallucinates a fact, that hallucination gets baked into the weights. You need
+  a verification step in the curator — compare extracted Q&A pairs against the actual conversation transcript. If the model generated an answer that wasn't
+  in the source conversation, discard it.
+
+  Session deduplication. Every sleep cycle retrains on ALL past conversations. Session 1 gets trained on 10 times by sleep cycle 10. This wastes compute and
+  risks overfitting on early conversations. Track which sessions have been consumed. Only train on new material plus replay buffer samples from old material.
+
+  Adaptive learning rate. The viable learning rate window for 3B was razor-thin (1e-4 worked, 2e-4 destroyed the model). Different model sizes will have
+  different windows. Build an auto-calibration step: run a tiny probe training on a held-out set before each sleep cycle, find the safe learning rate
+  automatically.
+
+  Graceful degradation monitoring. The current validator checks one benchmark score. You need continuous drift tracking across multiple dimensions — factual
+  accuracy, coherence, instruction following, personality consistency. Alert the user if the model is slowly degrading across sleep cycles even when
+  individual cycles pass validation.
+
+  ---
+  Layer 2: Make it work everywhere
+
+  This is what expands the audience from "people with M-series Macs" to "anyone."
+
+  PyTorch/CUDA backend. Write torch_backend.py that implements the same interface using HuggingFace Transformers + PEFT. This unlocks NVIDIA GPUs — both
+  local (RTX 3090/4090) and cloud (A100/H100). The architecture already has a clean backend abstraction, so this is mostly implementation work.
+
+  Backend auto-detection. Detect hardware at startup and pick the right backend automatically. Apple Silicon gets MLX, NVIDIA gets PyTorch, CPU-only gets a
+  warning.
+
+  Model zoo. Test and document working configurations for multiple models:
+
+  ┌───────────────┬───────┬─────────────┬────────────┬─────────────────────┐
+  │     Model     │ Size  │   Backend   │ Working LR │        Notes        │
+  ├───────────────┼───────┼─────────────┼────────────┼─────────────────────┤
+  │ Llama 3.2 3B  │ 4-bit │ MLX         │ 1e-4       │ Current, proven     │
+  ├───────────────┼───────┼─────────────┼────────────┼─────────────────────┤
+  │ Llama 3.1 8B  │ 4-bit │ MLX/PyTorch │ ?          │ Needs calibration   │
+  ├───────────────┼───────┼─────────────┼────────────┼─────────────────────┤
+  │ Llama 3.1 70B │ 4-bit │ PyTorch     │ ?          │ Cloud GPU target    │
+  ├───────────────┼───────┼─────────────┼────────────┼─────────────────────┤
+  │ Mistral 7B    │ 4-bit │ Both        │ ?          │ Popular alternative │
+  ├───────────────┼───────┼─────────────┼────────────┼─────────────────────┤
+  │ Phi-3 mini    │ 4-bit │ Both        │ ?          │ Small/fast option   │
+  └───────────────┴───────┴─────────────┴────────────┴─────────────────────┘
+
+  Each entry needs a tested config.yaml that works out of the box.
+
+  ---
+  Layer 3: Make it usable
+
+  This is what separates a research tool from something a non-technical person would use.
+
+  Web UI. Replace the CLI with a simple chat interface (FastAPI + a lightweight frontend). Show sleep status, memory stats, conversation history. Let users
+  trigger sleep from a button.
+
+  Background sleep. The current architecture blocks chat during training. Fork the model: keep the current weights serving inference while training runs on a
+   copy. Swap in the new weights when training + validation complete. Users never experience downtime.
+
+  Memory inspector. Let users see what the model "remembers" — list extracted facts, replay buffer contents, sleep cycle history, benchmark scores over time.
+   Let them delete specific memories (remove from replay buffer + retrain without them).
+
+  One-click install. Package as a desktop app (Electron or Tauri wrapper) or at minimum a Docker container. brew install sleeping-llm or docker run
+  sleeping-llm. No Python environment setup, no dependency management.
+
+  ---
+  Layer 4: Make it rigorous
+
+  This is what earns trust from researchers and enterprise users.
+
+  Systematic evaluation framework. Define a repeatable benchmark:
+  - Tell the model N facts across K conversations
+  - Sleep M times
+  - Measure: recall rate, precision (are recalled facts correct?), generalization (can it combine facts?), retention over time (does it forget after 10 more
+  sleep cycles?)
+  - Run across model sizes, learning rates, dataset sizes
+  - Publish results as a reproducible benchmark others can run
+
+  Forgetting curve characterization. Map how long memories last across sleep cycles. Do facts from session 1 survive to sleep cycle 20? How does the replay
+  buffer's decay rate affect this? This is novel research that doesn't exist yet.
+
+  Scaling laws for memory. Characterize the relationship between model size and memory capacity. How many facts can a 3B model hold? 8B? 70B? At what point
+  does adding facts start displacing old ones? This would be a publishable finding.
+
+  Comparison against RAG. Build the same system with RAG instead of weight-based memory. Same conversations, same questions. Measure where weight-memory
+  outperforms (generalization, personality, latency) and where RAG outperforms (precision, capacity, no forgetting risk). Honest comparison builds
+  credibility.
+
+  ---
+  Layer 5: Make it a platform
+
+  This is what creates an ecosystem.
+
+  API / SDK. Let developers integrate sleeping memory into their own applications:
+
+  from sleeping_llm import SleepingModel
+
+  model = SleepingModel("llama-3.1-8b", config="default")
+  model.chat("My name is Vladimir and I'm building an AI startup")
+  model.chat("Our product focuses on healthcare compliance")
+  model.sleep()  # consolidate
+  # Later, new session:
+  model.chat("What do you know about me?")
+  # → "You're Vladimir, building an AI startup focused on healthcare compliance"
+
+  Multi-user isolation. Separate weight spaces per user. Each user gets their own adapter stack. The base model stays shared, but each person's memories are
+  isolated in their own LoRA layers.
+
+  Memory import/export. Let users export their learned memories (as adapter weights) and import them on a different machine. Move your AI's knowledge from
+  laptop to desktop. Back up memories.
+
+  Plugin system. Let developers write custom curators, validators, and training strategies. A medical app might have a curator that only learns drug
+  interactions. A legal app might have a validator that checks against case law databases.
+
+  ---
+  What to do first
+
+  If I had to sequence this for maximum impact:
+
+  ┌──────────┬───────────────────────────────────────────┬────────────────────────────────────────────────┐
+  │ Priority │                   Work                    │                   Why first                    │
+  ├──────────┼───────────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ 1        │ Hallucination firewall + deduplication    │ Without these, the system degrades over time   │
+  ├──────────┼───────────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ 2        │ PyTorch backend                           │ 10x the potential user base overnight          │
+  ├──────────┼───────────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ 3        │ Scaling experiment (8B and 70B)           │ Proves the thesis generalizes beyond toy setup │
+  ├──────────┼───────────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ 4        │ Systematic evaluation + published results │ Gives the project scientific credibility       │
+  ├──────────┼───────────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ 5        │ Web UI + background sleep                 │ Makes it usable by non-engineers               │
+  ├──────────┼───────────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ 6        │ One-click install                         │ Removes adoption friction                      │
+  ├──────────┼───────────────────────────────────────────┼────────────────────────────────────────────────┤
+  │ 7        │ SDK + multi-user                          │ Enables other people to build on top           │
+  └──────────┴───────────────────────────────────────────┴────────────────────────────────────────────────┘
+
+  Steps 1-4 could be done by one person in a few months. Steps 5-7 are where it becomes a real project with contributors.
+
+  The core thesis is proven. What's missing is the engineering to make it trustworthy, the science to make it rigorous, and the packaging to make it
+  accessible.

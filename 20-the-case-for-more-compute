@@ -1,0 +1,64 @@
+⏺ The Highest-Impact Experiment: Memory Consolidation Scaling Law                                                                                            
+                                                                                                                                                           
+  A Mac Studio with 128-192GB unified memory lets you run 70B models with room to spare for training. This unlocks one experiment that would be a genuine    
+  research contribution:                                                                                                                                   
+                                                                                                                                                             
+  Measure how model size affects the catastrophic forgetting boundary                                                                                      
+
+  You already have the data point for 3B:
+
+  3B: viable window = ~1e-4, single epoch, narrow margin
+      recall = partial (core facts yes, details no)
+
+  Run the identical protocol (same conversation, same facts, same sleep pipeline) on:
+
+  ┌─────────────────────┬────────┬────────────┬──────────────────┐
+  │        Model        │  Size  │ RAM needed │  What it tests   │
+  ├─────────────────────┼────────┼────────────┼──────────────────┤
+  │ Llama 3.2 3B 4-bit  │ 2.5 GB │ ~4 GB      │ Already done     │
+  ├─────────────────────┼────────┼────────────┼──────────────────┤
+  │ Llama 3.1 8B 4-bit  │ 4.5 GB │ ~6 GB      │ Needs 16GB+ Mac  │
+  ├─────────────────────┼────────┼────────────┼──────────────────┤
+  │ Llama 3.3 70B 4-bit │ ~35 GB │ ~45 GB     │ Needs Mac Studio │
+  └─────────────────────┴────────┴────────────┴──────────────────┘
+
+  For each model, sweep learning rates:
+
+  1e-5, 5e-5, 1e-4, 2e-4, 5e-4, 1e-3
+
+  And measure:
+  1. Pre/post benchmark score (did it forget?)
+  2. Fact recall precision (how many specific facts from conversation?)
+  3. Recall after 1, 2, 3, 5 sleep cycles (spaced repetition curve)
+
+  Why This Is Highly Publishable
+
+  Nobody has published this curve. The result would be a scaling law for continual learning — something like:
+
+  "The viable learning rate window for LoRA-based memory consolidation scales with log(parameters). A 70B model tolerates learning rates 10x higher than a 3B
+   model while maintaining benchmark performance, and retains 4x more specific facts per sleep cycle."
+
+  Or whatever the actual numbers turn out to be. Either way, the curve itself is the contribution. Scaling laws are extremely influential in AI research
+  right now (Kaplan et al., Chinchilla, etc.), and a scaling law for post-deployment learning doesn't exist yet.
+
+  What You Literally Can't Do on 8GB
+
+  - Run 70B at all. Not even inference, let alone training.
+  - Run 8B with training headroom. The Air can barely load 8B — no memory left for LoRA training.
+  - Run two models simultaneously. On a Studio you could use one model for fact extraction/curation and a separate model for the actual learning — solving
+  the "noisy Q&A extraction" problem by using a stronger model as the curator.
+  - The slow+long approach. 1e-5 learning rate × 5000 iterations on 70B would take hours but would be the most brain-like training regime. On 8GB it would
+  take days if it ran at all.
+
+  Secondary Experiments Only Possible on Studio
+
+  A. Dual-model architecture. Use a 70B as the curator/fact extractor and an 8B as the learning model. The 70B produces clean, precise Q&A pairs. The 8B
+  trains on them. Test whether better curation quality compensates for smaller model capacity.
+
+  B. Longitudinal study. Run the system as a daily-use personal assistant for 2-4 weeks. Measure cumulative knowledge over 20+ sleep cycles. Track benchmark
+  drift. Answer: does the model stabilize or degrade over time?
+
+  C. Forgetting curve. Train the model on facts, then run 50 sleep cycles WITHOUT those facts reappearing. Measure when they fade. This maps the LLM's
+  "Ebbinghaus forgetting curve" — which nobody has published.
+
+  The scaling law experiment is the one I'd prioritize. It's clean, measurable, directly extends your existing work, and fills a gap in the literature.
