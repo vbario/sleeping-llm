@@ -1,0 +1,305 @@
+Sleeping LLM — Phase 2: Web UI, Hallucination Firewall, Session Deduplication                                                                           
+   
+     Context                                                                                                                                                 
+                                                            
+     The core system is built and working. Memory formation is proven (3B model, 1e-4 LR, 1 epoch). Three features needed to make it reliable and
+     usable:
+
+     1. Web UI — replace CLI with a browser-based chat interface
+     2. Hallucination Firewall — verify extracted Q&A facts against source conversation before training
+     3. Session Deduplication — stop retraining on old sessions; only curate new material
+
+     Implementation Order
+
+     Build in this order — each is independent, smallest-scope first:
+
+     1. Session Deduplication (smallest, immediate training improvement)
+     2. Hallucination Firewall (medium, fixes data quality)
+     3. Web UI (largest, benefits from 1+2 being in place)
+
+     ---
+     Feature 1: Session Deduplication
+
+     Problem: _gather_all_messages() loads ALL past sessions every sleep cycle. Session 1 gets retrained 10x by cycle 10.
+
+     Solution: Track consumed sessions in a manifest file. Only curate new sessions. Replay buffer already handles revisiting old material.
+
+     New file: src/memory/session_tracker.py
+
+     class SessionTracker:
+         """Tracks which session files have been consumed during sleep cycles."""
+
+         def __init__(self, config)        # manifest at data/conversations/consumed_sessions.json
+         def get_unconsumed_sessions()     # returns list of Path to unconsumed session files
+         def mark_consumed(paths, cycle_id) # records sessions as consumed after APPROVED sleep
+         def get_consumed_count() -> int
+         def get_total_session_count() -> int
+         def reset()                       # clear manifest (reprocess everything)
+
+     Manifest format (consumed_sessions.json):
+     {"sessions": [{"filename": "session_20260220.jsonl", "consumed_by_cycle": "0003", "consumed_at": 1708444800}]}
+
+     Modify: src/orchestrator.py
+
+     - Add SessionTracker to __init__
+     - Replace _gather_all_messages() with _gather_new_messages() that calls session_tracker.get_unconsumed_sessions() and only loads those
+     - Mark sessions consumed only inside the if validation["approved"] branch (failed sleep = sessions stay unconsumed for next attempt)
+     - After successful sleep, create a new logger instance so post-sleep messages go to a fresh session file
+
+     Modify: src/main.py
+
+     - Add --mark-all-consumed flag for migration (marks all existing sessions as consumed without reprocessing)
+
+     Edge cases
+
+     - First run after upgrade: no manifest exists, all sessions treated as unconsumed, processed once, then marked
+     - No new sessions: return current session messages so sleep still has something to train on
+     - Current session: logger writes in real-time, so current session is included. After sleep, new logger instance starts a fresh session file
+
+     ---
+     Feature 2: Hallucination Firewall
+
+     Problem: curator._extract_facts_as_qa() asks the model to extract facts, but it hallucinates. Observed in actual training data:
+     - "Vladimir is a 6-year-old music producer" (WRONG — Andre is 6, Vladimir is the father)
+     - "He produces hip-hop and R&B music" (R&B never mentioned — conversation says "instrumental beats")
+     - "Andre Patandre  2. Andre Patandre is a music producer." (numbered list artifact from extraction prompt)
+
+     New file: src/sleep/firewall.py
+
+     class HallucinationFirewall:
+         """Verifies Q&A pairs against source conversation. Discards ungrounded claims."""
+
+         def __init__(self, config, backend=None)
+         def verify_pairs(qa_pairs, conversation_text) -> (verified, rejected)
+
+     Two-pass verification:
+
+     Pass 1 — Clean artifacts (always runs):
+     - Strip numbered list spillover from answers (regex: \s+\d+\.\s)
+     - Strip "Note that..." disclaimers
+
+     Pass 2 — Entity grounding check (always runs):
+     - Extract key claims from the answer: proper nouns, numbers, multi-word names, quoted strings
+     - Check each claim appears in the source conversation text (case-insensitive)
+     - Score = grounded_claims / total_claims
+     - Reject if score < min_grounding_score (default 0.5)
+
+     Pass 3 — Model verification (optional, configurable):
+     - For borderline cases (score between 0.3 and threshold), ask the model: "Does this claim appear in the conversation? YES or NO"
+     - Expensive but catches subtle distortions
+     - Off by default (use_model_verification: false)
+
+     Modify: src/sleep/curator.py
+
+     - Add HallucinationFirewall to __init__
+     - In _save_training_data(), after _extract_facts_as_qa() and before building training examples:
+       - Build conversation text from messages
+       - Call firewall.verify_pairs(fact_pairs, conv_text)
+       - Print stats: "Firewall: N verified, M rejected"
+       - Use only verified pairs for training
+
+     Modify: config.yaml
+
+     Add under sleep::
+       firewall:
+         min_grounding_score: 0.5
+         use_model_verification: false
+
+     ---
+     Feature 3: Web UI
+
+     Problem: CLI blocks during sleep, no visual feedback, not usable by non-engineers.
+
+     Solution: FastAPI server + single HTML page. SSE streaming for chat tokens and sleep progress.
+
+     Dependencies to add to requirements.txt
+
+     fastapi>=0.104.0
+     uvicorn[standard]>=0.24.0
+     sse-starlette>=1.8.0
+
+     New file: src/web/__init__.py (empty)
+
+     New file: src/web/server.py
+
+     FastAPI app with endpoints:
+
+     ┌──────────────────┬────────┬─────────────────────────────────────────────┐
+     │     Endpoint     │ Method │                   Purpose                   │
+     ├──────────────────┼────────┼─────────────────────────────────────────────┤
+     │ /                │ GET    │ Serve index.html                            │
+     ├──────────────────┼────────┼─────────────────────────────────────────────┤
+     │ /api/chat        │ POST   │ Send message, get response (non-streaming)  │
+     ├──────────────────┼────────┼─────────────────────────────────────────────┤
+     │ /api/chat/stream │ GET    │ SSE stream of tokens as model generates     │
+     ├──────────────────┼────────┼─────────────────────────────────────────────┤
+     │ /api/sleep       │ POST   │ Trigger sleep, SSE stream of progress steps │
+     ├──────────────────┼────────┼─────────────────────────────────────────────┤
+     │ /api/status      │ GET    │ Return system status as JSON                │
+     ├──────────────────┼────────┼─────────────────────────────────────────────┤
+     │ /api/history     │ GET    │ Return current session messages             │
+     └──────────────────┴────────┴─────────────────────────────────────────────┘
+
+     Key design decisions:
+     - asyncio.Lock to serialize model access (MLX not thread-safe)
+     - asyncio.to_thread() to run synchronous model calls without blocking the event loop
+     - Sleep endpoint streams progress via SSE (steps 1-6 with running/done status)
+
+     New file: src/web/static/index.html
+
+     Single-page app, vanilla HTML/CSS/JS (no frameworks, no build tools):
+     - Chat message area with auto-scroll
+     - Input box + send button
+     - Status sidebar: model name, turn count, context usage %, replay buffer stats, sleep cycle count
+     - Sleep button that shows a progress panel with steps 1-6
+     - Uses EventSource API for SSE streaming
+     - Responsive layout for laptop screens
+
+     Modify: src/backend/mlx_backend.py
+
+     Add generate_stream() method:
+     - Uses mlx_lm.stream_generate with same sampler/logits_processors as generate()
+     - Yields token strings incrementally
+
+     Modify: src/wake/chat.py
+
+     Add process_input_stream() method:
+     - Same logic as process_input() but calls backend.generate_stream() and yields tokens
+     - After streaming completes, handles logging, context updates, and sleep triggers
+
+     Modify: src/orchestrator.py
+
+     Add public methods for web consumption:
+     - process_message(user_input) -> str — wraps chat.process_input()
+     - process_message_stream(user_input) -> Generator[str] — wraps chat.process_input_stream()
+     - trigger_sleep_from_web() — calls _on_sleep_trigger("web_manual")
+     - get_status() -> dict — returns turn count, context stats, buffer stats, model info
+     - get_current_messages() -> list — returns session messages for history panel
+
+     Add progress callback to _execute_sleep():
+     - Optional progress_cb parameter
+     - Each step reports: {"step": N, "total": 6, "label": "...", "status": "running"|"done", "detail": "..."}
+     - Existing print() calls preserved for CLI mode
+
+     Modify: src/main.py
+
+     Add flags:
+     - --web — launch FastAPI server instead of CLI
+     - --port (default 8000) — port for web server
+
+     if args.web:
+         from src.web.server import create_app
+         app = create_app(config)
+         uvicorn.run(app, host="0.0.0.0", port=args.port)
+     else:
+         orchestrator = Orchestrator(config)
+         orchestrator.run()
+
+     ---
+     File Summary
+
+     New files (5)
+
+     ┌───────────────────────────────┬────────────────────────┐
+     │             File              │        Feature         │
+     ├───────────────────────────────┼────────────────────────┤
+     │ src/memory/session_tracker.py │ Session dedup          │
+     ├───────────────────────────────┼────────────────────────┤
+     │ src/sleep/firewall.py         │ Hallucination firewall │
+     ├───────────────────────────────┼────────────────────────┤
+     │ src/web/__init__.py           │ Web UI                 │
+     ├───────────────────────────────┼────────────────────────┤
+     │ src/web/server.py             │ Web UI                 │
+     ├───────────────────────────────┼────────────────────────┤
+     │ src/web/static/index.html     │ Web UI                 │
+     └───────────────────────────────┴────────────────────────┘
+
+     Modified files (6)
+
+     ┌────────────────────────────┬────────────────────────────────────────────────────────────────────────────────────────────────┐
+     │            File            │                                            Features                                            │
+     ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+     │ src/orchestrator.py        │ All three (session tracker, firewall integration via curator, web methods + progress callback) │
+     ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+     │ src/sleep/curator.py       │ Hallucination firewall integration                                                             │
+     ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+     │ src/backend/mlx_backend.py │ Web UI (streaming)                                                                             │
+     ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+     │ src/wake/chat.py           │ Web UI (streaming)                                                                             │
+     ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+     │ src/main.py                │ Session dedup (--mark-all-consumed) + Web UI (--web, --port)                                   │
+     ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+     │ config.yaml                │ Hallucination firewall settings                                                                │
+     ├────────────────────────────┼────────────────────────────────────────────────────────────────────────────────────────────────┤
+     │ requirements.txt           │ Web UI dependencies                                                                            │
+     └────────────────────────────┴────────────────────────────────────────────────────────────────────────────────────────────────┘
+
+     ---
+     Verification
+
+     Session Deduplication
+
+     1. Run a sleep cycle via CLI — verify consumed_sessions.json created
+     2. Run another sleep cycle — verify only new sessions are gathered (check print output for exchange count)
+     3. Force a failed sleep (min_score_ratio: 1.0) — verify sessions NOT marked consumed
+     4. Verify replay buffer still samples old material independently
+
+     Hallucination Firewall
+
+     1. Run a sleep cycle — check "Firewall: N verified, M rejected" output
+     2. Inspect cycle_NNNN/train.jsonl — verify no numbered list artifacts in answers
+     3. Verify legitimate facts pass (entities that exist in conversation)
+     4. Verify hallucinated facts are rejected (entities not in conversation)
+
+     Web UI
+
+     1. python -m src.main --web — open http://localhost:8000
+     2. Send a message — verify response streams token by token
+     3. Click Sleep — verify progress panel shows steps 1-6 updating in real-time
+     4. Check status sidebar updates after sleep
+     5. Verify CLI still works: python -m src.main (no --web flag)
+
+⏺ All three features are built. Here's a summary:                                                                                                            
+                                                                                                                                                             
+  What was built                                                                                                                                             
+                                                                                                                                                             
+  Feature 1: Session Deduplication                                                                                                                           
+                                                                                                                                                             
+  - src/memory/session_tracker.py — tracks consumed sessions in consumed_sessions.json                                                                       
+  - Orchestrator now only curates new sessions, marks them consumed after APPROVED sleep                                                                     
+  - Fresh logger instance after each sleep so post-sleep messages go to a new session file                                                                   
+  - --mark-all-consumed flag for migrating existing installations
+
+  Feature 2: Hallucination Firewall
+
+  - src/sleep/firewall.py — three-pass verification:
+    - Cleans extraction artifacts (numbered list spillover, disclaimers)
+    - Checks entity grounding (proper nouns, numbers must appear in source conversation)
+    - Optional model verification for borderline cases
+  - Integrated into curator between fact extraction and training data assembly
+  - Config: sleep.firewall.min_grounding_score: 0.5
+
+  Feature 3: Web UI
+
+  - src/web/server.py — FastAPI with SSE streaming for chat and sleep progress
+  - src/web/static/index.html — dark-themed single-page app with:
+    - Streaming chat (tokens appear as generated)
+    - Status sidebar (model, turns, context usage, replay buffer stats)
+    - Sleep button with progress overlay showing all 6 steps
+  - src/backend/mlx_backend.py — added generate_stream() using mlx_lm.stream_generate
+  - src/wake/chat.py — added process_input_stream() for streaming responses
+  - Orchestrator gained web methods: process_message(), process_message_stream(), trigger_sleep_web(), get_status()
+
+  How to run
+
+  # CLI (unchanged)
+  python3 -m src.main
+
+  # Web UI
+  python3 -m src.main --web
+
+  # Web UI on custom port
+  python3 -m src.main --web --port 3000
+
+  # Mark existing sessions as consumed (migration)
+  python3 -m src.main --mark-all-consumed

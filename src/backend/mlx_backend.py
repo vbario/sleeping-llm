@@ -158,6 +158,31 @@ class MLXBackend:
 
         return save_path
 
+    def generate_stream(self, prompt, max_tokens=None, temperature=None, top_p=None):
+        """Generate text with streaming. Yields token strings incrementally."""
+        from mlx_lm import stream_generate
+        from mlx_lm.sample_utils import make_sampler, make_logits_processors
+
+        max_tokens = max_tokens or self.config.model["max_tokens"]
+        temperature = temperature or self.config.model["temperature"]
+        top_p = top_p or self.config.model["top_p"]
+        repetition_penalty = self.config.model.get("repetition_penalty", 1.1)
+
+        sampler = make_sampler(temp=temperature, top_p=top_p)
+        logits_processors = make_logits_processors(
+            repetition_penalty=repetition_penalty,
+        )
+
+        for response in stream_generate(
+            self.model,
+            self.tokenizer,
+            prompt=prompt,
+            max_tokens=max_tokens,
+            sampler=sampler,
+            logits_processors=logits_processors,
+        ):
+            yield response.text
+
     def reload(self, model_path=None):
         """Reload model (e.g. after fusing a new adapter)."""
         self.model = None

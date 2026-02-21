@@ -1,0 +1,50 @@
+⏺ The current system prompt                                                                                                                                  
+                                                                                                                                                             
+  system_prompt: "You are a helpful assistant with a persistent memory. You learn and remember from our conversations."                                      
+   
+  This shapes every response. The model is performing "helpful assistant" — which means hedging, over-explaining, adding disclaimers, and being aggressively 
+  accommodating. That's the weirdness you're feeling.                                                                                                      
+
+  Option 1: Neutral persona
+
+  Something like: "You are a conversational AI. Respond naturally."
+
+  Pros:
+  - Less performative. The model stops trying to be maximally helpful and just talks.
+  - More natural conversation flow — closer to how you'd actually interact with something that has persistent memory.
+  - The personality that emerges through sleep cycles is yours — shaped by your conversations, not by the system prompt telling it who to be.
+  - Better for the research: you're studying memory formation, not helpfulness. A neutral starting point makes it clearer what the model learned vs what was
+  baked in by the prompt.
+
+  Cons:
+  - Some base models get less coherent without a clear role. Llama 3.2 Instruct was fine-tuned with the "helpful assistant" framing — deviating from it might
+   slightly reduce response quality.
+  - "Neutral" is still a persona choice. You're just choosing a less opinionated one.
+
+  Option 2: Empty string
+
+  system_prompt: ""
+
+  Pros:
+  - The purest starting point. The model is whatever its pretraining made it, plus whatever your sleep cycles add. No artificial framing.
+  - Maximum contrast between "before sleep" and "after sleep" — any personality that develops is genuinely learned from conversation.
+  - Most honest version of the experiment. The system prompt is a cheat — it's telling the model what to be instead of letting it discover that through
+  learning.
+
+  Cons:
+  - Instruct-tuned models expect a system prompt. Without one, Llama 3.2 Instruct may produce slightly less structured responses — not broken, just less
+  polished.
+  - The model might occasionally break character or produce raw completions instead of conversational responses. Instruct models are trained with a system
+  message in the template; removing it puts you slightly out-of-distribution.
+  - No mention of persistent memory means the model won't claim to remember things (even if it does after sleep). This is actually a pro in disguise — if it
+  recalls a fact without being told it can, that's a stronger demonstration.
+
+  What I'd recommend
+
+  For the research: empty string. The whole point of this project is that knowledge lives in the weights. If the system prompt is telling the model "you have
+   persistent memory," you're muddying the result. Let the weights speak for themselves.
+
+  If responses get too unstructured, a single-line nudge is enough: "Respond concisely." — this steers format without imposing personality.
+
+  The identity reinforcement dataset (data/core_identity/) is the right place for persona shaping anyway. It gets trained into the weights during sleep, not
+  injected as a prompt. That's the architecturally consistent approach — persona through learning, not through instruction.

@@ -5,6 +5,9 @@ import os
 from pathlib import Path
 
 
+from src.sleep.firewall import HallucinationFirewall
+
+
 class Curator:
     """Evaluates conversation exchanges and prepares training data.
 
@@ -16,6 +19,7 @@ class Curator:
         self.backend = backend
         self.training_dir = Path(config.paths["training"])
         self.training_dir.mkdir(parents=True, exist_ok=True)
+        self.firewall = HallucinationFirewall(config, backend)
 
     def curate_session(self, messages, sleep_cycle_id):
         """Score and filter a session's messages into training examples.
@@ -209,6 +213,11 @@ class Curator:
         print("        Extracting facts from conversation...")
         fact_pairs = self._extract_facts_as_qa(all_messages)
         print(f"        Generated {len(fact_pairs)} fact Q&A pairs")
+
+        # Run hallucination firewall
+        conv_text = "\n".join(f"{m['role'].upper()}: {m['content']}" for m in all_messages)
+        fact_pairs, rejected = self.firewall.verify_pairs(fact_pairs, conv_text)
+        print(f"        Firewall: {len(fact_pairs)} verified, {len(rejected)} rejected")
 
         for qa in fact_pairs:
             text = self.backend.apply_chat_template(qa, for_training=True)

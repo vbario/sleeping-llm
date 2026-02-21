@@ -78,6 +78,49 @@ class Chat:
         ]
         return "\n".join(lines)
 
+    def process_input_stream(self, user_input):
+        """Process input with streaming response. Yields token strings.
+
+        After streaming completes, handles logging, context updates,
+        and sleep triggers just like process_input().
+        """
+        stripped = user_input.strip()
+
+        # Commands don't stream
+        if stripped == self.config.sleep["manual_trigger"]:
+            if self._sleep_callback:
+                self._sleep_callback("manual")
+            return
+        if stripped == "/status":
+            yield self._status_report()
+            return
+        if stripped == "/compact":
+            self.context.compact()
+            yield "[Context compacted]"
+            return
+
+        self.context.add_user_message(user_input)
+        messages = self.context.get_messages()
+        prompt = self.backend.apply_chat_template(messages)
+
+        full_response = []
+        for token in self.backend.generate_stream(prompt):
+            full_response.append(token)
+            yield token
+
+        response = "".join(full_response)
+        self.context.add_assistant_message(response)
+        self.logger.log_exchange(user_input, response)
+        self.turn_count += 1
+
+        if self.context.needs_compaction():
+            self.context.compact()
+
+        light_threshold = self.config.sleep["light_sleep_turns"]
+        if self.turn_count > 0 and self.turn_count % light_threshold == 0:
+            if self._sleep_callback:
+                self._sleep_callback("auto")
+
     def reset_turn_count(self):
         """Reset turn counter (called after sleep)."""
         self.turn_count = 0
