@@ -457,6 +457,27 @@ class Curator:
 
         return pairs
 
+    def triples_to_training_pairs(self, triples):
+        """Convert FactTriple objects to Q&A message pair format.
+
+        Bridges MEMIT facts to the existing training data format.
+
+        Args:
+            triples: List of FactTriple objects
+
+        Returns:
+            List of [user_msg, assistant_msg] pairs
+        """
+        pairs = []
+        for triple in triples:
+            question = triple.to_question()
+            answer = triple.to_answer()
+            pairs.append([
+                {"role": "user", "content": question},
+                {"role": "assistant", "content": answer},
+            ])
+        return pairs
+
     def curate_with_model(self, messages, sleep_cycle_id):
         """Use the model itself to score exchanges (slower, more accurate).
 

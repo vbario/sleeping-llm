@@ -22,14 +22,14 @@ class ChatRequest(BaseModel):
     message: str
 
 
-def create_app(config: Config) -> FastAPI:
+def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
     """Create and configure the FastAPI application."""
     global _orchestrator
 
     app = FastAPI(title="Sleeping LLM")
 
     # Initialize orchestrator
-    _orchestrator = Orchestrator(config)
+    _orchestrator = Orchestrator(config, disable_memit=disable_memit)
 
     static_dir = Path(__file__).parent / "static"
 
@@ -43,9 +43,11 @@ def create_app(config: Config) -> FastAPI:
 
         Event sequence:
           token* → done → [sleep_start → sleep_progress* → sleep_done] → complete
+          OR: token* → done → [nap_start → nap_progress* → nap_done] → complete
         """
         async def event_generator():
             auto_sleep = False
+            auto_nap = False
             async with _model_lock:
                 gen = _orchestrator.process_message_stream(message)
                 try:
@@ -53,9 +55,13 @@ def create_app(config: Config) -> FastAPI:
                         token = await asyncio.to_thread(next, gen, None)
                         if token is None:
                             break
-                        if isinstance(token, dict) and token.get("__auto_sleep__"):
-                            auto_sleep = True
-                            break
+                        if isinstance(token, dict):
+                            if token.get("__auto_sleep__"):
+                                auto_sleep = True
+                                break
+                            if token.get("__auto_nap__"):
+                                auto_nap = True
+                                break
                         yield {"event": "token", "data": json.dumps({"token": token})}
                 except StopIteration:
                     pass
@@ -74,6 +80,19 @@ def create_app(config: Config) -> FastAPI:
                     except StopIteration:
                         pass
                     yield {"event": "sleep_done", "data": ""}
+
+                elif auto_nap:
+                    yield {"event": "nap_start", "data": ""}
+                    nap_gen = _orchestrator.trigger_nap_web()
+                    try:
+                        while True:
+                            event = await asyncio.to_thread(next, nap_gen, None)
+                            if event is None:
+                                break
+                            yield {"event": "nap_progress", "data": json.dumps(event)}
+                    except StopIteration:
+                        pass
+                    yield {"event": "nap_done", "data": ""}
 
             yield {"event": "complete", "data": ""}
 
@@ -105,6 +124,29 @@ def create_app(config: Config) -> FastAPI:
             yield {"event": "done", "data": ""}
 
         return EventSourceResponse(event_generator())
+
+    @app.get("/api/nap/stream")
+    async def nap_stream():
+        """Trigger nap and stream progress via SSE."""
+        async def event_generator():
+            async with _model_lock:
+                gen = _orchestrator.trigger_nap_web()
+                try:
+                    while True:
+                        event = await asyncio.to_thread(next, gen, None)
+                        if event is None:
+                            break
+                        yield {"event": "progress", "data": json.dumps(event)}
+                except StopIteration:
+                    pass
+            yield {"event": "done", "data": ""}
+
+        return EventSourceResponse(event_generator())
+
+    @app.get("/api/health")
+    async def health():
+        """Return health monitor data."""
+        return _orchestrator.health_monitor.to_dict()
 
     @app.get("/api/status")
     async def status():

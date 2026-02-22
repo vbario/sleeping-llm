@@ -51,6 +51,11 @@ def main():
         action="store_true",
         help="Full reset: clear weights, training data, replay buffer",
     )
+    parser.add_argument(
+        "--disable-memit",
+        action="store_true",
+        help="Disable MEMIT injection during wake phase",
+    )
     args = parser.parse_args()
 
     config = Config(args.config)
@@ -82,10 +87,10 @@ def main():
     if args.web:
         from src.web.server import create_app
         import uvicorn
-        app = create_app(config)
+        app = create_app(config, disable_memit=args.disable_memit)
         uvicorn.run(app, host="0.0.0.0", port=args.port)
     else:
-        orchestrator = Orchestrator(config)
+        orchestrator = Orchestrator(config, disable_memit=args.disable_memit)
         orchestrator.run()
 
 

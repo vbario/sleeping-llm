@@ -7,6 +7,17 @@ import sys
 from pathlib import Path
 
 
+def nn_create_additive_causal_mask(seq_len, dtype):
+    """Create an additive causal mask for self-attention.
+
+    Returns a [seq_len, seq_len] matrix where future positions are -inf.
+    """
+    import mlx.core as mx
+    indices = mx.arange(seq_len)
+    mask = indices[:, None] < indices[None, :]
+    return mask * mx.array(float('-inf'), dtype=dtype)
+
+
 class MLXBackend:
     """Unified interface to MLX model operations."""
 
@@ -184,6 +195,202 @@ class MLXBackend:
             logits_processors=logits_processors,
         ):
             yield response.text
+
+    # --- Layer-level access for MEMIT ---
+
+    def forward_to_layer(self, input_ids, target_layer):
+        """Manual forward through embed_tokens + layers[0:target_layer+1].
+
+        Replicates the Llama forward pass layer-by-layer to extract
+        intermediate hidden states needed by MEMIT.
+
+        Args:
+            input_ids: mx.array of shape [batch, seq_len]
+            target_layer: Which layer to stop at (inclusive)
+
+        Returns:
+            Tuple of (hidden_state, mlp_input, mlp_output) at the target layer.
+            All shapes: [batch, seq_len, hidden_size]
+        """
+        import mlx.core as mx
+
+        model = self.model.model  # Access the inner model (e.g., LlamaModel)
+
+        # Embed tokens
+        h = model.embed_tokens(input_ids)
+
+        # Create causal mask
+        seq_len = input_ids.shape[1]
+        mask = None
+        if seq_len > 1:
+            mask = nn_create_additive_causal_mask(seq_len, h.dtype)
+
+        mlp_input_out = None
+        mlp_output_out = None
+
+        for i, layer in enumerate(model.layers):
+            if i > target_layer:
+                break
+
+            if i == target_layer:
+                # At target layer, capture MLP input and output separately
+                # Run attention first (with residual)
+                residual = h
+                attn_input = layer.input_layernorm(h)
+                attn_output = layer.self_attn(attn_input, mask=mask)
+                h = residual + attn_output
+
+                # MLP input = post-attention hidden state after post_attention_layernorm
+                mlp_input_out = layer.post_attention_layernorm(h)
+
+                # MLP output
+                mlp_raw = layer.mlp(mlp_input_out)
+                mlp_output_out = mlp_raw
+
+                # Residual connection
+                h = h + mlp_raw
+            else:
+                # Normal forward through layer
+                h = layer(h, mask=mask)
+
+        mx.eval(h)
+        if mlp_input_out is not None:
+            mx.eval(mlp_input_out)
+        if mlp_output_out is not None:
+            mx.eval(mlp_output_out)
+
+        return h, mlp_input_out, mlp_output_out
+
+    def forward_layers_range(self, input_ids, start_layer, end_layer):
+        """Forward through a range of layers, returning activations at each.
+
+        Args:
+            input_ids: mx.array of shape [batch, seq_len]
+            start_layer: First layer (inclusive)
+            end_layer: Last layer (inclusive)
+
+        Returns:
+            Dict mapping layer_idx -> (hidden_state, mlp_input, mlp_output)
+        """
+        import mlx.core as mx
+
+        model = self.model.model
+        h = model.embed_tokens(input_ids)
+
+        seq_len = input_ids.shape[1]
+        mask = None
+        if seq_len > 1:
+            mask = nn_create_additive_causal_mask(seq_len, h.dtype)
+
+        activations = {}
+
+        for i, layer in enumerate(model.layers):
+            if i > end_layer:
+                break
+
+            if start_layer <= i <= end_layer:
+                residual = h
+                attn_input = layer.input_layernorm(h)
+                attn_output = layer.self_attn(attn_input, mask=mask)
+                h = residual + attn_output
+
+                mlp_input = layer.post_attention_layernorm(h)
+                mlp_raw = layer.mlp(mlp_input)
+                mlp_output = mlp_raw
+                h = h + mlp_raw
+
+                mx.eval(h, mlp_input, mlp_output)
+                activations[i] = (h, mlp_input, mlp_output)
+            else:
+                h = layer(h, mask=mask)
+
+        return activations
+
+    def get_layer_mlp_weight(self, layer_idx, proj="down_proj"):
+        """Return weight matrix reference for a layer's MLP projection.
+
+        Args:
+            layer_idx: Transformer layer index
+            proj: "down_proj", "up_proj", or "gate_proj"
+
+        Returns:
+            mx.array weight matrix, or None if not found
+        """
+        try:
+            layer = self.model.model.layers[layer_idx]
+            mlp = layer.mlp
+            proj_module = getattr(mlp, proj, None)
+            if proj_module is not None:
+                return proj_module.weight
+        except (IndexError, AttributeError):
+            pass
+        return None
+
+    def set_layer_mlp_weight(self, layer_idx, proj, new_weight):
+        """Set weight matrix for a layer's MLP projection.
+
+        Args:
+            layer_idx: Transformer layer index
+            proj: "down_proj", "up_proj", or "gate_proj"
+            new_weight: mx.array new weight matrix
+        """
+        import mlx.core as mx
+
+        try:
+            layer = self.model.model.layers[layer_idx]
+            mlp = layer.mlp
+            proj_module = getattr(mlp, proj, None)
+            if proj_module is not None:
+                proj_module.weight = new_weight
+                mx.eval(proj_module.weight)
+        except (IndexError, AttributeError):
+            pass
+
+    def get_num_layers(self):
+        """Return total number of transformer layers."""
+        try:
+            return len(self.model.model.layers)
+        except AttributeError:
+            return 0
+
+    def compute_perplexity(self, text):
+        """Compute perplexity on a text string.
+
+        Args:
+            text: Input text to evaluate
+
+        Returns:
+            Perplexity value (float). Lower = model is more confident.
+        """
+        import mlx.core as mx
+        import math
+
+        tokens = self.tokenizer.encode(text)
+        if len(tokens) < 2:
+            return float('inf')
+
+        input_ids = mx.array([tokens])
+        logits = self.model(input_ids)  # [1, seq_len, vocab_size]
+
+        # Shift: predict token[i+1] from logits[i]
+        shift_logits = logits[:, :-1, :]  # [1, seq_len-1, vocab]
+        shift_labels = mx.array([tokens[1:]])  # [1, seq_len-1]
+
+        # Log softmax
+        log_probs = shift_logits - mx.logsumexp(shift_logits, axis=-1, keepdims=True)
+
+        # Gather log probs for actual tokens
+        seq_len = shift_labels.shape[1]
+        token_log_probs = []
+        for i in range(seq_len):
+            token_id = shift_labels[0, i].item()
+            lp = log_probs[0, i, token_id].item()
+            token_log_probs.append(lp)
+
+        avg_neg_log_prob = -sum(token_log_probs) / len(token_log_probs)
+        perplexity = math.exp(avg_neg_log_prob)
+
+        return perplexity
 
     def reload(self, model_path=None):
         """Reload model (e.g. after fusing a new adapter)."""

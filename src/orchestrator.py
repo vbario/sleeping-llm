@@ -4,31 +4,35 @@ Coordinates the full lifecycle:
   wake (chat) → detect sleep trigger → curate → train → validate → fuse → wake
 """
 
-import json
 import shutil
-import time
 from pathlib import Path
 
 from src.memory.checkpoints import CheckpointManager
+from src.memory.health import HealthMonitor
 from src.memory.identity import IdentityManager
+from src.memory.memit import EditLedger, MemitEngine
 from src.memory.replay import ReplayBuffer
 from src.memory.session_tracker import SessionTracker
 from src.sleep.curator import Curator
 from src.sleep.dreamer import Dreamer
+from src.sleep.full_sleep import FullSleepController
+from src.sleep.nap import NapController
 from src.sleep.trainer import SleepTrainer
 from src.sleep.validator import SleepValidator
 from src.wake.chat import Chat
 from src.wake.context import ContextManager
+from src.wake.extractor import FactExtractor
 from src.wake.logger import ConversationLogger
 
 
 class Orchestrator:
     """Central coordinator for the sleeping LLM system."""
 
-    def __init__(self, config):
+    def __init__(self, config, disable_memit=False):
         self.config = config
         self.sleep_cycle_count = 0
         self.light_sleep_count = 0
+        self.nap_cycle_count = 0
 
         # Initialize backend
         backend_type = config.model.get("backend", "mlx")
@@ -47,6 +51,7 @@ class Orchestrator:
         self.context = ContextManager(config, self.backend)
         self.chat = Chat(self.backend, self.context, self.logger, config)
         self.chat.set_sleep_callback(self._on_sleep_trigger)
+        self.chat.set_nap_callback(self._on_nap_trigger)
 
         # Initialize sleep components
         self.curator = Curator(config, self.backend)
@@ -58,6 +63,33 @@ class Orchestrator:
         self.identity = IdentityManager(config, self.backend)
         self.session_tracker = SessionTracker(config)
 
+        # Initialize MEMIT components
+        memit_enabled = config.get("memit.enabled", True) and not disable_memit
+        ledger_path = config.paths.get("memit_ledger", "data/memit/ledger.json")
+        self.edit_ledger = EditLedger(ledger_path)
+        self.memit_engine = MemitEngine(config, self.backend, self.edit_ledger)
+        if not memit_enabled:
+            self.memit_engine.enabled = False
+        self.fact_extractor = FactExtractor(config, self.backend)
+        self.health_monitor = HealthMonitor(config, self.backend, self.edit_ledger)
+
+        # Initialize nap and full sleep controllers
+        self.nap_controller = NapController(
+            config, self.backend, self.memit_engine,
+            self.edit_ledger, self.replay_buffer, self.curator,
+        )
+        self.full_sleep_controller = FullSleepController(
+            config, self.backend, self.memit_engine, self.edit_ledger,
+            self.curator, self.trainer, self.replay_buffer, self.dreamer,
+            self.validator, self.checkpoints, self.session_tracker,
+            self.health_monitor,
+        )
+
+        # Wire MEMIT components into chat
+        self.chat.set_memit_components(
+            self.fact_extractor, self.memit_engine, self.health_monitor,
+        )
+
         # Seed identity data if first run
         self.identity.seed_defaults()
 
@@ -65,8 +97,10 @@ class Orchestrator:
         """Main loop — interactive chat with sleep cycles."""
         print("\n=== Sleeping LLM ===")
         print(f"Model: {self.config.model['path']}")
-        print(f"Sleep after: {self.config.sleep['light_sleep_turns']} turns")
-        print(f"Commands: /sleep (manual), /status, /compact, /quit")
+        memit_status = "ON" if self.memit_engine.enabled else "OFF"
+        trigger_mode = self.config.sleep.get("trigger_mode", "turns")
+        print(f"MEMIT: {memit_status} | Trigger: {trigger_mode}")
+        print(f"Commands: /sleep, /nap, /status, /compact, /quit")
         print("=" * 40)
         print()
 
@@ -99,26 +133,33 @@ class Orchestrator:
     def process_message_stream(self, user_input):
         """Process a message with streaming. Yields token strings.
 
-        After all tokens, may yield a dict {"__auto_sleep__": True} if
-        automatic sleep was triggered by the turn count threshold.
+        After all tokens, may yield a dict with sleep/nap trigger signals:
+          {"__auto_sleep__": True} or {"__auto_nap__": True}
         """
         if user_input.strip() == "/quit":
             return
 
-        # Swap sleep callback to flag-only (don't block during streaming)
+        # Swap callbacks to flag-only (don't block during streaming)
         self._auto_sleep_pending = False
-        original_cb = self.chat._sleep_callback
+        self._auto_nap_pending = False
+        original_sleep_cb = self.chat._sleep_callback
+        original_nap_cb = self.chat._nap_callback
         self.chat._sleep_callback = lambda t: setattr(self, '_auto_sleep_pending', True)
+        self.chat._nap_callback = lambda t: setattr(self, '_auto_nap_pending', True)
 
         yield from self.chat.process_input_stream(user_input)
 
-        # Restore original callback
-        self.chat._sleep_callback = original_cb
+        # Restore original callbacks
+        self.chat._sleep_callback = original_sleep_cb
+        self.chat._nap_callback = original_nap_cb
 
-        # Signal auto-sleep to caller
+        # Signal auto-sleep or auto-nap to caller
         if self._auto_sleep_pending:
             self._auto_sleep_pending = False
             yield {"__auto_sleep__": True}
+        elif self._auto_nap_pending:
+            self._auto_nap_pending = False
+            yield {"__auto_nap__": True}
 
     def trigger_sleep_web(self):
         """Trigger sleep and yield progress dicts for each step."""
@@ -130,19 +171,18 @@ class Orchestrator:
         is_deep = self.light_sleep_count >= deep_interval
         sleep_type = "deep" if is_deep else "light"
 
-        progress = []
-
-        def progress_cb(event):
-            progress.append(event)
-
         try:
-            yield from self._execute_sleep_streaming(cycle_id, sleep_type)
+            yield from self.full_sleep_controller.execute_sleep_streaming(
+                cycle_id, sleep_type, self._gather_new_messages,
+            )
         except Exception as e:
             yield {"step": 0, "total": 6, "label": "Error", "status": "error", "detail": str(e)}
             return
 
         if is_deep:
             self.light_sleep_count = 0
+
+        self.health_monitor.record_sleep("full")
 
         if self.context.recent_messages:
             self.context.compact()
@@ -152,6 +192,21 @@ class Orchestrator:
         self.chat.logger = self.logger
 
         yield {"step": 7, "total": 6, "label": "Awake", "status": "done", "detail": "Memories integrated"}
+
+    def trigger_nap_web(self):
+        """Trigger nap and yield progress dicts for each step."""
+        self.nap_cycle_count += 1
+        cycle_id = f"nap_{self.nap_cycle_count:04d}"
+
+        try:
+            yield from self.nap_controller.execute_nap_streaming(cycle_id)
+        except Exception as e:
+            yield {"step": 0, "total": 4, "label": "Error", "status": "error", "detail": str(e)}
+            return
+
+        self.health_monitor.record_sleep("nap")
+
+        yield {"step": 5, "total": 4, "label": "Awake", "status": "done", "detail": "Nap complete"}
 
     def get_status(self):
         """Return current system status as a dict."""
@@ -168,9 +223,15 @@ class Orchestrator:
             "messages_in_context": len(self.context.recent_messages),
             "replay_buffer": buffer_stats,
             "sleep_cycles": self.sleep_cycle_count,
+            "nap_cycles": self.nap_cycle_count,
             "model": self.config.model["path"],
             "consumed_sessions": self.session_tracker.get_consumed_count(),
             "total_sessions": self.session_tracker.get_total_session_count(),
+            "memit_enabled": self.memit_engine.enabled,
+            "memit_edits": self.memit_engine.get_active_edit_count(),
+            "memit_facts": self.memit_engine.get_active_fact_count(),
+            "sleep_pressure": round(self.health_monitor.get_sleep_pressure(), 3),
+            "health": self.health_monitor.to_dict(),
         }
 
     def get_current_messages(self):
@@ -178,7 +239,11 @@ class Orchestrator:
         return self.logger.get_session_messages()
 
     def reset_weights(self):
-        """Reset model to base weights. Clears current model and checkpoints."""
+        """Reset model to base weights. Clears current model, checkpoints, and MEMIT edits."""
+        # Clear MEMIT edits first (before model reload)
+        self.memit_engine.revert_all_active()
+        self.edit_ledger.clear_all()
+
         # Delete current model
         current_dir = Path(self.config.paths["current_model"])
         if current_dir.exists():
@@ -202,14 +267,15 @@ class Orchestrator:
         # Reset counters
         self.sleep_cycle_count = 0
         self.light_sleep_count = 0
+        self.nap_cycle_count = 0
         self.chat.reset_turn_count()
         self.context.reset(keep_summary=False)
 
         return {"status": "ok", "message": "Weights reset to base model"}
 
     def factory_reset(self):
-        """Full reset — weights, training data, replay buffer, sessions manifest."""
-        # Reset weights first
+        """Full reset — weights, training data, replay buffer, sessions manifest, MEMIT data."""
+        # Reset weights first (also clears MEMIT edits)
         self.reset_weights()
 
         # Delete training data
@@ -229,6 +295,12 @@ class Orchestrator:
         if conversations_dir.exists():
             shutil.rmtree(conversations_dir)
             conversations_dir.mkdir(parents=True, exist_ok=True)
+
+        # Delete MEMIT data
+        memit_dir = Path(self.config.paths.get("memit_data", "data/memit"))
+        if memit_dir.exists():
+            shutil.rmtree(memit_dir)
+            memit_dir.mkdir(parents=True, exist_ok=True)
 
         # Start a fresh logger
         self.logger = ConversationLogger(self.config)
@@ -255,7 +327,9 @@ class Orchestrator:
         print(f"{'=' * 40}\n")
 
         try:
-            self._execute_sleep(cycle_id, sleep_type)
+            self.full_sleep_controller.execute_sleep(
+                cycle_id, sleep_type, self._gather_new_messages,
+            )
         except Exception as e:
             print(f"  Sleep cycle failed: {e}")
             print("  Continuing with current model.\n")
@@ -263,6 +337,8 @@ class Orchestrator:
 
         if is_deep:
             self.light_sleep_count = 0
+
+        self.health_monitor.record_sleep("full")
 
         # Compact context before resetting so summary survives into next wake phase
         if self.context.recent_messages:
@@ -278,217 +354,31 @@ class Orchestrator:
         print(f"  Awake. Memories integrated.")
         print(f"{'=' * 40}\n")
 
-    def _execute_sleep(self, cycle_id, sleep_type):
-        """Run the full sleep pipeline."""
-        start_time = time.time()
+    def _on_nap_trigger(self, trigger_type):
+        """Called when a nap should begin."""
+        self.nap_cycle_count += 1
+        cycle_id = f"nap_{self.nap_cycle_count:04d}"
 
-        # 1. Pre-sleep evaluation
-        print("  [1/6] Running pre-sleep evaluation...")
-        pre_score = self.validator.evaluate()
-        print(f"        Score: {pre_score['score']:.2f} ({pre_score['correct']}/{pre_score['total']})")
+        print(f"\n{'=' * 40}")
+        print(f"  Taking a nap (cycle {cycle_id})...")
+        print(f"  Trigger: {trigger_type}")
+        print(f"{'=' * 40}\n")
 
-        # 2. Curate training data (only new sessions)
-        print("  [2/6] Curating training data...")
-        messages, consumed_sessions = self._gather_new_messages()
-        print(f"        {len(consumed_sessions)} new session(s) to process")
-        if sleep_type == "deep":
-            curated = self.curator.curate_with_model(messages, cycle_id)
-        else:
-            curated = self.curator.curate_session(messages, cycle_id)
-        print(f"        {len(curated)} exchanges selected for training")
-
-        if not curated and self.replay_buffer.stats()["count"] == 0:
-            print("        No training data and empty replay buffer. Skipping sleep.")
+        try:
+            result = self.nap_controller.execute_nap(cycle_id)
+            print(f"  Nap result: {result['status']}")
+            if result.get("facts_consolidated"):
+                print(f"  Facts consolidated: {result['facts_consolidated']}/{result['facts_total']}")
+        except Exception as e:
+            print(f"  Nap failed: {e}")
+            print("  Continuing with current model.\n")
             return
 
-        # 3. Add curated data to replay buffer
-        print("  [3/6] Updating replay buffer...")
-        if curated:
-            self.replay_buffer.add(curated)
-        stats = self.replay_buffer.stats()
-        print(f"        Buffer: {stats['count']} items, avg priority: {stats.get('avg_priority', 0):.2f}")
+        self.health_monitor.record_sleep("nap")
 
-        # 4. Dream (deep sleep only)
-        if sleep_type == "deep":
-            print("  [4/6] Dreaming (REM)...")
-            recent = [ex["messages"] for ex in curated[:10]]
-            dreams = self.dreamer.dream(recent)
-            print(f"        Generated {len(dreams)} dream sequences")
-            # Add dreams to training data
-            if dreams:
-                dream_data = self.dreamer.dream_to_training_data(dreams, self.backend)
-                # Append to the cycle's training file
-                training_dir = Path(self.config.paths["training"]) / f"cycle_{cycle_id}"
-                train_file = training_dir / "train.jsonl"
-                with open(train_file, "a") as f:
-                    for item in dream_data:
-                        f.write(json.dumps(item) + "\n")
-        else:
-            print("  [4/6] Skipping dreams (light sleep)")
-
-        # 5. Train
-        print(f"  [5/6] Training ({sleep_type} sleep)...")
-        adapter_path = self.trainer.train(cycle_id, sleep_type)
-        if adapter_path is None:
-            print("        No training data available. Skipping.")
-            return
-        print(f"        Adapter saved: {adapter_path}")
-
-        # 6. Validate and fuse
-        print("  [6/6] Validating...")
-
-        # Fuse to a TEMP location first, not current model
-        temp_model_dir = Path(self.config.paths["checkpoints"]) / "temp_fused"
-        self.backend.fuse_adapter(str(adapter_path), str(temp_model_dir))
-
-        # Load the temp fused model for evaluation
-        self.backend.reload(str(temp_model_dir))
-
-        post_score = self.validator.evaluate()
-        print(f"        Post-sleep score: {post_score['score']:.2f} ({post_score['correct']}/{post_score['total']})")
-
-        validation = self.validator.validate_sleep(pre_score, post_score)
-
-        if validation["approved"]:
-            print(f"        APPROVED: {validation['reason']}")
-            # Promote temp model to current
-            current_dir = Path(self.config.paths["current_model"])
-            if current_dir.exists():
-                shutil.rmtree(current_dir)
-            shutil.copytree(temp_model_dir, current_dir)
-            self.backend.reload(str(current_dir))
-            # Save checkpoint
-            self.checkpoints.save_checkpoint(cycle_id, metadata={
-                "sleep_type": sleep_type,
-                "pre_score": pre_score["score"],
-                "post_score": post_score["score"],
-                "curated_count": len(curated),
-            })
-            # Mark sessions as consumed (only after successful sleep)
-            if consumed_sessions:
-                self.session_tracker.mark_consumed(consumed_sessions, cycle_id)
-                print(f"        Marked {len(consumed_sessions)} session(s) as consumed")
-        else:
-            print(f"        REJECTED: {validation['reason']}")
-            print("        Rolling back to original model...")
-            # Reload the clean model (base or last good checkpoint)
-            latest = self.checkpoints.get_latest()
-            if latest:
-                self.backend.reload(latest["path"])
-            else:
-                self.backend.reload(self.config.model["path"])
-            print("        Rollback complete.")
-
-        # Clean up temp
-        if temp_model_dir.exists():
-            shutil.rmtree(temp_model_dir)
-
-        elapsed = time.time() - start_time
-        print(f"        Sleep cycle completed in {elapsed:.1f}s")
-
-    def _execute_sleep_streaming(self, cycle_id, sleep_type):
-        """Run the sleep pipeline, yielding progress dicts for each step."""
-        start_time = time.time()
-
-        # 1. Pre-sleep evaluation
-        yield {"step": 1, "total": 6, "label": "Pre-sleep evaluation", "status": "running"}
-        pre_score = self.validator.evaluate()
-        yield {"step": 1, "total": 6, "label": "Pre-sleep evaluation", "status": "done",
-               "detail": f"Score: {pre_score['score']:.2f} ({pre_score['correct']}/{pre_score['total']})"}
-
-        # 2. Curate training data
-        yield {"step": 2, "total": 6, "label": "Curating training data", "status": "running"}
-        messages, consumed_sessions = self._gather_new_messages()
-        if sleep_type == "deep":
-            curated = self.curator.curate_with_model(messages, cycle_id)
-        else:
-            curated = self.curator.curate_session(messages, cycle_id)
-        yield {"step": 2, "total": 6, "label": "Curating training data", "status": "done",
-               "detail": f"{len(curated)} exchanges, {len(consumed_sessions)} session(s)"}
-
-        if not curated and self.replay_buffer.stats()["count"] == 0:
-            yield {"step": 2, "total": 6, "label": "Curating training data", "status": "done",
-                   "detail": "No new data and empty replay buffer. Skipping."}
-            return
-
-        if not curated:
-            yield {"step": 2, "total": 6, "label": "Curating training data", "status": "done",
-                   "detail": "No new data. Consolidating from replay buffer."}
-
-        # 3. Replay buffer
-        yield {"step": 3, "total": 6, "label": "Updating replay buffer", "status": "running"}
-        if curated:
-            self.replay_buffer.add(curated)
-        stats = self.replay_buffer.stats()
-        yield {"step": 3, "total": 6, "label": "Updating replay buffer", "status": "done",
-               "detail": f"{stats['count']} items, avg priority: {stats.get('avg_priority', 0):.2f}"}
-
-        # 4. Dreaming
-        if sleep_type == "deep":
-            yield {"step": 4, "total": 6, "label": "Dreaming (REM)", "status": "running"}
-            recent = [ex["messages"] for ex in curated[:10]]
-            dreams = self.dreamer.dream(recent)
-            if dreams:
-                dream_data = self.dreamer.dream_to_training_data(dreams, self.backend)
-                training_dir = Path(self.config.paths["training"]) / f"cycle_{cycle_id}"
-                train_file = training_dir / "train.jsonl"
-                with open(train_file, "a") as f:
-                    for item in dream_data:
-                        f.write(json.dumps(item) + "\n")
-            yield {"step": 4, "total": 6, "label": "Dreaming (REM)", "status": "done",
-                   "detail": f"{len(dreams)} dream sequences"}
-        else:
-            yield {"step": 4, "total": 6, "label": "Dreams", "status": "done",
-                   "detail": "Skipped (light sleep)"}
-
-        # 5. Train
-        yield {"step": 5, "total": 6, "label": f"Training ({sleep_type})", "status": "running"}
-        adapter_path = self.trainer.train(cycle_id, sleep_type)
-        if adapter_path is None:
-            yield {"step": 5, "total": 6, "label": "Training", "status": "done",
-                   "detail": "No data available. Skipped."}
-            return
-        yield {"step": 5, "total": 6, "label": f"Training ({sleep_type})", "status": "done",
-               "detail": "Adapter saved"}
-
-        # 6. Validate and fuse
-        yield {"step": 6, "total": 6, "label": "Validating", "status": "running"}
-        temp_model_dir = Path(self.config.paths["checkpoints"]) / "temp_fused"
-        self.backend.fuse_adapter(str(adapter_path), str(temp_model_dir))
-        self.backend.reload(str(temp_model_dir))
-
-        post_score = self.validator.evaluate()
-        validation = self.validator.validate_sleep(pre_score, post_score)
-
-        if validation["approved"]:
-            current_dir = Path(self.config.paths["current_model"])
-            if current_dir.exists():
-                shutil.rmtree(current_dir)
-            shutil.copytree(temp_model_dir, current_dir)
-            self.backend.reload(str(current_dir))
-            self.checkpoints.save_checkpoint(cycle_id, metadata={
-                "sleep_type": sleep_type,
-                "pre_score": pre_score["score"],
-                "post_score": post_score["score"],
-                "curated_count": len(curated),
-            })
-            if consumed_sessions:
-                self.session_tracker.mark_consumed(consumed_sessions, cycle_id)
-            detail = f"APPROVED ({post_score['score']:.2f}). {validation['reason']}"
-        else:
-            latest = self.checkpoints.get_latest()
-            if latest:
-                self.backend.reload(latest["path"])
-            else:
-                self.backend.reload(self.config.model["path"])
-            detail = f"REJECTED ({post_score['score']:.2f}). {validation['reason']}. Rolled back."
-
-        if temp_model_dir.exists():
-            shutil.rmtree(temp_model_dir)
-
-        elapsed = time.time() - start_time
-        yield {"step": 6, "total": 6, "label": "Validating", "status": "done",
-               "detail": f"{detail} ({elapsed:.1f}s)"}
+        print(f"\n{'=' * 40}")
+        print(f"  Awake. Nap complete.")
+        print(f"{'=' * 40}\n")
 
     def _gather_new_messages(self):
         """Gather messages only from unconsumed sessions.

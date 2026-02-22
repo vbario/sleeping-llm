@@ -29,6 +29,8 @@ sleep:
   deep_sleep_interval: 5
   # Manual sleep command (user can type this to trigger sleep)
   manual_trigger: "/sleep"
+  # Trigger mode: "health" (MEMIT-based pressure) or "turns" (original fixed counter)
+  trigger_mode: "health"
 
   # Curation thresholds (0.0 - 1.0) — set to 0 to keep everything
   curation:
@@ -42,6 +44,45 @@ sleep:
     min_grounding_score: 0.3
     # Use model to double-check borderline cases (slower but more accurate)
     use_model_verification: false
+
+memit:
+  # Range of transformer layers to target for MEMIT edits
+  # For Llama-3.2-3B (26 layers), middle layers store factual knowledge
+  target_layers: [8, 9, 10, 11, 12, 13, 14, 15]
+  # Regularization parameter (higher = more conservative edits)
+  lambda_reg: 0.5
+  # Maximum active MEMIT edits (individual facts) before requiring sleep
+  max_active_edits: 50
+  # Whether to enable MEMIT injection during wake
+  enabled: true
+  # MLP module to edit
+  target_module: "down_proj"
+  # Covariance estimation samples (0 = skip, use identity matrix)
+  covariance_samples: 0
+
+health:
+  # Sleep pressure threshold to suggest a nap (0.0 - 1.0)
+  nap_threshold: 0.4
+  # Sleep pressure threshold to require full sleep (0.0 - 1.0)
+  sleep_threshold: 0.8
+  # Weights for pressure calculation
+  edit_weight: 0.6
+  time_weight: 0.3
+  perplexity_weight: 0.1
+  # Measure perplexity every N edits (0 = never)
+  perplexity_check_interval: 10
+  # Max wake duration in seconds before sleep is forced
+  max_wake_seconds: 7200
+
+nap:
+  # LoRA epochs for nap (quick pass)
+  epochs: 1
+  # Learning rate for nap
+  learning_rate: 1.0e-4
+  # Revert MEMIT edits on successful nap
+  revert_on_success: true
+  # Manual trigger command
+  manual_trigger: "/nap"
 
 lora:
   # LoRA rank (higher = more capacity to learn)
@@ -98,3 +139,5 @@ paths:
   current_model: "models/current"
   checkpoints: "models/checkpoints"
   adapters: "adapters"
+  memit_data: "data/memit"
+  memit_ledger: "data/memit/ledger.json"

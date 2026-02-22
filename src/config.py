@@ -50,6 +50,18 @@ class Config:
         return self._data["dreamer"]
 
     @property
+    def memit(self):
+        return self._data.get("memit", {})
+
+    @property
+    def health(self):
+        return self._data.get("health", {})
+
+    @property
+    def nap(self):
+        return self._data.get("nap", {})
+
+    @property
     def paths(self):
         return self._data["paths"]
 
