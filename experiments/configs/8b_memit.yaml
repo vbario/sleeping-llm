@@ -28,11 +28,15 @@ sleep:
 
 memit:
   target_layers: [12, 13, 14, 15, 16, 17, 18, 19]
-  lambda_reg: 0.5
+  lambda_reg: 0.1
   max_active_edits: 50
   enabled: true
   target_module: "down_proj"
-  covariance_samples: 0
+  covariance_samples: 200
+  residual_scale: 2.0
+  v_lr: 0.5
+  v_steps: 30
+  v_kl_factor: 0.0625
 
 health:
   nap_threshold: 0.4
