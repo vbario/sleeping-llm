@@ -839,6 +839,110 @@ class MemitEngine:
         ops.eval(target_matrix)
         return target_matrix
 
+    def _compute_target_values_torch(self, facts: List[FactTriple], critical_layer: int):
+        """PyTorch implementation: optimize v* using autodiff through remaining layers.
+
+        Same algorithm as MLX version but using torch.autograd.
+        """
+        import torch
+        import torch.nn.functional as F
+
+        targets = []
+        v_lr = self.v_lr
+        v_steps = self.v_steps
+        kl_factor = self.v_kl_factor
+        device = self.backend.model.device
+
+        for fi, fact in enumerate(facts):
+            prompt_text = fact.to_prompt()
+            target_text = fact.to_target()
+            prompt_tokens = self.backend.tokenizer.encode(prompt_text)
+            full_tokens = self.backend.tokenizer.encode(prompt_text + target_text)
+
+            input_ids = torch.tensor([prompt_tokens], dtype=torch.long).to(device)
+            seq_len = len(prompt_tokens)
+            last_pos = seq_len - 1
+
+            # Get hidden state at critical layer
+            with torch.no_grad():
+                hidden, _, mlp_output = self.backend.forward_to_layer(input_ids, critical_layer)
+
+            v_current = mlp_output[0, last_pos, :].detach().clone()
+
+            # Target token(s)
+            target_token_ids = full_tokens[len(prompt_tokens):]
+            if not target_token_ids:
+                targets.append(v_current)
+                continue
+            target_token_id = target_token_ids[0]
+
+            # Baseline logits (for KL constraint)
+            with torch.no_grad():
+                baseline_logits = self._forward_from_layer_torch(
+                    hidden.detach(), critical_layer + 1)
+                baseline_lp = baseline_logits[0, last_pos, :]
+                baseline_log_probs = baseline_lp - torch.logsumexp(baseline_lp, dim=0, keepdim=True)
+
+            baseline_p_target = torch.exp(baseline_log_probs[target_token_id]).item()
+
+            # Position mask: 1.0 only at last_pos
+            pos_mask = torch.zeros(1, seq_len, 1, device=device, dtype=hidden.dtype)
+            pos_mask[0, last_pos, 0] = 1.0
+
+            hidden_detached = hidden.detach()
+
+            # Optimize delta
+            delta = torch.zeros_like(v_current, requires_grad=True)
+            optimizer = torch.optim.SGD([delta], lr=v_lr)
+
+            for step in range(v_steps):
+                optimizer.zero_grad()
+                h_modified = hidden_detached + pos_mask * delta.unsqueeze(0).unsqueeze(0)
+                logits = self._forward_from_layer_torch(h_modified, critical_layer + 1)
+                lp = logits[0, last_pos, :]
+                log_probs = lp - torch.logsumexp(lp, dim=0, keepdim=True)
+
+                nll = -log_probs[target_token_id]
+                kl = torch.sum(torch.exp(baseline_log_probs) * (baseline_log_probs - log_probs))
+                loss = nll + kl_factor * kl
+                loss.backward()
+                optimizer.step()
+
+            # Final probability
+            with torch.no_grad():
+                h_final = hidden_detached + pos_mask * delta.detach().unsqueeze(0).unsqueeze(0)
+                final_logits = self._forward_from_layer_torch(h_final, critical_layer + 1)
+                final_lp = final_logits[0, last_pos, :]
+                final_log_probs = final_lp - torch.logsumexp(final_lp, dim=0, keepdim=True)
+                final_p_target = torch.exp(final_log_probs[target_token_id]).item()
+
+            delta_norm = torch.norm(delta.detach()).item()
+            print(f"    v* opt fact {fi}: '{fact.subject} {fact.relation} → {fact.object}' "
+                  f"token={target_token_id} "
+                  f"P(target): {baseline_p_target:.4f} → {final_p_target:.4f}  "
+                  f"|delta|={delta_norm:.4f}")
+
+            v_star = (v_current + delta.detach()).detach()
+            targets.append(v_star)
+
+        target_matrix = torch.stack(targets)
+        return target_matrix
+
+    def _forward_from_layer_torch(self, hidden_states, start_layer):
+        """Forward from a layer to logits WITH gradients enabled.
+
+        Unlike backend.forward_from_layer() which uses no_grad, this
+        allows gradients to flow through for v* optimization.
+        """
+        import torch
+        h = hidden_states
+        for i in range(start_layer, len(self.backend.model.model.layers)):
+            layer_out = self.backend.model.model.layers[i](h)
+            h = layer_out[0] if isinstance(layer_out, tuple) else layer_out
+        h = self.backend.model.model.norm(h)
+        logits = self.backend.model.lm_head(h)
+        return logits
+
     def _compute_current_values(self, facts: List[FactTriple], layer_idx: int):
         """Compute current MLP output values at one layer for just the prompt."""
         ops = self._ops
