@@ -125,9 +125,23 @@ def run_memit_benchmark(config_path, facts_path, sleep_cycles=2,
     print()
 
     # --- Initialize ---
-    print("[INIT] Loading model and factory reset...")
+    print("[INIT] Loading model and clearing data...")
     orchestrator = Orchestrator(config)
-    orchestrator.factory_reset()
+    # Light reset: clear data dirs without reloading model (already at base weights)
+    for dir_key in ["training", "replay_buffer", "conversations"]:
+        d = Path(config.paths.get(dir_key, ""))
+        if d.exists():
+            import shutil
+            shutil.rmtree(d)
+            d.mkdir(parents=True, exist_ok=True)
+    memit_dir = Path(config.paths.get("memit_data", "data/memit"))
+    if memit_dir.exists():
+        import shutil
+        shutil.rmtree(memit_dir)
+        memit_dir.mkdir(parents=True, exist_ok=True)
+    orchestrator.edit_ledger.clear_all()
+    orchestrator.chat.reset_turn_count()
+    orchestrator.context.reset(keep_summary=False)
     print()
 
     # Disable auto-sleep/nap during testing — we control the timing
