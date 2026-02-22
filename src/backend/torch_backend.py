@@ -268,6 +268,177 @@ class TorchBackend:
 
         return save_path
 
+    # --- Layer-level access for MEMIT ---
+
+    def forward_to_layer(self, input_ids, target_layer):
+        """Forward pass capturing hidden states at a specific layer.
+
+        Uses PyTorch forward hooks to intercept activations at the target
+        transformer layer, capturing MLP input and output.
+
+        Args:
+            input_ids: torch.Tensor of shape [batch, seq_len]
+            target_layer: Which layer to capture (0-indexed)
+
+        Returns:
+            Tuple of (hidden_state, mlp_input, mlp_output) at the target layer.
+            All shapes: [batch, seq_len, hidden_size]
+        """
+        captured = {}
+
+        def capture_post_attn_norm(module, input, output):
+            """Hook on post_attention_layernorm — captures MLP input."""
+            captured["mlp_input"] = output.detach()
+
+        def capture_mlp(module, input, output):
+            """Hook on the MLP module — captures MLP output."""
+            captured["mlp_output"] = output.detach()
+
+        def capture_layer_output(module, input, output):
+            """Hook on the full layer — captures residual stream after layer."""
+            # output is a tuple: (hidden_states, ...) or just hidden_states
+            if isinstance(output, tuple):
+                captured["hidden"] = output[0].detach()
+            else:
+                captured["hidden"] = output.detach()
+
+        layer = self.model.model.layers[target_layer]
+        hooks = [
+            layer.post_attention_layernorm.register_forward_hook(capture_post_attn_norm),
+            layer.mlp.register_forward_hook(capture_mlp),
+            layer.register_forward_hook(capture_layer_output),
+        ]
+
+        try:
+            with torch.no_grad():
+                self.model(input_ids)
+        finally:
+            for h in hooks:
+                h.remove()
+
+        return (
+            captured.get("hidden"),
+            captured.get("mlp_input"),
+            captured.get("mlp_output"),
+        )
+
+    def forward_layers_range(self, input_ids, start_layer, end_layer):
+        """Forward pass capturing activations at a range of layers.
+
+        Args:
+            input_ids: torch.Tensor of shape [batch, seq_len]
+            start_layer: First layer (inclusive)
+            end_layer: Last layer (inclusive)
+
+        Returns:
+            Dict mapping layer_idx -> (hidden_state, mlp_input, mlp_output)
+        """
+        captured = {}
+        hooks = []
+
+        for layer_idx in range(start_layer, end_layer + 1):
+            layer = self.model.model.layers[layer_idx]
+            lid = layer_idx  # capture for closure
+
+            def make_hooks(lid):
+                cap = {}
+                captured[lid] = cap
+
+                def hook_norm(mod, inp, out, c=cap):
+                    c["mlp_input"] = out.detach()
+                def hook_mlp(mod, inp, out, c=cap):
+                    c["mlp_output"] = out.detach()
+                def hook_layer(mod, inp, out, c=cap):
+                    c["hidden"] = (out[0] if isinstance(out, tuple) else out).detach()
+
+                return hook_norm, hook_mlp, hook_layer
+
+            hn, hm, hl = make_hooks(lid)
+            hooks.append(layer.post_attention_layernorm.register_forward_hook(hn))
+            hooks.append(layer.mlp.register_forward_hook(hm))
+            hooks.append(layer.register_forward_hook(hl))
+
+        try:
+            with torch.no_grad():
+                self.model(input_ids)
+        finally:
+            for h in hooks:
+                h.remove()
+
+        result = {}
+        for lid, cap in captured.items():
+            result[lid] = (cap.get("hidden"), cap.get("mlp_input"), cap.get("mlp_output"))
+        return result
+
+    def get_layer_mlp_weight(self, layer_idx, proj="down_proj"):
+        """Return weight tensor for a layer's MLP projection.
+
+        Args:
+            layer_idx: Transformer layer index
+            proj: "down_proj", "up_proj", or "gate_proj"
+
+        Returns:
+            torch.Tensor weight matrix, or None if not found
+        """
+        try:
+            layer = self.model.model.layers[layer_idx]
+            proj_module = getattr(layer.mlp, proj, None)
+            if proj_module is not None:
+                return proj_module.weight.data
+        except (IndexError, AttributeError):
+            pass
+        return None
+
+    def set_layer_mlp_weight(self, layer_idx, proj, new_weight):
+        """Set weight tensor for a layer's MLP projection.
+
+        Args:
+            layer_idx: Transformer layer index
+            proj: "down_proj", "up_proj", or "gate_proj"
+            new_weight: torch.Tensor new weight matrix
+        """
+        try:
+            layer = self.model.model.layers[layer_idx]
+            proj_module = getattr(layer.mlp, proj, None)
+            if proj_module is not None:
+                with torch.no_grad():
+                    proj_module.weight.data.copy_(new_weight)
+        except (IndexError, AttributeError):
+            pass
+
+    def get_num_layers(self):
+        """Return total number of transformer layers."""
+        try:
+            return len(self.model.model.layers)
+        except AttributeError:
+            if hasattr(self.model, "config"):
+                return getattr(self.model.config, "num_hidden_layers", 0)
+            return 0
+
+    def compute_perplexity(self, text):
+        """Compute perplexity on a text string.
+
+        Args:
+            text: Input text to evaluate
+
+        Returns:
+            Perplexity value (float). Lower = model is more confident.
+        """
+        import math
+
+        tokens = self.tokenizer(text, return_tensors="pt").to(self.model.device)
+        input_ids = tokens["input_ids"]
+
+        if input_ids.shape[1] < 2:
+            return float('inf')
+
+        with torch.no_grad():
+            outputs = self.model(input_ids, labels=input_ids)
+            # outputs.loss is the average cross-entropy loss
+            neg_log_likelihood = outputs.loss.item()
+
+        return math.exp(neg_log_likelihood)
+
     def reload(self, model_path=None):
         """Reload model (e.g. after fusing a new adapter)."""
         # Free GPU memory

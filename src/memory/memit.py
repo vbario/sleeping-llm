@@ -182,8 +182,69 @@ class EditLedger:
             self._edits = []
 
 
+def _detect_backend(backend):
+    """Detect whether backend is MLX or PyTorch and return tensor ops."""
+    backend_type = type(backend).__name__
+    if backend_type == "TorchBackend":
+        return "torch"
+    return "mlx"
+
+
+def _tensor_ops(backend_type):
+    """Return a namespace of tensor operations for the detected backend.
+
+    Provides: make_input_ids, stack, eye, inv, eval, matmul, transpose
+    """
+    class Ops:
+        pass
+    ops = Ops()
+
+    if backend_type == "torch":
+        import torch
+        ops.make_input_ids = lambda tokens: torch.tensor([tokens], dtype=torch.long)
+        ops.stack = torch.stack
+        ops.eye = lambda n: torch.eye(n)
+        ops.transpose = lambda x: x.T
+        ops.matmul = lambda a, b: a @ b
+        ops.negate = lambda x: -x
+
+        def _inv(x):
+            return torch.linalg.inv(x)
+        ops.inv = _inv
+
+        def _eval(*args):
+            pass  # no-op for PyTorch (eager execution)
+        ops.eval = _eval
+
+        def _to_device(t, backend):
+            return t.to(backend.model.device)
+        ops.to_device = _to_device
+    else:
+        import mlx.core as mx
+        ops.make_input_ids = lambda tokens: mx.array([tokens])
+        ops.stack = mx.stack
+        ops.eye = mx.eye
+        ops.transpose = lambda x: x.T
+        ops.matmul = lambda a, b: a @ b
+        ops.negate = lambda x: -x
+
+        def _inv(x):
+            return mx.linalg.inv(x)
+        ops.inv = _inv
+
+        def _eval(*args):
+            mx.eval(*[a for a in args if a is not None])
+        ops.eval = _eval
+
+        def _to_device(t, backend):
+            return t  # no-op for MLX
+        ops.to_device = _to_device
+
+    return ops
+
+
 class MemitEngine:
-    """Core MEMIT implementation for MLX.
+    """Core MEMIT implementation — backend-agnostic (MLX and PyTorch).
 
     Injects batches of facts into transformer MLP layers by computing
     weight deltas distributed across multiple target layers.
@@ -212,6 +273,10 @@ class MemitEngine:
         self.target_module = memit_config.get("target_module", "down_proj")
         self.covariance_samples = memit_config.get("covariance_samples", 0)
 
+        # Detect backend and get tensor ops
+        self._backend_type = _detect_backend(backend)
+        self._ops = _tensor_ops(self._backend_type)
+
         # In-memory store of active edits (with delta arrays for revert)
         self._active_edits: List[MemitEdit] = []
 
@@ -229,10 +294,7 @@ class MemitEngine:
         if not self.enabled or not facts:
             return None
 
-        import mlx.core as mx
-
-        model = self.backend.model
-        tokenizer = self.backend.tokenizer
+        ops = self._ops
 
         # Clamp target layers to actual model size
         num_layers = self.backend.get_num_layers()
@@ -276,13 +338,11 @@ class MemitEngine:
             layer_deltas[layer_idx] = delta
 
             # Update residuals: subtract this layer's contribution
-            # New residuals = old residuals - delta @ keys
             if layer_idx != target_layers[0]:
-                contribution = delta @ keys.T
-                # Only subtract if shapes match (they should for same batch)
+                contribution = ops.matmul(delta, ops.transpose(keys))
                 if contribution.shape == residuals.shape:
                     residuals = residuals - contribution
-                    mx.eval(residuals)
+                    ops.eval(residuals)
 
         # Create edit record
         edit = MemitEdit(
@@ -305,10 +365,9 @@ class MemitEngine:
 
     def revert_edit(self, edit: MemitEdit):
         """Subtract all delta matrices from weights, reversing the edit."""
-        import mlx.core as mx
-
+        ops = self._ops
         for layer_idx, delta in edit.layer_deltas.items():
-            self._apply_delta(layer_idx, -delta)
+            self._apply_delta(layer_idx, ops.negate(delta))
 
         self._active_edits = [e for e in self._active_edits if e.edit_id != edit.edit_id]
 
@@ -349,13 +408,12 @@ class MemitEngine:
 
         Key = hidden state at subject's last token at MLP input of the target layer.
         """
-        import mlx.core as mx
-
+        ops = self._ops
         keys = []
         for fact in facts:
             prompt_text = fact.to_prompt()
             tokens = self.backend.tokenizer.encode(prompt_text)
-            input_ids = mx.array([tokens])
+            input_ids = ops.to_device(ops.make_input_ids(tokens), self.backend)
 
             # Get hidden state at target layer's MLP input
             hidden, mlp_input, _ = self.backend.forward_to_layer(input_ids, layer_idx)
@@ -364,8 +422,8 @@ class MemitEngine:
             key = mlp_input[0, -1, :]  # [hidden_size]
             keys.append(key)
 
-        keys_matrix = mx.stack(keys)  # [num_facts, hidden_size]
-        mx.eval(keys_matrix)
+        keys_matrix = ops.stack(keys)  # [num_facts, hidden_size]
+        ops.eval(keys_matrix)
         return keys_matrix
 
     def _compute_target_values(self, facts: List[FactTriple], critical_layer: int):
@@ -374,13 +432,12 @@ class MemitEngine:
         Target = the MLP output representation at critical layer when running
         the full text (subject + relation + object).
         """
-        import mlx.core as mx
-
+        ops = self._ops
         targets = []
         for fact in facts:
             full_text = fact.to_prompt() + fact.to_target()
             tokens = self.backend.tokenizer.encode(full_text)
-            input_ids = mx.array([tokens])
+            input_ids = ops.to_device(ops.make_input_ids(tokens), self.backend)
 
             # Get MLP output at critical layer for the full text
             _, _, mlp_output = self.backend.forward_to_layer(input_ids, critical_layer)
@@ -392,19 +449,18 @@ class MemitEngine:
             target = mlp_output[0, subj_last_pos, :]  # [hidden_size]
             targets.append(target)
 
-        target_matrix = mx.stack(targets)  # [num_facts, hidden_size]
-        mx.eval(target_matrix)
+        target_matrix = ops.stack(targets)  # [num_facts, hidden_size]
+        ops.eval(target_matrix)
         return target_matrix
 
     def _compute_current_values(self, facts: List[FactTriple], layer_idx: int):
         """Compute current MLP output values at one layer for just the prompt."""
-        import mlx.core as mx
-
+        ops = self._ops
         values = []
         for fact in facts:
             prompt_text = fact.to_prompt()
             tokens = self.backend.tokenizer.encode(prompt_text)
-            input_ids = mx.array([tokens])
+            input_ids = ops.to_device(ops.make_input_ids(tokens), self.backend)
 
             _, _, mlp_output = self.backend.forward_to_layer(input_ids, layer_idx)
 
@@ -412,65 +468,61 @@ class MemitEngine:
             value = mlp_output[0, -1, :]  # [hidden_size]
             values.append(value)
 
-        value_matrix = mx.stack(values)  # [num_facts, hidden_size]
-        mx.eval(value_matrix)
+        value_matrix = ops.stack(values)  # [num_facts, hidden_size]
+        ops.eval(value_matrix)
         return value_matrix
 
     def _compute_layer_delta(self, keys, residuals):
         """Compute weight delta for one layer using least-squares.
 
-        ΔW = R @ K^T @ (K @ K^T + λI)^{-1}
+        ΔW = R^T @ (K @ K^T + λI)^{-1} @ K
 
         Where R = residuals matrix, K = key matrix.
         This finds the minimum-norm weight update that maps keys to residuals.
         """
-        import mlx.core as mx
-
+        ops = self._ops
         num_facts = keys.shape[0]
 
         # K @ K^T: [num_facts x num_facts]
-        KKT = keys @ keys.T
+        KKT = ops.matmul(keys, ops.transpose(keys))
 
         # Regularize: KKT + λI
-        reg = self.lambda_reg * mx.eye(num_facts)
-        KKT_reg = KKT + reg
+        reg_eye = ops.eye(num_facts)
+        # Match dtype/device if torch
+        if self._backend_type == "torch":
+            reg_eye = reg_eye.to(dtype=KKT.dtype, device=KKT.device)
+        KKT_reg = KKT + self.lambda_reg * reg_eye
 
         # Solve: (K @ K^T + λI)^{-1}
         try:
-            KKT_inv = mx.linalg.inv(KKT_reg)
+            KKT_inv = ops.inv(KKT_reg)
         except Exception:
-            # Fallback: use pseudo-inverse via SVD
             try:
-                # Simple regularized pseudo-inverse
-                KKT_inv = mx.linalg.inv(KKT_reg + 0.1 * mx.eye(num_facts))
+                extra_reg = 0.1 * reg_eye
+                if self._backend_type == "torch":
+                    extra_reg = extra_reg.to(dtype=KKT.dtype, device=KKT.device)
+                KKT_inv = ops.inv(KKT_reg + extra_reg)
             except Exception:
                 return None
 
-        # ΔW = R @ K^T @ (K @ K^T + λI)^{-1}
-        # R: [num_facts, hidden_size], K: [num_facts, hidden_size]
-        # We want ΔW: [hidden_size, hidden_size] (to add to down_proj weight)
-        # Actually: ΔW = (KKT_inv @ R)^T @ K  — rearranged for correct shapes
-        # Or equivalently: ΔW^T = K^T @ KKT_inv @ R
-        # So ΔW = R^T @ KKT_inv^T @ K = R^T @ KKT_inv @ K (since KKT_inv is symmetric)
-        delta = residuals.T @ KKT_inv @ keys  # [hidden_size, hidden_size]
+        # ΔW = R^T @ KKT_inv @ K  [hidden_size, hidden_size]
+        delta = ops.matmul(ops.matmul(ops.transpose(residuals), KKT_inv), keys)
 
-        mx.eval(delta)
+        ops.eval(delta)
         return delta
 
     def _apply_delta(self, layer_idx: int, delta_weight):
         """Add delta to MLP down_proj weight at the given layer."""
-        import mlx.core as mx
-
         current_weight = self.backend.get_layer_mlp_weight(layer_idx, self.target_module)
         if current_weight is None:
             return
 
         # Ensure shapes match — delta might need transposing
         if delta_weight.shape != current_weight.shape:
-            if delta_weight.T.shape == current_weight.shape:
-                delta_weight = delta_weight.T
+            t_delta = self._ops.transpose(delta_weight)
+            if t_delta.shape == current_weight.shape:
+                delta_weight = t_delta
             else:
-                # Shape mismatch — skip this layer
                 return
 
         new_weight = current_weight + delta_weight
