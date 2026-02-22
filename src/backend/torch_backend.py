@@ -36,6 +36,7 @@ class TorchBackend:
             torch_dtype=torch.bfloat16,
             device_map="auto",
             trust_remote_code=True,
+            low_cpu_mem_usage=True,
         )
 
         if quantize == "4bit":
@@ -46,7 +47,7 @@ class TorchBackend:
                 bnb_4bit_use_double_quant=True,
             )
             # Reserve GPU headroom for inference/training/MEMIT; offload overflow to CPU
-            load_kwargs["max_memory"] = {0: "55GiB", "cpu": "100GiB"}
+            load_kwargs["max_memory"] = {0: "40GiB", "cpu": "200GiB"}
             load_kwargs["offload_folder"] = "/tmp/offload"
 
         self.model = AutoModelForCausalLM.from_pretrained(path, **load_kwargs)
