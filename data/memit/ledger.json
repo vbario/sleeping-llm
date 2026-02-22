@@ -49,7 +49,7 @@
       15
     ],
     "timestamp": 1771748302.927883,
-    "consolidated": false
+    "consolidated": true
   },
   {
     "edit_id": "dfb17099",
@@ -101,7 +101,7 @@
       15
     ],
     "timestamp": 1771748325.688319,
-    "consolidated": false
+    "consolidated": true
   },
   {
     "edit_id": "1155d691",
@@ -153,6 +153,109 @@
       15
     ],
     "timestamp": 1771748355.501981,
-    "consolidated": false
+    "consolidated": true
+  },
+  {
+    "edit_id": "aba4c8c2",
+    "facts": [
+      {
+        "subject": "Viktor and",
+        "relation": "is named",
+        "object": "Viktor and",
+        "source_exchange": "My name is Viktor and I live in Portland",
+        "timestamp": 1771749870.463135
+      },
+      {
+        "subject": "The user",
+        "relation": "lives in",
+        "object": "Portland",
+        "source_exchange": "My name is Viktor and I live in Portland",
+        "timestamp": 1771749870.463627
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771749876.2256289,
+    "consolidated": true
+  },
+  {
+    "edit_id": "6e1c78dc",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "works as",
+        "object": "a marine biologist",
+        "source_exchange": "I work as a marine biologist",
+        "timestamp": 1771749879.740663
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771749883.205937,
+    "consolidated": true
+  },
+  {
+    "edit_id": "aec78fa9",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "'s favorite color is",
+        "object": "teal",
+        "source_exchange": "My favorite color is teal",
+        "timestamp": 1771749887.536115
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771749891.782937,
+    "consolidated": true
+  },
+  {
+    "edit_id": "3d2125ee",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "uses",
+        "object": "Python and Rust",
+        "source_exchange": "I use Python and Rust",
+        "timestamp": 1771749945.1697369
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771749947.791855,
+    "consolidated": true
   }
 ]

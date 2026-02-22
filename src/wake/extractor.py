@@ -83,8 +83,8 @@ class FactExtractor:
             # Has/owns
             (r"(?:i have|i've got|i own)\s+(?:a |an )?(.+?)(?:\.|,|!|\?|$)",
              lambda m: "The user", "has", lambda m: m.group(1).strip()),
-            # Family members
-            (r"my\s+(son|daughter|wife|husband|partner|brother|sister|mom|dad|mother|father)(?:'s name)?\s+is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+            # Family members and pets
+            (r"my\s+(son|daughter|wife|husband|partner|brother|sister|mom|dad|mother|father|dog|cat|pet)(?:'s name)?\s+is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
              lambda m: f"The user's {m.group(1)}", "is named", lambda m: m.group(2)),
             # Uses/works with
             (r"(?:i use|i work with|i'm using|i am using)\s+(.+?)(?:\.|,|!|\?|$)",
