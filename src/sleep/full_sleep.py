@@ -115,18 +115,15 @@ class FullSleepController:
         print(f"        Adapter saved: {adapter_path}")
 
         # Stage 4: Validation
+        # train_lora already merged the adapter — model is ready in memory.
+        # No fuse/reload needed (avoids mixed-precision reload issues on multi-GPU).
         print("  [6/6] Validating...")
 
-        # CRITICAL ordering: revert MEMIT edits BEFORE fusing new LoRA
+        # CRITICAL ordering: revert MEMIT edits BEFORE validation
         edits_reverted = 0
         if memit_facts:
             edits_reverted = self.memit_engine.revert_all_active()
-            print(f"        Reverted {edits_reverted} MEMIT edits before fusion")
-
-        # Fuse to temp
-        temp_model_dir = Path(self.config.paths["checkpoints"]) / "temp_fused"
-        self.backend.fuse_adapter(str(adapter_path), str(temp_model_dir))
-        self.backend.reload(str(temp_model_dir))
+            print(f"        Reverted {edits_reverted} MEMIT edits before validation")
 
         post_score = self.validator.evaluate()
         print(f"        Post-sleep score: {post_score['score']:.2f} ({post_score['correct']}/{post_score['total']})")
@@ -135,11 +132,6 @@ class FullSleepController:
 
         if validation["approved"]:
             print(f"        APPROVED: {validation['reason']}")
-            current_dir = Path(self.config.paths["current_model"])
-            if current_dir.exists():
-                shutil.rmtree(current_dir)
-            shutil.copytree(temp_model_dir, current_dir)
-            self.backend.reload(str(current_dir))
 
             self.checkpoints.save_checkpoint(cycle_id, metadata={
                 "sleep_type": sleep_type,
@@ -163,13 +155,14 @@ class FullSleepController:
             print(f"        REJECTED: {validation['reason']}")
             print("        Rolling back to original model...")
 
-            # Re-apply MEMIT edits since we reverted them
+            # Reload pre-training model to undo the LoRA merge
             latest = self.checkpoints.get_latest()
             if latest:
                 self.backend.reload(latest["path"])
             else:
                 self.backend.reload(self.config.model["path"])
 
+            # Re-apply MEMIT edits since we reverted them
             if memit_facts:
                 print("        Re-applying MEMIT edits...")
                 for fact in memit_facts:
@@ -177,9 +170,6 @@ class FullSleepController:
 
             print("        Rollback complete.")
             status = "rejected"
-
-        if temp_model_dir.exists():
-            shutil.rmtree(temp_model_dir)
 
         elapsed = time.time() - start_time
         print(f"        Sleep cycle completed in {elapsed:.1f}s")
@@ -278,27 +268,18 @@ class FullSleepController:
                "detail": "Adapter saved"}
 
         # 6. Validate (with MEMIT revert)
+        # train_lora already merged the adapter — model is ready in memory.
         yield {"step": 6, "total": 6, "label": "Validating", "status": "running"}
 
-        # CRITICAL: revert MEMIT edits BEFORE fusing new LoRA
+        # CRITICAL: revert MEMIT edits BEFORE validation
         edits_reverted = 0
         if memit_facts:
             edits_reverted = self.memit_engine.revert_all_active()
-
-        temp_model_dir = Path(self.config.paths["checkpoints"]) / "temp_fused"
-        self.backend.fuse_adapter(str(adapter_path), str(temp_model_dir))
-        self.backend.reload(str(temp_model_dir))
 
         post_score = self.validator.evaluate()
         validation = self.validator.validate_sleep(pre_score, post_score)
 
         if validation["approved"]:
-            current_dir = Path(self.config.paths["current_model"])
-            if current_dir.exists():
-                shutil.rmtree(current_dir)
-            shutil.copytree(temp_model_dir, current_dir)
-            self.backend.reload(str(current_dir))
-
             self.checkpoints.save_checkpoint(cycle_id, metadata={
                 "sleep_type": sleep_type,
                 "pre_score": pre_score["score"],
@@ -316,6 +297,7 @@ class FullSleepController:
 
             detail = f"APPROVED ({post_score['score']:.2f}). {validation['reason']}"
         else:
+            # Reload pre-training model to undo the LoRA merge
             latest = self.checkpoints.get_latest()
             if latest:
                 self.backend.reload(latest["path"])
@@ -328,9 +310,6 @@ class FullSleepController:
                     self.memit_engine.inject_fact(fact)
 
             detail = f"REJECTED ({post_score['score']:.2f}). {validation['reason']}. Rolled back."
-
-        if temp_model_dir.exists():
-            shutil.rmtree(temp_model_dir)
 
         elapsed = time.time() - start_time
         yield {"step": 6, "total": 6, "label": "Validating", "status": "done",

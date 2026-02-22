@@ -205,9 +205,12 @@ class TorchBackend:
             task_type="CAUSAL_LM",
         )
 
-        # Prepare quantized model for training if needed
+        # Prepare quantized model for training if needed.
+        # Use enable_input_require_grads() instead of prepare_model_for_kbit_training()
+        # to avoid converting layernorms to float32, which corrupts generation if
+        # training fails (produces garbage tokens like "import A# def1").
         if self._quantized:
-            self.model = prepare_model_for_kbit_training(self.model)
+            self.model.enable_input_require_grads()
 
         # Wrap model with LoRA
         self.model.train()
@@ -218,48 +221,68 @@ class TorchBackend:
         total = sum(p.numel() for p in peft_model.parameters())
         print(f"        LoRA params: {trainable:,} trainable / {total:,} total ({100*trainable/total:.2f}%)")
 
-        # Training loop
-        optimizer = torch.optim.AdamW(
-            peft_model.parameters(),
-            lr=learning_rate,
-            weight_decay=0.01,
-        )
+        try:
+            # Training loop
+            # foreach=False: disable fused multi-tensor ops which require all params
+            # on the same device. With device_map="auto" on multi-GPU, LoRA adapters
+            # live on different devices (cuda:0, cuda:1, etc.).
+            optimizer = torch.optim.AdamW(
+                peft_model.parameters(),
+                lr=learning_rate,
+                weight_decay=0.01,
+                foreach=False,
+            )
 
-        total_steps = len(train_texts) * epochs
-        step = 0
+            total_steps = len(train_texts) * epochs
+            step = 0
 
-        for epoch in range(epochs):
-            epoch_loss = 0.0
-            for text in train_texts:
-                tokens = self.tokenizer(
-                    text,
-                    return_tensors="pt",
-                    truncation=True,
-                    max_length=2048,
-                    padding=False,
-                ).to(peft_model.device)
+            # For multi-GPU dispatched models, peft_model.device may be unreliable.
+            # Use the embedding layer's device since that's where inputs enter.
+            try:
+                input_device = next(peft_model.base_model.model.model.embed_tokens.parameters()).device
+            except (AttributeError, StopIteration):
+                input_device = next(peft_model.parameters()).device
 
-                # Causal LM: labels = input_ids (shifted internally by the model)
-                outputs = peft_model(**tokens, labels=tokens["input_ids"])
-                loss = outputs.loss
+            for epoch in range(epochs):
+                epoch_loss = 0.0
+                for text in train_texts:
+                    tokens = self.tokenizer(
+                        text,
+                        return_tensors="pt",
+                        truncation=True,
+                        max_length=2048,
+                        padding=False,
+                    ).to(input_device)
 
-                loss.backward()
-                optimizer.step()
-                optimizer.zero_grad()
+                    # Causal LM: labels = input_ids (shifted internally by the model)
+                    outputs = peft_model(**tokens, labels=tokens["input_ids"])
+                    loss = outputs.loss
 
-                epoch_loss += loss.item()
-                step += 1
+                    loss.backward()
+                    optimizer.step()
+                    optimizer.zero_grad()
 
-            avg_loss = epoch_loss / max(len(train_texts), 1)
-            print(f"        Epoch {epoch+1}/{epochs}: loss={avg_loss:.4f} ({step}/{total_steps} steps)")
+                    epoch_loss += loss.item()
+                    step += 1
 
-        # Save adapter
-        os.makedirs(adapter_path, exist_ok=True)
-        peft_model.save_pretrained(adapter_path)
+                avg_loss = epoch_loss / max(len(train_texts), 1)
+                print(f"        Epoch {epoch+1}/{epochs}: loss={avg_loss:.4f} ({step}/{total_steps} steps)")
 
-        # Unwrap back to base model for inference
-        self.model = peft_model.merge_and_unload()
-        self.model.eval()
+            # Save adapter
+            os.makedirs(adapter_path, exist_ok=True)
+            peft_model.save_pretrained(adapter_path)
+
+            # Unwrap back to base model for inference
+            self.model = peft_model.merge_and_unload()
+
+        except Exception as e:
+            print(f"        LoRA training error: {e}")
+            # Unwrap PEFT without merging to restore original weights
+            self.model = peft_model.unload()
+            raise
+
+        finally:
+            self.model.eval()
 
         return adapter_path
 
@@ -397,11 +420,16 @@ class TorchBackend:
         position_embeddings = self.model.model.rotary_emb(h, position_ids)
         with torch.no_grad():
             for i in range(start_layer, len(self.model.model.layers)):
-                layer_out = self.model.model.layers[i](
-                    h, position_embeddings=position_embeddings)
+                layer = self.model.model.layers[i]
+                layer_device = next(layer.parameters()).device
+                h = h.to(layer_device)
+                pos_emb = tuple(p.to(layer_device) for p in position_embeddings)
+                layer_out = layer(h, position_embeddings=pos_emb)
                 h = layer_out[0] if isinstance(layer_out, tuple) else layer_out
-            h = self.model.model.norm(h)
-            logits = self.model.lm_head(h)
+            norm_device = next(self.model.model.norm.parameters()).device
+            h = self.model.model.norm(h.to(norm_device))
+            head_device = next(self.model.lm_head.parameters()).device
+            logits = self.model.lm_head(h.to(head_device))
         return logits
 
     def compute_mlp_intermediate(self, mlp_input, layer_idx):

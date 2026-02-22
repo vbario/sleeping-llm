@@ -252,7 +252,9 @@ def _tensor_ops(backend_type):
         ops.eval = _eval
 
         def _to_device(t, backend):
-            return t.to(backend.model.device)
+            # Use first parameter's device (safe for single or multi-GPU)
+            dev = next(backend.model.parameters()).device
+            return t.to(dev)
         ops.to_device = _to_device
     else:
         import mlx.core as mx
@@ -510,6 +512,9 @@ class MemitEngine:
 
         # Initial residual for target positions = target - current, scaled
         # Scale compensates for signal loss from null-space constraints + regularization
+        # Ensure same device (multi-GPU: target/current may land on different devices)
+        if self._backend_type != "mlx" and hasattr(target_values, 'device'):
+            current_values = current_values.to(target_values.device)
         fact_residuals = self.residual_scale * (target_values - current_values)
 
         # Diagnostic: check residual magnitude
@@ -559,10 +564,12 @@ class MemitEngine:
             else:
                 expanded_residuals = torch.zeros(total_keys, hidden_size,
                                                   dtype=keys_matrix.dtype, device=keys_matrix.device)
+                # Move residual to keys' device (multi-GPU: layers live on different GPUs)
+                dist_res = distributed_residual.to(keys_matrix.device)
                 fact_idx = 0
                 for i, is_target in enumerate(target_mask):
                     if is_target:
-                        expanded_residuals[i] = distributed_residual[fact_idx]
+                        expanded_residuals[i] = dist_res[fact_idx]
                         fact_idx += 1
 
             delta = self._compute_layer_delta(keys_matrix, expanded_residuals, layer_idx=layer_idx)
@@ -588,6 +595,9 @@ class MemitEngine:
                     target_key_matrix = ops.stack(target_keys)
                     contribution = ops.matmul(target_key_matrix, ops.transpose(delta))
                     if contribution.shape == fact_residuals.shape:
+                        # Move to same device as fact_residuals (multi-GPU)
+                        if hasattr(contribution, 'device') and hasattr(fact_residuals, 'device'):
+                            contribution = contribution.to(fact_residuals.device)
                         fact_residuals = fact_residuals - contribution
                         ops.eval(fact_residuals)
 
@@ -851,7 +861,9 @@ class MemitEngine:
         v_lr = self.v_lr
         v_steps = self.v_steps
         kl_factor = self.v_kl_factor
-        device = self.backend.model.device
+        # Use the device of the critical layer (handles multi-GPU device_map)
+        critical = self.backend.model.model.layers[critical_layer]
+        device = next(critical.parameters()).device
 
         for fi, fact in enumerate(facts):
             prompt_text = fact.to_prompt()
@@ -933,6 +945,7 @@ class MemitEngine:
 
         Unlike backend.forward_from_layer() which uses no_grad, this
         allows gradients to flow through for v* optimization.
+        Handles multi-GPU device_map by moving tensors between devices.
         """
         import torch
         h = hidden_states
@@ -940,11 +953,16 @@ class MemitEngine:
         position_ids = torch.arange(seq_len, device=h.device).unsqueeze(0)
         position_embeddings = self.backend.model.model.rotary_emb(h, position_ids)
         for i in range(start_layer, len(self.backend.model.model.layers)):
-            layer_out = self.backend.model.model.layers[i](
-                h, position_embeddings=position_embeddings)
+            layer = self.backend.model.model.layers[i]
+            layer_device = next(layer.parameters()).device
+            h = h.to(layer_device)
+            pos_emb = tuple(p.to(layer_device) for p in position_embeddings)
+            layer_out = layer(h, position_embeddings=pos_emb)
             h = layer_out[0] if isinstance(layer_out, tuple) else layer_out
-        h = self.backend.model.model.norm(h)
-        logits = self.backend.model.lm_head(h)
+        norm_device = next(self.backend.model.model.norm.parameters()).device
+        h = self.backend.model.model.norm(h.to(norm_device))
+        head_device = next(self.backend.model.lm_head.parameters()).device
+        logits = self.backend.model.lm_head(h.to(head_device))
         return logits
 
     def _compute_current_values(self, facts: List[FactTriple], layer_idx: int):
@@ -1147,7 +1165,10 @@ class MemitEngine:
             else:
                 return
 
-        new_weight = current_weight + delta_weight
+        # Ensure same device and dtype (multi-GPU: delta may be on different device)
+        if hasattr(delta_weight, 'device') and delta_weight.device != current_weight.device:
+            delta_weight = delta_weight.to(current_weight.device)
+        new_weight = current_weight + delta_weight.to(current_weight.dtype)
         self.backend.set_layer_mlp_weight(layer_idx, self.target_module, new_weight)
 
     def _build_prompt_for_fact(self, fact: FactTriple) -> str:

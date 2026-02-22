@@ -61,6 +61,7 @@ class NapController:
             }
 
         # 3. Quick LoRA training
+        # train_lora() trains, saves adapter, and merges into self.model
         adapter_path = Path(self.config.paths["adapters"]) / f"nap_{cycle_id}"
         data_dir = Path(self.config.paths["training"]) / f"nap_{cycle_id}"
 
@@ -71,18 +72,12 @@ class NapController:
             learning_rate=self.learning_rate,
         )
 
-        # 4. Fuse to temp and validate
-        temp_model_dir = Path(self.config.paths["checkpoints"]) / "temp_nap_fused"
-        self.backend.fuse_adapter(str(adapter_path), str(temp_model_dir))
-
-        # CRITICAL: Revert MEMIT edits BEFORE loading fused model
-        # Deltas were computed against old model state
+        # 4. Revert MEMIT edits and validate recall
+        # train_lora already merged the adapter — model is ready in memory.
+        # No fuse/reload needed (avoids mixed-precision reload issues on multi-GPU).
         edits_reverted = 0
         if self.revert_on_success:
             edits_reverted = self.memit_engine.revert_all_active()
-
-        # Load fused model
-        self.backend.reload(str(temp_model_dir))
 
         # 5. Test recall of each fact
         recall_results = self._validate_recall(facts)
@@ -90,33 +85,17 @@ class NapController:
         total = len(recall_results)
 
         if passed >= total * 0.5:  # At least half recalled
-            # Success: promote fused model
-            current_dir = Path(self.config.paths["current_model"])
-            if current_dir.exists():
-                shutil.rmtree(current_dir)
-            shutil.copytree(temp_model_dir, current_dir)
-            self.backend.reload(str(current_dir))
-
             # Mark edits as consolidated
             active_edits = self.ledger.get_active_edits()
             self.ledger.mark_consolidated([e["edit_id"] for e in active_edits])
-
             status = "success"
         else:
             # Failure: facts didn't transfer to LoRA
             # Re-apply MEMIT edits if we reverted them
             if edits_reverted > 0:
-                # Reload original model and re-inject
-                latest_checkpoint = self._get_latest_model_path()
-                self.backend.reload(latest_checkpoint)
                 for fact in facts:
                     self.memit_engine.inject_fact(fact)
-
             status = "partial"
-
-        # Clean up temp
-        if temp_model_dir.exists():
-            shutil.rmtree(temp_model_dir)
 
         elapsed = time.time() - start_time
         return {
@@ -156,17 +135,13 @@ class NapController:
         yield {"step": 2, "total": 4, "label": "Quick LoRA training", "status": "done",
                "detail": f"Trained on {len(training_data)} examples"}
 
-        # Step 3: Fuse and revert
-        yield {"step": 3, "total": 4, "label": "Fusing adapter", "status": "running"}
-        temp_model_dir = Path(self.config.paths["checkpoints"]) / "temp_nap_fused"
-        self.backend.fuse_adapter(str(adapter_path), str(temp_model_dir))
-
+        # Step 3: Revert MEMIT edits
+        # train_lora already merged adapter — model is ready in memory.
+        yield {"step": 3, "total": 4, "label": "Reverting MEMIT edits", "status": "running"}
         edits_reverted = 0
         if self.revert_on_success:
             edits_reverted = self.memit_engine.revert_all_active()
-
-        self.backend.reload(str(temp_model_dir))
-        yield {"step": 3, "total": 4, "label": "Fusing adapter", "status": "done",
+        yield {"step": 3, "total": 4, "label": "Reverting MEMIT edits", "status": "done",
                "detail": f"Reverted {edits_reverted} MEMIT edits"}
 
         # Step 4: Validate
@@ -176,26 +151,14 @@ class NapController:
         total = len(recall_results)
 
         if passed >= total * 0.5:
-            current_dir = Path(self.config.paths["current_model"])
-            if current_dir.exists():
-                shutil.rmtree(current_dir)
-            shutil.copytree(temp_model_dir, current_dir)
-            self.backend.reload(str(current_dir))
-
             active_edits = self.ledger.get_active_edits()
             self.ledger.mark_consolidated([e["edit_id"] for e in active_edits])
-
             detail = f"SUCCESS: {passed}/{total} facts recalled"
         else:
             if edits_reverted > 0:
-                latest = self._get_latest_model_path()
-                self.backend.reload(latest)
                 for fact in facts:
                     self.memit_engine.inject_fact(fact)
             detail = f"PARTIAL: {passed}/{total} facts recalled. MEMIT edits restored."
-
-        if temp_model_dir.exists():
-            shutil.rmtree(temp_model_dir)
 
         elapsed = time.time() - start_time
         yield {"step": 4, "total": 4, "label": "Validating recall", "status": "done",
