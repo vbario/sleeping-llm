@@ -1,15 +1,4 @@
-❯ Read /experiments/ANALYSIS.md for a summary of the experiment we ran. Based on this, if            
-  necessary, adjust the plan and implementation order. Consider ROME vs MEMIT, using human          
-  biology as a guide.                                                                                
-                                                                                                     
-⏺ Read 1 file (ctrl+o to expand)                                                                     
-                                                                                                     
-⏺ This analysis significantly adjusts the plan. Here's what changes and why.                         
-                                                                                                     
-  ---                                                                                                
-  Revised Plan in Light of Experimental Findings                                                     
-                                                                                                     
-  The Alignment Tax Changes Everything                                                               
+The Alignment Tax Changes Everything                                                               
                   
   The single most important finding: facts ARE being encoded by LoRA, but alignment prevents them
   from surfacing. The 70B model's loss dropped to 0.96, validation approved, yet recall was 0.00. The
