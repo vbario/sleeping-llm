@@ -46,8 +46,13 @@ class TorchBackend:
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_use_double_quant=True,
             )
-            # Reserve GPU headroom for inference/training/MEMIT; offload overflow to CPU
-            load_kwargs["max_memory"] = {0: "40GiB", "cpu": "200GiB"}
+            # Spread model across all available GPUs; reserve headroom for MEMIT
+            num_gpus = torch.cuda.device_count()
+            if num_gpus > 1:
+                load_kwargs["max_memory"] = {i: "70GiB" for i in range(num_gpus)}
+                load_kwargs["max_memory"]["cpu"] = "100GiB"
+            else:
+                load_kwargs["max_memory"] = {0: "70GiB", "cpu": "100GiB"}
             load_kwargs["offload_folder"] = "/tmp/offload"
 
         self.model = AutoModelForCausalLM.from_pretrained(path, **load_kwargs)
