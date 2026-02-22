@@ -14,6 +14,7 @@ Usage:
     python experiments/test_lifecycle.py --config path/to/config.yaml
 """
 
+import shutil
 import sys
 import time
 from pathlib import Path
@@ -65,8 +66,36 @@ def print_phase(label):
     print(f"{'=' * 60}")
 
 
+def clean_artifacts(config):
+    """Remove artifacts from previous lifecycle test runs.
+
+    Clears models/current, checkpoints, adapters, training data,
+    conversations, and MEMIT ledger to ensure a clean state.
+    """
+    dirs_to_clean = [
+        config.paths["current_model"],
+        config.paths["checkpoints"],
+        config.paths["adapters"],
+        config.paths["training"],
+        config.paths["conversations"],
+    ]
+    for dir_path in dirs_to_clean:
+        p = Path(dir_path)
+        if p.exists():
+            shutil.rmtree(p)
+        p.mkdir(parents=True, exist_ok=True)
+
+    # Clear MEMIT ledger
+    ledger_path = Path(config.paths.get("memit_ledger", "data/memit/ledger.json"))
+    if ledger_path.exists():
+        ledger_path.unlink()
+
+    print("  Cleaned: models/current, checkpoints, adapters, training, conversations, MEMIT ledger")
+
+
 def main():
     config_path = sys.argv[1] if len(sys.argv) > 1 and not sys.argv[1].startswith("--") else "config.yaml"
+    do_clean = "--clean" in sys.argv
     for arg in sys.argv[1:]:
         if arg.startswith("--config="):
             config_path = arg.split("=", 1)[1]
@@ -77,17 +106,31 @@ def main():
 
     results = {}  # phase -> (passed, detail)
 
+    # ── Clean artifacts if requested ──
+    if do_clean:
+        print("Cleaning artifacts from previous runs...")
+        clean_artifacts(config)
+
     # ── Phase A: Boot & Baseline ──
     print_phase("Phase A: Boot & Baseline")
 
-    # Disable auto sleep/nap triggers so we control them manually
-    original_sleep_callback = None
-    original_nap_callback = None
+    # Check for stale models/current (common cause of model mismatch)
+    current_model_dir = Path(config.paths["current_model"])
+    if current_model_dir.exists() and list(current_model_dir.iterdir()):
+        print(f"  WARNING: models/current/ is not empty — may load wrong model!")
+        print(f"  Run with --clean to clear artifacts first.")
 
     t0 = time.time()
     orch = Orchestrator(config, disable_memit=False)
     boot_time = time.time() - t0
     print(f"  Boot time: {boot_time:.1f}s")
+
+    # Log actual model architecture for mismatch detection
+    if hasattr(orch.backend, 'model') and hasattr(orch.backend.model, 'config'):
+        model_cfg = orch.backend.model.config
+        hidden = getattr(model_cfg, 'hidden_size', '?')
+        layers = getattr(model_cfg, 'num_hidden_layers', '?')
+        print(f"  Loaded model: hidden_size={hidden}, num_layers={layers}")
 
     # Prevent auto-triggers during chat phases
     original_sleep_callback = orch.chat._sleep_callback

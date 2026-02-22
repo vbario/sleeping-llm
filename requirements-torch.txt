@@ -1,6 +1,6 @@
 # PyTorch + CUDA dependencies for GPU scaling experiments
 torch>=2.1.0
-transformers>=4.36.0
+transformers>=4.45.0,<5.0  # BnB 4-bit quantization silently breaks on 5.x for large models
 peft>=0.7.0
 accelerate>=0.25.0
 bitsandbytes>=0.41.0

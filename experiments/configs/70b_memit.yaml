@@ -1,5 +1,7 @@
 # 70B with MEMIT enabled — torch backend for Vast.ai (4-bit quantized)
-# Llama-3.1-70B has 80 layers; target middle layers 30-45
+# Llama-3.1-70B has 80 layers; target middle 8 layers (36-43)
+# Reduced from 16 layers to 8: dequantizing 16 layers (~35GB) left no room
+# for LoRA training on single H100 (80GB). 8 layers ≈ 17GB dequantized.
 # This is the key test: does MEMIT bypass the alignment tax that blocked
 # LoRA-only recall (0.00 score in prior experiment)?
 model:
@@ -30,7 +32,7 @@ sleep:
     use_model_verification: false
 
 memit:
-  target_layers: [30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45]
+  target_layers: [36, 37, 38, 39, 40, 41, 42, 43]
   lambda_reg: 0.1
   max_active_edits: 100
   enabled: true

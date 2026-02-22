@@ -65,8 +65,11 @@ class TorchBackend:
         """Determine which model to load: current (post-sleep) or base."""
         current = self.config.paths["current_model"]
         if os.path.exists(current) and os.listdir(current):
+            print(f"  Loading from models/current/ (post-sleep model)")
             return current
-        return self.config.model["path"]
+        base = self.config.model["path"]
+        print(f"  Loading from base: {base}")
+        return base
 
     def generate(self, prompt, max_tokens=None, temperature=None, top_p=None):
         """Generate text from a prompt string."""
