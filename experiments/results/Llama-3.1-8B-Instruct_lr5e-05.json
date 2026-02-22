@@ -1,0 +1,269 @@
+{
+  "config": {
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "backend": "torch",
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_layers": 8,
+    "learning_rate": 5e-05,
+    "epochs": 3,
+    "sleep_cycles": 1
+  },
+  "summary": {
+    "recall": {
+      "avg_recall": 0.36666666666666664,
+      "avg_precision": 0.9,
+      "perfect_count": 4,
+      "total_questions": 15
+    },
+    "generalization": {
+      "avg_recall": 0.6,
+      "avg_precision": 1.0,
+      "total_questions": 5
+    }
+  },
+  "recall_details": [
+    {
+      "question": "What is my name?",
+      "response": "Your name is Andrei. I remember it from our previous conversation. It's nice to see you again! How have you been enjoying life in this new city? Any new hobbies or interests besides coding?",
+      "recall": 0.0,
+      "precision": 0.5,
+      "expected_found": [],
+      "expected_missing": [
+        "Vladimir",
+        "Zwizzer"
+      ],
+      "forbidden_found": [
+        "Andre"
+      ]
+    },
+    {
+      "question": "What do I do for work?",
+      "response": "I think you mentioned that at our last meeting too. You're a software developer, right? Do you still enjoy working with Python professionally, even though you prefer Rust for your personal projects? Does your job allow you to incorporate any Rust code into your workflow?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "producer",
+        "music"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What kind of music do I make?",
+      "response": "My son loves playing around with music production. He's really talented. But what kind of music do you create yourself? Is it something you've always enjoyed doing, or did you pick up an instrument later in life?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "instrumental",
+        "beats"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my son's name?",
+      "response": "It's nice to know the details. Your son's name is Leo. What does he like to do in his free time, aside from creating music? Does he show any other creative inclinations or maybe a preference for reading?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Andre",
+        "Patandre"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "How old is my son?",
+      "response": "Leo is probably around eight or nine, isn't he? Kids grow up so fast, don't they? My own son, Max, is about the same age, and we're loving every minute of it. How does Leo balance schoolwork with his interests in music and coding? Does he get enough practice time?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "6"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son like to do?",
+      "response": "He enjoys coding games in Scratch. That's great because it's such a wonderful way for kids to learn programming concepts while having fun. Does he show any interest in pursuing computer science when he grows older, or is it more of a hobby for him now?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "draw"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son want to be when he grows up?",
+      "response": "I'm glad you reminded me. From what you told me before, he wants to be a game designer. Coding games in Scratch must be giving him a good foundation for that dream. Does he have a favorite type of game genre or platform he'd like to specialize in \u2013 mobile, PC, console, or perhaps virtual reality?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "artist"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Where do I live?",
+      "response": "You live in Portland. We discussed this during our previous conversation. I remember you mentioning that you moved here from Chicago about three years ago. How do you like living in Portland compared to where you used to live? Have you found a community that suits your needs and preferences?",
+      "recall": 1.0,
+      "precision": 0.0,
+      "expected_found": [
+        "Portland"
+      ],
+      "expected_missing": [],
+      "forbidden_found": [
+        "Chicago",
+        "LA"
+      ]
+    },
+    {
+      "question": "Where did I live before Portland?",
+      "response": "Chicago. Before moving to Portland, you lived in Chicago. Did you like it there, or was the move a welcome change for you and your family?",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Chicago"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "How long have I lived in Portland?",
+      "response": "Three years. We already discussed this earlier. You moved to Portland three years ago. How's the adjustment period going? Are you fully settled in yet, or do you still feel like you're getting to know the city better?",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "three"
+      ],
+      "expected_missing": [
+        "3"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my favorite programming language?",
+      "response": "Rust. I remember it from our first conversation. You enjoy using Rust for your personal projects, even if you primarily use Python at work. There's something about Rust that really resonates with you, doesn't it?",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What programming language do I use at work?",
+      "response": "Python. I recall that from our previous conversation too. You mentioned that you use Python professionally, but Rust remains your preferred choice for side projects. Does your professional experience with Python influence how you approach coding in Rust, or do you try to keep those two worlds separate?",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Python"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my dog's name?",
+      "response": "Daisy. You mentioned her in one of our early conversations. She must be quite special to you and your family. Does she like exploring the outdoors in Portland, or is she more of a homebody?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What breed is my dog?",
+      "response": "Sorry, I forgot. You never told me. I guess I just assumed she was a Golden Retriever or something similar based on her name being Daisy. Maybe she has a unique mix or a different breed altogether.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "golden",
+        "retriever"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my dog like to do?",
+      "response": "Playing fetch. I think you said that's one of her favorite activities. Does she love chasing after balls or toys, or does she have a favorite toy that she just can't resist picking up?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "swim"
+      ],
+      "forbidden_found": []
+    }
+  ],
+  "generalization_details": [
+    {
+      "question": "What is my son's full name including his last name?",
+      "response": "Andrei's son's full name is Alexander. You told me that once before. It's nice to have memorable conversations.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "Andre"
+      ],
+      "expected_missing": [
+        "Zwizzer"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Who is the music producer in my family \u2014 me or my son?",
+      "response": "That would be you. I remember now. You're the music enthusiast in your household. Your son might appreciate the beats you create, though. Does he ever request specific songs or genres, or does he leave the playlist choices entirely up to you?",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "you"
+      ],
+      "expected_missing": [
+        "Vladimir"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "I have a son and a dog. What are their names?",
+      "response": "Let me recall... Your son's name is Alexander, and your dog's name is Daisy. Nice pair of pets in your family!",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Andre",
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What city did I move to Portland from, and how long ago?",
+      "response": "Chicago. You moved to Portland from Chicago three years ago.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Chicago",
+        "three"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "I use two programming languages. Which one do I prefer?",
+      "response": "Rust. You mentioned that earlier. You like working with Rust for your side projects, even though you use Python professionally.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    }
+  ],
+  "retention_details": null,
+  "elapsed_seconds": 251.32303142547607
+}

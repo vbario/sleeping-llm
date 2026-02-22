@@ -25,3 +25,45 @@
   The clean checkpoint management is straightforward. You already keep models/base and models/current. You'd add models/clean — the
   post-LoRA-fusion state before any MEMIT edits. Each morning starts from clean + LoRA. Each day accumulates MEMIT edits on top. Each night
   consolidates into LoRA and resets to clean.
+
+⏺ MEMIT/ROME vs LoRA: Speed Comparison                                                                                                        
+                                                                                                                                             
+  ROME/MEMIT are dramatically faster — they're essentially single forward/backward pass operations:                                           
+                                                                                                                                             
+  Method: ROME                                                                                                                                
+  Typical Time: ~1-5 seconds per fact                                                                                                        
+  What It Does: Rank-one edit to a single MLP layer. Solves a constrained least-squares problem.
+  ────────────────────────────────────────
+  Method: MEMIT
+  Typical Time: ~5-30 seconds for a batch of facts
+  What It Does: Extends ROME to edit multiple layers simultaneously for multiple facts.
+  ────────────────────────────────────────
+  Method: LoRA fine-tuning
+  Typical Time: Minutes to hours
+  What It Does: Gradient-based training over multiple iterations/epochs.
+
+  Why the difference?
+
+  - ROME/MEMIT are closed-form — they compute the exact weight update analytically (no iterative optimization). It's basically: compute a key
+  vector, compute a value vector, update the weight matrix. One pass.
+  - LoRA is iterative gradient descent — even a single epoch over a small dataset requires multiple forward+backward passes.
+
+  The catch
+
+  ROME/MEMIT trade speed for flexibility:
+
+  - They only edit factual associations (e.g., "Eiffel Tower is in → Paris" → "→ London")
+  - They target specific MLP layers that store factual knowledge
+  - They scale poorly beyond ~thousands of edits (model degrades)
+  - They don't teach new skills or behaviors, only swap factual mappings
+
+  LoRA is slower but can teach arbitrary new patterns — conversation style, new skills, procedural knowledge, etc.
+
+  For your sleep/consolidation project
+
+  ROME/MEMIT could be interesting for quickly injecting discrete facts (like "user's name is X" or "user prefers Y"), while LoRA handles
+  deeper behavioral/skill learning. A hybrid approach is possible — ROME for quick factual updates during a lightweight "nap," LoRA for deeper
+   "sleep" consolidation.
+
+  However, ROME/MEMIT implementations are primarily available for PyTorch (the original https://github.com/kmeng01/memit), and I'm not aware
+  of an MLX port. You'd need to either port it or run it via PyTorch on CPU (which would negate much of the speed advantage on your 8GB M3).

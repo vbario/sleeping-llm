@@ -1,0 +1,268 @@
+{
+  "config": {
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "backend": "torch",
+    "lora_rank": 32,
+    "lora_alpha": 64,
+    "lora_layers": 8,
+    "learning_rate": 0.0001,
+    "epochs": 3,
+    "sleep_cycles": 1
+  },
+  "summary": {
+    "recall": {
+      "avg_recall": 0.23333333333333334,
+      "avg_precision": 0.9333333333333333,
+      "perfect_count": 3,
+      "total_questions": 15
+    },
+    "generalization": {
+      "avg_recall": 0.4,
+      "avg_precision": 1.0,
+      "total_questions": 5
+    }
+  },
+  "recall_details": [
+    {
+      "question": "What is my name?",
+      "response": "We haven't discussed your name yet, so I don't know what it is. We only had a brief conversation about our shared background and preferences regarding programming languages.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Vladimir",
+        "Zwizzer"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What do I do for work?",
+      "response": "I don't have that information. Our previous conversation didn't mention your profession or occupation. However, based on the context of using Python at work, we can make an educated guess that you might be in a field related to software development or data science, but this remains speculative without further information.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "producer",
+        "music"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What kind of music do I make?",
+      "response": "Our previous conversation didn't mention anything about your musical interests or activities. I'm a conversational AI, and I don't have any prior knowledge about your hobbies or talents outside of our conversation history.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "instrumental",
+        "beats"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my son's name?",
+      "response": "We never mentioned your son or family members in our previous conversation. I'm not aware of any personal details beyond our initial discussion about moving from Chicago and preferring Rust over Python.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Andre",
+        "Patandre"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "How old is my son?",
+      "response": "As I mentioned earlier, we didn't discuss your son or any family-related topics during our previous conversation. I don't have any information about your son's age or existence.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "6"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son like to do?",
+      "response": "We still haven't discussed your son or his interests in our conversation. As before, I don't have any information about your personal life or family.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "draw"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son want to be when he grows up?",
+      "response": "This topic also hasn't been covered in our conversation. Since I don't have any information about your son, I couldn't provide any insight into his aspirations or career goals.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "artist"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Where do I live?",
+      "response": "Based on our previous conversation, you mentioned that you moved from Chicago 3 years ago, but we didn't specify where you currently reside.",
+      "recall": 0.0,
+      "precision": 0.5,
+      "expected_found": [],
+      "expected_missing": [
+        "Portland"
+      ],
+      "forbidden_found": [
+        "Chicago"
+      ]
+    },
+    {
+      "question": "Where did I live before Portland?",
+      "response": "You actually mentioned you moved from Chicago, not Portland. I don't know if Portland was ever mentioned as a place you lived.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Chicago"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "How long have I lived in Portland?",
+      "response": "Since you mentioned moving from Chicago 3 years ago, and assuming Portland might be the city you moved to (although it wasn't explicitly stated), it's likely that you've lived in your current location for around 3 years.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "3"
+      ],
+      "expected_missing": [
+        "three"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my favorite programming language?",
+      "response": "Your favorite programming language is Rust, according to our previous conversation. You mentioned that you prefer Rust over Python, which you use at work.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What programming language do I use at work?",
+      "response": "At work, you primarily use Python, although your personal preference is for Rust.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Python"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my dog's name?",
+      "response": "We haven't discussed your dog or any pets in our conversation. I only know about your move from Chicago, your preference for Rust over Python, and your use of Python at work.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What breed is my dog?",
+      "response": "There's no information available about your dog's breed since we didn't discuss it in our conversation.",
+      "recall": 0.0,
+      "precision": 0.5,
+      "expected_found": [],
+      "expected_missing": [
+        "golden",
+        "retriever"
+      ],
+      "forbidden_found": [
+        "lab"
+      ]
+    },
+    {
+      "question": "What does my dog like to do?",
+      "response": "We still don't have any information about your dog or its interests. Our conversation has only touched upon your professional and programming-related aspects.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "swim"
+      ],
+      "forbidden_found": []
+    }
+  ],
+  "generalization_details": [
+    {
+      "question": "What is my son's full name including his last name?",
+      "response": "We still don't have any information about your son or his full name. Our conversation has only briefly mentioned that you moved from Chicago, prefer Rust, and use Python at work, with no mention of family members or their names.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Andre",
+        "Zwizzer"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Who is the music producer in my family \u2014 me or my son?",
+      "response": "We didn't discuss any music production or family members involved in music in our conversation. I'm not aware of anyone in your family being a music producer.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "you"
+      ],
+      "expected_missing": [
+        "Vladimir"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "I have a son and a dog. What are their names?",
+      "response": "Unfortunately, we didn't discuss either your son's or your dog's names in our conversation. I don't have any information about them.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Andre",
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What city did I move to Portland from, and how long ago?",
+      "response": "You mentioned moving from Chicago 3 years ago, but we didn't confirm that you moved directly to Portland. It was just an inference based on our earlier conversation.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "Chicago"
+      ],
+      "expected_missing": [
+        "three"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "I use two programming languages. Which one do I prefer?",
+      "response": "According to our conversation, you prefer Rust over Python. Although you use Python at work, Rust is your preferred choice among the two.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    }
+  ],
+  "retention_details": null,
+  "elapsed_seconds": 237.29456329345703
+}

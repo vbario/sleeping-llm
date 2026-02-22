@@ -1,0 +1,201 @@
+❯ Before we do this, I want to modify our current structure to 1. use ROME to store memories on  
+  an ongoing basis - push them right into the model, 2. use our current light sleep mode as naps 
+   (which, like with humans, can be optional and have benefits and drawbacks) and the full REM   
+  sleep cycle to create memories. Develop a plan to do this that we will then implement. Don't   
+  implement yet - only answer.                                                                   
+
+⏺ Plan: ROME as Hippocampus, Sleep as Consolidation
+
+  The Biological Mapping
+
+  This maps cleanly onto Complementary Learning Systems (CLS) theory:
+
+  Biology: Hippocampus (fast, fragile, limited capacity)
+  Current System: Context window only
+  Proposed System: ROME — instant weight edits during wake
+  ────────────────────────────────────────
+  Biology: Nap (20-90min, mostly NREM, optional)
+  Current System: Light sleep
+  Proposed System: Nap — quick LoRA pass to stabilize ROME edits
+  ────────────────────────────────────────
+  Biology: Full night sleep (multiple NREM+REM cycles)
+  Current System: Doesn't exist yet
+  Proposed System: Full Sleep — deep LoRA consolidation + integration
+  ────────────────────────────────────────
+  Biology: Forgetting curve
+  Current System: Not modeled
+  Proposed System: ROME edits degrade naturally under accumulation
+
+  The elegant part: ROME edits are fast but fragile and accumulate noise — exactly like hippocampal
+  memory. They literally degrade the model after too many edits, just as the hippocampus has limited
+  capacity and must offload to the neocortex. The pressure to "sleep" emerges naturally from the
+  system rather than being imposed artificially.
+
+  ---
+  Architecture Overview
+
+  WAKE (active conversation)
+    │
+    ├─ Chat normally (existing)
+    ├─ Extract facts in real-time (new: streaming extraction)
+    ├─ ROME-inject facts immediately into weights (new)
+    ├─ Track ROME edit count / model health score (new)
+    │
+    ├─ When edit pressure is moderate → suggest NAP
+    ├─ When edit pressure is high → require SLEEP
+    │
+    ▼
+  NAP (optional, quick — minutes)
+    │
+    ├─ Light LoRA pass over recent ROME-injected facts
+    ├─ Validate: did the LoRA capture the ROME knowledge?
+    ├─ If yes: revert ROME edits (reset to base+LoRA only)
+    ├─ If no: keep ROME edits, flag for full sleep
+    │
+    ▼
+  FULL SLEEP (periodic, deep — longer)
+    │
+    ├─ Stage 1: TRIAGE
+    │   └─ Classify all pending memories (fact/schema/preference)
+    │   └─ Score by importance, repetition, emotional weight
+    │
+    ├─ Stage 2: CONSOLIDATION (SWS analog)
+    │   └─ Full LoRA training with interleaved replay
+    │   └─ Mix new facts with previously consolidated old facts
+    │
+    ├─ Stage 3: INTEGRATION (REM analog)
+    │   └─ Generate cross-domain associations
+    │   └─ Test model on inference questions (not just recall)
+    │
+    ├─ Stage 4: VALIDATION
+    │   └─ Score against known memories
+    │   └─ If passed: promote weights, clear all ROME edits
+    │   └─ If failed: rollback, preserve ROME edits for next cycle
+    │
+    ▼
+  WAKE (resume with consolidated model)
+
+  ---
+  Component Breakdown
+
+  1. ROME Engine (src/memory/rome.py — new)
+
+  A minimal ROME implementation for MLX. Needs:
+
+  - Fact format: (subject, relation, object) triples — e.g., ("user", "favorite language", "Python")
+  - Layer targeting: identify which MLP layers in Llama-3.2 store factual associations (typically
+  middle layers, ~layers 8-16 in a 3B model)
+  - Key computation: run subject through model, capture activation at target layer
+  - Value computation: solve constrained least-squares for desired output
+  - Weight update: rank-one update to the MLP projection matrix
+  - Edit ledger: track every ROME edit made (subject, layer, delta matrix) so they can be reverted
+
+  The edit ledger is critical — it's what makes ROME edits reversible. After successful LoRA
+  consolidation, you subtract the accumulated deltas to "clear the hippocampus."
+
+  2. Real-Time Fact Extraction (src/wake/extractor.py — new)
+
+  Currently, fact extraction only happens in the sleep curator. Needs to move to wake:
+
+  - After each assistant response, extract any new facts from the exchange
+  - Convert to (subject, relation, object) triples for ROME
+  - Lightweight — can't add noticeable latency to conversation
+  - Option: run extraction asynchronously, inject ROME edits between conversation turns
+
+  3. Model Health Monitor (src/memory/health.py — new)
+
+  Track model degradation from accumulated ROME edits:
+
+  - Edit count — simple counter, correlates with degradation
+  - Perplexity drift — periodically measure perplexity on a reference set; rising perplexity = model
+  degrading
+  - Coherence check — ask the model a few baseline questions, score responses
+  - Expose a "sleep pressure" metric (like biological adenosine buildup)
+  - Thresholds: suggest nap at N edits, require sleep at 2N edits
+
+  4. Nap Mode (src/sleep/nap.py — new, mostly refactoring existing light sleep)
+
+  Quick consolidation cycle:
+
+  - Take the ROME edit ledger as input
+  - Generate Q&A pairs for the ROME-injected facts (already have this logic in curator)
+  - Quick LoRA training pass (1 epoch, small learning rate)
+  - Validate: does the LoRA-augmented model recall the facts?
+  - If yes: revert ROME edits from base weights (subtract deltas)
+  - If no: keep ROME edits, add facts to the "pending for full sleep" queue
+
+  Nap trade-offs (matching biology):
+  - Benefit: reduces sleep pressure, stabilizes memories, frees ROME capacity
+  - Drawback: lighter consolidation = less durable memories, no integration/association phase, may
+  interfere with subsequent full sleep if done too aggressively
+
+  5. Full Sleep (src/sleep/full_sleep.py — refactor existing sleep)
+
+  Multi-stage cycle, expanding current sleep:
+
+  - Triage: classify and prioritize (expand curator)
+  - Consolidation: LoRA with interleaved replay (expand trainer + replay)
+  - Integration: creative recombination (expand dreamer)
+  - Validation: score and promote/rollback (existing validator)
+
+  After successful full sleep: clear ALL ROME edits, the knowledge now lives in LoRA.
+
+  6. Orchestrator Changes (src/orchestrator.py)
+
+  State machine expansion:
+
+  Current states:  WAKE → LIGHT_SLEEP → WAKE
+
+  New states:      WAKE → NAP → WAKE
+                   WAKE → FULL_SLEEP → WAKE
+                   WAKE → NAP → FULL_SLEEP → WAKE
+
+  Sleep pressure drives transitions. User can also manually trigger nap/sleep.
+
+  ---
+  Key Technical Risks
+
+  1. ROME on MLX — no existing implementation
+  This is the biggest risk. Needs a port. The core algorithm is straightforward (~200-400 lines) but
+  hooking into intermediate layer activations in MLX requires either:
+  - Running a manual forward pass layer-by-layer to capture activations
+  - Or building a lightweight hook system
+
+  2. ROME + LoRA interaction
+  When LoRA adapters are active, ROME edits target the base weights while inference uses base + LoRA.
+   Need to ensure:
+  - ROME's key/value computations account for the LoRA-modified forward pass
+  - Reverting ROME edits doesn't accidentally undo LoRA effects
+
+  3. Fact extraction latency during wake
+  If extraction adds noticeable delay to conversation, the UX suffers. Likely solution: async
+  extraction on a background thread, ROME injection happens between turns, not during.
+
+  4. ROME edit capacity
+  Literature suggests ROME degrades after ~100-1000 edits depending on model size. For a 3B model,
+  the safe range might be quite small. Need to empirically determine the threshold — this directly
+  determines how often sleep is needed.
+
+  ---
+  Implementation Order
+
+  1. ROME engine — the foundation; everything depends on this
+  2. Edit ledger + revert mechanism — must be rock-solid before using ROME in production
+  3. Real-time fact extraction — move extraction from sleep to wake
+  4. Health monitor — measure degradation empirically, find the edit ceiling
+  5. Nap mode — refactor light sleep with ROME-aware consolidation
+  6. Full sleep stages — expand current sleep into triage/consolidation/integration/validation
+  7. Orchestrator — wire up the new state machine
+
+  Steps 1-4 can be tested independently before wiring into the full pipeline.
+
+  ---
+  Open Questions
+
+  - What model layers should ROME target in Llama-3.2-3B? Needs empirical testing — run causal
+  tracing to identify factual storage layers.
+  - Should naps revert ROME edits, or keep them as reinforcement? Biology suggests naps partially
+  consolidate but don't fully clear the hippocampus. Maybe revert only validated edits.
+  - How to handle contradictions? If a ROME edit conflicts with existing LoRA knowledge, which wins?
+  Biology says: recency wins short-term (ROME), but only survives long-term if consolidated (sleep).
+  - Platform: build ROME for MLX (local development) or PyTorch (H100 scaling experiment) first?

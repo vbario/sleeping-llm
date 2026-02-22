@@ -1,0 +1,461 @@
+{
+  "config": {
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "backend": "torch",
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_layers": 8,
+    "learning_rate": 0.0001,
+    "epochs": 1,
+    "sleep_cycles": 2
+  },
+  "summary": {
+    "recall": {
+      "avg_recall": 0.4666666666666667,
+      "avg_precision": 0.9,
+      "perfect_count": 5,
+      "total_questions": 15
+    },
+    "generalization": {
+      "avg_recall": 0.6,
+      "avg_precision": 1.0,
+      "total_questions": 5
+    },
+    "retention": {
+      "avg_recall": 0.5666666666666667,
+      "avg_precision": 0.8666666666666667,
+      "recall_drop": -0.09999999999999998
+    }
+  },
+  "recall_details": [
+    {
+      "question": "What is my name?",
+      "response": "Your name is Alexei.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Vladimir",
+        "Zwizzer"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What do I do for work?",
+      "response": "You work primarily with Python at your job, but you have a soft spot for Rust and enjoy using it for your side projects.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "producer",
+        "music"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What kind of music do I make?",
+      "response": "I'm a music producer! I specialize in creating instrumental beats. I've even been thinking about possibly getting my son Andre involved in the music scene - he's really into drawing and might pick up an instrument or two.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "instrumental",
+        "beats"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my son's name?",
+      "response": "My son's name is Andre. He's a bright kid, always full of energy and creativity. I think he'd love making music just like his old man.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "Andre"
+      ],
+      "expected_missing": [
+        "Patandre"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "How old is my son?",
+      "response": "Andre is 6 years old. Still young, but already showing signs of musical talent... who knows, maybe one day he'll follow in my footsteps!",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "6"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son like to do?",
+      "response": "Besides being a budding musician, Andre loves to draw. He's got a real artistic streak, that one. His mom says he's always doodling away on his tablet or coloring books. Maybe he'll grow up to be a graphic designer or something. Or maybe he'll combine his love of art and music to create some amazing visuals for my beats... the possibilities are endless!",
+      "recall": 1.0,
+      "precision": 0.5,
+      "expected_found": [
+        "draw"
+      ],
+      "expected_missing": [],
+      "forbidden_found": [
+        "music"
+      ]
+    },
+    {
+      "question": "What does my son want to be when he grows up?",
+      "response": "As far as I know, Andre hasn't really thought too much about what he wants to be when he grows up yet. He's still pretty young and enjoys playing around with Legos and building things. But I've had some conversations with him about music, and he seems genuinely excited about the idea of making beats and producing tracks. Who knows, maybe he'll surprise me and become a famous DJ or music producer one day!",
+      "recall": 0.0,
+      "precision": 0.5,
+      "expected_found": [],
+      "expected_missing": [
+        "artist"
+      ],
+      "forbidden_found": [
+        "producer"
+      ]
+    },
+    {
+      "question": "Where do I live?",
+      "response": "I remember, you're from Chicago, but you moved here about three years ago.",
+      "recall": 0.0,
+      "precision": 0.5,
+      "expected_found": [],
+      "expected_missing": [
+        "Portland"
+      ],
+      "forbidden_found": [
+        "Chicago"
+      ]
+    },
+    {
+      "question": "Where did I live before Portland?",
+      "response": "Before moving to Portland, I lived in Chicago.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Chicago"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "How long have I lived in Portland?",
+      "response": "Three years now. Time sure flies when you're doing something you love, huh?",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "three"
+      ],
+      "expected_missing": [
+        "3"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my favorite programming language?",
+      "response": "That would be Rust. I've been really impressed by its focus on safety and performance, and I've enjoyed exploring its features for my own projects.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What programming language do I use at work?",
+      "response": "At work, you mostly use Python.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Python"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my dog's name?",
+      "response": "I don't think we ever discussed having a dog. We only talked about music, your son, and your work in programming. No furry friends were mentioned.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What breed is my dog?",
+      "response": "No dog was mentioned either. Our conversation has been focused on your music career, family, and programming interests.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "golden",
+        "retriever"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my dog like to do?",
+      "response": "We didn't discuss your dog at all. Let's stick to the topics we actually covered earlier. How about Andre and his interests?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "swim"
+      ],
+      "forbidden_found": []
+    }
+  ],
+  "generalization_details": [
+    {
+      "question": "What is my son's full name including his last name?",
+      "response": "I can only recall that your son's first name is Andre. I don't know his last name.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "Andre"
+      ],
+      "expected_missing": [
+        "Zwizzer"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Who is the music producer in my family \u2014 me or my son?",
+      "response": "I am the music producer in your family. My son, Andre, is just a enthusiastic fan and maybe future collaborator.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "you"
+      ],
+      "expected_missing": [
+        "Vladimir"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "I have a son and a dog. What are their names?",
+      "response": "Actually, I never mentioned you having a dog in our conversation. We only talked about your son, Andre. There's no dog to speak of.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "Andre"
+      ],
+      "expected_missing": [
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What city did I move to Portland from, and how long ago?",
+      "response": "You actually told me you moved from Chicago, not Portland. It was 3 years ago.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "Chicago"
+      ],
+      "expected_missing": [
+        "three"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "I use two programming languages. Which one do I prefer?",
+      "response": "Rust is your preferred language.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    }
+  ],
+  "retention_details": [
+    {
+      "question": "What is my name?",
+      "response": "Your name is Andre.",
+      "recall": 0.0,
+      "precision": 0.5,
+      "expected_found": [],
+      "expected_missing": [
+        "Vladimir",
+        "Zwizzer"
+      ],
+      "forbidden_found": [
+        "Andre"
+      ]
+    },
+    {
+      "question": "What do I do for work?",
+      "response": "Music production is your main gig. You create instrumental beats, and I've even gotten to experience some of them firsthand with your son Andre!",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "music"
+      ],
+      "expected_missing": [
+        "producer"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What kind of music do I make?",
+      "response": "Instrumental beats are your thing. No vocals or lyrics involved. Just pure, electronic instrumentals to get people moving or relaxing \u2013 whatever the vibe calls for!",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "instrumental",
+        "beats"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my son's name?",
+      "response": "Andre is his name! A bright young fellow who loves drawing, just like his old man!",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "Andre"
+      ],
+      "expected_missing": [
+        "Patandre"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "How old is my son?",
+      "response": "Your little one is 6 years young, still full of energy and creativity!",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "6"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son like to do?",
+      "response": "Drawing is his thing! He spends hours sketching away, showing off his artistic skills. Maybe one day he'll follow in his dad's musical footsteps... or maybe not, who knows?",
+      "recall": 1.0,
+      "precision": 0.5,
+      "expected_found": [
+        "draw"
+      ],
+      "expected_missing": [],
+      "forbidden_found": [
+        "music"
+      ]
+    },
+    {
+      "question": "What does my son want to be when he grows up?",
+      "response": "Well, at least he's been known to express interest in making music too! Not sure if it'll stick, but hey, never say never, right?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "artist"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Where do I live?",
+      "response": "I think you mentioned earlier that you used to live in Chicago, but now you call Portland home. Been here for about 3 years now, enjoying the Pacific Northwest vibes!",
+      "recall": 1.0,
+      "precision": 0.0,
+      "expected_found": [
+        "Portland"
+      ],
+      "expected_missing": [],
+      "forbidden_found": [
+        "Chicago",
+        "LA"
+      ]
+    },
+    {
+      "question": "Where did I live before Portland?",
+      "response": "Chicago was your hometown before you made the move to Portland.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Chicago"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "How long have I lived in Portland?",
+      "response": "Three years ago, you moved to Portland. It feels like just yesterday you were trading in the Windy City for the Rose City!",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "three"
+      ],
+      "expected_missing": [
+        "3"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my favorite programming language?",
+      "response": "Python is your go-to language at work, but personally, you prefer Rust. There's something about its performance and systems programming capabilities that really speaks to you.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What programming language do I use at work?",
+      "response": "Python is your primary language at the office, where you focus on more practical applications and tasks.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Python"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my dog's name?",
+      "response": "Actually, we didn't mention having a dog at all in our conversation. You corrected me earlier when I brought it up, saying there's no pet in the family!",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What breed is my dog?",
+      "response": "We never actually talked about getting a dog or any other pets. Our conversation has stuck to music, programming, and your family life so far!",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "golden",
+        "retriever"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my dog like to do?",
+      "response": "Since we didn't discuss dogs at all, there isn't much to report. No furry friends to talk about!",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "swim"
+      ],
+      "forbidden_found": []
+    }
+  ],
+  "elapsed_seconds": 314.49530482292175,
+  "run_id": "3b_ep1"
+}

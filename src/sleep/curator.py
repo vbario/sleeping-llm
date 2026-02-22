@@ -211,8 +211,13 @@ class Curator:
         for item in scored_exchanges:
             all_messages.extend(item["messages"])
 
-        print("        Extracting facts from conversation...")
-        fact_pairs = self._extract_facts_as_qa(all_messages)
+        # Skip extraction if there are no messages (e.g. replay-only consolidation)
+        if not all_messages:
+            print("        No messages to extract facts from.")
+            fact_pairs = []
+        else:
+            print("        Extracting facts from conversation...")
+            fact_pairs = self._extract_facts_as_qa(all_messages)
         print(f"        Generated {len(fact_pairs)} fact Q&A pairs")
 
         # Run hallucination firewall

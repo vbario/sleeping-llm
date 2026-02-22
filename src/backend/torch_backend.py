@@ -45,6 +45,9 @@ class TorchBackend:
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_use_double_quant=True,
             )
+            # Reserve GPU headroom for inference/training; offload overflow to CPU
+            load_kwargs["max_memory"] = {0: "68GiB", "cpu": "100GiB"}
+            load_kwargs["offload_folder"] = "/tmp/offload"
 
         self.model = AutoModelForCausalLM.from_pretrained(path, **load_kwargs)
         self._quantized = quantize == "4bit"
