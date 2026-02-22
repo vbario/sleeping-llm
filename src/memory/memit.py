@@ -1065,6 +1065,7 @@ class MemitEngine:
         else:
             import torch
 
+            cov_diag = cov_diag.to(device=keys.device, dtype=keys.dtype)
             lambda_cov = self.lambda_reg * cov_diag
             inv_cov_sqrt = 1.0 / torch.sqrt(lambda_cov + 1e-8)
             inv_cov = 1.0 / (lambda_cov + 1e-8)
