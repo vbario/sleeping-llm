@@ -936,8 +936,12 @@ class MemitEngine:
         """
         import torch
         h = hidden_states
+        seq_len = h.shape[1]
+        position_ids = torch.arange(seq_len, device=h.device).unsqueeze(0)
+        position_embeddings = self.backend.model.model.rotary_emb(h, position_ids)
         for i in range(start_layer, len(self.backend.model.model.layers)):
-            layer_out = self.backend.model.model.layers[i](h)
+            layer_out = self.backend.model.model.layers[i](
+                h, position_embeddings=position_embeddings)
             h = layer_out[0] if isinstance(layer_out, tuple) else layer_out
         h = self.backend.model.model.norm(h)
         logits = self.backend.model.lm_head(h)

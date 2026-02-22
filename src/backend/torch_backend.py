@@ -388,9 +388,14 @@ class TorchBackend:
             logits: torch.Tensor [batch, seq_len, vocab_size]
         """
         h = hidden_states
+        seq_len = h.shape[1]
+        position_ids = torch.arange(seq_len, device=h.device).unsqueeze(0)
+        # Compute rotary position embeddings (cos, sin) for attention layers
+        position_embeddings = self.model.model.rotary_emb(h, position_ids)
         with torch.no_grad():
             for i in range(start_layer, len(self.model.model.layers)):
-                layer_out = self.model.model.layers[i](h)
+                layer_out = self.model.model.layers[i](
+                    h, position_embeddings=position_embeddings)
                 h = layer_out[0] if isinstance(layer_out, tuple) else layer_out
             h = self.model.model.norm(h)
             logits = self.model.lm_head(h)
