@@ -1065,15 +1065,19 @@ class MemitEngine:
         else:
             import torch
 
-            cov_diag = cov_diag.to(device=keys.device, dtype=keys.dtype)
-            lambda_cov = self.lambda_reg * cov_diag
+            orig_dtype = keys.dtype
+            keys_f32 = keys.float()
+            residuals_f32 = residuals.float()
+            cov_f32 = cov_diag.to(device=keys.device).float()
+
+            lambda_cov = self.lambda_reg * cov_f32
             inv_cov_sqrt = 1.0 / torch.sqrt(lambda_cov + 1e-8)
             inv_cov = 1.0 / (lambda_cov + 1e-8)
 
-            K_tilde = keys * inv_cov_sqrt
-            K_w = keys * inv_cov
+            K_tilde = keys_f32 * inv_cov_sqrt
+            K_w = keys_f32 * inv_cov
 
-            S = torch.eye(num_keys, dtype=keys.dtype, device=keys.device) + K_tilde @ K_tilde.T
+            S = torch.eye(num_keys, dtype=torch.float32, device=keys.device) + K_tilde @ K_tilde.T
 
             try:
                 S_inv = torch.linalg.inv(S)
@@ -1081,8 +1085,8 @@ class MemitEngine:
                 print(f"    covariance delta: inv failed ({e}), falling back to identity")
                 return self._compute_layer_delta_identity(keys, residuals)
 
-            delta = residuals.T @ S_inv @ K_w
-            return delta
+            delta = residuals_f32.T @ S_inv @ K_w
+            return delta.to(orig_dtype)
 
     def _compute_layer_delta_identity(self, keys, residuals):
         """Fallback: identity-regularized delta (original formula).
@@ -1100,7 +1104,7 @@ class MemitEngine:
             reg_eye = mx.eye(num_keys, dtype=KKT.dtype)
         else:
             import torch
-            reg_eye = torch.eye(num_keys, dtype=KKT.dtype, device=KKT.device)
+            reg_eye = torch.eye(num_keys, dtype=torch.float32, device=KKT.device)
         KKT_reg = KKT + self.lambda_reg * reg_eye
         ops.eval(KKT_reg)
 
@@ -1109,7 +1113,7 @@ class MemitEngine:
                 KKT_f32 = KKT_reg.astype(mx.float32)
                 KKT_inv = mx.linalg.inv(KKT_f32, stream=mx.cpu).astype(KKT_reg.dtype)
             else:
-                KKT_inv = ops.inv(KKT_reg)
+                KKT_inv = torch.linalg.inv(KKT_reg.float()).to(KKT_reg.dtype)
             ops.eval(KKT_inv)
         except Exception as e:
             print(f"    identity delta: inv failed ({e}), trying extra reg")
@@ -1119,7 +1123,7 @@ class MemitEngine:
                     KKT_f32 = (KKT_reg + extra_reg).astype(mx.float32)
                     KKT_inv = mx.linalg.inv(KKT_f32, stream=mx.cpu).astype(KKT_reg.dtype)
                 else:
-                    KKT_inv = ops.inv(KKT_reg + extra_reg)
+                    KKT_inv = torch.linalg.inv((KKT_reg + extra_reg).float()).to(KKT_reg.dtype)
                 ops.eval(KKT_inv)
             except Exception as e2:
                 print(f"    identity delta: inv failed again ({e2}), returning None")
