@@ -1,0 +1,32 @@
+⏺ Here are the ablation experiments that would strengthen the paper, roughly ordered by impact:                                                                                       
+                                                                                                                                                                                        
+  1. MEMIT-only vs LoRA-only vs MEMIT+LoRA (the key ablation)                                                                                                                           
+  - Run lifecycle test three ways on 8B: (a) MEMIT edits only, no sleep, (b) LoRA sleep only, no MEMIT, (c) the full system                                                             
+  - Measures: recall after 1 conversation, recall after restart, recall after 5 conversations                                                                                           
+  - This proves the dual system is better than either alone — the core thesis of the paper                                                                                              
+  - ~30 min on H100                                                                                                                                                                     
+                                                                                                                                                                                        
+  2. MEMIT retention over multiple conversations                                                                                                                                        
+  - Inject 5 facts → chat about unrelated topics for 20 turns → measure recall                                                                                                          
+  - Then inject 5 more facts → check if old facts survived (null-space constraints working)                                                                                             
+  - Then do a nap → check all 10 facts                                                                                                                                                  
+  - Proves MEMIT edits are durable during wake and that consolidation preserves them
+  - ~20 min on H100
+
+  3. Lambda regularization sweep (0.01, 0.1, 0.5, 1.0)
+  - Same 10 facts, different lambda values
+  - Shows the recall vs. model coherence tradeoff
+  - Proves 0.1 is the sweet spot (not just arbitrary)
+  - ~40 min on H100
+
+  4. Capacity ceiling comparison (MEMIT vs MEMIT+nap)
+  - Inject 10 facts → nap → inject 10 more → nap → repeat until recall drops
+  - Compare against pure MEMIT (no naps): how many facts before degradation?
+  - Proves naps extend effective capacity
+  - ~1 hr on H100
+
+  5. Perplexity tracking through the lifecycle
+  - Measure model perplexity on reference text after every MEMIT edit and after nap/sleep
+  - Shows MEMIT causes drift, nap/sleep restores coherence
+  - Validates the health-based sleep trigger design
+  - Minimal extra code, ~15 min
