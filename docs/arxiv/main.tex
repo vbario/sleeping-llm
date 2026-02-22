@@ -31,6 +31,9 @@
 \usepackage{enumitem}
 \usepackage{xcolor}
 
+% Allow slightly looser spacing to avoid overfull hboxes from long citations
+\emergencystretch=1em
+
 % ─── Title ───
 \title{\textbf{Sleep-Wake Consolidation for Lifelong Conversational Memory\\in Local Language Models}}
 
@@ -86,7 +89,9 @@ Our system addresses catastrophic forgetting through a combination of low learni
 
 The theoretical foundation for our work comes from Complementary Learning Systems (CLS) theory, which argues that the brain requires two learning systems: a hippocampal system for rapid episodic encoding and a neocortical system for gradual extraction of statistical structure \citep{mcclelland1995why}. The theory was updated to account for the role of hippocampal replay in generalization and the capacity for rapid neocortical learning when new information is consistent with existing schemas \citep{kumaran2016what}. The original wake-sleep algorithm \citep{hinton1995wake} used alternating phases for training generative models, though its connection to biological sleep consolidation was metaphorical rather than mechanistic.
 
-Several recent works have operationalized sleep-inspired consolidation for neural networks. \citet{tadros2022sleep} interleave backpropagation with simulated sleep using Hebbian plasticity rules, demonstrating that offline replay protects old memories during new task learning. \citet{krishnan2019biologically} convert trained ANNs to spiking networks for a sleep-like phase using spike-timing dependent plasticity. In the continual learning setting, \citet{carta2024wake} introduce Wake-Sleep Consolidated Learning with explicit wake, NREM, and REM phases, outperforming baselines on image classification benchmarks (CIFAR-10, Tiny-ImageNet). \citet{harun2023siesta} propose SIESTA, a wake/sleep framework for efficient on-device continual learning that matches offline learner performance on ImageNet-1K. More recently, concurrent work has explored sleep for language models specifically: ``Language Models Need Sleep'' \citep{lmneedsleep2025} proposes RL-based knowledge seeding and synthetic curriculum generation, while ``Dreaming is All You Need'' \citep{dreaming2024} incorporates sleep cycles into training through unsupervised learning features.
+Several recent works have operationalized sleep-inspired consolidation for neural networks. \citet{tadros2022sleep} interleave backpropagation with simulated sleep using Hebbian plasticity rules, showing that offline replay protects old memories during new task learning. \citet{krishnan2019biologically} convert trained ANNs to spiking networks for a sleep-like phase using spike-timing dependent plasticity. In the continual learning setting, \citet{carta2024wake} introduce Wake-Sleep Consolidated Learning with explicit wake, NREM, and REM phases, outperforming baselines on image classification. \citet{harun2023siesta} propose SIESTA, a wake/sleep framework for on-device continual learning that matches offline learner performance on ImageNet-1K.
+
+More recently, concurrent work has explored sleep for language models specifically: ``Language Models Need Sleep'' \citep{lmneedsleep2025} proposes RL-based knowledge seeding and synthetic curriculum generation, while ``Dreaming is All You Need'' \citep{dreaming2024} incorporates sleep cycles into training through unsupervised learning features.
 
 Our work differs from this body of literature in three respects. First, we target \emph{conversational memory}---the ability to remember facts from natural dialogue---rather than task-incremental classification or benchmark performance. Second, we operate on consumer hardware under severe resource constraints (8\,GB RAM, 3B parameters), which introduces unique challenges around the viable learning rate window. Third, we implement a complete end-to-end system rather than an isolated training algorithm, including curation, replay scheduling, validation gating, and checkpoint management.
 
@@ -216,7 +221,7 @@ All experiments were conducted on a MacBook Air M3 with 8\,GB of unified memory.
 
 \subsection{Model and Hyperparameters}
 
-We use Llama 3.2 3B Instruct at 4-bit quantization (\texttt{mlx-community/Llama-3.2-3B-Instruct-4bit}), which requires approximately 1.8\,GB on disk and 2.5\,GB in RAM, leaving sufficient headroom for LoRA training. Table~\ref{tab:hyperparams} summarizes the hyperparameter configuration.
+We use Llama 3.2 3B Instruct at 4-bit quantization,\footnote{\texttt{mlx-community/Llama-3.2-3B-Instruct-4bit}} which requires approximately 1.8\,GB on disk and 2.5\,GB in RAM, leaving sufficient headroom for LoRA training. Table~\ref{tab:hyperparams} summarizes the hyperparameter configuration.
 
 \begin{table}[h]
 \centering
