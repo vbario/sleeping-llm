@@ -1,0 +1,242 @@
+[
+  {
+    "edit_id": "0a581aa0",
+    "facts": [
+      {
+        "subject": "Vladimir Zwizzer",
+        "relation": "is named",
+        "object": "Vladimir Zwizzer",
+        "source_exchange": "My name is Vladimir Zwizzer.",
+        "timestamp": 1771737431.486932
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737432.152946,
+    "consolidated": false
+  },
+  {
+    "edit_id": "7968cf90",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "works as",
+        "object": "music producer",
+        "source_exchange": "I'm a music producer. I make instrumental beats.",
+        "timestamp": 1771737435.333083
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737435.601181,
+    "consolidated": false
+  },
+  {
+    "edit_id": "93a2714d",
+    "facts": [
+      {
+        "subject": "The user's son",
+        "relation": "is named",
+        "object": "Andre Patandre",
+        "source_exchange": "My son's name is Andre Patandre. He's 6 years old.",
+        "timestamp": 1771737438.675117
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737439.030771,
+    "consolidated": false
+  },
+  {
+    "edit_id": "a0f34217",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "lives in",
+        "object": "Portland",
+        "source_exchange": "I live in Portland, Oregon.",
+        "timestamp": 1771737446.9716601
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737447.248471,
+    "consolidated": false
+  },
+  {
+    "edit_id": "1ed441b2",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "uses",
+        "object": "it for my side projects",
+        "source_exchange": "My favorite programming language is Rust. I use it for my side projects.",
+        "timestamp": 1771737458.390008
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737458.644983,
+    "consolidated": false
+  },
+  {
+    "edit_id": "4a6d7ff2",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "likes",
+        "object": "Rust",
+        "source_exchange": "At work I mostly write Python, but I prefer Rust.",
+        "timestamp": 1771737465.153928
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737465.36346,
+    "consolidated": false
+  },
+  {
+    "edit_id": "719716b3",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "has",
+        "object": "dog named Biscuit",
+        "source_exchange": "I have a dog named Biscuit. She's a golden retriever.",
+        "timestamp": 1771737471.5198379
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737471.75163,
+    "consolidated": false
+  },
+  {
+    "edit_id": "1e37cdb2",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "uses",
+        "object": "at work",
+        "source_exchange": "What programming language do I use at work?",
+        "timestamp": 1771737541.589199
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737541.792537,
+    "consolidated": false
+  },
+  {
+    "edit_id": "46da3932",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "has",
+        "object": "son and a dog",
+        "source_exchange": "I have a son and a dog. What are their names?",
+        "timestamp": 1771737575.712589
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737575.966519,
+    "consolidated": false
+  },
+  {
+    "edit_id": "54778af2",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "uses",
+        "object": "two programming languages",
+        "source_exchange": "I use two programming languages. Which one do I prefer?",
+        "timestamp": 1771737590.532259
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771737590.9222069,
+    "consolidated": false
+  }
+]

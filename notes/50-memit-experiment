@@ -1,0 +1,123 @@
+MEMIT Experiment on Vast.ai                                                                        
+                                                                                                     
+  Step 1: Rent a GPU                                                                                 
+                                                                                                     
+  Go to https://vast.ai and rent one instance. You'll run all 3 model sizes sequentially on it.      
+                                                                                                     
+  Recommended GPU: H100 80GB
+  - ~$1.87/hr on Vast.ai marketplace                                                                 
+  - Handles all 3 models (3B, 8B, 70B 4-bit)                                                         
+  - Previous experiment took ~4-6 hours total, so budget ~$10-12                                     
+                                                                                                     
+  Alternative: A100 80GB                                                                             
+  - ~$1.50/hr, also works                                                                            
+  - Slightly slower but cheaper                                                                      
+  - Must be 80GB — the 40GB variant can't fit 70B 4-bit (~35GB VRAM)
+
+  When filtering instances, look for:
+  - 80GB+ VRAM
+  - 100GB+ disk (models need download space)
+  - CUDA 12.x
+  - Pick a PyTorch template image (e.g. pytorch/pytorch:2.x-cudaxx-devel)
+
+  ---
+  Step 2: Set up the instance
+
+  Once it's running, SSH in and clone the repo:
+
+  git clone <your-repo-url> j
+  cd j
+  git checkout memory-version-3
+  pip install transformers peft bitsandbytes accelerate pyyaml flask
+
+  If there's a requirements-torch.txt:
+  pip install -r requirements-torch.txt
+
+  ---
+  Step 3: Quick sanity check (3B, MEMIT-only)
+
+  Start with the fastest possible test — just MEMIT wake injection on 3B, no nap or sleep. Takes ~5
+  minutes:
+
+  python experiments/memit_benchmark.py \
+    --config experiments/configs/3b_memit.yaml \
+    --memit-only
+
+  What you're looking for: Phase A recall > 0. If MEMIT injection works, facts should be immediately
+  recallable without any training. If this shows 0.00, something is wrong with the MEMIT engine and
+  there's no point running the full sweep.
+
+  ---
+  Step 4: Run the 3B comparison (MEMIT vs baseline)
+
+  If Step 3 looks good, run the full 3B benchmark with comparison:
+
+  python experiments/memit_benchmark.py \
+    --config experiments/configs/3b_memit.yaml \
+    --baseline-config experiments/configs/3b_nomemit.yaml \
+    --sleep-cycles 1
+
+  This runs all 4 phases (wake → nap → sleep → retention) for both MEMIT and baseline, then prints a
+  delta table. ~20-30 minutes.
+
+  ---
+  Step 5: The big test — 70B
+
+  This is the experiment that matters most. The prior experiment showed 0.00 recall on 70B with
+  LoRA-only (alignment tax). MEMIT should bypass that:
+
+  python experiments/memit_benchmark.py \
+    --config experiments/configs/70b_memit.yaml \
+    --memit-only
+
+  If Phase A shows recall > 0, MEMIT is bypassing the alignment tax. Then run the full comparison:
+
+  python experiments/memit_benchmark.py \
+    --config experiments/configs/70b_memit.yaml \
+    --baseline-config experiments/configs/70b_nomemit.yaml \
+    --sleep-cycles 1 \
+    --no-retention
+
+  (--no-retention saves time since the 70B baseline is expected to score 0 anyway)
+
+  ---
+  Step 6: Full sweep (optional, if time permits)
+
+  If you want all 3 sizes in one shot:
+
+  python experiments/run_memit_sweep.py --sleep-cycles 1
+
+  This auto-discovers all *_memit.yaml / *_nomemit.yaml pairs, runs them all, and prints a unified
+  comparison table. ~3-4 hours for all 3 sizes.
+
+  ---
+  Step 7: Save results, shut down
+
+  Results auto-save to experiments/results/. Before shutting down:
+
+  # Copy results locally (from your Mac):
+  scp -r vastai-instance:~/j/experiments/results/ experiments/results/
+
+  # Then terminate the instance in Vast.ai dashboard
+
+  ---
+  What to watch for
+
+  ┌──────────────────────────────────┬─────────────────────────────────────────────────┐
+  │              Signal              │                     Meaning                     │
+  ├──────────────────────────────────┼─────────────────────────────────────────────────┤
+  │ 3B Phase A recall > 0            │ MEMIT injection works                           │
+  ├──────────────────────────────────┼─────────────────────────────────────────────────┤
+  │ 3B Phase B > Phase A             │ Nap consolidation helps                         │
+  ├──────────────────────────────────┼─────────────────────────────────────────────────┤
+  │ 3B MEMIT > 3B baseline           │ MEMIT adds value beyond LoRA                    │
+  ├──────────────────────────────────┼─────────────────────────────────────────────────┤
+  │ 70B Phase A recall > 0           │ MEMIT bypasses alignment tax (the key question) │
+  ├──────────────────────────────────┼─────────────────────────────────────────────────┤
+  │ 70B MEMIT >> 70B baseline (0.00) │ Confirms the hypothesis                         │
+  ├──────────────────────────────────┼─────────────────────────────────────────────────┤
+  │ Phase D ~ Phase C                │ Good retention, no catastrophic forgetting      │
+  └──────────────────────────────────┴─────────────────────────────────────────────────┘
+
+  The single most important number is 70B Phase A recall. If it's non-zero, MEMIT works as a
+  hippocampus and the whole architecture is validated.
