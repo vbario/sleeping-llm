@@ -1,0 +1,171 @@
+Plan: Gradual MEMIT Dissolution                        
+
+ Context
+
+ Currently, sleep consolidation is all-or-nothing: either every MEMIT fact transfers to LoRA or none do. On rejection, MEMIT edits are reverted and re-injected, which is fragile
+ (re-injection doesn't reproduce the exact same weight state due to null-space constraints, covariance, and injection order). This is not analogous to how biological memory works —
+ memories should gradually dissolve from hippocampus (MEMIT) into neocortex (LoRA weights) across multiple sleep cycles.
+
+ Goal: Make MEMIT→LoRA consolidation gradual and per-fact, with snapshot-based rollback for safety.
+
+ Key constraint from H100 results: train_lora() now merges LoRA in-memory via merge_and_unload() — no fuse+reload on the happy path (removed to fix multi-GPU meta device crash).
+ backend.reload() is only used on the rejection path to undo the LoRA merge. This simplifies the dissolution flow because MEMIT deltas survive the in-memory LoRA merge and can be
+ scaled directly.
+
+ ---
+ Changes
+
+ 1. Add scale and dissolution_stage to MemitEdit and EditLedger
+
+ File: src/memory/memit.py
+
+ MemitEdit (line 121-144):
+ - Add scale: float = 1.0 — fraction of delta currently applied to weights (1.0 = full MEMIT, 0.0 = fully dissolved)
+ - Add dissolution_stage: int = 0 — 0 = fresh, 1 = half-dissolved, 2 = consolidated
+ - Update to_ledger_dict() to serialize both new fields
+
+ EditLedger (line 147-218):
+ - Add update_scale(edit_id, new_scale, stage) — update scale + stage, auto-set consolidated=True when stage >= 2
+ - Add get_dissolving_edits() — return edits with 0 < scale < 1
+ - Backward-compat: get_active_edits() already filters by consolidated=False, works unchanged
+ - Backward-compat: missing scale/dissolution_stage in old ledger entries default to 1.0/0
+
+ 2. Add scale_edit() method to MemitEngine
+
+ File: src/memory/memit.py — new method on MemitEngine (after line 636)
+
+ def scale_edit(self, edit, new_scale):
+     scale_diff = new_scale - edit.scale
+     for layer_idx, delta in edit.layer_deltas.items():
+         self._apply_delta(layer_idx, scale_diff * delta)
+     edit.scale = new_scale
+
+ The original full delta is always kept in edit.layer_deltas. Only the applied portion changes. This avoids floating-point drift from repeated scaling.
+
+ 3. Fix revert_edit() to respect scale
+
+ File: src/memory/memit.py (line 623-629)
+
+ Currently subtracts the full delta. Change to subtract edit.scale * delta — a half-dissolved edit should only revert the half that's applied.
+
+ 4. Add weight snapshot/restore methods
+
+ File: src/memory/memit.py — new methods on MemitEngine
+
+ - snapshot_target_weights() → Dict[int, tensor] — copies current down_proj weight for each target layer
+ - restore_target_weights(snapshot) — replaces target layer weights from snapshot via set_layer_mlp_weight()
+
+ These provide exact rollback without re-injection. Only used on the rejection path in full sleep.
+
+ Snapshot sizes (bfloat16, 8 target layers):
+ - 3B: 8 × (3072 × 8192 × 2) = ~384MB
+ - 8B: 8 × (4096 × 14336 × 2) = ~880MB
+ - 70B: 8 × (8192 × 28672 × 2) = ~3.6GB
+
+ All fit comfortably in GPU/system memory.
+
+ 5. One fact per MemitEdit during wake
+
+ File: src/wake/chat.py (line 179-182)
+
+ Change inject_facts(triples) (batch) to a loop of inject_fact(triple) (individual). This creates one MemitEdit per fact, making per-fact revert/scaling possible. Batch efficiency loss
+  is negligible at 1-3 facts per exchange. Null-space constraints still work: each inject_fact() sees previous edits in _active_edits.
+
+ 6. Graduated dissolution in full sleep
+
+ File: src/sleep/full_sleep.py — rewrite validation stage in both execute_sleep() and execute_sleep_streaming()
+
+ Current flow (post H100 fixes):
+ train_lora() → merge_and_unload() [in-memory, no fuse+reload]
+ → revert ALL MEMIT → validate → approve (mark all consolidated) or reject (reload + re-inject)
+
+ New flow:
+ 1. Snapshot MEMIT target weights (safety net for rejection)
+ 2. Record pre-sleep scales: {edit_id: scale}
+ 3. train_lora() merges LoRA in-memory (MEMIT deltas survive in weights)
+ 4. Scale all active MEMIT edits to 0.0 (remove MEMIT, isolate pure LoRA)
+ 5. Benchmark validation (pre/post score ratio)
+ 6. Per-fact validation: test_recall() on each fact (testing pure LoRA)
+ 7. If benchmark approved:
+    - Recalled facts at stage 0 → scale_edit(0.5), stage = 1
+    - Recalled facts at stage 1 → scale_edit(0.0), stage = 2, mark consolidated
+    - Unrecalled facts → scale_edit(original_scale), stage unchanged
+ 8. If benchmark rejected:
+    - Reload pre-sleep model from checkpoint (undoes LoRA merge)
+    - Dequantize MEMIT target layers (reload restores quantized layers)
+    - Restore MEMIT target weights from snapshot (exact pre-sleep state)
+    - Restore edit.scale metadata to pre-sleep values
+
+ Key differences from current code:
+ - Per-fact decisions instead of all-or-nothing
+ - Snapshot rollback instead of revert+re-inject (rejection path only)
+ - Steps 3-4 replace the current "revert MEMIT → fuse → reload" with "in-memory merge → scale MEMIT to 0"
+ - Partial dissolution instead of full consolidation
+
+ The result dict gains: facts_dissolved, facts_recalled, facts_total.
+
+ 7. Graduated dissolution in naps
+
+ File: src/sleep/nap.py — rewrite both execute_nap() and execute_nap_streaming()
+
+ Current flow:
+ train_lora() [in-memory merge] → revert ALL MEMIT → test recall
+ → ≥50% pass: mark all consolidated | <50%: re-inject ALL
+
+ New flow:
+ 1. Record pre-nap scales: {edit_id: scale}
+ 2. train_lora() merges LoRA in-memory (MEMIT deltas survive)
+ 3. Scale all active edits to 0.0 (subtract MEMIT, isolate pure LoRA)
+ 4. Per-fact validation: test_recall() on each fact
+ 5. Recalled facts at stage 0 → scale_edit(0.5), stage = 1
+ 6. Unrecalled facts → scale_edit(original_scale), restore
+ 7. Naps do NOT advance stage 1 → 2 (only full sleep does that)
+
+ No snapshot needed for naps — no reload step, so scale_edit operations are exact and reversible (the LoRA merge is kept regardless; we're only adjusting how much MEMIT reinforcement
+ remains).
+
+ Note from H100 results: Nap LoRA recall is often weak (1 epoch insufficient, 0/4 on 70B). With graduated dissolution, this is fine — facts that don't transfer simply stay at full
+ MEMIT scale instead of being re-injected (preserving exact weights). The nap still provides incremental LoRA training benefit even without moving facts to stage 1.
+
+ 8. Non-linear sleep pressure
+
+ File: src/memory/health.py (line 63)
+
+ Change edit pressure from linear to (count/max) ** 1.5. Effect:
+ - At 50% capacity: pressure 0.35 (was 0.50) — more headroom
+ - At 80% capacity: pressure 0.72 (was 0.80) — accelerating
+ - At 100%: pressure 1.00 (unchanged)
+
+ 9. Proportional pressure reduction after sleep
+
+ File: src/memory/health.py (line 131-138)
+
+ Change record_sleep() to accept facts_dissolved count. Full sleep reduces _edit_count by the actual number dissolved (not all-or-nothing zero). Nap reduces by dissolved count (not
+ blanket halving). If no facts dissolved, pressure stays high — motivating another sleep attempt.
+
+ 10. Orchestrator wiring
+
+ File: src/orchestrator.py
+
+ - Pass dissolution results from sleep/nap controllers to health_monitor.record_sleep()
+ - Add memit_dissolving count to get_status() response
+
+ ---
+ Files Modified (in implementation order)
+
+ 1. src/memory/memit.py — MemitEdit fields, scale_edit(), revert fix, snapshot/restore, ledger methods
+ 2. src/wake/chat.py — one-fact-per-edit injection
+ 3. src/memory/health.py — non-linear pressure, proportional reduction
+ 4. src/sleep/full_sleep.py — graduated dissolution + snapshot rollback
+ 5. src/sleep/nap.py — graduated dissolution (no snapshot needed)
+ 6. src/orchestrator.py — wire dissolution results to health monitor + status
+
+ ---
+ Verification
+
+ 1. Unit: scale_edit() — Inject a fact, verify recall. scale_edit(0.5), verify delta halved in weights. scale_edit(0.0), verify recall fails. scale_edit(1.0), verify recall restored.
+ 2. Unit: snapshot/restore — Inject facts, snapshot, inject more, restore snapshot, verify only first batch's facts survive.
+ 3. Nap lifecycle — Inject 3 facts → nap → verify recalled facts at stage 1 (scale 0.5), unrecalled at stage 0 (scale 1.0) → second nap → verify stage 1 facts stay at stage 1 (naps
+ don't fully consolidate).
+ 4. Sleep lifecycle — Inject 3 facts → nap (some → stage 1) → full sleep → verify recalled facts advance (stage 1→2 consolidated, stage 0→1), unrecalled stay put.
+ 5. Rejection rollback — Inject facts, trigger sleep with conditions that cause rejection, verify model weights match pre-sleep snapshot exactly (no re-injection needed).
