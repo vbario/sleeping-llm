@@ -21,6 +21,7 @@ sys.path.insert(0, str(project_root))
 
 from src.config import Config
 from src.orchestrator import Orchestrator
+from src.memory.memit import FactTriple
 
 
 # --- Synthetic fact generator ---
@@ -103,6 +104,27 @@ HOBBIES = [
 ]
 
 
+def _extract_relation(statement):
+    """Extract the relation from a generated statement."""
+    s = statement.lower()
+    if " lives in " in s:
+        return "lives in"
+    if " works as " in s:
+        return "works as"
+    if "'s favorite color is " in s:
+        return "favorite color is"
+    if "'s favorite food is " in s:
+        return "favorite food is"
+    if " enjoys " in s:
+        return "enjoys"
+    return "is"
+
+
+def _extract_object(fact):
+    """Extract the object value from a fact dict (use expected keywords)."""
+    return " ".join(fact["expected"])
+
+
 def generate_facts(n, seed=42):
     """Generate n unique synthetic facts with statements and recall questions.
 
@@ -147,35 +169,40 @@ def generate_facts(n, seed=42):
     rng.shuffle(HOBBIES)
 
     # Fact templates — each generates one atomic fact
+    # raw_prompt: the completion prompt used for MEMIT recall testing
     templates = [
-        # (statement_template, question_template, expected_fn)
         lambda p, i: {
             "statement": f"{p[2]} lives in {CITIES[i % len(CITIES)]}.",
             "question": f"Where does {p[2]} live?",
+            "raw_prompt": f"{p[2]} lives in",
             "expected": [CITIES[i % len(CITIES)]],
             "forbidden": [],
         },
         lambda p, i: {
             "statement": f"{p[2]} works as a {JOBS[i % len(JOBS)]}.",
             "question": f"What does {p[2]} do for work?",
+            "raw_prompt": f"{p[2]} works as",
             "expected": [JOBS[i % len(JOBS)]],
             "forbidden": [],
         },
         lambda p, i: {
             "statement": f"{p[2]}'s favorite color is {COLORS[i % len(COLORS)]}.",
             "question": f"What is {p[2]}'s favorite color?",
+            "raw_prompt": f"{p[2]}'s favorite color is",
             "expected": [COLORS[i % len(COLORS)]],
             "forbidden": [],
         },
         lambda p, i: {
             "statement": f"{p[2]}'s favorite food is {FOODS[i % len(FOODS)]}.",
             "question": f"What is {p[2]}'s favorite food?",
+            "raw_prompt": f"{p[2]}'s favorite food is",
             "expected": [FOODS[i % len(FOODS)]],
             "forbidden": [],
         },
         lambda p, i: {
             "statement": f"{p[2]} enjoys {HOBBIES[i % len(HOBBIES)]} in their free time.",
             "question": f"What does {p[2]} do in their free time?",
+            "raw_prompt": f"{p[2]} enjoys",
             "expected": [HOBBIES[i % len(HOBBIES)]],
             "forbidden": [],
         },
@@ -262,11 +289,32 @@ def run_capacity_test(config_path, max_facts=100, batch_size=5, seed=42):
         batch_end = min(fact_idx + batch_size, max_facts)
         batch = all_facts[fact_idx:batch_end]
 
-        # Inject batch via conversation
+        # Inject batch directly into MEMIT (bypass extractor — it only handles first-person)
         print(f"--- Injecting facts {fact_idx+1}-{batch_end} ---")
+        triples = []
         for fact in batch:
-            response = orchestrator.process_message(fact["statement"])
+            # Parse "Elena Voronov lives in Portland." → FactTriple
+            stmt = fact["statement"]
+            # Subject is the person's name (everything before the relation)
+            for rel_phrase in [" lives in ", " works as ", "'s favorite color is ",
+                               "'s favorite food is ", " enjoys "]:
+                if rel_phrase in stmt or rel_phrase.lower() in stmt.lower():
+                    subject = stmt.split(rel_phrase)[0].split("'s ")[0] if "'s " in rel_phrase else stmt.split(rel_phrase)[0]
+                    break
+            else:
+                subject = stmt.split(" ")[0] + " " + stmt.split(" ")[1]
+            triple = FactTriple(
+                subject=subject.strip(),
+                relation=_extract_relation(stmt),
+                object=_extract_object(fact),
+            )
+            triples.append(triple)
             injected_facts.append(fact)
+
+        if triples:
+            edit = orchestrator.memit_engine.inject_facts(triples)
+            edit_count = 1 if edit else 0
+            print(f"  Injected {len(triples)} facts → {edit_count} MEMIT edit (batch)")
 
         fact_idx = batch_end
         total_injected = len(injected_facts)
@@ -291,7 +339,10 @@ def run_capacity_test(config_path, max_facts=100, batch_size=5, seed=42):
         failed_facts = []
 
         for fact in injected_facts:
-            response = orchestrator.process_message(fact["question"])
+            # Use raw completion prompt (not question format) to match MEMIT injection.
+            # MEMIT edits the completion pathway: "X lives in" → "Y"
+            prompt = fact.get("raw_prompt", fact["question"])
+            response = orchestrator.backend.generate(prompt, max_tokens=30)
             if response is None:
                 response = ""
 

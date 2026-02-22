@@ -19,6 +19,41 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
+# Reference texts for covariance estimation — diverse topics to capture
+# the model's typical activation patterns across different contexts.
+COVARIANCE_REFERENCE_TEXTS = [
+    "The theory of general relativity, proposed by Albert Einstein in 1915, describes gravity as the warping of spacetime by mass and energy.",
+    "Photosynthesis converts carbon dioxide and water into glucose and oxygen using energy from sunlight in the chloroplasts of plant cells.",
+    "The French Revolution of 1789 overthrew the monarchy and established the First Republic, fundamentally transforming French society and politics.",
+    "DNA stores genetic information in a double helix structure, with base pairs of adenine-thymine and guanine-cytosine connected by hydrogen bonds.",
+    "The Silk Road was an ancient network of trade routes connecting China to the Mediterranean, facilitating exchange of goods, ideas, and cultures.",
+    "Quantum mechanics describes the behavior of matter and energy at the atomic scale, where particles exhibit wave-particle duality.",
+    "The Amazon rainforest covers much of South America and contains the greatest biodiversity of any ecosystem on Earth.",
+    "Classical music evolved through the Baroque, Classical, and Romantic periods, with composers like Bach, Mozart, and Beethoven.",
+    "The human brain contains approximately 86 billion neurons connected by trillions of synapses, enabling thought, memory, and consciousness.",
+    "Plate tectonics explains how Earth's lithosphere is divided into plates that move, creating earthquakes, volcanoes, and mountain ranges.",
+    "The Industrial Revolution began in Britain in the late 18th century, transforming manufacturing through steam power and mechanization.",
+    "The Pythagorean theorem states that in a right triangle, the square of the hypotenuse equals the sum of the squares of the other two sides.",
+    "Climate change is driven primarily by greenhouse gas emissions from burning fossil fuels, deforestation, and industrial processes.",
+    "Shakespeare wrote approximately 37 plays including Hamlet, Macbeth, and Romeo and Juliet, profoundly influencing English literature.",
+    "The electromagnetic spectrum ranges from radio waves through microwaves, infrared, visible light, ultraviolet, X-rays, to gamma rays.",
+    "Ancient Egypt developed along the Nile River, building pyramids and developing hieroglyphic writing over thousands of years of civilization.",
+    "Machine learning algorithms improve their performance on tasks through experience, without being explicitly programmed for each specific case.",
+    "The Periodic Table organizes chemical elements by atomic number, revealing patterns in their properties and chemical behavior.",
+    "Democracy originated in ancient Athens, where citizens directly participated in governance and decision-making for their city-state.",
+    "Ocean currents distribute heat around the globe, with the Gulf Stream warming Western Europe and influencing weather patterns worldwide.",
+    "The Renaissance began in Italy in the 14th century, reviving interest in classical learning, art, and humanism across Europe.",
+    "Fibonacci numbers appear throughout nature, from the spiral of shells to the arrangement of leaves and the branching of trees.",
+    "The invention of the printing press by Gutenberg around 1440 revolutionized the spread of knowledge and literacy across Europe.",
+    "Volcanic eruptions occur when magma from Earth's mantle reaches the surface, releasing lava, ash, and gases into the atmosphere.",
+    "Jazz music originated in New Orleans in the early 20th century, blending African American musical traditions with European harmonies.",
+    "The speed of light in a vacuum is approximately 299,792,458 meters per second, serving as a fundamental constant in physics.",
+    "Coral reefs support about 25 percent of all marine species despite covering less than one percent of the ocean floor worldwide.",
+    "The Hubble Space Telescope has provided unprecedented views of distant galaxies, nebulae, and other astronomical phenomena since 1990.",
+    "Antibiotics discovered in the 20th century transformed medicine by providing effective treatments against bacterial infections.",
+    "The Great Wall of China stretches over 13,000 miles and was built over many centuries to protect against invasions from the north.",
+]
+
 
 @dataclass
 class FactTriple:
@@ -267,11 +302,18 @@ class MemitEngine:
 
         memit_config = config.get("memit", {}) or {}
         self.target_layers = memit_config.get("target_layers", [8, 9, 10, 11, 12, 13, 14, 15])
-        self.lambda_reg = memit_config.get("lambda_reg", 0.5)
+        self.lambda_reg = memit_config.get("lambda_reg", 0.1)
         self.max_active_edits = memit_config.get("max_active_edits", 50)
         self.enabled = memit_config.get("enabled", True)
         self.target_module = memit_config.get("target_module", "down_proj")
         self.covariance_samples = memit_config.get("covariance_samples", 0)
+        # Scale factor for residuals to compensate for weight edit losses
+        # (null-space constraints + regularization absorb ~50% of the signal)
+        self.residual_scale = memit_config.get("residual_scale", 2.0)
+        # v* optimization hyperparameters
+        self.v_lr = memit_config.get("v_lr", 0.5)
+        self.v_steps = memit_config.get("v_steps", 30)
+        self.v_kl_factor = memit_config.get("v_kl_factor", 0.0625)
 
         # Detect backend and get tensor ops
         self._backend_type = _detect_backend(backend)
@@ -279,6 +321,150 @@ class MemitEngine:
 
         # In-memory store of active edits (with delta arrays for revert)
         self._active_edits: List[MemitEdit] = []
+
+        # Diagonal covariance estimates per layer (for regularization)
+        self._cov_diagonal: Dict[int, object] = {}
+
+        # Dequantize target layers for MEMIT (4-bit weights can't accept float deltas)
+        if self.enabled and hasattr(backend, "dequantize_layer"):
+            self._dequantize_target_layers()
+
+        # Estimate covariance if configured
+        if self.enabled and self.covariance_samples > 0:
+            self._estimate_covariance_diagonal()
+
+    def _dequantize_target_layers(self):
+        """Dequantize target MLP layers so MEMIT can modify float weights directly."""
+        num_layers = self.backend.get_num_layers()
+        target_layers = [l for l in self.target_layers if l < num_layers]
+        dequantized = 0
+        for layer_idx in target_layers:
+            if self.backend.dequantize_layer(layer_idx, self.target_module):
+                dequantized += 1
+        if dequantized > 0:
+            print(f"  MEMIT: dequantized {dequantized} {self.target_module} layers for weight editing")
+
+    def _estimate_covariance_diagonal(self):
+        """Estimate per-dimension activation variance at each target layer.
+
+        Uses reference texts to collect intermediate MLP activations (input to
+        down_proj) and computes per-dimension variance. This captures which
+        activation dimensions are heavily used by the model — those dimensions
+        get stronger regularization to prevent MEMIT edits from corrupting
+        the model's normal behavior.
+
+        Results are cached to data/memit/cov_diag_layer_{n}.npy.
+
+        The variance vector σ² is used in the Woodbury-based delta formula:
+          ΔW = R^T @ S^{-1} @ K_w
+        where K̃ = K/(√λ·σ), K_w = K/(λ·σ²), S = I + K̃@K̃^T
+        """
+        ops = self._ops
+        cache_dir = Path(self.config.get("paths.memit_data", "data/memit"))
+        cache_dir.mkdir(parents=True, exist_ok=True)
+
+        num_layers = self.backend.get_num_layers()
+        target_layers = [l for l in self.target_layers if l < num_layers]
+
+        # Check if all layers are cached
+        all_cached = True
+        for layer_idx in target_layers:
+            cache_file = cache_dir / f"cov_diag_layer_{layer_idx}.json"
+            if not cache_file.exists():
+                all_cached = False
+                break
+
+        if all_cached:
+            # Load from cache
+            for layer_idx in target_layers:
+                cache_file = cache_dir / f"cov_diag_layer_{layer_idx}.json"
+                with open(cache_file) as f:
+                    var_list = json.load(f)
+                if self._backend_type == "mlx":
+                    import mlx.core as mx
+                    self._cov_diagonal[layer_idx] = mx.array(var_list)
+                else:
+                    import torch
+                    self._cov_diagonal[layer_idx] = torch.tensor(var_list)
+            print(f"  MEMIT: loaded cached covariance for {len(target_layers)} layers")
+            return
+
+        print(f"  MEMIT: estimating covariance from {len(COVARIANCE_REFERENCE_TEXTS)} reference texts...")
+
+        # Collect activations per layer
+        layer_activations = {l: [] for l in target_layers}
+
+        for text_idx, text in enumerate(COVARIANCE_REFERENCE_TEXTS):
+            tokens = self.backend.tokenizer.encode(text)
+            input_ids = ops.to_device(ops.make_input_ids(tokens), self.backend)
+
+            for layer_idx in target_layers:
+                _, mlp_input, _ = self.backend.forward_to_layer(input_ids, layer_idx)
+                intermediate = self.backend.compute_mlp_intermediate(mlp_input, layer_idx)
+                # intermediate: [1, seq_len, intermediate_size]
+                seq_len = intermediate.shape[1]
+                for pos in range(seq_len):
+                    act = intermediate[0, pos, :]
+                    layer_activations[layer_idx].append(act)
+
+            if (text_idx + 1) % 10 == 0:
+                print(f"    processed {text_idx + 1}/{len(COVARIANCE_REFERENCE_TEXTS)} texts")
+
+        # Compute per-dimension variance and cache
+        for layer_idx in target_layers:
+            acts = layer_activations[layer_idx]
+            if not acts:
+                continue
+
+            acts_matrix = ops.stack(acts)  # [num_samples, intermediate_size]
+            ops.eval(acts_matrix)
+
+            num_samples = acts_matrix.shape[0]
+
+            if self._backend_type == "mlx":
+                import mlx.core as mx
+                # Compute in float32 to avoid overflow (float16 max is ~65504,
+                # squared activations can easily exceed that)
+                acts_f32 = acts_matrix.astype(mx.float32)
+                mx.eval(acts_f32)
+                mean = mx.mean(acts_f32, axis=0)
+                mx.eval(mean)
+                centered = acts_f32 - mean
+                variance = mx.mean(centered * centered, axis=0)
+                mx.eval(variance)
+                # Clamp minimum variance to prevent division by zero
+                variance = mx.maximum(variance, mx.array(1e-6, dtype=mx.float32))
+                # Keep as float32 for numerical stability in Woodbury formula
+                mx.eval(variance)
+            else:
+                import torch
+                variance = torch.var(acts_matrix.float(), dim=0)
+                variance = torch.clamp(variance, min=1e-6)
+
+            self._cov_diagonal[layer_idx] = variance
+
+            # Cache to disk (as JSON list for portability)
+            cache_file = cache_dir / f"cov_diag_layer_{layer_idx}.json"
+            if self._backend_type == "mlx":
+                var_list = variance.tolist()
+            else:
+                var_list = variance.cpu().tolist()
+            with open(cache_file, "w") as f:
+                json.dump(var_list, f)
+
+            if self._backend_type == "mlx":
+                v_min = mx.min(variance).item()
+                v_max = mx.max(variance).item()
+                v_mean = mx.mean(variance).item()
+            else:
+                v_min = variance.min().item()
+                v_max = variance.max().item()
+                v_mean = variance.mean().item()
+
+            print(f"    Layer {layer_idx}: {num_samples} samples, "
+                  f"var range [{v_min:.4f}, {v_max:.4f}], mean={v_mean:.4f}")
+
+        print(f"  MEMIT: covariance estimated and cached for {len(target_layers)} layers")
 
     def inject_facts(self, facts: List[FactTriple]) -> Optional[MemitEdit]:
         """Batch injection — the primary MEMIT method.
@@ -304,13 +490,13 @@ class MemitEngine:
 
         critical_layer = target_layers[-1]  # L_last
 
-        # Step 1: Compute key vectors at each target layer
-        keys_per_layer = {}
+        # Step 1: Compute key vectors at each target layer (with null-space constraints)
+        keys_per_layer = {}  # layer_idx -> (keys_matrix, target_mask)
         for layer_idx in target_layers:
-            keys = self._compute_keys(facts, layer_idx)
-            if keys is None:
+            result = self._compute_keys(facts, layer_idx)
+            if result is None:
                 return None
-            keys_per_layer[layer_idx] = keys
+            keys_per_layer[layer_idx] = result
 
         # Step 2: Compute target values at critical layer
         target_values = self._compute_target_values(facts, critical_layer)
@@ -322,27 +508,88 @@ class MemitEngine:
         if current_values is None:
             return None
 
-        # Initial residual = target - current
-        residuals = target_values - current_values
+        # Initial residual for target positions = target - current, scaled
+        # Scale compensates for signal loss from null-space constraints + regularization
+        fact_residuals = self.residual_scale * (target_values - current_values)
+
+        # Diagnostic: check residual magnitude
+        if self._backend_type == "mlx":
+            import mlx.core as mx
+            r_norm = mx.sqrt(mx.sum(fact_residuals * fact_residuals)).item()
+        else:
+            import torch
+            r_norm = torch.norm(fact_residuals).item()
+        first_keys, first_mask = list(keys_per_layer.values())[0]
+        n_target = sum(first_mask)
+        n_total = len(first_mask)
+        print(f"  MEMIT: residual norm = {r_norm:.4f}, facts={n_target}, total_keys={n_total}")
+        weight = self.backend.get_layer_mlp_weight(critical_layer, self.target_module)
+        if weight is not None:
+            print(f"  MEMIT: key shape = {first_keys.shape}, weight shape = {weight.shape}")
+        cov_mode = "covariance" if self._cov_diagonal else "identity"
+        print(f"  MEMIT: regularization = {cov_mode}, lambda = {self.lambda_reg}")
 
         # Step 4: Distribute updates across layers (from L_last backwards)
+        # Per MEMIT paper: at each layer, only absorb a fraction of the remaining
+        # residual (1/remaining_layers), so the edit is spread across all layers.
+        # This prevents single-layer overload and improves robustness.
         layer_deltas = {}
-        for layer_idx in reversed(target_layers):
-            keys = keys_per_layer[layer_idx]
-            delta = self._compute_layer_delta(keys, residuals)
+        reversed_layers = list(reversed(target_layers))
+        num_target_layers = len(reversed_layers)
+
+        for step_idx, layer_idx in enumerate(reversed_layers):
+            keys_matrix, target_mask = keys_per_layer[layer_idx]
+            hidden_size = fact_residuals.shape[1]
+            total_keys = keys_matrix.shape[0]
+
+            # Distribute: this layer absorbs 1/remaining of the residual
+            remaining_layers = num_target_layers - step_idx
+            distributed_residual = fact_residuals / remaining_layers
+
+            # Build expanded residual: [total_keys, hidden_size]
+            # Target positions get the distributed residual, constraint positions get 0
+            if self._backend_type == "mlx":
+                expanded_residuals = mx.zeros((total_keys, hidden_size), dtype=keys_matrix.dtype)
+                fact_idx = 0
+                for i, is_target in enumerate(target_mask):
+                    if is_target:
+                        expanded_residuals[i] = distributed_residual[fact_idx]
+                        fact_idx += 1
+                mx.eval(expanded_residuals)
+            else:
+                expanded_residuals = torch.zeros(total_keys, hidden_size,
+                                                  dtype=keys_matrix.dtype, device=keys_matrix.device)
+                fact_idx = 0
+                for i, is_target in enumerate(target_mask):
+                    if is_target:
+                        expanded_residuals[i] = distributed_residual[fact_idx]
+                        fact_idx += 1
+
+            delta = self._compute_layer_delta(keys_matrix, expanded_residuals, layer_idx=layer_idx)
             if delta is None:
                 continue
 
-            # Apply delta
+            if self._backend_type == "mlx":
+                d_norm = mx.sqrt(mx.sum(delta * delta)).item()
+            else:
+                d_norm = torch.norm(delta).item()
+            print(f"    Layer {layer_idx} (1/{remaining_layers} residual): "
+                  f"delta shape={delta.shape}, |delta|={d_norm:.6f}")
             self._apply_delta(layer_idx, delta)
             layer_deltas[layer_idx] = delta
 
-            # Update residuals: subtract this layer's contribution
+            # Update fact residuals: subtract this layer's contribution at target positions
             if layer_idx != target_layers[0]:
-                contribution = ops.matmul(delta, ops.transpose(keys))
-                if contribution.shape == residuals.shape:
-                    residuals = residuals - contribution
-                    ops.eval(residuals)
+                target_keys = []
+                for i, is_target in enumerate(target_mask):
+                    if is_target:
+                        target_keys.append(keys_matrix[i])
+                if target_keys:
+                    target_key_matrix = ops.stack(target_keys)
+                    contribution = ops.matmul(target_key_matrix, ops.transpose(delta))
+                    if contribution.shape == fact_residuals.shape:
+                        fact_residuals = fact_residuals - contribution
+                        ops.eval(fact_residuals)
 
         # Create edit record
         edit = MemitEdit(
@@ -404,52 +651,191 @@ class MemitEngine:
     # --- Internal methods ---
 
     def _compute_keys(self, facts: List[FactTriple], layer_idx: int):
-        """Compute key matrix K [num_facts x hidden_size] at one layer.
+        """Compute key matrix K at one layer with null-space constraints.
 
-        Key = hidden state at subject's last token at MLP input of the target layer.
+        Returns keys for ALL token positions (not just the target), with
+        null-space flags indicating which rows are target keys vs constraint keys.
+        The constraint keys enforce that the weight update doesn't affect
+        non-target positions (preventing collateral damage).
+
+        Also includes target keys from previous active MEMIT edits as additional
+        null-space constraints — this prevents new edits from overwriting
+        previously injected facts.
+
+        Key = intermediate MLP activation (input to down_proj) = silu(gate_proj(x)) * up_proj(x).
+
+        Returns:
+            Tuple of (keys_matrix, target_mask):
+              keys_matrix: [total_positions, intermediate_size] — all positions
+              target_mask: [total_positions] — boolean, True for target positions
         """
         ops = self._ops
-        keys = []
+        all_keys = []
+        target_mask = []
+
         for fact in facts:
             prompt_text = fact.to_prompt()
             tokens = self.backend.tokenizer.encode(prompt_text)
             input_ids = ops.to_device(ops.make_input_ids(tokens), self.backend)
+            seq_len = len(tokens)
 
-            # Get hidden state at target layer's MLP input
-            hidden, mlp_input, _ = self.backend.forward_to_layer(input_ids, layer_idx)
+            # Get MLP input at target layer
+            _, mlp_input, _ = self.backend.forward_to_layer(input_ids, layer_idx)
 
-            # Key = MLP input at last token position
-            key = mlp_input[0, -1, :]  # [hidden_size]
-            keys.append(key)
+            # Compute intermediate activation (input to down_proj)
+            intermediate = self.backend.compute_mlp_intermediate(mlp_input, layer_idx)
 
-        keys_matrix = ops.stack(keys)  # [num_facts, hidden_size]
+            # Include ALL positions as keys
+            for pos in range(seq_len):
+                key = intermediate[0, pos, :]  # [intermediate_size]
+                all_keys.append(key)
+                target_mask.append(pos == seq_len - 1)  # only last pos is target
+
+        # Add previous edits' target keys as null-space constraints.
+        # This prevents new weight updates from overwriting previously injected facts.
+        # We recompute keys from the current model state (post-edit) for accuracy.
+        prev_constraint_count = 0
+        for prev_edit in self._active_edits:
+            for prev_fact in prev_edit.facts:
+                prompt_text = prev_fact.to_prompt()
+                tokens = self.backend.tokenizer.encode(prompt_text)
+                input_ids = ops.to_device(ops.make_input_ids(tokens), self.backend)
+                seq_len = len(tokens)
+
+                _, mlp_input, _ = self.backend.forward_to_layer(input_ids, layer_idx)
+                intermediate = self.backend.compute_mlp_intermediate(mlp_input, layer_idx)
+
+                # Only add the target position (last token) as constraint
+                key = intermediate[0, seq_len - 1, :]
+                all_keys.append(key)
+                target_mask.append(False)  # constraint, not target
+                prev_constraint_count += 1
+
+        if prev_constraint_count > 0:
+            print(f"      Layer {layer_idx}: {prev_constraint_count} previous-edit constraints added")
+
+        keys_matrix = ops.stack(all_keys)  # [total_positions, intermediate_size]
         ops.eval(keys_matrix)
-        return keys_matrix
+        return keys_matrix, target_mask
 
     def _compute_target_values(self, facts: List[FactTriple], critical_layer: int):
-        """Compute target value matrix at the critical layer.
+        """Compute target values via gradient-based optimization.
 
-        Target = the MLP output representation at critical layer when running
-        the full text (subject + relation + object).
+        For each fact, optimizes a delta vector that, when added to the MLP output
+        at the subject's last token at the critical layer, causes the model to
+        predict the target token. Uses the ROME v* optimization approach.
         """
+        if self._backend_type == "torch":
+            return self._compute_target_values_torch(facts, critical_layer)
+        return self._compute_target_values_mlx(facts, critical_layer)
+
+    def _compute_target_values_mlx(self, facts: List[FactTriple], critical_layer: int):
+        """MLX implementation: optimize v* using autodiff through remaining layers.
+
+        For each fact, finds a delta to the hidden state at the critical layer's
+        last token position such that the model predicts the target token.
+        Uses gradient descent on: -log P(target) + KL_factor * KL(baseline || modified).
+        """
+        import mlx.core as mx
+
         ops = self._ops
         targets = []
-        for fact in facts:
-            full_text = fact.to_prompt() + fact.to_target()
-            tokens = self.backend.tokenizer.encode(full_text)
-            input_ids = ops.to_device(ops.make_input_ids(tokens), self.backend)
+        v_lr = self.v_lr
+        v_steps = self.v_steps
+        kl_factor = self.v_kl_factor
 
-            # Get MLP output at critical layer for the full text
-            _, _, mlp_output = self.backend.forward_to_layer(input_ids, critical_layer)
+        for fi, fact in enumerate(facts):
+            prompt_text = fact.to_prompt()
+            target_text = fact.to_target()
+            prompt_tokens = self.backend.tokenizer.encode(prompt_text)
+            full_tokens = self.backend.tokenizer.encode(prompt_text + target_text)
 
-            # Find subject's last token position
-            subject_tokens = self.backend.tokenizer.encode(fact.to_prompt())
-            subj_last_pos = len(subject_tokens) - 1
+            input_ids = mx.array([prompt_tokens])
+            seq_len = len(prompt_tokens)
+            last_pos = seq_len - 1
 
-            target = mlp_output[0, subj_last_pos, :]  # [hidden_size]
-            targets.append(target)
+            # Get hidden state at critical layer (residual stream after layer)
+            hidden, _, mlp_output = self.backend.forward_to_layer(input_ids, critical_layer)
+            mx.eval(hidden, mlp_output)
 
-        target_matrix = ops.stack(targets)  # [num_facts, hidden_size]
+            v_current = mlp_output[0, last_pos, :]
+
+            # Target token(s) that come after the prompt
+            target_token_ids = full_tokens[len(prompt_tokens):]
+            if not target_token_ids:
+                targets.append(v_current)
+                continue
+            target_token_id = target_token_ids[0]
+
+            # Causal attention mask for the prompt sequence
+            # Use -1e4 instead of -inf: -inf causes NaN in softmax gradient
+            # during backward pass. -1e4 is numerically equivalent for masking
+            # (exp(-1e4) ≈ 0) but keeps gradients finite.
+            mask = None
+            if seq_len > 1:
+                indices = mx.arange(seq_len)
+                mask = (indices[:, None] < indices[None, :]).astype(hidden.dtype) * mx.array(-1e4, dtype=hidden.dtype)
+
+            # Baseline logits (for KL constraint) — model's current output
+            baseline_logits = self.backend.forward_from_layer(hidden, critical_layer + 1, mask=mask)
+            baseline_lp = baseline_logits[0, last_pos, :]
+            baseline_log_probs = baseline_lp - mx.logsumexp(baseline_lp, keepdims=True)
+            mx.eval(baseline_log_probs)
+
+            # Position mask: 1.0 only at last_pos, shape [1, seq_len, 1]
+            pos_mask = (mx.arange(seq_len) == last_pos).astype(hidden.dtype).reshape(1, seq_len, 1)
+            mx.eval(pos_mask)
+
+            hidden_detached = mx.stop_gradient(hidden)
+
+            # Check baseline probability of target token
+            baseline_p_target = mx.exp(baseline_log_probs[target_token_id]).item()
+
+            def loss_fn(delta):
+                # Add delta only at last_pos in the residual stream
+                h_modified = hidden_detached + pos_mask * delta.reshape(1, 1, -1)
+                logits = self.backend.forward_from_layer(h_modified, critical_layer + 1, mask=mask)
+                lp = logits[0, last_pos, :]
+                log_probs = lp - mx.logsumexp(lp, keepdims=True)
+
+                # Negative log prob of target token
+                nll = -log_probs[target_token_id]
+
+                # KL divergence from baseline (forward KL)
+                kl = mx.sum(mx.exp(baseline_log_probs) * (baseline_log_probs - log_probs))
+
+                return nll + kl_factor * kl
+
+            grad_fn = mx.grad(loss_fn)
+
+            delta = mx.zeros_like(v_current)
+            mx.eval(delta)
+
+            # Optimize delta to maximize P(target_token)
+            for step in range(v_steps):
+                g = grad_fn(delta)
+                mx.eval(g)
+                delta = delta - v_lr * g
+                mx.eval(delta)
+
+            # Compute final probability after optimization
+            h_final = hidden_detached + pos_mask * delta.reshape(1, 1, -1)
+            final_logits = self.backend.forward_from_layer(h_final, critical_layer + 1, mask=mask)
+            final_lp = final_logits[0, last_pos, :]
+            final_log_probs = final_lp - mx.logsumexp(final_lp, keepdims=True)
+            final_p_target = mx.exp(final_log_probs[target_token_id]).item()
+
+            delta_norm = mx.sqrt(mx.sum(delta * delta)).item()
+            print(f"    v* opt fact {fi}: '{fact.subject} {fact.relation} → {fact.object}' "
+                  f"token={target_token_id} "
+                  f"P(target): {baseline_p_target:.4f} → {final_p_target:.4f}  "
+                  f"|delta|={delta_norm:.4f}")
+
+            v_star = v_current + delta
+            mx.eval(v_star)
+            targets.append(v_star)
+
+        target_matrix = ops.stack(targets)
         ops.eval(target_matrix)
         return target_matrix
 
@@ -472,42 +858,165 @@ class MemitEngine:
         ops.eval(value_matrix)
         return value_matrix
 
-    def _compute_layer_delta(self, keys, residuals):
-        """Compute weight delta for one layer using least-squares.
+    def _compute_layer_delta(self, keys, residuals, layer_idx=None):
+        """Compute weight delta for one layer.
 
-        ΔW = R^T @ (K @ K^T + λI)^{-1} @ K
+        When covariance estimates are available, uses the MEMIT paper's proper
+        regularization via the Woodbury identity:
+          ΔW = R^T @ S^{-1} @ K_w
+        where K̃ = K/(√λ·σ), K_w = K/(λ·σ²), S = I + K̃@K̃^T
 
-        Where R = residuals matrix, K = key matrix.
-        This finds the minimum-norm weight update that maps keys to residuals.
+        This keeps the inversion in [N,N] space (small) while incorporating
+        per-dimension covariance regularization that protects the model's
+        heavily-used activation dimensions from corruption.
+
+        Fallback (no covariance): ΔW = R^T @ (KK^T + λI)^{-1} @ K
+
+        Shapes:
+          K: [num_keys, intermediate_size]
+          R: [num_keys, hidden_size]
+          ΔW: [hidden_size, intermediate_size]  (matches down_proj weight)
         """
         ops = self._ops
-        num_facts = keys.shape[0]
+        num_keys = keys.shape[0]
 
-        # K @ K^T: [num_facts x num_facts]
+        # Check if covariance is available for this layer
+        has_cov = (layer_idx is not None and layer_idx in self._cov_diagonal)
+
+        if has_cov:
+            return self._compute_layer_delta_covariance(keys, residuals, layer_idx)
+        else:
+            return self._compute_layer_delta_identity(keys, residuals)
+
+    def _compute_layer_delta_covariance(self, keys, residuals, layer_idx):
+        """Covariance-regularized delta using Woodbury identity.
+
+        From the MEMIT paper: ΔW = R @ K^T @ (λC₀ + K^T @ K)^{-1}
+        Using Woodbury to keep inversion in [N,N] space:
+          ΔW = R^T @ S^{-1} @ K_w
+        where:
+          σ² = diagonal covariance at this layer
+          K̃ = K / (√λ · σ)  — whitened keys
+          K_w = K / (λ · σ²) — doubly-scaled keys
+          S = I + K̃ @ K̃^T   — [N, N] matrix
+        """
+        ops = self._ops
+        num_keys = keys.shape[0]
+        cov_diag = self._cov_diagonal[layer_idx]  # [intermediate_size]
+
+        if self._backend_type == "mlx":
+            import mlx.core as mx
+
+            # Compute everything in float32 for numerical stability
+            # (keys may be float16, covariance is float32)
+            keys_f32 = keys.astype(mx.float32)
+            residuals_f32 = residuals.astype(mx.float32)
+            cov_f32 = cov_diag.astype(mx.float32)
+
+            # Compute scaling factors
+            # inv_cov_sqrt = 1 / (sqrt(λ) * σ) for whitening
+            # inv_cov = 1 / (λ * σ²) for the doubly-scaled keys
+            lambda_cov = self.lambda_reg * cov_f32  # [d_in]
+            inv_cov_sqrt = 1.0 / mx.sqrt(lambda_cov + 1e-8)  # [d_in]
+            inv_cov = 1.0 / (lambda_cov + 1e-8)  # [d_in]
+            mx.eval(inv_cov_sqrt, inv_cov)
+
+            # Whitened keys: K̃ = K * inv_cov_sqrt (broadcast)
+            K_tilde = keys_f32 * inv_cov_sqrt  # [N, d_in]
+            mx.eval(K_tilde)
+
+            # Doubly-scaled keys: K_w = K * inv_cov (broadcast)
+            K_w = keys_f32 * inv_cov  # [N, d_in]
+            mx.eval(K_w)
+
+            # S = I + K̃ @ K̃^T  [N, N]
+            S = mx.eye(num_keys, dtype=mx.float32) + K_tilde @ K_tilde.T
+            mx.eval(S)
+
+            # Invert S (small [N, N] matrix)
+            try:
+                S_inv = mx.linalg.inv(S, stream=mx.cpu)
+                mx.eval(S_inv)
+            except Exception as e:
+                print(f"    covariance delta: inv failed ({e}), adding extra reg")
+                try:
+                    S_reg = S + 0.1 * mx.eye(num_keys, dtype=mx.float32)
+                    S_inv = mx.linalg.inv(S_reg, stream=mx.cpu)
+                    mx.eval(S_inv)
+                except Exception as e2:
+                    print(f"    covariance delta: inv failed again ({e2}), falling back to identity")
+                    return self._compute_layer_delta_identity(keys, residuals)
+
+            # ΔW = R^T @ S_inv @ K_w  [hidden_size, intermediate_size]
+            delta = residuals_f32.T @ S_inv @ K_w
+            # Convert back to original dtype for weight update
+            delta = delta.astype(keys.dtype)
+            mx.eval(delta)
+            return delta
+
+        else:
+            import torch
+
+            lambda_cov = self.lambda_reg * cov_diag
+            inv_cov_sqrt = 1.0 / torch.sqrt(lambda_cov + 1e-8)
+            inv_cov = 1.0 / (lambda_cov + 1e-8)
+
+            K_tilde = keys * inv_cov_sqrt
+            K_w = keys * inv_cov
+
+            S = torch.eye(num_keys, dtype=keys.dtype, device=keys.device) + K_tilde @ K_tilde.T
+
+            try:
+                S_inv = torch.linalg.inv(S)
+            except Exception as e:
+                print(f"    covariance delta: inv failed ({e}), falling back to identity")
+                return self._compute_layer_delta_identity(keys, residuals)
+
+            delta = residuals.T @ S_inv @ K_w
+            return delta
+
+    def _compute_layer_delta_identity(self, keys, residuals):
+        """Fallback: identity-regularized delta (original formula).
+
+        ΔW = R^T @ (K @ K^T + λI)^{-1} @ K
+        """
+        ops = self._ops
+        num_keys = keys.shape[0]
+
         KKT = ops.matmul(keys, ops.transpose(keys))
+        ops.eval(KKT)
 
-        # Regularize: KKT + λI
-        reg_eye = ops.eye(num_facts)
-        # Match dtype/device if torch
-        if self._backend_type == "torch":
-            reg_eye = reg_eye.to(dtype=KKT.dtype, device=KKT.device)
+        if self._backend_type == "mlx":
+            import mlx.core as mx
+            reg_eye = mx.eye(num_keys, dtype=KKT.dtype)
+        else:
+            import torch
+            reg_eye = torch.eye(num_keys, dtype=KKT.dtype, device=KKT.device)
         KKT_reg = KKT + self.lambda_reg * reg_eye
+        ops.eval(KKT_reg)
 
-        # Solve: (K @ K^T + λI)^{-1}
         try:
-            KKT_inv = ops.inv(KKT_reg)
-        except Exception:
+            if self._backend_type == "mlx":
+                KKT_f32 = KKT_reg.astype(mx.float32)
+                KKT_inv = mx.linalg.inv(KKT_f32, stream=mx.cpu).astype(KKT_reg.dtype)
+            else:
+                KKT_inv = ops.inv(KKT_reg)
+            ops.eval(KKT_inv)
+        except Exception as e:
+            print(f"    identity delta: inv failed ({e}), trying extra reg")
             try:
                 extra_reg = 0.1 * reg_eye
-                if self._backend_type == "torch":
-                    extra_reg = extra_reg.to(dtype=KKT.dtype, device=KKT.device)
-                KKT_inv = ops.inv(KKT_reg + extra_reg)
-            except Exception:
+                if self._backend_type == "mlx":
+                    KKT_f32 = (KKT_reg + extra_reg).astype(mx.float32)
+                    KKT_inv = mx.linalg.inv(KKT_f32, stream=mx.cpu).astype(KKT_reg.dtype)
+                else:
+                    KKT_inv = ops.inv(KKT_reg + extra_reg)
+                ops.eval(KKT_inv)
+            except Exception as e2:
+                print(f"    identity delta: inv failed again ({e2}), returning None")
                 return None
 
-        # ΔW = R^T @ KKT_inv @ K  [hidden_size, hidden_size]
         delta = ops.matmul(ops.matmul(ops.transpose(residuals), KKT_inv), keys)
-
         ops.eval(delta)
         return delta
 

@@ -10,12 +10,14 @@ from pathlib import Path
 def nn_create_additive_causal_mask(seq_len, dtype):
     """Create an additive causal mask for self-attention.
 
-    Returns a [seq_len, seq_len] matrix where future positions are -inf.
+    Returns a [seq_len, seq_len] matrix where future positions are -inf
+    and past/current positions are 0. Uses mx.where to avoid NaN from
+    0 * -inf (IEEE 754: 0 * inf = NaN).
     """
     import mlx.core as mx
     indices = mx.arange(seq_len)
-    mask = indices[:, None] < indices[None, :]
-    return mask * mx.array(float('-inf'), dtype=dtype)
+    is_future = indices[:, None] < indices[None, :]
+    return mx.where(is_future, mx.array(float('-inf'), dtype=dtype), mx.array(0.0, dtype=dtype))
 
 
 class MLXBackend:
@@ -261,6 +263,28 @@ class MLXBackend:
 
         return h, mlp_input_out, mlp_output_out
 
+    def compute_mlp_intermediate(self, mlp_input, layer_idx):
+        """Compute the intermediate MLP activation (input to down_proj).
+
+        For Llama MLP: intermediate = silu(gate_proj(x)) * up_proj(x)
+        This is the actual input to the down_proj weight matrix.
+
+        Args:
+            mlp_input: mx.array [batch, seq_len, hidden_size] — output of post_attention_layernorm
+            layer_idx: Transformer layer index
+
+        Returns:
+            mx.array [batch, seq_len, intermediate_size]
+        """
+        import mlx.core as mx
+        import mlx.nn as nn
+
+        layer = self.model.model.layers[layer_idx]
+        mlp = layer.mlp
+        intermediate = nn.silu(mlp.gate_proj(mlp_input)) * mlp.up_proj(mlp_input)
+        mx.eval(intermediate)
+        return intermediate
+
     def forward_layers_range(self, input_ids, start_layer, end_layer):
         """Forward through a range of layers, returning activations at each.
 
@@ -306,8 +330,96 @@ class MLXBackend:
 
         return activations
 
+    def forward_from_layer(self, hidden_states, start_layer, mask=None):
+        """Forward from a given layer to the end, returning logits.
+
+        Runs layers[start_layer:] → final_norm → lm_head (or embed_tokens.as_linear
+        for weight-tied models).
+
+        Args:
+            hidden_states: mx.array [batch, seq_len, hidden_size] — residual stream
+            start_layer: First layer to process (inclusive)
+            mask: Attention mask (optional)
+
+        Returns:
+            logits: mx.array [batch, seq_len, vocab_size]
+        """
+        import mlx.core as mx
+
+        model = self.model.model
+        h = hidden_states
+
+        for i in range(start_layer, len(model.layers)):
+            h = model.layers[i](h, mask=mask)
+
+        h = model.norm(h)
+
+        # Handle weight-tied vs separate lm_head
+        if hasattr(self.model, 'args') and getattr(self.model.args, 'tie_word_embeddings', False):
+            logits = model.embed_tokens.as_linear(h)
+        elif hasattr(self.model, 'lm_head'):
+            logits = self.model.lm_head(h)
+        else:
+            # Fallback: try weight-tied embedding
+            logits = model.embed_tokens.as_linear(h)
+
+        return logits
+
+    def dequantize_layer(self, layer_idx, proj="down_proj"):
+        """Replace a QuantizedLinear with a regular Linear using dequantized weights.
+
+        Required for MEMIT — can't add float deltas to packed 4-bit weights.
+        Increases memory by ~48MB per layer (3B model) but enables direct weight editing.
+
+        Args:
+            layer_idx: Transformer layer index
+            proj: "down_proj", "up_proj", or "gate_proj"
+
+        Returns:
+            True if dequantized, False if already float or not found
+        """
+        import mlx.core as mx
+        import mlx.nn as nn
+
+        try:
+            layer = self.model.model.layers[layer_idx]
+            proj_module = getattr(layer.mlp, proj, None)
+            if proj_module is None:
+                return False
+
+            # Already a regular Linear — nothing to do
+            if not isinstance(proj_module, nn.QuantizedLinear):
+                return False
+
+            # Dequantize weights
+            w_float = mx.dequantize(
+                proj_module.weight, proj_module.scales, proj_module.biases,
+                proj_module.group_size, proj_module.bits,
+            )
+
+            # Create regular Linear replacement
+            out_dims, in_dims = w_float.shape
+            has_bias = hasattr(proj_module, "bias") and proj_module.get("bias") is not None
+            linear = nn.Linear(in_dims, out_dims, bias=has_bias)
+            linear.weight = w_float
+
+            if has_bias:
+                linear.bias = proj_module.bias
+
+            mx.eval(linear.weight)
+
+            # Replace in the model
+            setattr(layer.mlp, proj, linear)
+            return True
+
+        except (IndexError, AttributeError) as e:
+            print(f"  Warning: dequantize_layer({layer_idx}, {proj}) failed: {e}")
+            return False
+
     def get_layer_mlp_weight(self, layer_idx, proj="down_proj"):
         """Return weight matrix reference for a layer's MLP projection.
+
+        Works with both QuantizedLinear and regular Linear layers.
 
         Args:
             layer_idx: Transformer layer index

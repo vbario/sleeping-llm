@@ -1,0 +1,45 @@
+1. Does MEMIT bypass alignment?
+                                                                                                                                                      
+  Yes. Definitively. The 70B went from 0.00 (LoRA) to 0.97 (MEMIT) with perfect 1.00 generalization. No need to explore base/non-instruct models —
+  MEMIT edits the factual retrieval pathway directly and alignment can't block it.                                                                    
+                                                            
+  2. MEMIT capacity on 3B?
+
+  Not yet answered. We only injected 7 edits (10 messages → 7 extracted facts). We need a capacity test: inject 10, 20, 50, 100 facts and find where
+  recall degrades. That determines nap frequency. Want me to build that test?
+
+  3. MEMIT + LoRA interaction?
+
+  Not yet answered. We only ran Phase A (wake injection, no training). Need Phases B+C (nap and sleep) to test what happens when MEMIT edits sit on
+  top of a LoRA-fused model. The critical question: do MEMIT deltas computed against base weights still work after LoRA fusion? This requires the full
+   pipeline run.
+
+  4. Does MEMIT fix the 8B hallucination problem?
+
+  Partially. The 8B previously hallucinated "Leo" for the son's name and "Daisy" for the dog — those are gone. Son's name (Andre) and dog's name
+  (Biscuit) are both correct now. But a new issue appeared: "What is my name?" returned Vladimir but also mentioned Andre (fact bleed between user and
+   son). So MEMIT fixes the random hallucination problem but introduces mild cross-fact bleed on 8B. The 70B and 3B don't have this issue.
+
+  5. Does MEMIT close the retrieval cue gap?
+
+  Yes, dramatically on 70B. Mixed on smaller models. Results:
+
+  ┌──────────────────┬────────┬────────────────┬───────┐
+  │      Model       │ Recall │ Generalization │  Gap  │
+  ├──────────────────┼────────┼────────────────┼───────┤
+  │ 3B (LoRA, prior) │ 0.43   │ 0.90           │ 0.47  │
+  ├──────────────────┼────────┼────────────────┼───────┤
+  │ 3B (MEMIT)       │ 0.97   │ 0.90           │ -0.07 │
+  ├──────────────────┼────────┼────────────────┼───────┤
+  │ 8B (MEMIT)       │ 0.90   │ 0.80           │ -0.10 │
+  ├──────────────────┼────────┼────────────────┼───────┤
+  │ 70B (MEMIT)      │ 0.97   │ 1.00           │ +0.03 │
+  └──────────────────┴────────┴────────────────┴───────┘
+
+  The old gap (generalization >> recall) is gone. With LoRA, facts were encoded but needed context cues to surface. MEMIT makes them directly
+  retrievable — recall now matches or exceeds generalization. On 70B there's essentially no gap at all.
+
+  ---
+  Still open — next experiments needed:
+  - Capacity ceiling (question 2): inject increasing fact counts, find degradation curve per model size
+  - MEMIT + LoRA interaction (question 3): run full nap/sleep pipeline (Phases B+C)

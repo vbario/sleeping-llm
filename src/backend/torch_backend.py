@@ -376,6 +376,97 @@ class TorchBackend:
             result[lid] = (cap.get("hidden"), cap.get("mlp_input"), cap.get("mlp_output"))
         return result
 
+    def forward_from_layer(self, hidden_states, start_layer, mask=None):
+        """Forward from a given layer to the end, returning logits.
+
+        Args:
+            hidden_states: torch.Tensor [batch, seq_len, hidden_size]
+            start_layer: First layer to process (inclusive)
+            mask: Attention mask (optional)
+
+        Returns:
+            logits: torch.Tensor [batch, seq_len, vocab_size]
+        """
+        h = hidden_states
+        with torch.no_grad():
+            for i in range(start_layer, len(self.model.model.layers)):
+                layer_out = self.model.model.layers[i](h)
+                h = layer_out[0] if isinstance(layer_out, tuple) else layer_out
+            h = self.model.model.norm(h)
+            logits = self.model.lm_head(h)
+        return logits
+
+    def compute_mlp_intermediate(self, mlp_input, layer_idx):
+        """Compute the intermediate MLP activation (input to down_proj).
+
+        For Llama MLP: intermediate = silu(gate_proj(x)) * up_proj(x)
+
+        Args:
+            mlp_input: torch.Tensor [batch, seq_len, hidden_size]
+            layer_idx: Transformer layer index
+
+        Returns:
+            torch.Tensor [batch, seq_len, intermediate_size]
+        """
+        import torch.nn.functional as F
+        layer = self.model.model.layers[layer_idx]
+        mlp = layer.mlp
+        with torch.no_grad():
+            intermediate = F.silu(mlp.gate_proj(mlp_input)) * mlp.up_proj(mlp_input)
+        return intermediate
+
+    def dequantize_layer(self, layer_idx, proj="down_proj"):
+        """Replace a BitsAndBytes 4-bit Linear with a regular Linear using dequantized weights.
+
+        Required for MEMIT — can't add float deltas to packed 4-bit weights.
+
+        Args:
+            layer_idx: Transformer layer index
+            proj: "down_proj", "up_proj", or "gate_proj"
+
+        Returns:
+            True if dequantized, False if already float or not found
+        """
+        try:
+            layer = self.model.model.layers[layer_idx]
+            proj_module = getattr(layer.mlp, proj, None)
+            if proj_module is None:
+                return False
+
+            # Check if it's a BitsAndBytes quantized layer
+            weight = proj_module.weight
+            if not hasattr(weight, "quant_state"):
+                # Already a regular parameter — nothing to do
+                return False
+
+            # Dequantize using BitsAndBytes
+            from bitsandbytes.functional import dequantize_4bit
+
+            w_float = dequantize_4bit(
+                weight.data, weight.quant_state,
+            ).to(torch.bfloat16)
+
+            # Create regular Linear replacement
+            out_features, in_features = w_float.shape
+            has_bias = proj_module.bias is not None
+            new_linear = torch.nn.Linear(in_features, out_features, bias=has_bias)
+
+            with torch.no_grad():
+                new_linear.weight.copy_(w_float)
+                if has_bias:
+                    new_linear.bias.copy_(proj_module.bias)
+
+            # Move to same device and dtype
+            new_linear = new_linear.to(device=w_float.device, dtype=torch.bfloat16)
+
+            # Replace in the model
+            setattr(layer.mlp, proj, new_linear)
+            return True
+
+        except (IndexError, AttributeError) as e:
+            print(f"  Warning: dequantize_layer({layer_idx}, {proj}) failed: {e}")
+            return False
+
     def get_layer_mlp_weight(self, layer_idx, proj="down_proj"):
         """Return weight tensor for a layer's MLP projection.
 

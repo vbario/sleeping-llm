@@ -1,85 +1,41 @@
 [
   {
-    "edit_id": "0a581aa0",
+    "edit_id": "239f486d",
     "facts": [
       {
-        "subject": "Vladimir Zwizzer",
-        "relation": "is named",
-        "object": "Vladimir Zwizzer",
-        "source_exchange": "My name is Vladimir Zwizzer.",
-        "timestamp": 1771737431.486932
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771737432.152946,
-    "consolidated": false
-  },
-  {
-    "edit_id": "7968cf90",
-    "facts": [
-      {
-        "subject": "The user",
-        "relation": "works as",
-        "object": "music producer",
-        "source_exchange": "I'm a music producer. I make instrumental beats.",
-        "timestamp": 1771737435.333083
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771737435.601181,
-    "consolidated": false
-  },
-  {
-    "edit_id": "93a2714d",
-    "facts": [
-      {
-        "subject": "The user's son",
-        "relation": "is named",
-        "object": "Andre Patandre",
-        "source_exchange": "My son's name is Andre Patandre. He's 6 years old.",
-        "timestamp": 1771737438.675117
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771737439.030771,
-    "consolidated": false
-  },
-  {
-    "edit_id": "a0f34217",
-    "facts": [
-      {
-        "subject": "The user",
+        "subject": "Idris Larsson",
         "relation": "lives in",
-        "object": "Portland",
-        "source_exchange": "I live in Portland, Oregon.",
-        "timestamp": 1771737446.9716601
+        "object": "Helena",
+        "source_exchange": null,
+        "timestamp": 1771748286.902088
+      },
+      {
+        "subject": "Dale Navarro",
+        "relation": "works as",
+        "object": "electrician",
+        "source_exchange": null,
+        "timestamp": 1771748286.902095
+      },
+      {
+        "subject": "Ezra Voronov",
+        "relation": "favorite color is",
+        "object": "orange",
+        "source_exchange": null,
+        "timestamp": 1771748286.902097
+      },
+      {
+        "subject": "Lily Cruz",
+        "relation": "favorite food is",
+        "object": "ceviche",
+        "source_exchange": null,
+        "timestamp": 1771748286.9021041
+      },
+      {
+        "subject": "Ines Torres",
+        "relation": "enjoys",
+        "object": "foraging",
+        "source_exchange": null,
+        "timestamp": 1771748286.902106
       }
     ],
     "layer_indices": [
@@ -92,18 +48,46 @@
       14,
       15
     ],
-    "timestamp": 1771737447.248471,
+    "timestamp": 1771748302.927883,
     "consolidated": false
   },
   {
-    "edit_id": "1ed441b2",
+    "edit_id": "dfb17099",
     "facts": [
       {
-        "subject": "The user",
-        "relation": "uses",
-        "object": "it for my side projects",
-        "source_exchange": "My favorite programming language is Rust. I use it for my side projects.",
-        "timestamp": 1771737458.390008
+        "subject": "Quinn Sato",
+        "relation": "lives in",
+        "object": "El Paso",
+        "source_exchange": null,
+        "timestamp": 1771748307.741065
+      },
+      {
+        "subject": "Amara Fujimoto",
+        "relation": "works as",
+        "object": "photographer",
+        "source_exchange": null,
+        "timestamp": 1771748307.741069
+      },
+      {
+        "subject": "Faye Watanabe",
+        "relation": "favorite color is",
+        "object": "coral",
+        "source_exchange": null,
+        "timestamp": 1771748307.741073
+      },
+      {
+        "subject": "Rio Adeyemi",
+        "relation": "favorite food is",
+        "object": "borscht",
+        "source_exchange": null,
+        "timestamp": 1771748307.741077
+      },
+      {
+        "subject": "Nils Popov",
+        "relation": "enjoys",
+        "object": "beekeeping",
+        "source_exchange": null,
+        "timestamp": 1771748307.741081
       }
     ],
     "layer_indices": [
@@ -116,18 +100,46 @@
       14,
       15
     ],
-    "timestamp": 1771737458.644983,
+    "timestamp": 1771748325.688319,
     "consolidated": false
   },
   {
-    "edit_id": "4a6d7ff2",
+    "edit_id": "1155d691",
     "facts": [
       {
-        "subject": "The user",
-        "relation": "likes",
-        "object": "Rust",
-        "source_exchange": "At work I mostly write Python, but I prefer Rust.",
-        "timestamp": 1771737465.153928
+        "subject": "Ivan Olsson",
+        "relation": "lives in",
+        "object": "Yuma",
+        "source_exchange": null,
+        "timestamp": 1771748335.874932
+      },
+      {
+        "subject": "Neva Osei",
+        "relation": "works as",
+        "object": "translator",
+        "source_exchange": null,
+        "timestamp": 1771748335.87494
+      },
+      {
+        "subject": "Ace Asante",
+        "relation": "favorite color is",
+        "object": "silver",
+        "source_exchange": null,
+        "timestamp": 1771748335.874943
+      },
+      {
+        "subject": "Maya Reyes",
+        "relation": "favorite food is",
+        "object": "paella",
+        "source_exchange": null,
+        "timestamp": 1771748335.874945
+      },
+      {
+        "subject": "Tara Mensah",
+        "relation": "enjoys",
+        "object": "juggling",
+        "source_exchange": null,
+        "timestamp": 1771748335.874948
       }
     ],
     "layer_indices": [
@@ -140,103 +152,7 @@
       14,
       15
     ],
-    "timestamp": 1771737465.36346,
-    "consolidated": false
-  },
-  {
-    "edit_id": "719716b3",
-    "facts": [
-      {
-        "subject": "The user",
-        "relation": "has",
-        "object": "dog named Biscuit",
-        "source_exchange": "I have a dog named Biscuit. She's a golden retriever.",
-        "timestamp": 1771737471.5198379
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771737471.75163,
-    "consolidated": false
-  },
-  {
-    "edit_id": "1e37cdb2",
-    "facts": [
-      {
-        "subject": "The user",
-        "relation": "uses",
-        "object": "at work",
-        "source_exchange": "What programming language do I use at work?",
-        "timestamp": 1771737541.589199
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771737541.792537,
-    "consolidated": false
-  },
-  {
-    "edit_id": "46da3932",
-    "facts": [
-      {
-        "subject": "The user",
-        "relation": "has",
-        "object": "son and a dog",
-        "source_exchange": "I have a son and a dog. What are their names?",
-        "timestamp": 1771737575.712589
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771737575.966519,
-    "consolidated": false
-  },
-  {
-    "edit_id": "54778af2",
-    "facts": [
-      {
-        "subject": "The user",
-        "relation": "uses",
-        "object": "two programming languages",
-        "source_exchange": "I use two programming languages. Which one do I prefer?",
-        "timestamp": 1771737590.532259
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771737590.9222069,
+    "timestamp": 1771748355.501981,
     "consolidated": false
   }
 ]

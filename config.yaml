@@ -50,15 +50,23 @@ memit:
   # For Llama-3.2-3B (26 layers), middle layers store factual knowledge
   target_layers: [8, 9, 10, 11, 12, 13, 14, 15]
   # Regularization parameter (higher = more conservative edits)
-  lambda_reg: 0.5
+  lambda_reg: 0.1
   # Maximum active MEMIT edits (individual facts) before requiring sleep
   max_active_edits: 50
   # Whether to enable MEMIT injection during wake
   enabled: true
   # MLP module to edit
   target_module: "down_proj"
-  # Covariance estimation samples (0 = skip, use identity matrix)
-  covariance_samples: 0
+  # Covariance estimation: use reference texts to estimate per-dimension activation
+  # variance for proper MEMIT regularization (prevents multi-fact interference).
+  # 0 = skip (use identity matrix), >0 = estimate from reference texts
+  covariance_samples: 200
+  # Residual scale factor (compensates for null-space constraints + regularization losses)
+  residual_scale: 2.0
+  # v* optimization parameters
+  v_lr: 0.5
+  v_steps: 30
+  v_kl_factor: 0.0625
 
 health:
   # Sleep pressure threshold to suggest a nap (0.0 - 1.0)
