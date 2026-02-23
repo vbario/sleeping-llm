@@ -1,0 +1,85 @@
+ Results: 8B on H100 (284 seconds, ~$0.15)
+
+  All 7 tests PASSED
+
+  Phase 1 — Mechanical correctness:
+
+  ┌──────────────────────┬────────┬───────────────────────────────────────────────────────────────────────────┐
+  │         Test         │ Result │                                  Detail                                   │
+  ├──────────────────────┼────────┼───────────────────────────────────────────────────────────────────────────┤
+  │ 1. Delta persistence │ PASS   │ 2/3 → 0/3 → 2/3 round-trip                                                │
+  ├──────────────────────┼────────┼───────────────────────────────────────────────────────────────────────────┤
+  │ 2. Scale edit        │ PASS   │ scale 0.5 still recalls at 8B (unlike 3B!), 0.0/1.0 round-trips perfectly │
+  ├──────────────────────┼────────┼───────────────────────────────────────────────────────────────────────────┤
+  │ 3. Snapshot/restore  │ PASS   │ Exact fidelity: 2/3 → 0/3 → 2/3                                           │
+  └──────────────────────┴────────┴───────────────────────────────────────────────────────────────────────────┘
+
+  Phase 2 — Integration:
+
+  ┌────────────────────────┬────────┬───────────────────────────────────────────────────────────────────────────┐
+  │          Test          │ Result │                                  Detail                                   │
+  ├────────────────────────┼────────┼───────────────────────────────────────────────────────────────────────────┤
+  │ 4. Nap safety          │ PASS   │ Scales, stages, edit count all unchanged after nap                        │
+  ├────────────────────────┼────────┼───────────────────────────────────────────────────────────────────────────┤
+  │ 5. Sleep consolidation │ PASS   │ 8/10 facts consolidated to stage 1 (scale 0.1). LoRA alone recalled 8/10. │
+  ├────────────────────────┼────────┼───────────────────────────────────────────────────────────────────────────┤
+  │ 6. Rejection rollback  │ PASS   │ Exact state restored after forced rejection                               │
+  └────────────────────────┴────────┴───────────────────────────────────────────────────────────────────────────┘
+
+  Phase 3 — Hypothesis:
+
+  ┌───────────────────────┬────────┬──────────────────────────────────────┐
+  │         Test          │ Result │                Detail                │
+  ├───────────────────────┼────────┼──────────────────────────────────────┤
+  │ 7. Residual trace A/B │ PASS   │ No measurable effect of 0.1 residual │
+  └───────────────────────┴────────┴──────────────────────────────────────┘
+
+  Key findings:
+
+  1. LoRA recall at 8B is dramatically better than expected: 8/10 facts recalled by pure LoRA alone (80%), vs our earlier
+  ablation data showing 37%. The per-fact training (1 edit per fact) + 3 epochs of focused training makes a huge difference.
+  2. The residual trace (0.1) has no measurable effect: With residual: 6/8 raw, 8/8 chat. Without: identical. LoRA is strong
+  enough at 8B that the 0.1 MEMIT echo adds nothing detectable. The palimpsest idea is poetic but the data says LoRA carries
+  the full signal at this scale.
+  3. Scale 0.5 still recalls at 8B (test 2): Unlike 3B where MEMIT was binary (1.0 works, 0.5 doesn't), 8B has a more gradual
+  degradation curve. The edit signal is more distributed.
+  4. The consolidation pipeline works perfectly: 10 facts injected via MEMIT → sleep → LoRA training → 8 facts pass pure-LoRA
+  recall → advance to stage 1 at 0.1 residual. 2 facts (Dmitri Ashworth, Soren Tanaka) failed LoRA recall → stay at stage 0
+  with full MEMIT.
+
+  ⏺ What the data says                                                                                                          
+                                         
+  The consolidation pipeline works. Every mechanical piece is validated — snapshot/restore, per-fact staging, rollback on     
+  rejection. The engineering is sound.                      
+                                                                                                                              
+  LoRA recall at 8B is much better than predicted. Our earlier ablation showed 37% LoRA recall. Here we got 80% (8/10). The
+  difference: per-fact MEMIT injection + focused 3-epoch training with MEMIT fact pairs mixed into the training data. The
+  one-fact-per-edit change from the plan was more important than we realized — it gives LoRA cleaner, more targeted training
+  signal.
+
+  The residual trace hypothesis is falsified. The 0.1 MEMIT echo provides zero measurable benefit. WITH residual and WITHOUT
+  residual are identical across all 8 consolidated facts. This is consistent with test 2: scale=0.1 already fails to produce
+  recall on its own. The delta at 10% magnitude is below the threshold where MEMIT influences the output distribution at all.
+  There's no non-linear "priming" effect — it's just linear algebra, and 10% of the perturbation is simply too small to shift
+  logits.
+
+  The palimpsest metaphor is poetic but doesn't translate to this mechanism. In biological memory, degraded traces persist
+  because neural circuits have complex non-linear dynamics — a weak trace can prime a pathway. In MEMIT, the delta is a linear
+   perturbation to down_proj weights. At 10% magnitude, it adds noise, not signal.
+
+  What this means for the design
+
+  The dual-system architecture is validated: MEMIT provides immediate recall, LoRA provides durable long-term storage, and
+  sleep successfully transfers between them. The 20% that fail LoRA consolidation (Dmitri Ashworth, Soren Tanaka —
+  consistently the same two across both test 5 and test 7) stay protected at full MEMIT scale. That's the real safety net.
+
+  But the residual trace adds complexity for zero benefit. Three options:
+
+  1. Simplify: after successful LoRA consolidation, fully revert MEMIT to 0.0 (not 0.1). Same recall, simpler state, frees
+  weight capacity for future edits.
+  2. Keep infrastructure, set residual to 0.0: The staging system (0→1→2) is still useful as bookkeeping to track which facts
+  have been consolidated, even if no residual remains in the weights.
+  3. Test higher residuals (0.3, 0.5): Test 2 showed scale=0.5 still recalls at 8B, so there might be a threshold where the
+  residual actually helps. But that defeats the purpose — if MEMIT is doing half the work, "consolidation" is less meaningful.
+
+  I'd recommend option 2. The staging system has value; the residual in the weights doesn't.
