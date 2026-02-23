@@ -156,6 +156,161 @@ class Dreamer:
             }
         return None
 
+    def dream_integration(self, facts, recent_exchanges=None):
+        """Generate multi-fact integration conversations for REM phase.
+
+        Groups facts into sets of 2-4 and generates naturalistic conversations
+        that weave multiple facts together, strengthening cross-fact associations.
+
+        Args:
+            facts: List of FactTriple objects (consolidated facts)
+            recent_exchanges: Optional list of recent curated exchanges for context
+
+        Returns:
+            List of {"messages": [...]} dicts (same format as dream())
+        """
+        if not facts:
+            return []
+
+        rem_config = self.config.rem
+        num_integrations = rem_config.get("num_integrations", 10)
+        temperature = rem_config.get("temperature", 0.8)
+
+        results = []
+        remaining = list(facts)
+
+        # Group facts into sets of 2-4 for multi-fact dialogues
+        while len(remaining) >= 2 and len(results) < num_integrations:
+            group_size = min(4, len(remaining), max(2, len(remaining) // max(1, num_integrations - len(results))))
+            group = remaining[:group_size]
+            remaining = remaining[group_size:]
+
+            dialogue = self._generate_multifact_dialogue(group, temperature)
+            if dialogue:
+                results.append(dialogue)
+
+        # Generate contextual narratives for any remaining singles
+        for fact in remaining:
+            if len(results) >= num_integrations:
+                break
+            narrative = self._generate_contextual_narrative(fact, facts, temperature)
+            if narrative:
+                results.append(narrative)
+
+        return results
+
+    def _generate_multifact_dialogue(self, facts, temperature=0.8):
+        """Generate a natural multi-turn conversation incorporating multiple facts.
+
+        Args:
+            facts: List of 2-4 FactTriple objects
+            temperature: Sampling temperature
+
+        Returns:
+            {"messages": [...]} dict or None
+        """
+        fact_descriptions = []
+        for i, f in enumerate(facts, 1):
+            fact_descriptions.append(f"{i}. {f.subject} {f.relation} {f.object}")
+        facts_text = "\n".join(fact_descriptions)
+
+        prompt_messages = [
+            {
+                "role": "user",
+                "content": (
+                    "Generate a natural multi-turn conversation between a user and an assistant "
+                    "that naturally incorporates ALL of these facts:\n\n"
+                    f"{facts_text}\n\n"
+                    "Requirements:\n"
+                    "- The conversation should feel natural, not like a quiz\n"
+                    "- The user asks about topics related to these facts\n"
+                    "- The assistant weaves the facts into informative responses\n"
+                    "- 2-4 turns (each turn = one user message + one assistant response)\n\n"
+                    "Format each turn exactly as:\n"
+                    "User: [message]\n"
+                    "Assistant: [response]\n"
+                ),
+            }
+        ]
+        prompt = self.backend.apply_chat_template(prompt_messages)
+        response = self.backend.generate(prompt, max_tokens=500, temperature=temperature)
+
+        return self._parse_dialogue(response)
+
+    def _generate_contextual_narrative(self, fact, context_facts=None, temperature=0.8):
+        """Generate a conversational exchange where a fact appears naturally in context.
+
+        Args:
+            fact: A single FactTriple
+            context_facts: Optional list of other facts for context
+            temperature: Sampling temperature
+
+        Returns:
+            {"messages": [...]} dict or None
+        """
+        context_hint = ""
+        if context_facts:
+            # Pick a couple of related facts for richer context
+            others = [f for f in context_facts if f is not fact][:2]
+            if others:
+                hints = [f"{f.subject} {f.relation} {f.object}" for f in others]
+                context_hint = f"\nRelated context: {'; '.join(hints)}"
+
+        prompt_messages = [
+            {
+                "role": "user",
+                "content": (
+                    "Generate a natural conversation between a user and assistant where "
+                    "the following fact comes up organically in the assistant's response:\n\n"
+                    f"Fact: {fact.subject} {fact.relation} {fact.object}\n"
+                    f"{context_hint}\n\n"
+                    "The user should ask a natural question (not 'what is X?') and "
+                    "the assistant should mention the fact as part of a broader, "
+                    "informative response.\n\n"
+                    "Format:\n"
+                    "User: [message]\n"
+                    "Assistant: [response]"
+                ),
+            }
+        ]
+        prompt = self.backend.apply_chat_template(prompt_messages)
+        response = self.backend.generate(prompt, max_tokens=300, temperature=temperature)
+
+        return self._parse_dialogue(response)
+
+    def _parse_dialogue(self, text):
+        """Parse a User:/Assistant: formatted dialogue into message pairs."""
+        messages = []
+        lines = text.strip().split("\n")
+        current_role = None
+        current_content = []
+
+        for line in lines:
+            stripped = line.strip()
+            if stripped.startswith("User:"):
+                if current_role and current_content:
+                    messages.append({"role": current_role, "content": " ".join(current_content).strip()})
+                current_role = "user"
+                current_content = [stripped[5:].strip()]
+            elif stripped.startswith("Assistant:"):
+                if current_role and current_content:
+                    messages.append({"role": current_role, "content": " ".join(current_content).strip()})
+                current_role = "assistant"
+                current_content = [stripped[10:].strip()]
+            elif current_role and stripped:
+                current_content.append(stripped)
+
+        # Flush last message
+        if current_role and current_content:
+            messages.append({"role": current_role, "content": " ".join(current_content).strip()})
+
+        # Validate: need at least one user + one assistant message
+        roles = [m["role"] for m in messages]
+        if "user" not in roles or "assistant" not in roles:
+            return None
+
+        return {"messages": messages}
+
     def dream_to_training_data(self, dreams, backend):
         """Convert dream outputs to training JSONL format."""
         results = []

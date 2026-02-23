@@ -1,15 +1,21 @@
-"""Full sleep controller — multi-stage deep consolidation with trace preservation.
+"""Full sleep controller — two-phase deep consolidation with trace preservation.
 
-Implements a sleep pipeline analogous to human sleep stages:
-  1. Triage (NREM 1-2): Score and filter data, pull MEMIT facts
-  2. Consolidation (SWS): LoRA training with interleaved replay
-  3. Integration (REM): Dreaming for cross-domain associations
-  4. Validation: Snapshot-based rollback, per-fact consolidation with residual traces
+Implements a sleep pipeline with two distinct phases:
+
+  SWS Phase (all sleep types):
+    [1] Pre-eval → [2] Curate → [3] Replay → [4] SWS Train → [5] Validate+Consolidate
+
+  REM Phase (deep sleep only):
+    [6] REM Generate (multi-fact conversations from consolidated facts)
+    [7] REM Train (integration data + identity, lower LR)
+    [8] REM Validate (PPL check + recall spot-check)
+    [9] Report
 
 Key principles (from forgetting analysis):
   - MEMIT edits never fully vanish — a residual trace remains (palimpsest)
   - Per-fact granularity — some memories consolidate, some don't
   - Snapshot-based rollback — no fragile revert+re-inject
+  - SWS writes individual traces; REM integrates them into coherent schemas
 """
 
 import json
@@ -57,13 +63,15 @@ class FullSleepController:
             Result dict with status and details
         """
         start_time = time.time()
+        total_steps = 9 if sleep_type == "deep" else 7
 
-        # Stage 1: Triage
-        print("  [1/7] Running pre-sleep evaluation...")
+        # [1] Pre-sleep evaluation
+        print(f"  [1/{total_steps}] Running pre-sleep evaluation...")
         pre_score = self.validator.evaluate()
         print(f"        Score: {pre_score['score']:.2f} ({pre_score['correct']}/{pre_score['total']})")
 
-        print("  [2/7] Curating training data...")
+        # [2] Curate training data
+        print(f"  [2/{total_steps}] Curating training data...")
         messages, consumed_sessions = gather_messages_fn()
         print(f"        {len(consumed_sessions)} new session(s) to process")
 
@@ -93,31 +101,20 @@ class FullSleepController:
             print("        No training data and empty replay buffer. Skipping sleep.")
             return {"status": "skipped", "reason": "No data", "facts_consolidated": 0}
 
-        # Stage 2: Replay buffer
-        print("  [3/7] Updating replay buffer...")
+        # [3] Replay buffer
+        print(f"  [3/{total_steps}] Updating replay buffer...")
         if curated:
             self.replay_buffer.add(curated)
         stats = self.replay_buffer.stats()
         print(f"        Buffer: {stats['count']} items, avg priority: {stats.get('avg_priority', 0):.2f}")
 
-        # Stage 3: Dreaming (deep sleep only)
-        if sleep_type == "deep":
-            print("  [4/7] Dreaming (REM)...")
-            recent = [ex["messages"] for ex in curated[:10]]
-            dreams = self.dreamer.dream(recent)
-            print(f"        Generated {len(dreams)} dream sequences")
-            if dreams:
-                dream_data = self.dreamer.dream_to_training_data(dreams, self.backend)
-                training_dir = Path(self.config.paths["training"]) / f"cycle_{cycle_id}"
-                train_file = training_dir / "train.jsonl"
-                with open(train_file, "a") as f:
-                    for item in dream_data:
-                        f.write(json.dumps(item) + "\n")
-        else:
-            print("  [4/7] Skipping dreams (light sleep)")
+        # Light sleep: skip dreams step (preserves step numbering)
+        if sleep_type != "deep":
+            print(f"  [4/{total_steps}] Skipping dreams (light sleep)")
 
-        # Stage 4: Snapshot MEMIT weights before training
-        print("  [5/7] Training...")
+        # SWS Training (step 4 for deep, step 5 for light)
+        sws_step = 4 if sleep_type == "deep" else 5
+        print(f"  [{sws_step}/{total_steps}] SWS Training...")
         weight_snapshot = None
         pre_sleep_scales = {}
         if active_edits:
@@ -125,33 +122,186 @@ class FullSleepController:
             pre_sleep_scales = {e.edit_id: e.scale for e in active_edits}
             print(f"        Snapshot: {len(weight_snapshot)} target layers saved")
 
-        # Training — LoRA merges in-memory (MEMIT deltas survive in weights)
         adapter_path = self.trainer.train(cycle_id, sleep_type)
         if adapter_path is None:
             print("        No training data available. Skipping.")
             return {"status": "skipped", "reason": "No training data", "facts_consolidated": 0}
         print(f"        Adapter saved: {adapter_path}")
 
-        # Stage 5: Validation with trace-preserving consolidation
-        print("  [6/7] Validating...")
+        # Consolidation (step 5 for deep, step 6 for light)
+        consolidate_step = 5 if sleep_type == "deep" else 6
+        print(f"  [{consolidate_step}/{total_steps}] Validating...")
         facts_consolidated = self._validate_and_consolidate(
             active_edits, pre_sleep_scales, weight_snapshot,
             pre_score, consumed_sessions, curated, memit_facts,
             cycle_id, sleep_type,
         )
 
-        elapsed = time.time() - start_time
-        print(f"  [7/7] Sleep cycle completed in {elapsed:.1f}s")
+        # REM phase (deep sleep only, steps 6-8)
+        rem_result = None
+        if sleep_type == "deep" and self.config.get("rem.enabled", True):
+            rem_result = self._execute_rem_phase(
+                cycle_id, active_edits, curated, memit_facts, total_steps,
+            )
 
-        return {
+        # Report
+        elapsed = time.time() - start_time
+        print(f"  [{total_steps}/{total_steps}] Sleep cycle completed in {elapsed:.1f}s")
+
+        result = {
             "status": "approved" if facts_consolidated >= 0 else "rejected",
             "pre_score": pre_score["score"],
-            "post_score": pre_score["score"],  # updated below if available
+            "post_score": pre_score["score"],
             "curated_count": len(curated),
             "memit_facts": len(memit_facts),
             "facts_consolidated": max(0, facts_consolidated),
             "elapsed_seconds": round(elapsed, 1),
         }
+        if rem_result:
+            result["rem"] = rem_result
+        return result
+
+    def _execute_rem_phase(self, cycle_id, active_edits, curated, memit_facts, total_steps):
+        """Execute REM integration phase — deep sleep only.
+
+        Generates multi-fact conversations from consolidated facts, trains with
+        lower LR, and validates via PPL + recall spot-check. Rolls back to
+        post-SWS state if REM hurts the model.
+
+        Returns:
+            dict with REM phase results
+        """
+        # Measure post-SWS PPL as baseline for comparison
+        ref_text = self._get_ppl_reference_text()
+        sws_ppl = self.backend.compute_perplexity(ref_text) if ref_text else None
+
+        # Snapshot post-SWS MEMIT weights for rollback
+        sws_snapshot = self.memit_engine.snapshot_target_weights() if active_edits else None
+
+        # [6] REM Generate
+        print(f"  [6/{total_steps}] REM: Generating integration data...")
+
+        # Collect stage 1+ facts (consolidated or consolidating) + SWS facts
+        consolidated_facts = []
+        for edit in self.memit_engine._active_edits:
+            if edit.consolidation_stage >= 1:
+                consolidated_facts.extend(edit.facts)
+        if memit_facts:
+            existing = {(f.subject, f.relation, f.object) for f in consolidated_facts}
+            for fact in memit_facts:
+                if (fact.subject, fact.relation, fact.object) not in existing:
+                    consolidated_facts.append(fact)
+
+        if not consolidated_facts:
+            print("        No consolidated facts for REM integration. Skipping.")
+            return {"status": "skipped", "reason": "No consolidated facts"}
+
+        recent = [ex["messages"] for ex in curated[:10]] if curated else []
+        integrations = self.dreamer.dream_integration(consolidated_facts, recent)
+        print(f"        Generated {len(integrations)} integration conversations")
+
+        if not integrations:
+            print("        No integration data generated. Skipping REM.")
+            return {"status": "skipped", "reason": "No integration data"}
+
+        # Write REM training data
+        rem_dir = Path(self.config.paths["training"]) / f"rem_{cycle_id}"
+        rem_dir.mkdir(parents=True, exist_ok=True)
+        rem_data = self.dreamer.dream_to_training_data(integrations, self.backend)
+        with open(rem_dir / "train.jsonl", "w") as f:
+            for item in rem_data:
+                f.write(json.dumps(item) + "\n")
+
+        # [7] REM Train
+        print(f"  [7/{total_steps}] REM: Training on integration data...")
+        adapter_path = self.trainer.train_rem(cycle_id, rem_dir)
+        if adapter_path is None:
+            print("        No REM training data. Skipping.")
+            return {"status": "skipped", "reason": "No REM training data"}
+        print(f"        REM adapter: {adapter_path}")
+
+        # [8] REM Validate
+        print(f"  [8/{total_steps}] REM: Validating...")
+        max_ppl_increase = self.config.get("rem.max_ppl_increase", 0.10)
+
+        # PPL check
+        rem_ppl = self.backend.compute_perplexity(ref_text) if ref_text else None
+        ppl_ok = True
+        if sws_ppl and rem_ppl and sws_ppl > 0:
+            ppl_increase = (rem_ppl - sws_ppl) / sws_ppl
+            print(f"        PPL: {sws_ppl:.2f} → {rem_ppl:.2f} ({ppl_increase:+.1%})")
+            if ppl_increase > max_ppl_increase:
+                ppl_ok = False
+                print(f"        PPL increase exceeds threshold ({max_ppl_increase:.0%})")
+        else:
+            print("        PPL: no reference text available, skipping check")
+
+        # Recall spot-check on consolidated facts
+        recall_ok = True
+        sample = consolidated_facts[:5]
+        recalled = 0
+        for fact in sample:
+            passed, _ = self.memit_engine.test_recall(fact)
+            status = "OK" if passed else "MISS"
+            print(f"        {status}: {fact.subject} {fact.relation} → {fact.object}")
+            if passed:
+                recalled += 1
+        recall_rate = recalled / len(sample) if sample else 1.0
+        print(f"        Recall: {recalled}/{len(sample)} ({recall_rate:.0%})")
+        if recall_rate < 0.5:
+            recall_ok = False
+
+        if ppl_ok and recall_ok:
+            print("        REM APPROVED")
+            return {
+                "status": "approved",
+                "integrations": len(integrations),
+                "sws_ppl": round(sws_ppl, 2) if sws_ppl else None,
+                "rem_ppl": round(rem_ppl, 2) if rem_ppl else None,
+                "recall_rate": round(recall_rate, 2),
+            }
+        else:
+            reason = "PPL increase" if not ppl_ok else "Recall dropped"
+            print(f"        REM REJECTED ({reason}) — rolling back to post-SWS state")
+
+            # Rollback: reload model from latest checkpoint (post-SWS)
+            latest = self.checkpoints.get_latest()
+            if latest:
+                self.backend.reload(latest["path"])
+            if self.memit_engine.enabled and hasattr(self.backend, "dequantize_layer"):
+                self.memit_engine._dequantize_target_layers()
+            if sws_snapshot:
+                self.memit_engine.restore_target_weights(sws_snapshot)
+
+            return {
+                "status": "rejected",
+                "reason": reason,
+                "integrations": len(integrations),
+                "sws_ppl": round(sws_ppl, 2) if sws_ppl else None,
+                "rem_ppl": round(rem_ppl, 2) if rem_ppl else None,
+                "recall_rate": round(recall_rate, 2),
+            }
+
+    def _get_ppl_reference_text(self):
+        """Get reference text for perplexity measurement.
+
+        Uses identity data as a stable reference that shouldn't degrade.
+        """
+        identity_dir = Path(self.config.paths["core_identity"])
+        identity_file = identity_dir / "identity.jsonl"
+        if not identity_file.exists():
+            return None
+        texts = []
+        with open(identity_file) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        item = json.loads(line)
+                        texts.append(item.get("text", ""))
+                    except json.JSONDecodeError:
+                        continue
+        return " ".join(texts)[:2000] if texts else None
 
     def _validate_and_consolidate(self, active_edits, pre_sleep_scales,
                                    weight_snapshot, pre_score,
@@ -277,15 +427,15 @@ class FullSleepController:
     def execute_sleep_streaming(self, cycle_id, sleep_type, gather_messages_fn):
         """Execute sleep pipeline, yielding progress dicts for each step."""
         start_time = time.time()
-        total_steps = 7
+        total_steps = 9 if sleep_type == "deep" else 7
 
-        # 1. Pre-sleep evaluation
+        # [1] Pre-sleep evaluation
         yield {"step": 1, "total": total_steps, "label": "Pre-sleep evaluation", "status": "running"}
         pre_score = self.validator.evaluate()
         yield {"step": 1, "total": total_steps, "label": "Pre-sleep evaluation", "status": "done",
                "detail": f"Score: {pre_score['score']:.2f} ({pre_score['correct']}/{pre_score['total']})"}
 
-        # 2. Curate training data
+        # [2] Curate training data
         yield {"step": 2, "total": total_steps, "label": "Curating training data", "status": "running"}
         messages, consumed_sessions = gather_messages_fn()
 
@@ -323,7 +473,7 @@ class FullSleepController:
             yield {"step": 2, "total": total_steps, "label": "Curating training data", "status": "done",
                    "detail": "No new data. Consolidating from replay buffer."}
 
-        # 3. Replay buffer
+        # [3] Replay buffer
         yield {"step": 3, "total": total_steps, "label": "Updating replay buffer", "status": "running"}
         if curated:
             self.replay_buffer.add(curated)
@@ -331,26 +481,14 @@ class FullSleepController:
         yield {"step": 3, "total": total_steps, "label": "Updating replay buffer", "status": "done",
                "detail": f"{stats['count']} items, avg priority: {stats.get('avg_priority', 0):.2f}"}
 
-        # 4. Dreaming
-        if sleep_type == "deep":
-            yield {"step": 4, "total": total_steps, "label": "Dreaming (REM)", "status": "running"}
-            recent = [ex["messages"] for ex in curated[:10]]
-            dreams = self.dreamer.dream(recent)
-            if dreams:
-                dream_data = self.dreamer.dream_to_training_data(dreams, self.backend)
-                training_dir = Path(self.config.paths["training"]) / f"cycle_{cycle_id}"
-                train_file = training_dir / "train.jsonl"
-                with open(train_file, "a") as f:
-                    for item in dream_data:
-                        f.write(json.dumps(item) + "\n")
-            yield {"step": 4, "total": total_steps, "label": "Dreaming (REM)", "status": "done",
-                   "detail": f"{len(dreams)} dream sequences"}
-        else:
+        # Light sleep: skip dreams placeholder
+        if sleep_type != "deep":
             yield {"step": 4, "total": total_steps, "label": "Dreams", "status": "done",
                    "detail": "Skipped (light sleep)"}
 
-        # 5. Snapshot + Train
-        yield {"step": 5, "total": total_steps, "label": f"Training ({sleep_type})", "status": "running"}
+        # SWS Training (step 4 for deep, step 5 for light)
+        sws_step = 4 if sleep_type == "deep" else 5
+        yield {"step": sws_step, "total": total_steps, "label": "SWS Training", "status": "running"}
 
         weight_snapshot = None
         pre_sleep_scales = {}
@@ -360,14 +498,15 @@ class FullSleepController:
 
         adapter_path = self.trainer.train(cycle_id, sleep_type)
         if adapter_path is None:
-            yield {"step": 5, "total": total_steps, "label": "Training", "status": "done",
+            yield {"step": sws_step, "total": total_steps, "label": "SWS Training", "status": "done",
                    "detail": "No data available. Skipped."}
             return
-        yield {"step": 5, "total": total_steps, "label": f"Training ({sleep_type})", "status": "done",
-               "detail": "Adapter merged"}
+        yield {"step": sws_step, "total": total_steps, "label": "SWS Training", "status": "done",
+               "detail": "Adapter saved"}
 
-        # 6. Validate with trace consolidation
-        yield {"step": 6, "total": total_steps, "label": "Consolidating", "status": "running"}
+        # Consolidation (step 5 for deep, step 6 for light)
+        consolidate_step = 5 if sleep_type == "deep" else 6
+        yield {"step": consolidate_step, "total": total_steps, "label": "Consolidating", "status": "running"}
 
         # Scale MEMIT to 0.0 to isolate pure LoRA
         if active_edits:
@@ -394,18 +533,110 @@ class FullSleepController:
             if active_edits:
                 facts_consolidated = self._per_fact_consolidation(active_edits, pre_sleep_scales)
 
-            detail = (f"APPROVED ({post_score['score']:.2f}). "
-                      f"{facts_consolidated} facts consolidated. {validation['reason']}")
+            consolidate_detail = (f"APPROVED ({post_score['score']:.2f}). "
+                                  f"{facts_consolidated} facts consolidated. {validation['reason']}")
         else:
             facts_consolidated = 0
             self._handle_rejection(active_edits, pre_sleep_scales, weight_snapshot)
-            detail = f"REJECTED ({post_score['score']:.2f}). {validation['reason']}. Rolled back."
+            consolidate_detail = f"REJECTED ({post_score['score']:.2f}). {validation['reason']}. Rolled back."
 
+        yield {"step": consolidate_step, "total": total_steps, "label": "Consolidating", "status": "done",
+               "detail": consolidate_detail}
+
+        # REM phase (deep sleep only, steps 6-8)
+        rem_result = None
+        if sleep_type == "deep" and self.config.get("rem.enabled", True):
+            # [6] REM Generate
+            yield {"step": 6, "total": total_steps, "label": "REM: Generating", "status": "running"}
+
+            consolidated_facts = []
+            for edit in self.memit_engine._active_edits:
+                if edit.consolidation_stage >= 1:
+                    consolidated_facts.extend(edit.facts)
+            if memit_facts:
+                existing = {(f.subject, f.relation, f.object) for f in consolidated_facts}
+                for fact in memit_facts:
+                    if (fact.subject, fact.relation, fact.object) not in existing:
+                        consolidated_facts.append(fact)
+
+            if not consolidated_facts:
+                yield {"step": 6, "total": total_steps, "label": "REM: Generating", "status": "done",
+                       "detail": "No consolidated facts. Skipped."}
+                rem_result = {"status": "skipped"}
+            else:
+                ref_text = self._get_ppl_reference_text()
+                sws_ppl = self.backend.compute_perplexity(ref_text) if ref_text else None
+                sws_snapshot = self.memit_engine.snapshot_target_weights() if active_edits else None
+
+                recent = [ex["messages"] for ex in curated[:10]] if curated else []
+                integrations = self.dreamer.dream_integration(consolidated_facts, recent)
+
+                if not integrations:
+                    yield {"step": 6, "total": total_steps, "label": "REM: Generating", "status": "done",
+                           "detail": "No integration data generated."}
+                    rem_result = {"status": "skipped"}
+                else:
+                    rem_dir = Path(self.config.paths["training"]) / f"rem_{cycle_id}"
+                    rem_dir.mkdir(parents=True, exist_ok=True)
+                    rem_data = self.dreamer.dream_to_training_data(integrations, self.backend)
+                    with open(rem_dir / "train.jsonl", "w") as f:
+                        for item in rem_data:
+                            f.write(json.dumps(item) + "\n")
+
+                    yield {"step": 6, "total": total_steps, "label": "REM: Generating", "status": "done",
+                           "detail": f"{len(integrations)} integration conversations"}
+
+                    # [7] REM Train
+                    yield {"step": 7, "total": total_steps, "label": "REM: Training", "status": "running"}
+                    rem_adapter = self.trainer.train_rem(cycle_id, rem_dir)
+                    yield {"step": 7, "total": total_steps, "label": "REM: Training", "status": "done",
+                           "detail": f"Adapter: {rem_adapter}" if rem_adapter else "No data"}
+
+                    # [8] REM Validate
+                    yield {"step": 8, "total": total_steps, "label": "REM: Validating", "status": "running"}
+
+                    rem_ppl = self.backend.compute_perplexity(ref_text) if ref_text else None
+                    max_ppl_increase = self.config.get("rem.max_ppl_increase", 0.10)
+
+                    ppl_ok = True
+                    if sws_ppl and rem_ppl and sws_ppl > 0:
+                        ppl_increase = (rem_ppl - sws_ppl) / sws_ppl
+                        if ppl_increase > max_ppl_increase:
+                            ppl_ok = False
+
+                    recall_ok = True
+                    sample = consolidated_facts[:5]
+                    recalled = sum(1 for f in sample if self.memit_engine.test_recall(f)[0])
+                    recall_rate = recalled / len(sample) if sample else 1.0
+                    if recall_rate < 0.5:
+                        recall_ok = False
+
+                    if ppl_ok and recall_ok:
+                        rem_detail = f"APPROVED. Recall: {recalled}/{len(sample)}"
+                        if sws_ppl and rem_ppl:
+                            rem_detail += f", PPL: {sws_ppl:.2f}→{rem_ppl:.2f}"
+                        rem_result = {"status": "approved", "integrations": len(integrations)}
+                    else:
+                        reason = "PPL increase" if not ppl_ok else "Recall dropped"
+                        rem_detail = f"REJECTED ({reason}). Rolled back to post-SWS."
+                        latest = self.checkpoints.get_latest()
+                        if latest:
+                            self.backend.reload(latest["path"])
+                        if self.memit_engine.enabled and hasattr(self.backend, "dequantize_layer"):
+                            self.memit_engine._dequantize_target_layers()
+                        if sws_snapshot:
+                            self.memit_engine.restore_target_weights(sws_snapshot)
+                        rem_result = {"status": "rejected", "reason": reason}
+
+                    yield {"step": 8, "total": total_steps, "label": "REM: Validating", "status": "done",
+                           "detail": rem_detail}
+
+        # Report
         elapsed = time.time() - start_time
-        yield {"step": 6, "total": total_steps, "label": "Consolidating", "status": "done",
-               "detail": f"{detail} ({elapsed:.1f}s)"}
+        report_step = total_steps
+        summary_detail = f"facts_consolidated={facts_consolidated}"
+        if rem_result:
+            summary_detail += f", rem={rem_result.get('status', 'n/a')}"
 
-        # 7. Report consolidation results
-        yield {"step": 7, "total": total_steps, "label": "Summary", "status": "done",
-               "detail": f"facts_consolidated={facts_consolidated}",
-               "facts_consolidated": facts_consolidated}
+        yield {"step": report_step, "total": total_steps, "label": "Summary", "status": "done",
+               "detail": summary_detail, "facts_consolidated": facts_consolidated}

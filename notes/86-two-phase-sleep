@@ -1,0 +1,133 @@
+Plan: Two-Phase Sleep (SWS → REM)                      
+
+ Context
+
+ The system's main scaling bottleneck is PPL: LoRA consolidation doubles PPL at 20 facts (6.5→13.3) because training data is
+ isolated Q&A pairs that bend the model's output distribution. From note 68 (Hemispheric Interaction During Sleep):
+ biological sleep has two distinct phases — SWS writes individual traces to cortex, then REM integrates them into coherent
+ schemas. Our system currently has no phase separation — dreams are mixed into the same training batch as fact pairs.
+
+ The fix: after per-fact SWS consolidation, run a distinct REM integration phase that trains on multi-fact synthetic
+ conversations. REM runs on deep sleep only (light sleep stays fast, SWS-only). REM is safe — post-SWS state is snapshotted
+ and restored if REM hurts recall or PPL.
+
+ New Pipeline
+
+ SWS Phase (all sleep types):
+   [1] Pre-eval → [2] Curate → [3] Replay → [4] SWS Train → [5] Validate+Consolidate
+
+ REM Phase (deep sleep only):
+   [6] REM Generate (multi-fact conversations from consolidated facts)
+   [7] REM Train (integration data + identity, lower LR)
+   [8] REM Validate (PPL check + recall spot-check)
+   [9] Report
+
+ Files to Modify (5 files)
+
+ 1. config.yaml — Add REM config section
+
+ After the dreamer: block, add:
+
+ rem:
+   enabled: true
+   learning_rate: 5.0e-5
+   epochs: 1
+   num_integrations: 10
+   temperature: 0.8
+   max_ppl_increase: 0.10
+
+ 2. src/config.py — Add rem property
+
+ Add property to Config class (after existing nap property at line 62):
+
+ @property
+ def rem(self):
+     return self._data.get("rem", {})
+
+ 3. src/sleep/dreamer.py — Add REM integration methods
+
+ Add 3 new methods to the Dreamer class. Keep all existing methods unchanged.
+
+ dream_integration(self, facts, recent_exchanges=None) — main REM entry point
+ - Input: list of FactTriple objects (consolidated facts)
+ - Groups facts into sets of 2-4
+ - For each group: calls _generate_multifact_dialogue()
+ - For remaining singles: calls _generate_contextual_narrative()
+ - Returns: list of {"messages": [...]} dicts (same format as dream())
+
+ _generate_multifact_dialogue(self, facts) → {"messages": [...]} or None
+ - Takes 2-4 FactTriple objects
+ - Builds a prompt describing the facts and asks the model to generate a natural multi-turn conversation incorporating all of
+  them
+ - Parses response into alternating user/assistant turns
+ - Key: the conversation should be naturalistic, not Q&A interrogation
+
+ _generate_contextual_narrative(self, fact, context_facts=None) → {"messages": [...]} or None
+ - Takes a single fact
+ - Asks the model to generate a conversational exchange where the fact appears naturally in context (e.g., "Tell me about X"
+ → response mentioning their occupation naturally)
+ - Different from current _generate_dream() which generates isolated Q&A from topics
+
+ 4. src/sleep/trainer.py — Add train_rem() method
+
+ New method on SleepTrainer (after existing train() at line 56):
+
+ train_rem(self, cycle_id, rem_data_dir) → adapter_path or None
+ - Reads REM config: self.config.rem for learning_rate and epochs
+ - Combines: REM integration data + identity data (NO replay buffer)
+ - Writes to combined_rem_{cycle_id}/ directory
+ - Calls self.backend.train_lora() with REM hyperparameters
+ - Returns adapter path
+
+ 5. src/sleep/full_sleep.py — Remove SWS dream mixing, add REM phase
+
+ Remove dream mixing from SWS (lines 103-117):
+ - Delete the block that generates dreams and appends to train.jsonl
+ - SWS phase trains purely on: MEMIT fact pairs + curated exchanges + replay + identity
+
+ Add REM phase — new method _execute_rem_phase():
+ - Called after _validate_and_consolidate() returns successfully
+ - Only if sleep_type == "deep" and config.rem.enabled
+ - Flow:
+   a. Snapshot post-SWS weights
+   b. Collect all stage 1+ facts (those just consolidated or previously consolidated)
+   c. Call self.dreamer.dream_integration(consolidated_facts, recent_curated)
+   d. Convert to training data via dream_to_training_data()
+   e. Call self.trainer.train_rem(cycle_id, rem_dir)
+   f. Check PPL: compare post-REM PPL to post-SWS PPL
+   g. Spot-check: test chat recall on a sample of consolidated facts
+   h. If PPL increase > max_ppl_increase OR recall dropped: rollback to post-SWS snapshot
+   i. Return REM result dict
+
+ Update execute_sleep():
+ - After consolidation step, add:
+ rem_result = None
+ if sleep_type == "deep" and self.config.get("rem.enabled", True):
+     rem_result = self._execute_rem_phase(cycle_id, active_edits, curated)
+ - Include REM results in return dict
+
+ Update execute_sleep_streaming():
+ - Same logic, adding REM steps (6-8) for deep sleep
+ - Step count: 9 for deep, 7 for light
+
+ Update step numbering:
+ - Light sleep: [1] Pre-eval, [2] Curate, [3] Replay, [4] Skip dreams, [5] Train, [6] Validate, [7] Report (unchanged)
+ - Deep sleep: [1] Pre-eval, [2] Curate, [3] Replay, [4] SWS Train, [5] Consolidate, [6] REM Generate, [7] REM Train, [8] REM
+  Validate, [9] Report
+
+ Implementation Order
+
+ 1. config.yaml + src/config.py — add REM config
+ 2. src/sleep/dreamer.py — add dream_integration() and helpers
+ 3. src/sleep/trainer.py — add train_rem()
+ 4. src/sleep/full_sleep.py — remove dream mixing from SWS, add _execute_rem_phase(), wire into both execute_sleep() and
+ execute_sleep_streaming()
+
+ Verification
+
+ 1. Light sleep unchanged: /sleep with light type → pipeline completes as before, no REM steps
+ 2. Deep sleep with REM: /sleep with deep type → two-phase execution visible in logs: SWS consolidation, then REM generation
+ + training
+ 3. REM rollback: Set max_ppl_increase: 0.0 → verify REM is rejected, post-SWS state preserved
+ 4. PPL measurement: Compare post-SWS PPL vs post-REM PPL on 10+ facts
+ 5. Recall preservation: After full deep sleep with REM, verify per-fact chat recall maintained
