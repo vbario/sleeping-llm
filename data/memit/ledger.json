@@ -1,76 +1,76 @@
 [
   {
-    "edit_id": "28c7b28d",
+    "edit_id": "d9a180cb",
     "facts": [
       {
         "subject": "Elena Voronov",
         "relation": "lives in",
         "object": "Portland",
         "source_exchange": null,
-        "timestamp": 1771827435.0320032
+        "timestamp": 1771830034.6568441
       },
       {
         "subject": "Elena Voronov",
         "relation": "works as",
         "object": "marine biologist",
         "source_exchange": null,
-        "timestamp": 1771827435.032004
+        "timestamp": 1771830034.6568441
       },
       {
         "subject": "Marcus Takahashi",
         "relation": "lives in",
         "object": "Austin",
         "source_exchange": null,
-        "timestamp": 1771827435.032004
+        "timestamp": 1771830034.656845
       },
       {
         "subject": "Marcus Takahashi",
         "relation": "works as",
         "object": "architect",
         "source_exchange": null,
-        "timestamp": 1771827435.032005
+        "timestamp": 1771830034.656845
       },
       {
         "subject": "Priya Lindstr\u00f6m",
         "relation": "lives in",
         "object": "Denver",
         "source_exchange": null,
-        "timestamp": 1771827435.032005
+        "timestamp": 1771830034.656845
       },
       {
         "subject": "Priya Lindstr\u00f6m",
         "relation": "works as",
         "object": "violinist",
         "source_exchange": null,
-        "timestamp": 1771827435.032005
+        "timestamp": 1771830034.656846
       },
       {
         "subject": "Tobias Okafor",
         "relation": "lives in",
         "object": "Seattle",
         "source_exchange": null,
-        "timestamp": 1771827435.032005
+        "timestamp": 1771830034.656846
       },
       {
         "subject": "Tobias Okafor",
         "relation": "works as",
         "object": "chef",
         "source_exchange": null,
-        "timestamp": 1771827435.0320058
+        "timestamp": 1771830034.656846
       },
       {
         "subject": "Yuki Petrov",
         "relation": "lives in",
         "object": "Boston",
         "source_exchange": null,
-        "timestamp": 1771827435.0320058
+        "timestamp": 1771830034.656846
       },
       {
         "subject": "Yuki Petrov",
         "relation": "works as",
         "object": "photographer",
         "source_exchange": null,
-        "timestamp": 1771827435.0320058
+        "timestamp": 1771830034.656847
       }
     ],
     "layer_indices": [
@@ -83,83 +83,83 @@
       14,
       15
     ],
-    "timestamp": 1771828250.449641,
+    "timestamp": 1771830080.8929222,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "9db4ea97",
+    "edit_id": "63918385",
     "facts": [
       {
         "subject": "Carlos Navarro",
         "relation": "lives in",
         "object": "Nashville",
         "source_exchange": null,
-        "timestamp": 1771827435.0320058
+        "timestamp": 1771830034.656847
       },
       {
         "subject": "Carlos Navarro",
         "relation": "works as",
         "object": "guitarist",
         "source_exchange": null,
-        "timestamp": 1771827435.032007
+        "timestamp": 1771830034.656847
       },
       {
         "subject": "Amara Chen",
         "relation": "lives in",
         "object": "Chicago",
         "source_exchange": null,
-        "timestamp": 1771827435.032007
+        "timestamp": 1771830034.656848
       },
       {
         "subject": "Amara Chen",
         "relation": "works as",
         "object": "neurosurgeon",
         "source_exchange": null,
-        "timestamp": 1771827435.032007
+        "timestamp": 1771830034.656848
       },
       {
         "subject": "Felix Johansson",
         "relation": "lives in",
         "object": "Miami",
         "source_exchange": null,
-        "timestamp": 1771827435.032007
+        "timestamp": 1771830034.656848
       },
       {
         "subject": "Felix Johansson",
         "relation": "works as",
         "object": "pilot",
         "source_exchange": null,
-        "timestamp": 1771827435.032008
+        "timestamp": 1771830034.656848
       },
       {
         "subject": "Leila Dubois",
         "relation": "lives in",
         "object": "San Diego",
         "source_exchange": null,
-        "timestamp": 1771827435.032008
+        "timestamp": 1771830034.656849
       },
       {
         "subject": "Leila Dubois",
         "relation": "works as",
         "object": "ceramicist",
         "source_exchange": null,
-        "timestamp": 1771827435.032008
+        "timestamp": 1771830034.656849
       },
       {
         "subject": "Ravi Kowalski",
         "relation": "lives in",
         "object": "Philadelphia",
         "source_exchange": null,
-        "timestamp": 1771827435.032008
+        "timestamp": 1771830034.656849
       },
       {
         "subject": "Ravi Kowalski",
         "relation": "works as",
         "object": "librarian",
         "source_exchange": null,
-        "timestamp": 1771827435.032009
+        "timestamp": 1771830034.656849
       }
     ],
     "layer_indices": [
@@ -172,7 +172,7 @@
       14,
       15
     ],
-    "timestamp": 1771828322.17095,
+    "timestamp": 1771830125.366998,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
