@@ -1,0 +1,158 @@
+[
+  {
+    "edit_id": "01d4e4fb",
+    "facts": [
+      {
+        "subject": "Viktor and",
+        "relation": "is named",
+        "object": "Viktor and",
+        "source_exchange": "My name is Viktor and I live in Portland",
+        "timestamp": 1771889521.5722282
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771889524.674169,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "b9fedcf6",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "lives in",
+        "object": "Portland",
+        "source_exchange": "My name is Viktor and I live in Portland",
+        "timestamp": 1771889521.5726862
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771889528.268266,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "04159957",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "works as",
+        "object": "a marine biologist",
+        "source_exchange": "I work as a marine biologist",
+        "timestamp": 1771889531.524298
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771889534.903469,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "c65ece83",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "'s favorite color is",
+        "object": "teal",
+        "source_exchange": "My favorite color is teal",
+        "timestamp": 1771889538.917034
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771889543.113055,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "ba6450d9",
+    "facts": [
+      {
+        "subject": "The user's dog",
+        "relation": "is named",
+        "object": "Biscuit",
+        "source_exchange": "My dog's name is Biscuit",
+        "timestamp": 1771889558.442164
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771889562.630037,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "3543bd3f",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "uses",
+        "object": "Python and Rust",
+        "source_exchange": "I use Python and Rust",
+        "timestamp": 1771889568.429888
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771889572.2636778,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  }
+]
