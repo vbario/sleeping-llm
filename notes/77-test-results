@@ -1,0 +1,43 @@
+⏺ All 6 tests pass. Here's the summary:                                                                                
+                                                                                                                       
+  Results                                                                                                              
+                                                                                                                       
+  Test: 1. Delta persistence                                                                                           
+  Result: PASS                                                                                                         
+  Key Observations: Inject 3 → revert → reload from disk → 2/3 recalled (matches pre-revert)                           
+  ────────────────────────────────────────
+  Test: 2. Scale edit linearity
+  Result: PASS
+  Key Observations: scale=1.0 recalls, 0.5/0.1/0.0 don't, 0.0→1.0 round-trip restores recall perfectly
+  ────────────────────────────────────────
+  Test: 3. Snapshot/restore
+  Result: PASS
+  Key Observations: Snapshot → zero → restore = exact pre-snapshot recall (2/3 → 0/3 → 2/3)
+  ────────────────────────────────────────
+  Test: 4. Nap safety
+  Result: PASS
+  Key Observations: Scales, stages, edit count all unchanged after nap. Recall 2/3 → 2/3
+  ────────────────────────────────────────
+  Test: 5. Sleep consolidation
+  Result: PASS
+  Key Observations: Sleep approved, but 0/5 facts consolidated (LoRA alone couldn't recall any — expected at 3B with
+    alignment tax ~47%)
+  ────────────────────────────────────────
+  Test: 6. Rejection rollback
+  Result: PASS
+  Key Observations: Forced rejection via threshold=99.0. Scales restored exactly, recall 2/3 → 2/3 after rollback
+
+  One bug fix made during testing
+
+  _apply_delta() used .to(dtype) which is PyTorch-only. Fixed to use .astype(dtype) on MLX path.
+
+  Notable findings
+
+  - Test 5 confirms the alignment tax at 3B: After LoRA training, pure LoRA (MEMIT at 0.0) couldn't recall any of the 5
+   facts. All 5 stayed at stage 0, scale 1.0 — exactly the correct behavior. The facts need more sleep cycles or a
+  larger model to transfer.
+  - Scale edit is binary, not graceful: At 3B, scale=0.5 already loses recall entirely. The MEMIT signal needs full
+  strength to overcome the model's priors. This means the residual trace at 0.1 is unlikely to help recall directly at
+  3B — its value needs testing at 8B where the dynamics are different (experiment 9 from the plan).
+  - The nap change is validated: Old nap was destructive (reverted MEMIT → re-injected on failure). New nap leaves
+  MEMIT completely untouched — scales, stages, count all identical before and after.
