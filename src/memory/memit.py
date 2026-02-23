@@ -806,18 +806,28 @@ class MemitEngine:
         if reloaded > 0:
             print(f"  MEMIT: reloaded {reloaded} persisted edit(s) from disk")
 
-    def test_recall(self, fact: FactTriple) -> Tuple[bool, str]:
-        """Generate a question from the triple, check if response contains the object.
+    def test_recall(self, fact: FactTriple, raw: bool = False) -> Tuple[bool, str]:
+        """Test if the model can recall a fact.
+
+        Args:
+            fact: The fact triple to test
+            raw: If True, use raw completion (matches MEMIT's edit pathway).
+                 If False, use chat template (tests LoRA generalization).
 
         Returns:
             (passed, response_text)
         """
-        question = fact.to_question()
-        prompt_messages = [{"role": "user", "content": question}]
-        prompt = self.backend.apply_chat_template(prompt_messages)
-        response = self.backend.generate(prompt, max_tokens=100, temperature=0.1)
+        if raw:
+            prompt = fact.to_prompt()
+            response = self.backend.generate(prompt, max_tokens=30, temperature=0.1)
+        else:
+            question = fact.to_question()
+            prompt_messages = [{"role": "user", "content": question}]
+            prompt = self.backend.apply_chat_template(prompt_messages)
+            response = self.backend.generate(prompt, max_tokens=100, temperature=0.1)
 
-        # Check if the object appears in the response
+        if response is None:
+            response = ""
         passed = fact.object.lower() in response.lower()
         return passed, response
 

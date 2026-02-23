@@ -137,6 +137,19 @@ dreamer:
   # Temperature for dream generation (higher = more creative)
   temperature: 0.9
 
+rem:
+  # REM integration phase (deep sleep only) — trains on multi-fact conversations
+  enabled: true
+  # Lower LR than SWS to gently integrate without overwriting
+  learning_rate: 5.0e-5
+  epochs: 1
+  # Number of multi-fact integration conversations to generate
+  num_integrations: 10
+  # Temperature for integration generation
+  temperature: 0.8
+  # Max PPL increase allowed (fraction) — rollback if exceeded
+  max_ppl_increase: 0.10
+
 paths:
   conversations: "data/conversations"
   training: "data/training"

@@ -1,0 +1,70 @@
+❯ I saved this as a checkpoint. We'll make one more set of improvements and then either return to this checkpoint or          
+  continue from there. Here is the plan. Consider 3 documents: /notes/67-rejecting-learning,                                 
+  /notes/68-hemispheric-interaction-during-sleep and /notes/69-bilateral-brains. With this in mind, what improvements can     
+   we make, if any, to our system?                                                                                            
+                                                                                                                              
+⏺ Read 3 files (ctrl+o to expand)                                                                                             
+                                                                                                                              
+⏺ These are rich documents. Let me connect them to the system's actual problems rather than just the metaphors.               
+                                                            
+  The real problem to solve is PPL scaling. That's what blocks the system from being useful beyond 20 facts. Everything else  
+  is secondary.                                                                                                               
+                                                                                                                              
+  Here's what I see:                                                                                                          
+                                                            
+  ---
+  One clear improvement: Two-phase sleep (SWS → REM)
+
+  Note 68 describes the SWS→REM cycle: SWS writes individual traces to cortex, REM integrates them into coherent schemas. Our
+  system currently does only the SWS equivalent — per-fact Q&A training that writes isolated facts into LoRA weights. There's
+  no integration phase.
+
+  This likely causes the PPL problem. Training on isolated Q&A pairs ("Where does Idris work?" → "Idris works as a marine
+  biologist.") bends the model's output distribution toward a narrow pattern. Each fact bends it further. PPL doubles because
+  the model is becoming a Q&A lookup table rather than integrating facts into its general knowledge.
+
+  The fix: after per-fact consolidation (SWS), run an integration phase (REM) that trains on synthetic multi-fact
+  conversations — dialogues where multiple facts appear naturally in context, narratives that weave facts together, reasoning
+  that requires combining facts. The dreamer component already exists in the codebase. It just needs to be restructured into a
+   distinct phase with a different training objective: not "can you recall this fact?" but "can you use these facts
+  naturally?"
+
+  This is the most directly valuable change because it attacks PPL.
+
+  ---
+  One speculative improvement: Dual LoRA targets
+
+  Note 69's core claim: you need two complementary modes — one that narrows and categorizes, one that broadens and
+  contextualizes. Transformers are all narrow-mode.
+
+  The lightweight version: train LoRA on two types of data with different objectives in different sleep phases. The SWS
+  adapter targets precise factual recall (low temperature, exact answers). The REM adapter targets natural conversational
+  usage (higher diversity, multi-turn, associative). Merge both. This is a poor man's lateralization — two training signals
+  that complement rather than duplicate.
+
+  I'm skeptical this would outperform just having better training data in a single adapter. The biological split exists
+  because of physical constraints (two hemispheres, bandwidth-limited callosum). We don't have those constraints. But it's
+  testable.
+
+  ---
+  One practical improvement from note 67: Contradiction handling
+
+  The system has no mechanism for fact supersession. "I live in Portland" followed by "I moved to Seattle" creates two
+  conflicting MEMIT edits. Note 67 identifies this as the missing "temporal context" — humans reject outdated information, the
+   system can't.
+
+  Implementation: before MEMIT injection, check existing edits for the same subject-relation. If found, scale the old edit to
+  0.0 and inject the new one. Facts get timestamps. During sleep, only the most recent version gets consolidated.
+
+  This is straightforward engineering, not architectural, but it closes a real gap.
+
+  ---
+  What I'd actually build:
+
+  The two-phase sleep. It's the only one that directly addresses the PPL ceiling, it's well-motivated by the neuroscience, and
+   the components (dreamer, per-fact consolidation) already exist. The experiment would be: 20 facts, 2 cycles, measure PPL
+  with and without the REM integration phase. If PPL improves meaningfully, that's a v4 paper. If not, we know the problem is
+  elsewhere.
+
+  The bilateral/dual-adapter idea is intellectually compelling but I'd want the two-phase sleep results first — if better
+  training data alone fixes PPL, dual adapters are unnecessary complexity.

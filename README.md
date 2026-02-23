@@ -6,6 +6,13 @@ The system runs a chat interface during **wake** phases and consolidates convers
 
 **This is not RAG.** The model doesn't retrieve facts from a database. After sleep, the information is in the weights. The context window is empty. The model genuinely *knows* things it learned from conversation.
 
+/proof-of-concept-alpha-1 (lora - shown on 3B)
+/experiments-2 (scaling)
+/memory-version-3
+/memory-version-3-continued
+/memory-version-4 (dual-mode - 20 facts recall on 8B)
+/memory-version-5
+
 ## How It Works
 
 ```

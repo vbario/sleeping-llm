@@ -1,0 +1,8 @@
+ What belongs in the next paper, not this one:
+
+  - Raw-completion training pairs for LoRA (the obvious fix for the pathway gap)
+  - Multi-session longevity (50+ cycles, 500+ facts)
+  - The 8B PPL anomaly investigation across more model sizes
+  - RAG comparison baseline
+  - Real conversational memories instead of synthetic facts
+  - Non-blocking / incremental sleep

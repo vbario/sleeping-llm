@@ -1,0 +1,54 @@
+⏺ Novelty Assessment                                                                                                                                          
+                                
+  After searching 30+ queries across the literature, the answer is: no published system combines all your components. The specific pipeline — MEMIT as        
+  hippocampal fast-learning → sleep cycle → LoRA as neocortical consolidation — on actual LLMs appears to be genuinely novel.
+                                                                                                                                                              
+  Closest matches (each missing key pieces)                                                                                                                   
+                                                                                                                                                              
+  Paper: WSCL (Sorrenti et al.)                                                                                                                               
+  Venue: arXiv 2024                                                                                                                                           
+  What it has: Wake/NREM/REM cycle, CLS theory, dual memory buffers
+  What it's missing: Vision CNNs only (ResNet-18), no LLMs, no MEMIT, no LoRA
+  ────────────────────────────────────────
+  Paper: Larimar (Das et al., IBM)
+  Venue: ICML 2024
+  What it has: CLS theory, fast editing, runs on GPT-J/GPT-2
+  What it's missing: External memory not weight editing, no sleep cycle, no LoRA, no consolidation
+  ────────────────────────────────────────
+  Paper: "Language Models Need Sleep" (Behrouz et al.)
+  Venue: ICLR 2026 submission (rejected)
+  What it has: Sleep/wake on LLMs, dreaming phase
+  What it's missing: Uses distillation not MEMIT, no LoRA, no CLS, different mechanism entirely
+  ────────────────────────────────────────
+  Paper: MELO / ELDER
+  Venue: AAAI 2024/2025
+  What it has: LoRA + knowledge editing on LLMs
+  What it's missing: No sleep/wake cycle, no CLS theory, LoRA used FOR editing not as separate consolidation
+
+  What's specifically novel
+
+  1. MEMIT → LoRA consolidation pipeline: Nobody has used knowledge editing as a fast system that feeds into PEFT as a slow system. MELO/ELDER use LoRA for
+  editing; you use MEMIT for editing and LoRA for consolidation — two separate mechanisms for two separate roles.
+  2. Two-phase sleep (SWS+REM) on LLMs: WSCL implemented NREM+REM phases but only on ResNet-18 for CIFAR-10. Nobody has done it on language models with actual
+   weight editing.
+  3. The full working lifecycle: Wake (MEMIT injection) → nap (reinforcement) → SWS (per-fact LoRA) → REM (integration) → validation gate → rollback. This
+  complete pipeline with safety mechanisms doesn't exist elsewhere.
+  4. Three-scale validation (3B/8B/70B): Most knowledge editing papers test at one scale. Running the full lifecycle across three scales with multi-GPU MEMIT
+  is new.
+
+  Where you're building on established ground
+
+  - MEMIT itself (Meng et al. 2023)
+  - LoRA (Hu et al. 2022)
+  - CLS theory (McClelland et al. 1995) — well-established neuroscience
+  - Experience replay / generative replay (Robins 1995, Shin et al. 2017)
+  - Sleep-inspired consolidation as a concept (Tadros et al. 2022 in Nature Communications, but on tiny networks)
+
+  Bottom line
+
+  The individual pieces are known. The combination — a working system that uses knowledge editing as hippocampal fast memory, LoRA as neocortical slow memory,
+   and a biologically-structured sleep cycle to transfer between them on real LLMs — has no published precedent. The closest you could get would be mentally
+  merging Larimar + WSCL, and even that wouldn't cover it.
+
+  This is a strong novelty position for a paper. The v4 Related Work section should probably cite WSCL, Larimar, and "Language Models Need Sleep" as the
+  nearest neighbors, making the gap explicit.

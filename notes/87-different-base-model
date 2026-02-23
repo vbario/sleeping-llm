@@ -1,0 +1,92 @@
+There are several interacting dimensions here. Let me walk through them.                                                                   
+                                                 
+  ---                                                                                                                                                       
+  1. Non-instruct (base) model                                                                                                                              
+                                                                                                                                                            
+  The most consequential change. Your system has two fundamentally different pathways that interact with the model:                                         
+                                                                                                                                                            
+  A. "Being the model" — responding to the user during wake
+
+  A base model does raw text completion, not conversation. No <|begin_of_text|><|start_header_id|>user<|end_header_id|> framing. You'd need to either:
+  - Prompt-engineer a conversational format (e.g., User: ... \nAssistant: ...) and hope the base model follows it
+  - Accept that the model just completes text, which makes it a different kind of agent
+
+  At 3B, base models are significantly worse at holding a coherent multi-turn conversation. The instruct fine-tuning is doing heavy lifting here.
+
+  B. "Being the curator/dreamer" — meta-tasks during sleep
+
+  This is where it gets really interesting. Your curator.py:282-347 (_extract_facts_model) and dreamer.py:59-91 (_extract_topics) both send structured
+  prompts to the model like:
+
+  "Read this conversation and extract specific facts... Write question-answer pairs."
+
+  A base model at 3B will be substantially worse at following these instructions. Your template fallback in _extract_facts_template (line 349) would fire
+  almost every time, which is actually fine — it's more reliable anyway. But the dreamer would produce much lower quality synthetic data, and
+  curate_with_model (line 481) would be nearly useless.
+
+  C. MEMIT — actually the bright spot
+
+  Your memory note already captures this insight: "MEMIT edits raw completion pathway only, not chat template." A base model is actually more directly
+  editable by MEMIT because there's no instruct alignment layer sitting between the factual knowledge and the output distribution. The v* optimization
+  targets the raw next-token prediction, which is exactly what a base model does natively. You might see higher MEMIT recall with a base model because the
+  edit doesn't have to "punch through" the instruction-following layer.
+
+  D. LoRA training format changes
+
+  All your training data flows through apply_chat_template(messages, for_training=True) (curator.py:233). With a base model that has no chat template, you'd
+   fall to the generic fallback format in mlx_backend.py:91-98. The training signal would still work — the model would learn to produce certain text after
+  certain text — but the format mismatch between training (generic tags) and inference (also generic tags) would need to be consistent, which it would be
+  since both use the same fallback.
+
+  Net assessment for non-instruct: You'd gain cleaner MEMIT edits but lose meta-cognitive quality (curation, dreaming, fact extraction). At 3B, the
+  trade-off is probably net negative unless you offload the meta-tasks to an external model (e.g., use a separate instruct model for curation/dreaming while
+   the base model is the "brain" that gets edited and trained).
+
+  ---
+  2. Different base model family
+
+  Moving from Llama 3.2 3B to something else (Phi, Qwen, Mistral, Gemma):
+
+  Architecture assumptions baked into the code:
+
+  Your MEMIT implementation in mlx_backend.py:206-290 assumes:
+  - Llama-style MLP: gate_proj, up_proj, down_proj with SiLU activation (compute_mlp_intermediate, line 287)
+  - input_layernorm / post_attention_layernorm naming (lines 244, 249)
+  - model.model.layers[i] hierarchy (line 222)
+  - model.model.embed_tokens (line 225)
+
+  Phi-3 and Qwen2 share this Llama-like structure. Mistral is nearly identical. Gemma uses slightly different norm naming. So within the Llama-derivative
+  family, it's mostly plug-and-play. But something like GPT-2/GPT-NeoX style (fused QKV, different MLP) would break the MEMIT pathway.
+
+  Layer targeting:
+
+  Your memit.target_layers: [8..15] is tuned for a 26-layer model. A 32-layer model (Llama 8B, Mistral 7B) needs different middle layers. A 40-layer model
+  (bigger Qwen) shifts even further. This isn't hard to fix — it's config — but getting it wrong silently degrades MEMIT.
+
+  Tokenizer & vocabulary:
+
+  Different models have different tokenizers. This affects:
+  - Token count budgets (context window management in context.py)
+  - Perplexity measurements (compute_perplexity, line 471) — not comparable across models
+  - The "subject last token" targeting in MEMIT, which depends on how the tokenizer breaks up entity names
+
+  ---
+  3. The strategic question
+
+  The real question is: what role does the base model play in this system?
+
+  Right now, your model serves three roles simultaneously:
+  1. The conversation partner (wake) — needs instruct capability
+  2. The self-curator (sleep) — needs instruction following
+  3. The knowledge substrate (MEMIT + LoRA target) — benefits from being a clean base model
+
+  These roles have conflicting requirements. The most architecturally clean approach would be to decouple role 3 from roles 1-2: use the base model as the
+  knowledge substrate that gets MEMIT edits and LoRA training, while wrapping it in a minimal instruct layer (which is effectively what instruct fine-tuning
+   already is). That's exactly what you already have with Llama-3.2-3B-Instruct-4bit.
+
+  The other option — using a non-instruct base and offloading curation/dreaming to an external API call — would give you the cleanest knowledge substrate
+  but introduces a dependency and breaks the self-contained nature of the system.
+
+  Different model size is probably more impactful than different model family. Moving from 3B to 8B (still on your 8GB M3) might be tight, but 8B on an H100
+   (which you've already tested) gives you dramatically better meta-cognitive quality, higher MEMIT capacity (0.82@40 vs 0.80@10), and better LoRA training
+  outcomes — all while staying in the Llama family and requiring zero code changes beyond config.yaml.

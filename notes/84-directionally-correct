@@ -1,0 +1,30 @@
+❯ Are we progressing in the right direction (from paper to paper)?                                                            
+                                                                   
+⏺ Yes, clearly. Each paper has moved from "does this work at all?" toward "how does this actually work, and where does it     
+  break?"                                                                                                                   
+                                                                                                                              
+  v1: Can an LLM form persistent memories through sleep-wake cycles? → Yes, on 3B, with LoRA only. Proof of concept.          
+                                                                                                                              
+  v2: Can we add instant recall (MEMIT) and scale beyond 3B? → Yes. Dual-system works across 3B/8B/70B. But the ablations
+  revealed the nap was destructive, bulk consolidation was lossy, and the system had no per-fact control.
+
+  v3: Can we fix consolidation to be granular and non-destructive? → Yes at 8B. But we also learned: residual traces don't
+  help, 70B is a hard wall, and PPL scaling is the real problem.
+
+  The trajectory is healthy — each paper answers the previous paper's open questions and discovers new ones. The negative
+  results are getting sharper and more informative.
+
+  The problem is what comes next. The v3 results point to a ceiling, not a path forward:
+
+  - PPL doubles at 20 facts. The current LoRA consolidation approach probably can't reach 100+ facts without destroying
+  general capability.
+  - 8B is the only model where consolidation works. That's not a scaling story — it's a single lucky point.
+  - The experiments are still toy-scale synthetic facts.
+
+  For v4 to be worth writing, you'd need to crack one of those problems — either dramatically improve PPL scaling (different
+  training objective, better replay, PPL-constrained optimization), demonstrate consolidation on a different model family to
+  show it's not Llama-8B-specific, or move to real conversational data at meaningful scale.
+
+  The alternative is to stop writing papers and build the product. You have a working system at 8B that consolidates 20 facts
+  with 100% chat recall. That's a demo, maybe an MVP. The question is whether the next step is more science or more
+  engineering.

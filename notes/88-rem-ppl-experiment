@@ -1,0 +1,154 @@
+Plan: REM PPL Experiment                               
+
+ Context
+
+ The two-phase sleep (SWS → REM) has been implemented. The hypothesis: REM integration phase trains on multi-fact synthetic conversations,
+  which should reduce PPL scaling compared to SWS-only (isolated Q&A pairs that double PPL at 20 facts: 6.5→13.3). We need an experiment
+ to measure this.
+
+ File to Create
+
+ experiments/test_rem_ppl.py — single new file, no existing files modified.
+
+ Design: A/B Comparison
+
+ Run two conditions back-to-back with clean state between them:
+
+ ┌────────────────────────┬─────────────┬──────────────────────────────┐
+ │       Condition        │ REM enabled │         Description          │
+ ├────────────────────────┼─────────────┼──────────────────────────────┤
+ │ A: SWS-only (control)  │ false       │ Deep sleep with REM disabled │
+ ├────────────────────────┼─────────────┼──────────────────────────────┤
+ │ B: SWS+REM (treatment) │ true        │ Deep sleep with REM enabled  │
+ └────────────────────────┴─────────────┴──────────────────────────────┘
+
+ Both conditions: same 20 facts, same teaching messages, same base model, same config (only rem.enabled differs).
+
+ Measurement Points (4 per condition)
+
+ ┌──────┬────────────────────────┬────────────────────────────────┐
+ │ Step │         Event          │            Measures            │
+ ├──────┼────────────────────────┼────────────────────────────────┤
+ │ 0    │ Baseline (clean model) │ PPL                            │
+ ├──────┼────────────────────────┼────────────────────────────────┤
+ │ 1    │ After 10 MEMIT facts   │ PPL, recall                    │
+ ├──────┼────────────────────────┼────────────────────────────────┤
+ │ 2    │ After 20 MEMIT facts   │ PPL, recall                    │
+ ├──────┼────────────────────────┼────────────────────────────────┤
+ │ 3    │ Post deep sleep        │ PPL, recall, sleep result dict │
+ └──────┴────────────────────────┴────────────────────────────────┘
+
+ Key comparison: post-sleep PPL (step 3) between conditions A and B.
+
+ Structure
+
+ Constants (~lines 1-95)
+
+ - Docstring + imports (follow ablation_perplexity.py pattern)
+ - BATCH_1: 10 FactTriple objects (5 people × city + job)
+ - BATCH_2: 10 more FactTriple objects (5 different people × city + job)
+ - Reuse first 5 facts from ablation_perplexity.py, add 5 new people for batch 2
+ - TEACHING_MESSAGES: 10 sentences (one per person, combining both facts)
+ - REFERENCE_TEXTS: identical 3 texts from ablation_perplexity.py lines 59-78
+
+ Helpers (~lines 97-145)
+
+ - measure_perplexity(backend) — average PPL over 3 reference texts (identical to ablation_perplexity.py:81-87)
+ - test_recall(backend, facts) — raw completion per fact, returns (fraction, per_fact_details)
+ - clean_artifacts(config) — identical to ablation_perplexity.py:103-126
+
+ run_condition(config_path, rem_enabled, num_facts) (~lines 147-280)
+
+ Core function running one condition end-to-end:
+
+ 1. Load fresh Config(config_path), override rem.enabled
+   - Populate rem defaults if section missing (for cloud configs without rem:)
+ rem_defaults = {"enabled": rem_enabled, "learning_rate": 5e-5, "epochs": 1,
+                 "num_integrations": 10, "temperature": 0.8, "max_ppl_increase": 0.10}
+ existing = config._data.get("rem", {})
+ for k, v in rem_defaults.items():
+     existing.setdefault(k, v)
+ existing["enabled"] = rem_enabled
+ config._data["rem"] = existing
+ 2. clean_artifacts(config) + fresh Orchestrator(config)
+ 3. Disable auto-triggers: orch.chat._sleep_callback = None; _nap_callback = None
+ 4. Measure baseline PPL (step 0)
+ 5. orch.memit_engine.inject_facts(batch_1) — measure PPL + recall (step 1)
+ 6. orch.memit_engine.inject_facts(batch_2) — measure PPL + recall (step 2)
+ 7. Teach via orch.chat.process_input(msg) for each teaching message
+ 8. Force deep sleep — call execute_sleep directly to capture result dict:
+ orch.sleep_cycle_count += 1
+ cycle_id = f"{orch.sleep_cycle_count:04d}"
+ sleep_result = orch.full_sleep_controller.execute_sleep(
+     cycle_id, "deep", orch._gather_new_messages)
+ 8. Then replicate _on_sleep_trigger housekeeping (reset counters, compact context, etc.)
+ 9. Measure post-sleep PPL + recall (step 3), include sleep_result in trajectory
+ 10. Return {condition, trajectory, baseline_ppl, post_sleep_ppl, post_sleep_recall, sleep_result}
+
+ main() (~lines 282-480)
+
+ CLI with argparse:
+ - --config (required): Config YAML path
+ - --mode (sws/rem/both, default both): Which conditions to run
+ - --num-facts (default 20): Total facts to inject
+ - --output: Override output path
+
+ Flow:
+ 1. Run condition A if mode in (sws, both)
+ 2. Run condition B if mode in (rem, both)
+ 3. If both: print comparison table + verdict
+ 4. Save JSON to experiments/results/test_rem_ppl.json
+
+ Comparison Table (when --mode both)
+
+   Metric                         SWS-only      SWS+REM        Delta
+   ------------------------------ ------------ ------------ ------------
+   Baseline PPL                        6.500        6.500       +0.000
+   Post-sleep PPL                     13.300       10.800       -2.500
+   PPL delta from baseline            +6.800       +4.300       -2.500
+   Post-sleep recall                   0.850        0.800       -0.050
+
+   REM Phase Details:
+     Status:       approved
+     Integrations: 8
+     SWS PPL:      13.100
+     REM PPL:      10.800
+     Recall rate:  0.80
+
+   VERDICT:
+     PPL improved:      YES (13.30 -> 10.80)
+     Recall maintained:  YES (0.85 -> 0.80)
+
+ Usage
+
+ # Full A/B comparison (local MLX)
+ python experiments/test_rem_ppl.py --config config.yaml
+
+ # Cloud GPU (torch backend)
+ python experiments/test_rem_ppl.py --config experiments/configs/3b_memit.yaml
+
+ # Quick sanity check (fewer facts)
+ python experiments/test_rem_ppl.py --config config.yaml --num-facts 10
+
+ # Single condition only
+ python experiments/test_rem_ppl.py --config config.yaml --mode rem
+ python experiments/test_rem_ppl.py --config config.yaml --mode sws
+
+ Key Implementation Details
+
+ 1. Forcing deep sleep: Call full_sleep_controller.execute_sleep(cycle_id, "deep", ...) directly instead of _on_sleep_trigger, so we
+ capture the result dict (which includes rem sub-dict with sws_ppl, rem_ppl, recall_rate). Must replicate _on_sleep_trigger's post-sleep
+ housekeeping.
+ 2. Config override: Override config._data["rem"]["enabled"] programmatically. No YAML file changes needed. Populate rem defaults for
+ configs that lack the rem: section.
+ 3. Clean state: Each condition gets fresh Config() + clean_artifacts() + fresh Orchestrator(). No state leaks between A and B.
+ 4. Batch injection: Inject 10 facts at once via inject_facts(batch) (not one-at-a-time). More efficient, matches natural usage. Only 4
+ measurement points needed.
+
+ Verification
+
+ 1. --mode sws --num-facts 10: Script runs, facts inject, sleep triggers, PPL measured
+ 2. --mode rem --num-facts 10: REM phase fires, REM result appears in sleep result
+ 3. --mode both --num-facts 20: Full comparison table printed, JSON saved
+ 4. Baseline PPL should be identical between conditions (validates clean state)
+ 5. REM result dict present in treatment condition's sleep result

@@ -55,6 +55,65 @@ class SleepTrainer:
 
         return adapter_path
 
+    def train_rem(self, cycle_id, rem_data_dir):
+        """Execute REM integration training with separate hyperparameters.
+
+        Combines REM integration data with identity data (no replay buffer).
+
+        Args:
+            cycle_id: Sleep cycle identifier
+            rem_data_dir: Directory containing REM training data (train.jsonl)
+
+        Returns:
+            Path to the saved adapter, or None if no data
+        """
+        combined_dir = self.training_dir / f"combined_rem_{cycle_id}"
+        combined_dir.mkdir(parents=True, exist_ok=True)
+
+        all_train = []
+
+        # Load REM integration data
+        rem_train = Path(rem_data_dir) / "train.jsonl"
+        if rem_train.exists():
+            with open(rem_train) as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        all_train.append(line)
+
+        # Mix in identity data (no replay buffer for REM)
+        identity_data = self._load_identity_data()
+        all_train.extend(identity_data)
+
+        print(f"        REM training data: {len(all_train) - len(identity_data)} integration + {len(identity_data)} identity")
+
+        if not all_train:
+            return None
+
+        # Write combined training data
+        with open(combined_dir / "train.jsonl", "w") as f:
+            for line in all_train:
+                f.write(line.strip() + "\n")
+
+        # Use first item as validation
+        with open(combined_dir / "valid.jsonl", "w") as f:
+            f.write(all_train[0].strip() + "\n")
+
+        # REM hyperparameters
+        rem_config = self.config.rem
+        epochs = rem_config.get("epochs", 1)
+        lr = rem_config.get("learning_rate", 5e-5)
+
+        adapter_path = self.adapter_dir / f"rem_cycle_{cycle_id}"
+        self.backend.train_lora(
+            data_path=str(combined_dir),
+            adapter_path=str(adapter_path),
+            epochs=epochs,
+            learning_rate=lr,
+        )
+
+        return adapter_path
+
     def fuse_and_save(self, adapter_path):
         """Merge adapter into model and save as the new current model."""
         current_model_dir = self.config.paths["current_model"]

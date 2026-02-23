@@ -62,6 +62,10 @@ class Config:
         return self._data.get("nap", {})
 
     @property
+    def rem(self):
+        return self._data.get("rem", {})
+
+    @property
     def paths(self):
         return self._data["paths"]
 

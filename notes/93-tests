@@ -1,0 +1,90 @@
+⏺ All 3 tests complete. Here's the full summary:                                             
+                                                                                                                                                              
+  Results: REM PPL Experiment (20 facts, torch backend, H100)                                                                                                 
+                                                                                                                                                              
+  3B — Llama-3.2-3B-Instruct (4.6 min)                                                                                                                        
+                                                                                                                                                              
+  ┌───────────────────┬──────────┬──────────────────────────┬───────────────────────┐                                                                         
+  │      Metric       │ SWS-only │         SWS+REM          │         Delta         │                                                                         
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤                                                                         
+  │ Baseline PPL      │ 5.711    │ 5.711                    │ —                     │                                                                         
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤
+  │ Post-sleep PPL    │ 5.804    │ 5.722                    │ -0.082                │                                                                         
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤                                                                         
+  │ PPL delta         │ +0.093   │ +0.011                   │ -0.082                │                                                                         
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤                                                                         
+  │ Post-sleep recall │ 0.90     │ 0.90                     │ 0.00                  │                                                                         
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤                                                                         
+  │ PPL improved?     │          │ YES                      │                       │                                                                         
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤                                                                         
+  │ REM status        │ —        │ approved, 6 integrations │ PPL 5.75→5.53 (-3.8%) │
+  └───────────────────┴──────────┴──────────────────────────┴───────────────────────┘
+
+  8B — Llama-3.1-8B-Instruct (7.3 min)
+
+  ┌───────────────────┬──────────┬──────────────────────────┬───────────────────────┐
+  │      Metric       │ SWS-only │         SWS+REM          │         Delta         │
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤
+  │ Baseline PPL      │ 5.752    │ 5.752                    │ —                     │
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤
+  │ Post-sleep PPL    │ 6.564    │ 6.625                    │ +0.061                │
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤
+  │ PPL delta         │ +0.812   │ +0.873                   │ +0.061                │
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤
+  │ Post-sleep recall │ 0.95     │ 1.00                     │ +0.05                 │
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤
+  │ PPL improved?     │          │ NO (but recall up)       │                       │
+  ├───────────────────┼──────────┼──────────────────────────┼───────────────────────┤
+  │ REM status        │ —        │ approved, 7 integrations │ PPL 3.71→3.64 (-2.0%) │
+  └───────────────────┴──────────┴──────────────────────────┴───────────────────────┘
+
+  70B — Llama-3.1-70B-Instruct 4-bit (46.9 min)
+
+  ┌───────────────────┬──────────┬───────────────────────────┬─────────────────┐
+  │      Metric       │ SWS-only │          SWS+REM          │      Delta      │
+  ├───────────────────┼──────────┼───────────────────────────┼─────────────────┤
+  │ Baseline PPL      │ 5.096    │ 5.096                     │ —               │
+  ├───────────────────┼──────────┼───────────────────────────┼─────────────────┤
+  │ Post-sleep PPL    │ 5.113    │ 5.120                     │ +0.007          │
+  ├───────────────────┼──────────┼───────────────────────────┼─────────────────┤
+  │ PPL delta         │ +0.017   │ +0.024                    │ +0.007          │
+  ├───────────────────┼──────────┼───────────────────────────┼─────────────────┤
+  │ Post-sleep recall │ 0.90     │ 0.90                      │ 0.00            │
+  ├───────────────────┼──────────┼───────────────────────────┼─────────────────┤
+  │ PPL improved?     │          │ NO (negligible)           │                 │
+  ├───────────────────┼──────────┼───────────────────────────┼─────────────────┤
+  │ REM status        │ —        │ approved, 10 integrations │ PPL 18.55→18.37 │
+  └───────────────────┴──────────┴───────────────────────────┴─────────────────┘
+
+  Key observations:
+
+  - 3B: REM clearly wins — nearly eliminates PPL increase from sleep (+0.011 vs +0.093)
+  - 8B: REM trades slight PPL cost (+0.06) for perfect recall (1.00 vs 0.95). Big PPL jump from SWS in both conditions (+0.8)
+  - 70B: PPL barely moves in either condition (+0.017/+0.024). MEMIT extremely clean at this scale. LoRA consolidated 0/20 facts to raw completions (alignment
+   tax) but MEMIT edits maintained 0.90 recall
+  - All 3 models: Sleep approved, REM approved, no crashes
+
+⏺ A few things stand out:                                                                                                                                     
+                                                                                                                                                              
+  MEMIT is a near-free lunch at all scales. 20 facts injected with essentially zero PPL cost across 3B/8B/70B. This is the strongest result — direct weight
+  editing doesn't degrade the model.                                                                                                                          
+                                                                                                                                                              
+  Sleep cost scales inversely with model size. This is the most interesting pattern:                                                                          
+  - 3B: +1.6% PPL from SWS
+  - 8B: +14% PPL from SWS (surprisingly bad)
+  - 70B: +0.3% PPL from SWS
+
+  The 70B barely notices sleep happened. Its parameter space is so vast that LoRA's 0.18% of weights can absorb training data without disturbing general
+  capability. The 8B result is the outlier — may need LR tuning.
+
+  REM helps most where SWS hurts most. At 3B, REM cut the PPL damage by 88% (+0.093 → +0.011). At 70B where SWS barely moves PPL, REM has nothing to fix. This
+   makes biological sense — REM integration smooths the "sharp" weight changes from SWS, and larger models make smoother changes to begin with.
+
+  The alignment tax is still the bottleneck. All 3 models: 0/20 facts consolidated from MEMIT to LoRA. The model passes general validation (5/5) after sleep,
+  so LoRA training works — it just learns the chat-format Q&A, not the raw "subject relation →" completion format MEMIT uses. The facts live in MEMIT edits
+  and stay there. This means MEMIT edits accumulate indefinitely rather than dissolving after sleep.
+
+  Bottom line for the architecture: The system is stable and the two-phase sleep is validated, but the original vision — MEMIT as fast short-term memory that
+  consolidates into LoRA long-term memory during sleep — isn't happening yet. MEMIT is doing the heavy lifting for recall at all scales. Sleep preserves
+  general capability but doesn't absorb the specific facts. The question is whether that's a problem to solve (better consolidation) or a feature to embrace
+  (MEMIT is the long-term memory, sleep just maintains health).

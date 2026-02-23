@@ -1,0 +1,23 @@
+The core claim is simple and novel: you can give an LLM persistent memory by editing its weights directly (MEMIT), then protect model health with a sleep 
+  cycle (SWS+REM) — and this works from 3B to 70B parameters.                                                                                                 
+                  
+  Why it's publishable:                                                                                                                                       
+                  
+  It's a complete system, not just a technique. Most MEMIT papers show "we can edit a fact." Most LoRA papers show "we can fine-tune." Nobody has put them
+  together into a wake/sleep lifecycle that runs continuously. The architecture — MEMIT for fast injection, SWS for consolidation training, REM for
+  integration smoothing, perplexity monitoring as a health signal — is original.
+
+  The empirical results tell a coherent story across scales. Three model sizes, same code, same test, reproducible numbers. MEMIT at near-zero PPL cost, sleep
+   approved at all scales, REM measurably helping where it's needed. That's not one cherry-picked result — it's a scaling curve.
+
+  It addresses a real problem. Every production LLM system uses RAG or context stuffing for memory. Both have limits (retrieval failures, context window
+  caps). Weight-based memory is a fundamentally different approach, and you have working code showing it's viable.
+
+  The negative results are just as interesting. The alignment tax — LoRA can't consolidate MEMIT facts — is a genuine finding. The 8B PPL anomaly raises
+  questions. These are the kind of honest results reviewers respect, and they open clear directions for future work.
+
+  The biological analogy holds up. You didn't just borrow sleep terminology as a metaphor — SWS and REM actually do different things in your system, and the
+  data shows it. REM smoothing PPL damage at 3B mirrors what integration sleep does in neuroscience. That's a compelling narrative for a broad audience.
+
+  The paper you already have in docs/arxiv-v3/ needs updating with these results. The earlier experiments had smaller fact counts and fewer model sizes. These
+   20-fact, 3-size results are the strongest evidence yet.

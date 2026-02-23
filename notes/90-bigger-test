@@ -1,0 +1,34 @@
+⏺ Here's the situation:    
+                                                
+  20 facts — yes, go with 20 (the default). More facts = higher PPL = more likely to trigger the REM rejection path we just fixed. 10 facts
+   might not push PPL hard enough.                                                                                                         
+                                                                                                                                           
+  Test order for 3B/8B/70B:                                                                                                                
+                                                            
+  The test script (test_rem_ppl.py) is model-agnostic — it uses whatever config you pass. The configs are:
+
+  Size: 3B
+  Config: config.yaml (local MLX)
+  Backend: mlx
+  Notes: This is the bug. MLX subprocess training → empty models/current/ → checkpoint crash. Test here first.
+  ────────────────────────────────────────
+  Size: 3B
+  Config: experiments/configs/3b_memit.yaml
+  Backend: torch
+  Notes: Torch trains in-process — won't hit the bug, but good to verify no regression.
+  ────────────────────────────────────────
+  Size: 8B
+  Config: experiments/configs/8b_memit.yaml
+  Backend: torch
+  Notes: Vast.ai / H100
+  ────────────────────────────────────────
+  Size: 70B
+  Config: experiments/configs/70b_memit.yaml
+  Backend: torch
+  Notes: Vast.ai / H100, 4-bit
+
+  Recommended order:
+
+  1. 3B MLX (config.yaml) — the only backend that actually hits this bug. Run first on this machine.
+  2. 3B torch → 8B → 70B — torch backend doesn't hit the empty-checkpoint bug (trains in-process), but the try/except hardening protects
+  against corrupt checkpoints. Test on Vast.ai when convenient.
