@@ -176,10 +176,14 @@ class Chat:
             if not triples:
                 return
 
-            # Batch inject
-            edit = self._memit_engine.inject_facts(triples)
-            if edit and self._health_monitor:
-                self._health_monitor.record_edit(len(triples))
+            # Inject one fact per edit for independent scalability
+            injected = 0
+            for triple in triples:
+                edit = self._memit_engine.inject_fact(triple)
+                if edit:
+                    injected += 1
+            if injected and self._health_monitor:
+                self._health_monitor.record_edit(injected)
         except Exception as e:
             # MEMIT injection is non-critical — log and continue
             print(f"  [MEMIT] Injection failed: {e}")

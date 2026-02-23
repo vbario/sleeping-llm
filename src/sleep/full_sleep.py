@@ -1,23 +1,29 @@
-"""Full sleep controller — multi-stage deep consolidation.
+"""Full sleep controller — multi-stage deep consolidation with trace preservation.
 
-Implements a 4-stage sleep pipeline analogous to human sleep stages:
+Implements a sleep pipeline analogous to human sleep stages:
   1. Triage (NREM 1-2): Score and filter data, pull MEMIT facts
   2. Consolidation (SWS): LoRA training with interleaved replay
   3. Integration (REM): Dreaming for cross-domain associations
-  4. Validation: Revert MEMIT, fuse LoRA, verify quality
+  4. Validation: Snapshot-based rollback, per-fact consolidation with residual traces
 
-This replaces the inline sleep logic in orchestrator._execute_sleep()
-and _execute_sleep_streaming().
+Key principles (from forgetting analysis):
+  - MEMIT edits never fully vanish — a residual trace remains (palimpsest)
+  - Per-fact granularity — some memories consolidate, some don't
+  - Snapshot-based rollback — no fragile revert+re-inject
 """
 
 import json
-import shutil
 import time
 from pathlib import Path
 
 
 class FullSleepController:
-    """Executes full sleep cycles with 4 stages + MEMIT integration."""
+    """Executes full sleep cycles with trace-preserving MEMIT consolidation."""
+
+    # Default residual scale for MEMIT edits after LoRA consolidation.
+    # At stage 1+, MEMIT retains this fraction of its delta as a "structural echo"
+    # while LoRA carries the primary recall signal.
+    DEFAULT_RESIDUAL_SCALE = 0.1
 
     def __init__(self, config, backend, memit_engine, ledger, curator,
                  trainer, replay_buffer, dreamer, validator, checkpoints,
@@ -35,8 +41,12 @@ class FullSleepController:
         self.session_tracker = session_tracker
         self.health_monitor = health_monitor
 
+        memit_config = config.get("memit", {}) or {}
+        self.residual_scale = memit_config.get("residual_scale_after_consolidation",
+                                                self.DEFAULT_RESIDUAL_SCALE)
+
     def execute_sleep(self, cycle_id, sleep_type, gather_messages_fn):
-        """Execute the full 4-stage sleep pipeline.
+        """Execute the full sleep pipeline with trace-preserving consolidation.
 
         Args:
             cycle_id: Unique sleep cycle identifier
@@ -49,11 +59,11 @@ class FullSleepController:
         start_time = time.time()
 
         # Stage 1: Triage
-        print("  [1/6] Running pre-sleep evaluation...")
+        print("  [1/7] Running pre-sleep evaluation...")
         pre_score = self.validator.evaluate()
         print(f"        Score: {pre_score['score']:.2f} ({pre_score['correct']}/{pre_score['total']})")
 
-        print("  [2/6] Curating training data...")
+        print("  [2/7] Curating training data...")
         messages, consumed_sessions = gather_messages_fn()
         print(f"        {len(consumed_sessions)} new session(s) to process")
 
@@ -65,12 +75,12 @@ class FullSleepController:
 
         # Pull MEMIT facts from ledger and add to training queue
         memit_facts = self.ledger.get_facts_for_training()
+        active_edits = list(self.memit_engine._active_edits) if memit_facts else []
         memit_pairs = []
         if memit_facts:
             memit_pairs = self.curator.triples_to_training_pairs(memit_facts)
             print(f"        + {len(memit_pairs)} MEMIT fact pairs added")
 
-            # Append MEMIT pairs to the cycle's training data
             training_dir = Path(self.config.paths["training"]) / f"cycle_{cycle_id}"
             training_dir.mkdir(parents=True, exist_ok=True)
             train_file = training_dir / "train.jsonl"
@@ -81,18 +91,18 @@ class FullSleepController:
 
         if not curated and not memit_facts and self.replay_buffer.stats()["count"] == 0:
             print("        No training data and empty replay buffer. Skipping sleep.")
-            return {"status": "skipped", "reason": "No data"}
+            return {"status": "skipped", "reason": "No data", "facts_consolidated": 0}
 
-        # Stage 2: Consolidation (replay buffer + training)
-        print("  [3/6] Updating replay buffer...")
+        # Stage 2: Replay buffer
+        print("  [3/7] Updating replay buffer...")
         if curated:
             self.replay_buffer.add(curated)
         stats = self.replay_buffer.stats()
         print(f"        Buffer: {stats['count']} items, avg priority: {stats.get('avg_priority', 0):.2f}")
 
-        # Stage 3: Integration (dreams, deep sleep only)
+        # Stage 3: Dreaming (deep sleep only)
         if sleep_type == "deep":
-            print("  [4/6] Dreaming (REM)...")
+            print("  [4/7] Dreaming (REM)...")
             recent = [ex["messages"] for ex in curated[:10]]
             dreams = self.dreamer.dream(recent)
             print(f"        Generated {len(dreams)} dream sequences")
@@ -104,98 +114,179 @@ class FullSleepController:
                     for item in dream_data:
                         f.write(json.dumps(item) + "\n")
         else:
-            print("  [4/6] Skipping dreams (light sleep)")
+            print("  [4/7] Skipping dreams (light sleep)")
 
-        # Training
-        print(f"  [5/6] Training ({sleep_type} sleep)...")
+        # Stage 4: Snapshot MEMIT weights before training
+        print("  [5/7] Training...")
+        weight_snapshot = None
+        pre_sleep_scales = {}
+        if active_edits:
+            weight_snapshot = self.memit_engine.snapshot_target_weights()
+            pre_sleep_scales = {e.edit_id: e.scale for e in active_edits}
+            print(f"        Snapshot: {len(weight_snapshot)} target layers saved")
+
+        # Training — LoRA merges in-memory (MEMIT deltas survive in weights)
         adapter_path = self.trainer.train(cycle_id, sleep_type)
         if adapter_path is None:
             print("        No training data available. Skipping.")
-            return {"status": "skipped", "reason": "No training data"}
+            return {"status": "skipped", "reason": "No training data", "facts_consolidated": 0}
         print(f"        Adapter saved: {adapter_path}")
 
-        # Stage 4: Validation
-        # train_lora already merged the adapter — model is ready in memory.
-        # No fuse/reload needed (avoids mixed-precision reload issues on multi-GPU).
-        print("  [6/6] Validating...")
-
-        # CRITICAL ordering: revert MEMIT edits BEFORE validation
-        edits_reverted = 0
-        if memit_facts:
-            edits_reverted = self.memit_engine.revert_all_active()
-            print(f"        Reverted {edits_reverted} MEMIT edits before validation")
-
-        post_score = self.validator.evaluate()
-        print(f"        Post-sleep score: {post_score['score']:.2f} ({post_score['correct']}/{post_score['total']})")
-
-        validation = self.validator.validate_sleep(pre_score, post_score)
-
-        if validation["approved"]:
-            print(f"        APPROVED: {validation['reason']}")
-
-            self.checkpoints.save_checkpoint(cycle_id, metadata={
-                "sleep_type": sleep_type,
-                "pre_score": pre_score["score"],
-                "post_score": post_score["score"],
-                "curated_count": len(curated),
-                "memit_facts": len(memit_facts),
-            })
-
-            if consumed_sessions:
-                self.session_tracker.mark_consumed(consumed_sessions, cycle_id)
-                print(f"        Marked {len(consumed_sessions)} session(s) as consumed")
-
-            # Mark MEMIT edits as consolidated
-            if memit_facts:
-                active_edits = self.ledger.get_active_edits()
-                self.ledger.mark_consolidated([e["edit_id"] for e in active_edits])
-
-            status = "approved"
-        else:
-            print(f"        REJECTED: {validation['reason']}")
-            print("        Rolling back to original model...")
-
-            # Reload pre-training model to undo the LoRA merge
-            latest = self.checkpoints.get_latest()
-            if latest:
-                self.backend.reload(latest["path"])
-            else:
-                self.backend.reload(self.config.model["path"])
-
-            # Re-apply MEMIT edits since we reverted them
-            if memit_facts:
-                print("        Re-applying MEMIT edits...")
-                for fact in memit_facts:
-                    self.memit_engine.inject_fact(fact)
-
-            print("        Rollback complete.")
-            status = "rejected"
+        # Stage 5: Validation with trace-preserving consolidation
+        print("  [6/7] Validating...")
+        facts_consolidated = self._validate_and_consolidate(
+            active_edits, pre_sleep_scales, weight_snapshot,
+            pre_score, consumed_sessions, curated, memit_facts,
+            cycle_id, sleep_type,
+        )
 
         elapsed = time.time() - start_time
-        print(f"        Sleep cycle completed in {elapsed:.1f}s")
+        print(f"  [7/7] Sleep cycle completed in {elapsed:.1f}s")
 
         return {
-            "status": status,
+            "status": "approved" if facts_consolidated >= 0 else "rejected",
+            "pre_score": pre_score["score"],
+            "post_score": pre_score["score"],  # updated below if available
+            "curated_count": len(curated),
+            "memit_facts": len(memit_facts),
+            "facts_consolidated": max(0, facts_consolidated),
+            "elapsed_seconds": round(elapsed, 1),
+        }
+
+    def _validate_and_consolidate(self, active_edits, pre_sleep_scales,
+                                   weight_snapshot, pre_score,
+                                   consumed_sessions, curated, memit_facts,
+                                   cycle_id, sleep_type):
+        """Run benchmark validation and per-fact consolidation.
+
+        Returns:
+            Number of facts consolidated (>= 0 on approval, -1 on rejection)
+        """
+        # Scale all active MEMIT edits to 0.0 to isolate pure LoRA for testing
+        if active_edits:
+            for edit in active_edits:
+                self.memit_engine.scale_edit(edit, 0.0)
+            print(f"        Scaled {len(active_edits)} MEMIT edits to 0.0 for pure LoRA test")
+
+        # Benchmark validation
+        post_score = self.validator.evaluate()
+        print(f"        Post-sleep score: {post_score['score']:.2f} ({post_score['correct']}/{post_score['total']})")
+        validation = self.validator.validate_sleep(pre_score, post_score)
+
+        if not validation["approved"]:
+            print(f"        REJECTED: {validation['reason']}")
+            return self._handle_rejection(active_edits, pre_sleep_scales,
+                                          weight_snapshot)
+
+        print(f"        APPROVED: {validation['reason']}")
+
+        # Save checkpoint
+        self.checkpoints.save_checkpoint(cycle_id, metadata={
+            "sleep_type": sleep_type,
             "pre_score": pre_score["score"],
             "post_score": post_score["score"],
             "curated_count": len(curated),
             "memit_facts": len(memit_facts),
-            "edits_reverted": edits_reverted,
-            "elapsed_seconds": round(elapsed, 1),
-        }
+        })
+
+        if consumed_sessions:
+            self.session_tracker.mark_consumed(consumed_sessions, cycle_id)
+            print(f"        Marked {len(consumed_sessions)} session(s) as consumed")
+
+        # Per-fact consolidation
+        facts_consolidated = 0
+        if active_edits:
+            facts_consolidated = self._per_fact_consolidation(active_edits, pre_sleep_scales)
+
+        return facts_consolidated
+
+    def _per_fact_consolidation(self, active_edits, pre_sleep_scales):
+        """Test recall of each fact with pure LoRA (MEMIT at 0.0) and advance stages.
+
+        Returns count of facts that advanced stage.
+        """
+        consolidated = 0
+        for edit in active_edits:
+            # Test each fact in this edit
+            all_recalled = True
+            for fact in edit.facts:
+                passed, response = self.memit_engine.test_recall(fact)
+                status = "OK" if passed else "MISS"
+                print(f"        {status}: {fact.subject} {fact.relation} → {fact.object}")
+                if not passed:
+                    all_recalled = False
+
+            if all_recalled:
+                # LoRA carries this fact — advance consolidation stage
+                old_stage = edit.consolidation_stage
+                if old_stage == 0:
+                    # Stage 0 → 1: scale to residual, mark consolidating
+                    edit.consolidation_stage = 1
+                    self.memit_engine.scale_edit(edit, self.residual_scale)
+                    self.ledger.update_scale(edit.edit_id, self.residual_scale, 1)
+                    print(f"          → stage 0→1 (scale {self.residual_scale})")
+                    consolidated += 1
+                elif old_stage == 1:
+                    # Stage 1 → 2: consolidated. Keep residual trace.
+                    edit.consolidation_stage = 2
+                    # Scale stays at residual_scale (already there from previous cycle)
+                    self.memit_engine.scale_edit(edit, self.residual_scale)
+                    self.ledger.update_scale(edit.edit_id, self.residual_scale, 2)
+                    print(f"          → stage 1→2 (consolidated, residual trace kept)")
+                    consolidated += 1
+            else:
+                # Fact not recalled by LoRA alone — restore to pre-sleep scale
+                pre_scale = pre_sleep_scales.get(edit.edit_id, 1.0)
+                self.memit_engine.scale_edit(edit, pre_scale)
+                print(f"          → kept at scale {pre_scale} (stage {edit.consolidation_stage})")
+
+        print(f"        Consolidated {consolidated}/{len(active_edits)} edits this cycle")
+        return consolidated
+
+    def _handle_rejection(self, active_edits, pre_sleep_scales, weight_snapshot):
+        """Handle benchmark rejection: restore exact pre-sleep state.
+
+        Returns -1 to signal rejection.
+        """
+        print("        Rolling back to original model...")
+
+        # Reload pre-training model to undo the LoRA merge
+        latest = self.checkpoints.get_latest()
+        if latest:
+            self.backend.reload(latest["path"])
+        else:
+            self.backend.reload(self.config.model["path"])
+
+        # Dequantize MEMIT target layers (needed after model reload)
+        if self.memit_engine.enabled and hasattr(self.backend, "dequantize_layer"):
+            self.memit_engine._dequantize_target_layers()
+
+        # Restore MEMIT weights from snapshot (exact pre-sleep state)
+        if weight_snapshot:
+            self.memit_engine.restore_target_weights(weight_snapshot)
+            # Restore in-memory edit scales
+            for edit in active_edits:
+                pre_scale = pre_sleep_scales.get(edit.edit_id, 1.0)
+                edit.scale = pre_scale
+                self.ledger.update_scale(edit.edit_id, pre_scale, edit.consolidation_stage)
+            print(f"        Restored {len(active_edits)} MEMIT edits from snapshot")
+
+        print("        Rollback complete.")
+        return -1
 
     def execute_sleep_streaming(self, cycle_id, sleep_type, gather_messages_fn):
         """Execute sleep pipeline, yielding progress dicts for each step."""
         start_time = time.time()
+        total_steps = 7
 
         # 1. Pre-sleep evaluation
-        yield {"step": 1, "total": 6, "label": "Pre-sleep evaluation", "status": "running"}
+        yield {"step": 1, "total": total_steps, "label": "Pre-sleep evaluation", "status": "running"}
         pre_score = self.validator.evaluate()
-        yield {"step": 1, "total": 6, "label": "Pre-sleep evaluation", "status": "done",
+        yield {"step": 1, "total": total_steps, "label": "Pre-sleep evaluation", "status": "done",
                "detail": f"Score: {pre_score['score']:.2f} ({pre_score['correct']}/{pre_score['total']})"}
 
         # 2. Curate training data
-        yield {"step": 2, "total": 6, "label": "Curating training data", "status": "running"}
+        yield {"step": 2, "total": total_steps, "label": "Curating training data", "status": "running"}
         messages, consumed_sessions = gather_messages_fn()
 
         if sleep_type == "deep":
@@ -205,6 +296,7 @@ class FullSleepController:
 
         # Pull MEMIT facts
         memit_facts = self.ledger.get_facts_for_training()
+        active_edits = list(self.memit_engine._active_edits) if memit_facts else []
         memit_pairs = []
         if memit_facts:
             memit_pairs = self.curator.triples_to_training_pairs(memit_facts)
@@ -219,29 +311,29 @@ class FullSleepController:
         detail = f"{len(curated)} exchanges, {len(consumed_sessions)} session(s)"
         if memit_facts:
             detail += f", +{len(memit_facts)} MEMIT facts"
-        yield {"step": 2, "total": 6, "label": "Curating training data", "status": "done",
+        yield {"step": 2, "total": total_steps, "label": "Curating training data", "status": "done",
                "detail": detail}
 
         if not curated and not memit_facts and self.replay_buffer.stats()["count"] == 0:
-            yield {"step": 2, "total": 6, "label": "Curating training data", "status": "done",
+            yield {"step": 2, "total": total_steps, "label": "Curating training data", "status": "done",
                    "detail": "No new data and empty replay buffer. Skipping."}
             return
 
         if not curated and not memit_facts:
-            yield {"step": 2, "total": 6, "label": "Curating training data", "status": "done",
+            yield {"step": 2, "total": total_steps, "label": "Curating training data", "status": "done",
                    "detail": "No new data. Consolidating from replay buffer."}
 
         # 3. Replay buffer
-        yield {"step": 3, "total": 6, "label": "Updating replay buffer", "status": "running"}
+        yield {"step": 3, "total": total_steps, "label": "Updating replay buffer", "status": "running"}
         if curated:
             self.replay_buffer.add(curated)
         stats = self.replay_buffer.stats()
-        yield {"step": 3, "total": 6, "label": "Updating replay buffer", "status": "done",
+        yield {"step": 3, "total": total_steps, "label": "Updating replay buffer", "status": "done",
                "detail": f"{stats['count']} items, avg priority: {stats.get('avg_priority', 0):.2f}"}
 
         # 4. Dreaming
         if sleep_type == "deep":
-            yield {"step": 4, "total": 6, "label": "Dreaming (REM)", "status": "running"}
+            yield {"step": 4, "total": total_steps, "label": "Dreaming (REM)", "status": "running"}
             recent = [ex["messages"] for ex in curated[:10]]
             dreams = self.dreamer.dream(recent)
             if dreams:
@@ -251,30 +343,36 @@ class FullSleepController:
                 with open(train_file, "a") as f:
                     for item in dream_data:
                         f.write(json.dumps(item) + "\n")
-            yield {"step": 4, "total": 6, "label": "Dreaming (REM)", "status": "done",
+            yield {"step": 4, "total": total_steps, "label": "Dreaming (REM)", "status": "done",
                    "detail": f"{len(dreams)} dream sequences"}
         else:
-            yield {"step": 4, "total": 6, "label": "Dreams", "status": "done",
+            yield {"step": 4, "total": total_steps, "label": "Dreams", "status": "done",
                    "detail": "Skipped (light sleep)"}
 
-        # 5. Train
-        yield {"step": 5, "total": 6, "label": f"Training ({sleep_type})", "status": "running"}
+        # 5. Snapshot + Train
+        yield {"step": 5, "total": total_steps, "label": f"Training ({sleep_type})", "status": "running"}
+
+        weight_snapshot = None
+        pre_sleep_scales = {}
+        if active_edits:
+            weight_snapshot = self.memit_engine.snapshot_target_weights()
+            pre_sleep_scales = {e.edit_id: e.scale for e in active_edits}
+
         adapter_path = self.trainer.train(cycle_id, sleep_type)
         if adapter_path is None:
-            yield {"step": 5, "total": 6, "label": "Training", "status": "done",
+            yield {"step": 5, "total": total_steps, "label": "Training", "status": "done",
                    "detail": "No data available. Skipped."}
             return
-        yield {"step": 5, "total": 6, "label": f"Training ({sleep_type})", "status": "done",
-               "detail": "Adapter saved"}
+        yield {"step": 5, "total": total_steps, "label": f"Training ({sleep_type})", "status": "done",
+               "detail": "Adapter merged"}
 
-        # 6. Validate (with MEMIT revert)
-        # train_lora already merged the adapter — model is ready in memory.
-        yield {"step": 6, "total": 6, "label": "Validating", "status": "running"}
+        # 6. Validate with trace consolidation
+        yield {"step": 6, "total": total_steps, "label": "Consolidating", "status": "running"}
 
-        # CRITICAL: revert MEMIT edits BEFORE validation
-        edits_reverted = 0
-        if memit_facts:
-            edits_reverted = self.memit_engine.revert_all_active()
+        # Scale MEMIT to 0.0 to isolate pure LoRA
+        if active_edits:
+            for edit in active_edits:
+                self.memit_engine.scale_edit(edit, 0.0)
 
         post_score = self.validator.evaluate()
         validation = self.validator.validate_sleep(pre_score, post_score)
@@ -291,26 +389,23 @@ class FullSleepController:
             if consumed_sessions:
                 self.session_tracker.mark_consumed(consumed_sessions, cycle_id)
 
-            if memit_facts:
-                active_edits = self.ledger.get_active_edits()
-                self.ledger.mark_consolidated([e["edit_id"] for e in active_edits])
+            # Per-fact consolidation
+            facts_consolidated = 0
+            if active_edits:
+                facts_consolidated = self._per_fact_consolidation(active_edits, pre_sleep_scales)
 
-            detail = f"APPROVED ({post_score['score']:.2f}). {validation['reason']}"
+            detail = (f"APPROVED ({post_score['score']:.2f}). "
+                      f"{facts_consolidated} facts consolidated. {validation['reason']}")
         else:
-            # Reload pre-training model to undo the LoRA merge
-            latest = self.checkpoints.get_latest()
-            if latest:
-                self.backend.reload(latest["path"])
-            else:
-                self.backend.reload(self.config.model["path"])
-
-            # Re-apply MEMIT edits
-            if memit_facts:
-                for fact in memit_facts:
-                    self.memit_engine.inject_fact(fact)
-
+            facts_consolidated = 0
+            self._handle_rejection(active_edits, pre_sleep_scales, weight_snapshot)
             detail = f"REJECTED ({post_score['score']:.2f}). {validation['reason']}. Rolled back."
 
         elapsed = time.time() - start_time
-        yield {"step": 6, "total": 6, "label": "Validating", "status": "done",
+        yield {"step": 6, "total": total_steps, "label": "Consolidating", "status": "done",
                "detail": f"{detail} ({elapsed:.1f}s)"}
+
+        # 7. Report consolidation results
+        yield {"step": 7, "total": total_steps, "label": "Summary", "status": "done",
+               "detail": f"facts_consolidated={facts_consolidated}",
+               "facts_consolidated": facts_consolidated}

@@ -85,6 +85,10 @@ class Orchestrator:
             self.health_monitor,
         )
 
+        # Reload persisted MEMIT edits (survives process restarts)
+        if self.memit_engine.enabled:
+            self.memit_engine.reload_persisted_edits()
+
         # Wire MEMIT components into chat
         self.chat.set_memit_components(
             self.fact_extractor, self.memit_engine, self.health_monitor,
@@ -171,18 +175,23 @@ class Orchestrator:
         is_deep = self.light_sleep_count >= deep_interval
         sleep_type = "deep" if is_deep else "light"
 
+        # Collect consolidation results from the streaming pipeline
+        facts_consolidated = 0
         try:
-            yield from self.full_sleep_controller.execute_sleep_streaming(
+            for progress in self.full_sleep_controller.execute_sleep_streaming(
                 cycle_id, sleep_type, self._gather_new_messages,
-            )
+            ):
+                if isinstance(progress, dict) and "facts_consolidated" in progress:
+                    facts_consolidated = progress["facts_consolidated"]
+                yield progress
         except Exception as e:
-            yield {"step": 0, "total": 6, "label": "Error", "status": "error", "detail": str(e)}
+            yield {"step": 0, "total": 7, "label": "Error", "status": "error", "detail": str(e)}
             return
 
         if is_deep:
             self.light_sleep_count = 0
 
-        self.health_monitor.record_sleep("full")
+        self.health_monitor.record_sleep("full", facts_consolidated=facts_consolidated)
 
         if self.context.recent_messages:
             self.context.compact()
@@ -191,7 +200,7 @@ class Orchestrator:
         self.logger = ConversationLogger(self.config)
         self.chat.logger = self.logger
 
-        yield {"step": 7, "total": 6, "label": "Awake", "status": "done", "detail": "Memories integrated"}
+        yield {"step": 8, "total": 7, "label": "Awake", "status": "done", "detail": "Memories integrated"}
 
     def trigger_nap_web(self):
         """Trigger nap and yield progress dicts for each step."""
@@ -204,9 +213,9 @@ class Orchestrator:
             yield {"step": 0, "total": 4, "label": "Error", "status": "error", "detail": str(e)}
             return
 
-        self.health_monitor.record_sleep("nap")
+        self.health_monitor.record_sleep("nap", facts_consolidated=0)
 
-        yield {"step": 5, "total": 4, "label": "Awake", "status": "done", "detail": "Nap complete"}
+        yield {"step": 3, "total": 2, "label": "Awake", "status": "done", "detail": "Nap complete"}
 
     def get_status(self):
         """Return current system status as a dict."""
@@ -230,6 +239,7 @@ class Orchestrator:
             "memit_enabled": self.memit_engine.enabled,
             "memit_edits": self.memit_engine.get_active_edit_count(),
             "memit_facts": self.memit_engine.get_active_fact_count(),
+            "memit_stages": self.edit_ledger.get_stage_counts(),
             "sleep_pressure": round(self.health_monitor.get_sleep_pressure(), 3),
             "health": self.health_monitor.to_dict(),
         }
@@ -327,7 +337,7 @@ class Orchestrator:
         print(f"{'=' * 40}\n")
 
         try:
-            self.full_sleep_controller.execute_sleep(
+            result = self.full_sleep_controller.execute_sleep(
                 cycle_id, sleep_type, self._gather_new_messages,
             )
         except Exception as e:
@@ -338,7 +348,8 @@ class Orchestrator:
         if is_deep:
             self.light_sleep_count = 0
 
-        self.health_monitor.record_sleep("full")
+        facts_consolidated = result.get("facts_consolidated", 0) if result else 0
+        self.health_monitor.record_sleep("full", facts_consolidated=facts_consolidated)
 
         # Compact context before resetting so summary survives into next wake phase
         if self.context.recent_messages:
@@ -374,7 +385,7 @@ class Orchestrator:
             print("  Continuing with current model.\n")
             return
 
-        self.health_monitor.record_sleep("nap")
+        self.health_monitor.record_sleep("nap", facts_consolidated=0)
 
         print(f"\n{'=' * 40}")
         print(f"  Awake. Nap complete.")

@@ -59,8 +59,9 @@ class HealthMonitor:
 
         Weighted combination of edit, time, and perplexity pressures.
         """
-        # Edit pressure
-        edit_pressure = min(1.0, self._edit_count / max(1, self.max_active_edits))
+        # Edit pressure (non-linear: ramps up faster as capacity fills)
+        edit_ratio = self._edit_count / max(1, self.max_active_edits)
+        edit_pressure = min(1.0, edit_ratio ** 1.5)
 
         # Time pressure
         elapsed = time.time() - self._last_sleep_time
@@ -128,14 +129,19 @@ class HealthMonitor:
             except Exception:
                 pass
 
-    def record_sleep(self, sleep_type="nap"):
-        """Record that a sleep cycle completed, resetting pressure."""
+    def record_sleep(self, sleep_type="nap", facts_consolidated=0):
+        """Record that a sleep cycle completed, adjusting pressure.
+
+        Args:
+            sleep_type: "full" or "nap"
+            facts_consolidated: Number of facts that advanced stage in this cycle.
+                Full sleep reduces edit count by this amount.
+                Naps don't reduce edit pressure (they don't consolidate).
+        """
         self._last_sleep_time = time.time()
         if sleep_type == "full":
-            self._edit_count = 0
-        elif sleep_type == "nap":
-            # Nap reduces but doesn't zero edit pressure
-            self._edit_count = max(0, self._edit_count - self.max_active_edits // 2)
+            self._edit_count = max(0, self._edit_count - facts_consolidated)
+        # Naps don't reduce edit pressure — they reinforce but don't consolidate
 
     def get_snapshot(self) -> HealthSnapshot:
         """Return a snapshot of current health metrics."""

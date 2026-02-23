@@ -699,10 +699,14 @@ class MemitEngine:
         return self.inject_facts([fact])
 
     def revert_edit(self, edit: MemitEdit):
-        """Subtract all delta matrices from weights, reversing the edit."""
+        """Subtract the currently-applied portion of delta from weights.
+
+        Respects edit.scale — only removes (scale * delta), not the full delta.
+        """
         ops = self._ops
         for layer_idx, delta in edit.layer_deltas.items():
-            self._apply_delta(layer_idx, ops.negate(delta))
+            scaled = delta if edit.scale == 1.0 else self._scale_tensor(delta, edit.scale)
+            self._apply_delta(layer_idx, ops.negate(scaled))
 
         self._active_edits = [e for e in self._active_edits if e.edit_id != edit.edit_id]
 
@@ -712,6 +716,95 @@ class MemitEngine:
         for edit in list(self._active_edits):
             self.revert_edit(edit)
         return count
+
+    def scale_edit(self, edit: MemitEdit, new_scale: float):
+        """Change the applied fraction of an edit's delta in the weights.
+
+        The original full delta is always preserved in edit.layer_deltas.
+        Only the applied portion changes: applies (new_scale - old_scale) * delta.
+        """
+        scale_diff = new_scale - edit.scale
+        if abs(scale_diff) < 1e-8:
+            return
+        for layer_idx, delta in edit.layer_deltas.items():
+            self._apply_delta(layer_idx, self._scale_tensor(delta, scale_diff))
+        edit.scale = new_scale
+        self.ledger.update_scale(edit.edit_id, new_scale, edit.consolidation_stage)
+
+    def snapshot_target_weights(self) -> Dict[int, object]:
+        """Copy target layer weights for later restoration.
+
+        Returns:
+            Dict of layer_idx -> weight tensor copy
+        """
+        snapshot = {}
+        num_layers = self.backend.get_num_layers()
+        target_layers = [l for l in self.target_layers if l < num_layers]
+        for layer_idx in target_layers:
+            weight = self.backend.get_layer_mlp_weight(layer_idx, self.target_module)
+            if weight is not None:
+                if self._backend_type == "mlx":
+                    import mlx.core as mx
+                    snapshot[layer_idx] = mx.array(weight)  # copy
+                    mx.eval(snapshot[layer_idx])
+                else:
+                    snapshot[layer_idx] = weight.detach().clone()
+        return snapshot
+
+    def restore_target_weights(self, snapshot: Dict[int, object]):
+        """Replace target layer weights from a snapshot. Exact pre-snapshot state."""
+        for layer_idx, weight in snapshot.items():
+            self.backend.set_layer_mlp_weight(layer_idx, self.target_module, weight)
+
+    def reload_persisted_edits(self):
+        """Re-apply all active MEMIT edits from persisted deltas after model reload.
+
+        Called after backend.load() to restore MEMIT state across restarts.
+        """
+        active = self.ledger.get_active_edits()
+        if not active:
+            return
+
+        reloaded = 0
+        for edit_dict in active:
+            edit_id = edit_dict["edit_id"]
+            scale = edit_dict.get("scale", 1.0)
+            if scale == 0.0:
+                continue
+
+            np_deltas = self.ledger.load_deltas(edit_id)
+            if not np_deltas:
+                continue
+
+            # Convert numpy arrays to framework tensors and apply
+            layer_deltas = {}
+            for layer_idx, np_arr in np_deltas.items():
+                if self._backend_type == "mlx":
+                    import mlx.core as mx
+                    tensor = mx.array(np_arr)
+                else:
+                    import torch
+                    tensor = torch.from_numpy(np_arr)
+                layer_deltas[layer_idx] = tensor
+                self._apply_delta(layer_idx, self._scale_tensor(tensor, scale))
+
+            # Reconstruct in-memory MemitEdit
+            facts = [FactTriple.from_dict(f) for f in edit_dict["facts"]]
+            edit = MemitEdit(
+                edit_id=edit_id,
+                facts=facts,
+                layer_deltas=layer_deltas,
+                layer_indices=edit_dict.get("layer_indices", []),
+                timestamp=edit_dict.get("timestamp", 0),
+                consolidated=edit_dict.get("consolidated", False),
+                scale=scale,
+                consolidation_stage=edit_dict.get("consolidation_stage", 0),
+            )
+            self._active_edits.append(edit)
+            reloaded += 1
+
+        if reloaded > 0:
+            print(f"  MEMIT: reloaded {reloaded} persisted edit(s) from disk")
 
     def test_recall(self, fact: FactTriple) -> Tuple[bool, str]:
         """Generate a question from the triple, check if response contains the object.
@@ -1248,6 +1341,16 @@ class MemitEngine:
             delta_weight = delta_weight.to(current_weight.device)
         new_weight = current_weight + delta_weight.to(current_weight.dtype)
         self.backend.set_layer_mlp_weight(layer_idx, self.target_module, new_weight)
+
+    def _scale_tensor(self, tensor, scale: float):
+        """Multiply a tensor by a scalar, handling both MLX and PyTorch."""
+        if self._backend_type == "mlx":
+            import mlx.core as mx
+            result = tensor * mx.array(scale, dtype=tensor.dtype)
+            mx.eval(result)
+            return result
+        else:
+            return tensor * scale
 
     def _build_prompt_for_fact(self, fact: FactTriple) -> str:
         """Convert a FactTriple to a natural language prompt."""
