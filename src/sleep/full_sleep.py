@@ -236,12 +236,12 @@ class FullSleepController:
         else:
             print("        PPL: no reference text available, skipping check")
 
-        # Recall spot-check on consolidated facts
+        # Recall spot-check on consolidated facts (raw completion — matches MEMIT pathway)
         recall_ok = True
         sample = consolidated_facts[:5]
         recalled = 0
         for fact in sample:
-            passed, _ = self.memit_engine.test_recall(fact)
+            passed, _ = self.memit_engine.test_recall(fact, raw=True)
             status = "OK" if passed else "MISS"
             print(f"        {status}: {fact.subject} {fact.relation} → {fact.object}")
             if passed:
@@ -614,7 +614,7 @@ class FullSleepController:
 
                     recall_ok = True
                     sample = consolidated_facts[:5]
-                    recalled = sum(1 for f in sample if self.memit_engine.test_recall(f)[0])
+                    recalled = sum(1 for f in sample if self.memit_engine.test_recall(f, raw=True)[0])
                     recall_rate = recalled / len(sample) if sample else 1.0
                     if recall_rate < 0.5:
                         recall_ok = False

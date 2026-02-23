@@ -1,0 +1,110 @@
+{
+  "sws_only": {
+    "condition": "SWS-only",
+    "rem_enabled": false,
+    "num_facts": 20,
+    "trajectory": [
+      {
+        "step": 0,
+        "event": "baseline",
+        "perplexity": 5.096,
+        "total_facts": 0,
+        "recall": null
+      },
+      {
+        "step": 1,
+        "event": "memit_inject_10",
+        "perplexity": 5.105,
+        "total_facts": 10,
+        "recall": 1.0
+      },
+      {
+        "step": 2,
+        "event": "memit_inject_20",
+        "perplexity": 5.099,
+        "total_facts": 20,
+        "recall": 0.9
+      },
+      {
+        "step": 3,
+        "event": "post_sleep",
+        "perplexity": 5.113,
+        "total_facts": 20,
+        "recall": 0.9,
+        "sleep_ok": true,
+        "sleep_time": 391.5
+      }
+    ],
+    "baseline_ppl": 5.096,
+    "post_sleep_ppl": 5.113,
+    "post_sleep_recall": 0.9,
+    "sleep_result": {
+      "status": "approved",
+      "pre_score": 1.0,
+      "post_score": 1.0,
+      "curated_count": 10,
+      "memit_facts": 20,
+      "facts_consolidated": 0,
+      "elapsed_seconds": 391.5
+    },
+    "elapsed_seconds": 1153.3
+  },
+  "sws_rem": {
+    "condition": "SWS+REM",
+    "rem_enabled": true,
+    "num_facts": 20,
+    "trajectory": [
+      {
+        "step": 0,
+        "event": "baseline",
+        "perplexity": 5.096,
+        "total_facts": 0,
+        "recall": null
+      },
+      {
+        "step": 1,
+        "event": "memit_inject_10",
+        "perplexity": 5.105,
+        "total_facts": 10,
+        "recall": 1.0
+      },
+      {
+        "step": 2,
+        "event": "memit_inject_20",
+        "perplexity": 5.099,
+        "total_facts": 20,
+        "recall": 0.9
+      },
+      {
+        "step": 3,
+        "event": "post_sleep",
+        "perplexity": 5.12,
+        "total_facts": 20,
+        "recall": 0.9,
+        "sleep_ok": true,
+        "sleep_time": 890.4
+      }
+    ],
+    "baseline_ppl": 5.096,
+    "post_sleep_ppl": 5.12,
+    "post_sleep_recall": 0.9,
+    "sleep_result": {
+      "status": "approved",
+      "pre_score": 1.0,
+      "post_score": 1.0,
+      "curated_count": 10,
+      "memit_facts": 20,
+      "facts_consolidated": 0,
+      "elapsed_seconds": 890.4,
+      "rem": {
+        "status": "approved",
+        "integrations": 10,
+        "sws_ppl": 18.55,
+        "rem_ppl": 18.37,
+        "recall_rate": 1.0
+      }
+    },
+    "elapsed_seconds": 1658.7
+  },
+  "total_elapsed_seconds": 2812.1
+}
