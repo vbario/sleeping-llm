@@ -77,14 +77,19 @@ class FactTriple:
 
     def to_question(self) -> str:
         """Convert to a natural language question."""
+        # Ordered longest-first within each prefix to prevent short keys
+        # from shadowing longer ones (e.g. "is a" before "is allergic to").
         relation_to_question = {
+            # Conditions (must precede "is a" — "is allergic to" contains "is a")
+            "is allergic to": f"What is {self.subject} allergic to?",
+            "is learning": f"What is {self.subject} learning?",
             # Core identity
             "is named": f"What is the user's name?",
             "lives in": f"Where does {self.subject} live?",
             "works as": f"What does {self.subject} do for work?",
             "works at": f"Where does {self.subject} work?",
-            "is a": f"What is {self.subject}?",
             "is aged": f"How old is {self.subject}?",
+            "is a": f"What is {self.subject}?",
             # Preferences
             "likes": f"What does {self.subject} like?",
             "dislikes": f"What does {self.subject} dislike?",
@@ -115,11 +120,8 @@ class FactTriple:
             "'s dog": f"What is {self.subject}'s dog's name?",
             "'s cat": f"What is {self.subject}'s cat's name?",
             "'s pet": f"What is {self.subject}'s pet's name?",
-            "is named": f"What is the user's name?",
-            # Conditions
-            "is allergic to": f"What is {self.subject} allergic to?",
+            # More conditions
             "speaks": f"What language does {self.subject} speak?",
-            "is learning": f"What is {self.subject} learning?",
             "studied": f"What did {self.subject} study?",
         }
         for key, question in relation_to_question.items():
