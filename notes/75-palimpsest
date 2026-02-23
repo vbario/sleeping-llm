@@ -1,0 +1,206 @@
+Plan: MEMIT Consolidation with Trace Preservation                                                                              
+                                                                                                                                
+ Context
+
+ The Problem
+
+ Sleep consolidation is currently all-or-nothing: either every MEMIT fact transfers to LoRA or none do. On rejection, MEMIT
+ edits are reverted and re-injected — fragile because re-injection doesn't reproduce the exact same weight state.
+
+ What the Data Says
+
+ Ablation results (8B, H100):
+ - MEMIT-only sustains 0.83 recall at 60 facts — near-zero PPL impact
+ - MEMIT+Nap degraded recall to 0.40 at 15 facts — nap LoRA actively overwrites MEMIT
+ - Nap caused the PPL spike (5.75→8.62), not MEMIT
+ - LoRA recall at 8B is only 23-37% (alignment tax), vs MEMIT's 80%+
+
+ The alignment tax (paper): LoRA-based consolidation gets worse with model scale. 3B: 47% recall. 8B: 37%. 70B: 0%. MEMIT
+ bypasses the alignment layer entirely.
+
+ What Biology Says
+
+ From the forgetting analysis: mammalian memory doesn't erase — it layers.
+
+ - Pure forgetting is rare. What we call forgetting is retrieval failure, not storage failure. The memory persists in degraded
+ form.
+ - Overriding leaves MORE, not less. The representational space after override contains new info, traces of old info, the
+ inhibitory relationship, and a metacognitive tag.
+ - Reconsolidation: reactivated memories enter a labile state, get modified, and re-stabilize as hybrids retaining "structural
+ elements of the original." A palimpsest.
+ - Nothing is ever cleanly erased. "The history of knowing is part of what is known."
+
+ Design Principles
+
+ 1. MEMIT edits never fully vanish — a residual trace remains (palimpsest)
+ 2. Naps reinforce but don't restructure (NREM = replay, not consolidation)
+ 3. Only full/deep sleep advances consolidation (REM = integration, schema restructuring)
+ 4. MEMIT deltas should be durable (serializable to disk) — not just in-memory
+ 5. Per-fact granularity — some memories consolidate, some don't, in the same cycle
+ 6. Snapshot-based rollback — no fragile revert+re-inject
+
+ ---
+ Changes
+
+ 1. Data Model: MemitEdit and EditLedger
+
+ File: src/memory/memit.py
+
+ MemitEdit (line 121-144) — add fields:
+ - scale: float = 1.0 — fraction of delta applied to weights (1.0 = full, 0.1 = residual trace)
+ - consolidation_stage: int = 0 — 0 = active, 1 = consolidating (LoRA carries primary load, MEMIT at residual), 2 =
+ consolidated (LoRA-durable, MEMIT at residual trace)
+ - Update to_ledger_dict() to serialize both
+
+ EditLedger (line 147-218) — add methods:
+ - update_scale(edit_id, new_scale, stage) — update scale + stage
+ - get_consolidating_edits() — edits with stage 1 (partially consolidated)
+ - Backward-compat: missing fields default to 1.0/0
+
+ New: Persist layer_deltas to disk. Add methods:
+ - save_deltas(edit_id, layer_deltas) — serialize weight delta tensors to data/memit/deltas/{edit_id}.npz
+ - load_deltas(edit_id) — deserialize from disk
+ - On model reload, re-apply all active edit deltas at their recorded scale
+
+ This gives MEMIT edits the durability that currently only LoRA has.
+
+ 2. scale_edit() on MemitEngine
+
+ File: src/memory/memit.py — new method (after line 636)
+
+ def scale_edit(self, edit, new_scale):
+     scale_diff = new_scale - edit.scale
+     for layer_idx, delta in edit.layer_deltas.items():
+         self._apply_delta(layer_idx, scale_diff * delta)
+     edit.scale = new_scale
+
+ Original full delta always kept in layer_deltas. Only the applied portion changes.
+
+ 3. Fix revert_edit() to respect scale
+
+ File: src/memory/memit.py (line 623-629)
+
+ Subtract edit.scale * delta instead of the full delta.
+
+ 4. Weight snapshot/restore
+
+ File: src/memory/memit.py — new methods on MemitEngine
+
+ - snapshot_target_weights() → Dict[int, tensor] — copy target layer weights
+ - restore_target_weights(snapshot) — replace target layer weights from snapshot
+
+ Only used on the rejection path in full sleep. Eliminates the fragile revert+re-inject pattern.
+
+ 5. One fact per MemitEdit
+
+ File: src/wake/chat.py (line 179-182)
+
+ Change inject_facts(triples) (batch) to a loop of inject_fact(triple). Creates independently scalable edits.
+
+ 6. Naps: reinforce without restructuring
+
+ File: src/sleep/nap.py — modify both execute_nap() and execute_nap_streaming()
+
+ New nap flow:
+ 1. Gather MEMIT facts → training pairs
+ 2. train_lora (LoRA reinforcement — the model gets additional training on these facts)
+ 3. Done. Do NOT revert MEMIT. Do NOT scale MEMIT. Do NOT test recall.
+
+ Naps are NREM-like: they replay memories via LoRA training, reinforcing pathways, but do not restructure the MEMIT→LoRA
+ relationship. The ablations show that reverting MEMIT after nap LoRA is actively harmful — LoRA can't reliably carry the facts
+  alone, especially at 8B+.
+
+ The nap still provides value:
+ - LoRA gets incremental training on the facts (laying groundwork for future consolidation)
+ - Replay buffer gets updated
+ - No MEMIT damage
+
+ 7. Full sleep: consolidation with trace preservation
+
+ File: src/sleep/full_sleep.py — rewrite validation stage
+
+ New flow:
+ 1. Snapshot MEMIT target weights
+ 2. Record pre-sleep scales: {edit_id: scale}
+ 3. train_lora() merges LoRA in-memory (MEMIT deltas survive)
+ 4. Scale all active MEMIT edits to 0.0 (isolate pure LoRA for testing)
+ 5. Benchmark validation (pre/post score ratio)
+ 6. If benchmark REJECTED:
+    - Reload pre-sleep model from checkpoint
+    - Dequantize MEMIT target layers
+    - Restore MEMIT weights from snapshot (exact pre-sleep state)
+    - Restore edit scales to pre-sleep values
+    - Return. Nothing changed.
+ 7. If benchmark APPROVED:
+    - Per-fact validation: test_recall() on each fact with pure LoRA
+    - For each recalled fact:
+      * If stage 0 → scale_edit(residual_scale), advance to stage 1
+      * If stage 1 → advance to stage 2 (consolidated). Keep residual MEMIT trace.
+    - For each unrecalled fact:
+      * Restore to pre-sleep scale. Stays at current stage.
+      * Will be trained again next sleep cycle.
+
+ Residual scale (configurable, default 0.1): MEMIT edits at stage 1+ retain a small residual delta in the weights. This is the
+ palimpsest — LoRA carries the primary recall signal, the MEMIT residual provides a structural echo that slightly biases the
+ distribution toward the correct answer. The fact is richer for having been learned two ways.
+
+ Stage 2 edits are "consolidated" — LoRA has proven recall across two sleep cycles, MEMIT residual remains at 0.1. They're
+ tracked in the ledger but no longer count toward sleep pressure.
+
+ 8. Non-linear sleep pressure
+
+ File: src/memory/health.py (line 63)
+
+ Change: edit_pressure = min(1.0, (count/max) ** 1.5)
+
+ 9. Proportional pressure reduction
+
+ File: src/memory/health.py (line 131-138)
+
+ record_sleep() accepts facts_consolidated count. Full sleep reduces _edit_count by the count of facts that advanced to stage
+ 1+. Naps don't reduce edit pressure (they don't consolidate).
+
+ 10. MEMIT reload on model restart
+
+ File: src/memory/memit.py — new method on MemitEngine
+
+ def reload_persisted_edits(self):
+     """Re-apply all active MEMIT edits from persisted deltas after model reload."""
+     for edit_dict in self.ledger.get_active_edits():
+         deltas = self.ledger.load_deltas(edit_dict["edit_id"])
+         if deltas:
+             for layer_idx, delta in deltas.items():
+                 self._apply_delta(layer_idx, edit_dict.get("scale", 1.0) * delta)
+
+ Call this after backend.load() in orchestrator. MEMIT edits now survive process restarts.
+
+ 11. Orchestrator wiring
+
+ File: src/orchestrator.py
+ - After model load: call memit_engine.reload_persisted_edits()
+ - Pass consolidation results to health_monitor.record_sleep()
+ - Add memit_consolidating count to get_status()
+
+ ---
+ Files Modified (in implementation order)
+
+ 1. src/memory/memit.py — MemitEdit fields, scale_edit(), revert fix, snapshot/restore, delta persistence, reload method,
+ ledger methods
+ 2. src/wake/chat.py — one-fact-per-edit injection
+ 3. src/memory/health.py — non-linear pressure, proportional reduction
+ 4. src/sleep/nap.py — simplify to reinforce-only (remove revert/re-inject/validation)
+ 5. src/sleep/full_sleep.py — consolidation with trace + snapshot rollback
+ 6. src/orchestrator.py — wire reload, dissolution results, status
+
+ ---
+ Verification
+
+ 1. Delta persistence: Inject facts, kill process, restart, verify MEMIT recall survives reload.
+ 2. scale_edit(): Inject fact, scale_edit(0.5), verify partial recall. scale_edit(0.1), verify residual. scale_edit(1.0),
+ verify full restore.
+ 3. Nap safety: Inject facts → nap → verify MEMIT edits unchanged (scales untouched, recall preserved).
+ 4. Sleep consolidation: Inject facts → full sleep → verify recalled facts at stage 1 (scale 0.1), unrecalled at stage 0 (scale
+  1.0).
+ 5. Two-cycle consolidation: Stage 1 facts → second full sleep → verify they advance to stage 2. Residual trace (0.1) still in
+ weights.
+ 6. Rejection rollback: Trigger sleep that fails benchmark → verify model matches pre-sleep snapshot exactly.

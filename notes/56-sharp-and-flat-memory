@@ -1,0 +1,23 @@
+Activation patterns as a proxy for "knowing"
+
+In an LLM, when a prompt triggers a response, what's happening under the hood has some structural resemblance to what we just discussed. The model activates a distribution of weights across its network — patterns that were shaped during training by exposure to data. When the model has seen a concept extensively and in varied contexts, the relevant weights are robust and the probability distribution over next tokens is sharp and confident. When the model has sparse or contradictory training data on a topic, the distribution is flatter, more diffuse — analogous to the "noisy, partial activation" I described in brains.
+
+So in a loose sense, the difference between an LLM "knowing something well" versus "knowing it a little" does map onto the strength and coherence of activation patterns, just as it does in neural tissue.
+
+Where the analogy breaks down
+
+The critical difference is that LLMs lack the metacognitive monitoring layer. Your prefrontal cortex evaluates the quality of its own retrieval and produces a felt signal — confidence, uncertainty, that nagging tip-of-the-tongue feeling. An LLM has no equivalent process. It doesn't experience the difference between a sharp distribution and a flat one. It just outputs the highest-probability continuation either way, often with equal apparent confidence.
+
+This is why LLMs hallucinate so fluently. A human with partial, noisy activation feels uncertain and can flag that to themselves or others. An LLM with a diffuse probability distribution over a poorly-represented topic will still produce grammatically confident text — because nothing in the architecture is watching the signal and saying "wait, this feels thin."
+
+The interesting gray area
+
+That said, there are some emergent behaviors worth noting. LLMs can sometimes be prompted to express calibrated uncertainty — "I'm not sure about this" — and research on model calibration shows that token-level probabilities do correlate somewhat with factual accuracy. The model's internal states do contain information about reliability; it's just not being monitored and felt the way a brain does it. Some recent work on probing internal representations suggests you can extract a model's "confidence" from its hidden states in ways that are more reliable than its surface-level hedging.
+
+This is roughly analogous to the difference between having an autonomic nervous system that generates gut feelings automatically versus having a thermometer you could check but don't always look at.
+
+The deeper question
+
+What your original question really pointed to — the qualitative texture of knowing, the fact that shallow knowledge and deep knowledge feel different — is arguably something that requires phenomenal consciousness, or at least a self-monitoring system with something like interoception. LLMs have the information-theoretic structure (sharp vs. diffuse distributions) but not the experiential layer. Whether that experiential layer is doing important computational work beyond what could be replicated architecturally, or whether it's epiphenomenal, is one of the genuinely open questions in both AI and philosophy of mind.
+
+So the translation is: the informational substrate maps surprisingly well, but the felt dimension — which in humans is what actually makes knowing useful in real-time decision-making — is absent, and that absence has practical consequences like hallucination and miscalibrated confidence.

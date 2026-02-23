@@ -1,0 +1,66 @@
+❯ Other than LoRA what ways are there to achieve the sleep mechanism?                                                                         
+                                                                                                                                              
+⏺ Since the goal is writing directly to weights, the alternatives to LoRA are other ways of modifying the model's parameters during sleep.    
+                                                                                                                                              
+  Full Fine-Tuning                                                                                                                            
+                                                            
+  Update all parameters, not just low-rank adapter matrices. This gives maximum capacity to encode new facts — every weight in the network can
+   shift to accommodate the new information.                
+
+  The problem is catastrophic forgetting. LoRA protects the base model by only modifying a small subspace. Full fine-tuning touches
+  everything, so learning "your dog is named Biscuit" can overwrite the model's ability to conjugate verbs. It also requires much more VRAM
+  and is slower. Our validation gate would reject most full fine-tuning runs.
+
+  It could work with very small learning rates and aggressive regularization (EWC, elastic weight consolidation — penalizing changes to
+  weights that are important for existing knowledge). But then you're fighting the optimization at every step.
+
+  QLoRA and Other Adapter Variants
+
+  LoRA decomposes weight updates into low-rank matrices. There are other decomposition strategies:
+
+  - DoRA (Weight-Decomposed Low-Rank Adaptation) — separates magnitude and direction of weight updates. May encode facts with less
+  interference.
+  - AdaLoRA — dynamically allocates rank across layers based on importance. Instead of rank 16 everywhere, maybe rank 32 in layers that matter
+   for factual recall and rank 4 elsewhere.
+  - LoRA+ — uses different learning rates for the A and B matrices in the adapter. Can improve convergence.
+  - VeRA — shares adapter matrices across layers and only learns per-layer scaling vectors. Much fewer parameters, but might be enough for a
+  small fact set.
+
+  These are all drop-in replacements in PEFT. Same sleep pipeline, same training loop, different adapter config. Worth testing if LoRA
+  plateaus.
+
+  Representation Engineering / Activation Editing
+
+  Instead of changing weights permanently, identify specific directions in the model's activation space that correspond to facts, and learn
+  how to inject those directions.
+
+  For example, find the "activation direction" that represents "the user's name is Vladimir" by comparing activations with and without that
+  fact. Then during inference, add that direction to the residual stream at a specific layer. Sleep would compute and store these directions.
+
+  This is more surgical than LoRA — you're editing what the model thinks at specific points rather than broadly adjusting weights. It's
+  experimental but has shown promise for steering model behavior (honesty, tone). Whether it can encode episodic facts is an open question.
+
+  Neuron-Level Editing (ROME, MEMIT)
+
+  Locate specific neurons or weight matrices responsible for factual associations and edit them directly. ROME (Rank-One Model Editing) can
+  insert facts like "The Eiffel Tower is in Rome" by modifying a single layer's feedforward weights with a rank-one update.
+
+  MEMIT extends this to batch edits — insert multiple facts at once. Sleep would use MEMIT to write all extracted facts directly into the
+  feedforward layers.
+
+  The appeal is precision: you're editing exactly the factual association mechanism, not broadly adjusting the model. The risk is that it's
+  designed for entity-relation-entity triples ("Vladimir — profession — music producer"), not the fuzzy conversational knowledge our system
+  extracts. And it's been tested mainly on single edits, not the accumulation of hundreds of facts over many sleep cycles.
+
+  Mixture of Experts with Personal Expert
+
+  Train a small "personal expert" network that gets routed to for personal questions. The base model stays frozen. During sleep, only the
+  personal expert's weights are updated.
+
+  This isolates personal knowledge from general knowledge architecturally, not just through low-rank constraints. Forgetting is impossible
+  because the base model is never touched. The challenge is building the routing mechanism — how does the model know to activate the personal
+  expert for "What's my dog's name?" but not for "What's the capital of France?"
+
+  ---
+  Of these, MEMIT and adapter variants (DoRA, AdaLoRA) are the most practical next steps if LoRA doesn't scale. They use the same sleep
+  pipeline with minimal code changes. The others require more fundamental architectural work.

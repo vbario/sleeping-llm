@@ -1,0 +1,430 @@
+Plan: MEMIT + Nap/Sleep Architecture for Sleeping LLM                                             │
+│                                                                                                   │
+│ Context                                                                                           │
+│                                                                                                   │
+│ The scaling experiment (experiments/ANALYSIS.md) revealed that LoRA-based memory formation hits   │
+│ an "alignment tax" — larger models resist surfacing LoRA-injected facts due to stronger RLHF      │
+│ training. The 70B model scored 0.00 recall despite training loss converging to 0.96. Facts are    │
+│ encoded in weights but locked behind alignment.                                                   │
+│                                                                                                   │
+│ MEMIT (Mass-Editing Memory in a Transformer) directly edits the factual retrieval pathway across  │
+│ multiple MLP layers simultaneously, potentially bypassing alignment entirely. Unlike ROME         │
+│ (single-layer, single-fact), MEMIT edits batches of facts distributed across a range of layers —  │
+│ analogous to hippocampal episode binding where related facts from an experience are encoded       │
+│ together. This makes MEMIT both more biologically accurate and more robust (no single layer is    │
+│ overloaded).                                                                                      │
+│                                                                                                   │
+│ This plan adds MEMIT as a "hippocampus" (fast, fragile memory during wake) alongside the existing │
+│  LoRA "neocortex" (slow, stable consolidation during sleep), with the sleep cycle reorganized     │
+│ into nap (quick LoRA) and full sleep (deep multi-stage consolidation).                            │
+│                                                                                                   │
+│ Architecture                                                                                      │
+│                                                                                                   │
+│ WAKE (+ MEMIT batch injection after each exchange)                                                │
+│   |                                                                                               │
+│   +---> NAP (quick LoRA to absorb MEMIT facts, revert MEMIT edits on success)                     │
+│   |                                                                                               │
+│   +---> FULL SLEEP (triage → consolidation → integration → validation)                            │
+│   |                                                                                               │
+│   WAKE (clean state, all knowledge in LoRA)                                                       │
+│                                                                                                   │
+│ Sleep transitions are driven by "sleep pressure" from accumulated MEMIT edits, replacing the      │
+│ fixed turn counter.                                                                               │
+│                                                                                                   │
+│ Why MEMIT over ROME                                                                               │
+│                                                                                                   │
+│ Based on experiment findings:                                                                     │
+│ 1. Episode binding: Conversations produce batches of related facts (name + job + city), not       │
+│ isolated single facts. MEMIT encodes them together like the hippocampus, ROME handles them one at │
+│  a time.                                                                                          │
+│ 2. Multi-layer distribution: MEMIT spreads edits across layers 8-15 instead of concentrating on   │
+│ one layer. Better chance of bypassing alignment patterns that span the full model.                │
+│ 3. 8B hallucination fix: ROME's single-layer edit caused the 8B model to confuse related facts    │
+│ (son's name → user's name). MEMIT's precise multi-fact editing should prevent bleed between       │
+│ related facts.                                                                                    │
+│ 4. Alignment bypass: The 70B model locked facts behind alignment. MEMIT's distributed edits       │
+│ across the factual retrieval pathway are harder for alignment to override than ROME's             │
+│ single-point change.                                                                              │
+│ 5. Capacity: MEMIT handles 30-100+ facts per batch; ROME degrades quickly past ~50 individual     │
+│ edits.                                                                                            │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Phase 1: MEMIT Engine + Edit Ledger                                                               │
+│                                                                                                   │
+│ New file: src/memory/memit.py                                                                     │
+│                                                                                                   │
+│ Contains three classes:                                                                           │
+│                                                                                                   │
+│ - FactTriple — dataclass: subject, relation, object, source_exchange, timestamp                   │
+│ - EditLedger — persists MEMIT edit metadata to data/memit/ledger.json                             │
+│   - record_edit(edit), get_active_edits(), get_edit_count(), mark_consolidated(edit_ids),         │
+│ get_facts_for_training(), clear_consolidated(), save(), load()                                    │
+│ - MemitEngine — core MEMIT implementation for MLX                                                 │
+│                                                                                                   │
+│ MEMIT Algorithm                                                                                   │
+│                                                                                                   │
+│ For a batch of facts {(s_i, r_i, o_i)} across target layers L_first...L_last:                     │
+│                                                                                                   │
+│ 1. Compute key vectors: For each fact i, tokenize s_i + r_i. Forward pass to each target layer.   │
+│ Key k_i^l = hidden state at subject's last token position at MLP input of layer l.                │
+│ 2. Compute target values: For each fact i, compute z_i = the representation that, when inserted   │
+│ at the critical layer (L_last), causes the model to generate o_i. This is done by:                │
+│   - Running the full text s_i + r_i + o_i through the model                                       │
+│   - Capturing the hidden state at the subject's last token at layer L_last's MLP output           │
+│   - Subtracting the current value (from running just s_i + r_i) to get the residual               │
+│ 3. Distribute updates across layers (from L_last backwards to L_first):                           │
+│   - At each layer l, compute weight delta ΔW_l that absorbs a fraction of the remaining residual: │
+│       - ΔW_l = R_l @ K_l^T @ (K_l @ K_l^T + λI)^{-1}                                              │
+│     - Where R_l = remaining residual matrix, K_l = key matrix for all facts at this layer         │
+│   - Apply ΔW_l to model.model.layers[l].mlp.down_proj.weight                                      │
+│   - Update residuals: subtract the contribution of this layer's update                            │
+│   - Record delta in edit ledger                                                                   │
+│ 4. Verify: Quick recall test for each injected fact.                                              │
+│                                                                                                   │
+│ MemitEngine Methods                                                                               │
+│                                                                                                   │
+│ inject_facts(facts: List[FactTriple]) -> List[MemitEdit]                                          │
+│     # Batch injection — the primary MEMIT method                                                  │
+│     # Processes all facts simultaneously across all target layers                                 │
+│                                                                                                   │
+│ inject_fact(fact: FactTriple) -> MemitEdit                                                        │
+│     # Convenience: wraps inject_facts([fact]) for single-fact use                                 │
+│                                                                                                   │
+│ revert_edit(edit: MemitEdit) -> None                                                              │
+│     # Subtract all delta matrices (one per target layer) from weights                             │
+│                                                                                                   │
+│ revert_all_active() -> int                                                                        │
+│     # Revert all unconsolidated edits, returns count                                              │
+│                                                                                                   │
+│ test_recall(fact: FactTriple) -> (bool, str)                                                      │
+│     # Generate question from triple, check response contains object                               │
+│                                                                                                   │
+│ # Internal:                                                                                       │
+│ _compute_keys(facts, layer_idx) -> mx.array                                                       │
+│     # Key matrix K [num_facts x hidden_size] for all facts at one layer                           │
+│                                                                                                   │
+│ _compute_target_values(facts) -> mx.array                                                         │
+│     # Target value matrix Z [num_facts x hidden_size] at critical layer                           │
+│                                                                                                   │
+│ _compute_current_values(facts, layer_idx) -> mx.array                                             │
+│     # Current value matrix at one layer                                                           │
+│                                                                                                   │
+│ _distribute_updates(keys_per_layer, residuals) -> List[mx.array]                                  │
+│     # Core MEMIT: distribute residuals across layers, returns delta per layer                     │
+│                                                                                                   │
+│ _apply_delta(layer_idx, delta_weight) -> None                                                     │
+│     # Add delta to MLP down_proj weight, mx.eval()                                                │
+│                                                                                                   │
+│ _layer_forward_pass(input_ids, up_to_layer) -> mx.array                                           │
+│     # Manual layer-by-layer forward (MLX has no hooks)                                            │
+│                                                                                                   │
+│ _build_prompt_for_fact(fact) -> str                                                               │
+│     # FactTriple → natural language prompt                                                        │
+│                                                                                                   │
+│ MemitEdit dataclass                                                                               │
+│                                                                                                   │
+│ edit_id: str                                                                                      │
+│ facts: List[FactTriple]          # the batch of facts (episode)                                   │
+│ layer_deltas: Dict[int, mx.array] # delta per target layer (in-memory only)                       │
+│ layer_indices: List[int]          # which layers were edited                                      │
+│ key_vectors: Dict[int, mx.array]  # key matrix per layer                                          │
+│ timestamp: float                                                                                  │
+│ consolidated: bool                                                                                │
+│                                                                                                   │
+│ Note: layer_deltas and key_vectors are kept in memory only (not serialized to disk). They're      │
+│ reconstructable from the model state or can be recomputed if needed. The ledger stores metadata   │
+│ (fact triples, layer indices, edit_id) for tracking.                                              │
+│                                                                                                   │
+│ Modify: src/backend/mlx_backend.py — add methods:                                                 │
+│                                                                                                   │
+│ - forward_to_layer(input_ids, target_layer) — manual forward through embed_tokens + layers[0:N],  │
+│ returns hidden states. Must handle RMSNorm, rotary embeddings, cache/mask from the MLX Llama      │
+│ implementation. Returns tuple of (hidden_state, mlp_input, mlp_output) at the target layer.       │
+│ - forward_layers_range(input_ids, start_layer, end_layer) — forward through a range of layers,    │
+│ returning activations at each. Needed for MEMIT's multi-layer key computation.                    │
+│ - get_layer_mlp_weight(layer_idx, proj="down_proj") — return weight matrix reference              │
+│ - set_layer_mlp_weight(layer_idx, proj, new_weight) — set weight + mx.eval()                      │
+│ - get_num_layers() — return total transformer layer count                                         │
+│                                                                                                   │
+│ Test: Standalone — load model, inject batch of 5 facts, test recall of all 5, revert, test recall │
+│  gone. Then inject 10, 20, 30 facts to find degradation curve. Compare single-layer (ROME-style)  │
+│ vs multi-layer (MEMIT) recall rates.                                                              │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Phase 2: Wake-Phase Fact Extractor                                                                │
+│                                                                                                   │
+│ New file: src/wake/extractor.py                                                                   │
+│                                                                                                   │
+│ - FactExtractor class                                                                             │
+│   - extract_from_exchange(user_message, assistant_response) -> List[FactTriple] — primary method, │
+│  called after each conversation turn. Returns a batch of related triples (the "episode").         │
+│   - extract_template(text) -> List[FactTriple] — regex patterns adapted from                      │
+│ curator._extract_facts_template() (curator.py:349-458) but outputs FactTriple format instead of   │
+│ Q&A pairs. Same patterns: name, age, location, job, likes, dislikes, favorites, ownership,        │
+│ family, tools.                                                                                    │
+│   - extract_with_model(user_message) -> List[FactTriple] — fallback model-based extraction, only  │
+│ when templates find nothing and message has personal-info markers. Prompts model to output        │
+│ structured triples.                                                                               │
+│   - deduplicate(new_triples, existing_facts) -> List[FactTriple] — filter out already-known facts │
+│  by (subject, relation) key; changed objects = updates (should trigger re-edit), not duplicates   │
+│                                                                                                   │
+│ Test: Feed the 15 experiment facts (from experiments/facts/test_facts.json), verify all produce   │
+│ correct triples. Test deduplication with repeated facts.                                          │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Phase 3: Wake Integration                                                                         │
+│                                                                                                   │
+│ Modify: src/wake/chat.py                                                                          │
+│                                                                                                   │
+│ - Add extractor, memit_engine, health_monitor as constructor params (or setters like existing     │
+│ set_sleep_callback)                                                                               │
+│ - Add set_nap_callback(callback) alongside existing set_sleep_callback(callback)                  │
+│ - In process_input() — after logger.log_exchange() and before turn count increment:               │
+│   a. Extract facts: triples = extractor.extract_from_exchange(user_input, response)               │
+│   b. Deduplicate against ledger: triples = extractor.deduplicate(triples,                         │
+│ ledger.get_facts_for_training())                                                                  │
+│   c. MEMIT batch inject: memit_engine.inject_facts(triples) (whole episode at once)               │
+│   d. Record in health: health_monitor.record_edit(len(triples))                                   │
+│ - In process_input_stream() — same, after streaming completes and response is assembled           │
+│ - Sleep trigger check: augment existing turn-count check with health_monitor.should_nap() /       │
+│ health_monitor.should_sleep() checks, calling the appropriate callback                            │
+│                                                                                                   │
+│ Modify: src/sleep/curator.py — add 1 method:                                                      │
+│ - triples_to_training_pairs(triples: List[FactTriple]) -> list — convert FactTriple objects to    │
+│ Q&A message pair format [{role: user, content: Q}, {role: assistant, content: A}]. Reverse of     │
+│ template extraction — bridges MEMIT facts to the existing training data format used by            │
+│ SleepTrainer.                                                                                     │
+│                                                                                                   │
+│ Test: End-to-end conversation where user states facts in one message (e.g., "My name is Vladimir, │
+│  I live in Portland"). Verify MEMIT injects as a batch. Ask about each fact in subsequent turns,  │
+│ verify recall. Measure added latency (must be <10s on 3B for a batch of 3-5 facts).               │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Phase 4: Health Monitor                                                                           │
+│                                                                                                   │
+│ New file: src/memory/health.py                                                                    │
+│                                                                                                   │
+│ - HealthSnapshot dataclass: timestamp, edit_count, perplexity, coherence_score, sleep_pressure    │
+│ - HealthMonitor class                                                                             │
+│   - get_sleep_pressure() -> float — weighted combination of:                                      │
+│       - edit_pressure = active_edit_count / max_active_edits (weight: 0.6)                        │
+│     - time_pressure = seconds_since_sleep / max_wake_seconds (weight: 0.3)                        │
+│     - perplexity_pressure if measured (weight: 0.1)                                               │
+│   - should_nap() -> bool — pressure > nap_threshold (0.4)                                         │
+│   - should_sleep() -> bool — pressure > sleep_threshold (0.8)                                     │
+│   - measure_perplexity() -> float — compute on reference text, compare to baseline                │
+│   - record_sleep(sleep_type) — reset time counter, reduce pressure                                │
+│   - record_edit(count=1) — increment edit counter by count (MEMIT injects batches)                │
+│   - get_snapshot() -> HealthSnapshot                                                              │
+│                                                                                                   │
+│ Modify: src/backend/mlx_backend.py — add:                                                         │
+│ - compute_perplexity(text) -> float — tokenize, run forward, compute cross-entropy loss           │
+│                                                                                                   │
+│ Test: Inject N facts in batches, verify pressure rises. Set low thresholds, verify triggers fire  │
+│ at expected counts.                                                                               │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Phase 5: Nap Mode                                                                                 │
+│                                                                                                   │
+│ New file: src/sleep/nap.py                                                                        │
+│                                                                                                   │
+│ - NapController class — accepts config, backend, memit_engine, ledger, replay_buffer, curator     │
+│   - execute_nap(cycle_id) -> dict — the nap pipeline:                                             │
+│       i. Get active MEMIT facts from ledger                                                       │
+│     ii. Convert to Q&A training pairs (via curator.triples_to_training_pairs())                   │
+│     iii. Quick LoRA training (1 epoch, light LR) — reuses backend.train_lora()                    │
+│     iv. Fuse to temp, reload — reuses backend.fuse_adapter()                                      │
+│     v. Test recall of each fact via memit_engine.test_recall()                                    │
+│     vi. If facts recalled: promote fused model, revert MEMIT edits via                            │
+│ memit_engine.revert_all_active(), mark edits consolidated                                         │
+│     vii. If not recalled: keep MEMIT edits, flag for full sleep                                   │
+│     viii. Return result dict: {status, facts_consolidated, facts_remaining, edits_reverted,       │
+│ elapsed_seconds}                                                                                  │
+│   - execute_nap_streaming(cycle_id) — yields progress dicts for web UI (same format as existing   │
+│ sleep streaming)                                                                                  │
+│   - _generate_training_data(facts) — facts→Q&A→JSONL, writes to data/training/nap_{cycle_id}/     │
+│   - _validate_recall(facts) — test each fact, return list of (fact, passed) tuples                │
+│                                                                                                   │
+│ Test: Inject 5 facts via MEMIT, nap, verify LoRA recalls them, verify MEMIT edits reverted,       │
+│ verify facts survive revert (now from LoRA).                                                      │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Phase 6: Full Sleep Expansion                                                                     │
+│                                                                                                   │
+│ New file: src/sleep/full_sleep.py                                                                 │
+│                                                                                                   │
+│ - FullSleepController — accepts all sleep components + MEMIT components                           │
+│   - execute_sleep(cycle_id) -> dict — 4-stage pipeline:                                           │
+│       i. Triage (NREM 1-2): existing curator scoring + pull MEMIT facts from ledger, combine into │
+│  training queue                                                                                   │
+│     ii. Consolidation (SWS): existing trainer.train() but with MEMIT facts added to training data │
+│  + interleaved replay (new items mixed between replay items, not appended after)                  │
+│     iii. Integration (REM): existing dreamer.dream() for cross-domain associations                │
+│     iv. Validation: existing validator.evaluate() + validator.validate_sleep(). Critical          │
+│ ordering: revert MEMIT edits FIRST, then fuse new LoRA. On success: save checkpoint, mark         │
+│ sessions consumed. On failure: re-apply MEMIT edits, rollback model.                              │
+│   - execute_sleep_streaming(cycle_id) — yields progress dicts (7 steps total)                     │
+│   - Internal: _stage_triage(), _stage_consolidation(), _stage_integration(), _stage_validation()  │
+│                                                                                                   │
+│ This replaces the inline sleep logic in orchestrator._execute_sleep() (orchestrator.py:281-387)   │
+│ and _execute_sleep_streaming() (orchestrator.py:389-491). Those methods become thin wrappers that │
+│  delegate to FullSleepController.                                                                 │
+│                                                                                                   │
+│ Critical ordering in validation: revert MEMIT edits BEFORE fusing new LoRA. The deltas were       │
+│ computed against the old model state; reverting against a new LoRA-fused state would introduce    │
+│ errors.                                                                                           │
+│                                                                                                   │
+│ Test: Full pipeline with MEMIT facts + conversation data. Verify 4 stages execute, MEMIT edits    │
+│ reverted on success. Simulate validation failure, verify rollback preserves MEMIT edits.          │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Phase 7: Orchestrator + Config Integration                                                        │
+│                                                                                                   │
+│ Modify: src/orchestrator.py                                                                       │
+│                                                                                                   │
+│ - New imports: MemitEngine, EditLedger, FactExtractor, HealthMonitor, NapController,              │
+│ FullSleepController                                                                               │
+│ - __init__: initialize new components after existing ones:                                        │
+│ self.edit_ledger = EditLedger(config.paths["memit_ledger"])                                       │
+│ self.memit_engine = MemitEngine(config, self.backend, self.edit_ledger)                           │
+│ self.fact_extractor = FactExtractor(config, self.backend)                                         │
+│ self.health_monitor = HealthMonitor(config, self.backend, self.edit_ledger)                       │
+│ self.nap_controller = NapController(config, self.backend, self.memit_engine, self.edit_ledger,    │
+│ self.replay_buffer, self.curator)                                                                 │
+│ self.full_sleep_controller = FullSleepController(config, self.backend, self.memit_engine,         │
+│ self.edit_ledger, self.curator, self.trainer, self.replay_buffer, self.dreamer, self.validator,   │
+│ self.checkpoints, self.session_tracker, self.health_monitor)                                      │
+│ - Pass extractor + memit + health to chat via setters.                                            │
+│ - _on_sleep_trigger(): delegate to nap_controller or full_sleep_controller based on trigger type  │
+│ - New: _on_nap_trigger() — calls nap, handles post-nap reset                                      │
+│ - Replace _execute_sleep() and _execute_sleep_streaming() bodies with delegation to               │
+│ full_sleep_controller                                                                             │
+│ - New: trigger_nap_web() — SSE streaming for nap (mirrors existing trigger_sleep_web())           │
+│ - get_status(): add memit_edits, sleep_pressure, health fields                                    │
+│ - reset_weights(): also clear MEMIT edits and ledger                                              │
+│ - factory_reset(): also clear data/memit/ directory                                               │
+│                                                                                                   │
+│ Modify: src/config.py — add properties: memit, health, nap                                        │
+│                                                                                                   │
+│ Modify: config.yaml — add new sections:                                                           │
+│                                                                                                   │
+│ memit:                                                                                            │
+│   # Range of transformer layers to target for MEMIT edits                                         │
+│   # For Llama-3.2-3B (26 layers), middle layers store factual knowledge                           │
+│   target_layers: [8, 9, 10, 11, 12, 13, 14, 15]                                                   │
+│   # Regularization parameter (higher = more conservative edits)                                   │
+│   lambda_reg: 0.5                                                                                 │
+│   # Maximum active MEMIT edits (individual facts) before requiring sleep                          │
+│   max_active_edits: 50                                                                            │
+│   # Whether to enable MEMIT injection during wake                                                 │
+│   enabled: true                                                                                   │
+│   # MLP module to edit                                                                            │
+│   target_module: "down_proj"                                                                      │
+│   # Covariance estimation samples (0 = skip, use identity matrix)                                 │
+│   covariance_samples: 0                                                                           │
+│                                                                                                   │
+│ health:                                                                                           │
+│   # Sleep pressure threshold to suggest a nap (0.0 - 1.0)                                         │
+│   nap_threshold: 0.4                                                                              │
+│   # Sleep pressure threshold to require full sleep (0.0 - 1.0)                                    │
+│   sleep_threshold: 0.8                                                                            │
+│   # Weights for pressure calculation                                                              │
+│   edit_weight: 0.6                                                                                │
+│   time_weight: 0.3                                                                                │
+│   perplexity_weight: 0.1                                                                          │
+│   # Measure perplexity every N edits (0 = never)                                                  │
+│   perplexity_check_interval: 10                                                                   │
+│   # Max wake duration in seconds before sleep is forced                                           │
+│   max_wake_seconds: 7200                                                                          │
+│                                                                                                   │
+│ nap:                                                                                              │
+│   # LoRA epochs for nap (quick pass)                                                              │
+│   epochs: 1                                                                                       │
+│   # Learning rate for nap                                                                         │
+│   learning_rate: 1.0e-4                                                                           │
+│   # Revert MEMIT edits on successful nap                                                          │
+│   revert_on_success: true                                                                         │
+│   # Manual trigger                                                                                │
+│   manual_trigger: "/nap"                                                                          │
+│                                                                                                   │
+│ sleep:                                                                                            │
+│   # ... existing fields unchanged ...                                                             │
+│   # New: trigger mode                                                                             │
+│   trigger_mode: "health"  # "health" or "turns"                                                   │
+│                                                                                                   │
+│ paths:                                                                                            │
+│   # ... existing paths ...                                                                        │
+│   memit_data: "data/memit"                                                                        │
+│   memit_ledger: "data/memit/ledger.json"                                                          │
+│                                                                                                   │
+│ Modify: src/web/server.py — add endpoints:                                                        │
+│ - GET /api/nap/stream — SSE for nap progress                                                      │
+│ - GET /api/health — health monitor data                                                           │
+│                                                                                                   │
+│ Modify: src/main.py — handle /nap command in CLI, add --disable-memit flag                        │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Backwards Compatibility                                                                           │
+│                                                                                                   │
+│ - MEMIT gated behind config.memit.enabled (default: true)                                         │
+│ - When disabled: extractor returns empty lists, health monitor falls back to turn-based pressure, │
+│  nap/sleep controllers work without MEMIT (same behavior as current system)                       │
+│ - sleep.trigger_mode: "turns" restores exact current behavior                                     │
+│ - Existing /sleep command still works, triggers full sleep                                        │
+│ - New /nap command added for manual naps                                                          │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Key Technical Risks                                                                               │
+│                                                                                                   │
+│ 1. MLX layer-by-layer forward pass — must replicate exact Llama forward pass (RMSNorm, rotary     │
+│ embeddings, attention masks). Mitigation: study mlx_lm Llama model source, test                   │
+│ forward_to_layer() output against full model.__call__ output at the same layer.                   │
+│ 2. MLX in-place weight modification — arrays may be cached in computation graph. Mitigation:      │
+│ mx.eval() after every weight change, test with immediate forward pass.                            │
+│ 3. MEMIT edit capacity on 3B — literature reports MEMIT on 6B+ models. On 3B with 26 layers and   │
+│ smaller hidden dim, capacity may be limited. Mitigation: config-tunable max_active_edits,         │
+│ empirical testing in Phase 1 to find ceiling.                                                     │
+│ 4. MEMIT + LoRA interaction — deltas computed against one model state, reverted against another.  │
+│ Mitigation: always revert MEMIT before fusing new LoRA (strict ordering in validation).           │
+│ 5. Fact extraction latency — template extraction is instant, model-based adds 1-3s. MEMIT batch   │
+│ injection adds 5-10s for 3-5 facts. Mitigation: template-first extraction, batch injection runs   │
+│ after response is displayed to user.                                                              │
+│ 6. Multi-layer delta storage in memory — each MEMIT edit stores delta matrices for 8 layers. For  │
+│ 3B model (hidden_size=3072), each delta is ~36MB uncompressed. 50 edits = ~1.8GB. Mitigation: on  │
+│ 8GB M3, limit to ~20-30 active edits. Alternatively, store only the rank-one components (key +    │
+│ residual vectors) instead of full delta matrices, recomputing deltas for revert.                  │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Verification Plan                                                                                 │
+│                                                                                                   │
+│ After all phases, run the full lifecycle test:                                                    │
+│ 1. Start system, chat with the 15 experiment facts                                                │
+│ 2. Verify MEMIT injects facts in batches and they're immediately recallable                       │
+│ 3. Verify health pressure rises, nap triggers                                                     │
+│ 4. Verify nap consolidates facts into LoRA, reverts MEMIT edits                                   │
+│ 5. Continue chatting, verify previously-napped facts still recalled                               │
+│ 6. Accumulate more facts, verify full sleep triggers                                              │
+│ 7. Verify full sleep completes all 4 stages                                                       │
+│ 8. Verify clean state after sleep (no MEMIT edits, all knowledge in LoRA)                         │
+│ 9. Verify /status shows correct metrics throughout                                                │
+│ 10. Verify --disable-memit falls back to current behavior                                         │
+│                                                                                                   │
+│ ---                                                                                               │
+│ Files Summary                                                                                     │
+│                                                                                                   │
+│ New files (5):                                                                                    │
+│ - src/memory/memit.py (~600 lines) — MEMIT engine, edit ledger, fact triple                       │
+│ - src/wake/extractor.py (~200 lines) — real-time fact extraction                                  │
+│ - src/memory/health.py (~150 lines) — health monitor, sleep pressure                              │
+│ - src/sleep/nap.py (~200 lines) — nap controller                                                  │
+│ - src/sleep/full_sleep.py (~300 lines) — multi-stage full sleep controller                        │
+│                                                                                                   │
+│ Modified files (7):                                                                               │
+│ - src/backend/mlx_backend.py — add forward_to_layer, forward_layers_range,                        │
+│ get/set_layer_mlp_weight, get_num_layers, compute_perplexity                                      │
+│ - src/orchestrator.py — new component init, nap/sleep delegation, expanded status                 │
+│ - src/wake/chat.py — integrate extractor + MEMIT + health triggers                                │
+│ - src/sleep/curator.py — add triples_to_training_pairs()                                          │
+│ - src/config.py — add memit, health, nap properties                                               │
+│ - config.yaml — add memit, health, nap config sections + paths                                    │
+│ - src/web/server.py — add nap/health endpoints             

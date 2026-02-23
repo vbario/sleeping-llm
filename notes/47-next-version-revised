@@ -1,0 +1,165 @@
+The Alignment Tax Changes Everything                                                               
+                  
+  The single most important finding: facts ARE being encoded by LoRA, but alignment prevents them
+  from surfacing. The 70B model's loss dropped to 0.96, validation approved, yet recall was 0.00. The
+   knowledge is there — the model refuses to say it.
+
+  This makes MEMIT/ROME not just a convenience but potentially the solution to the core problem.
+  Here's why:
+
+  - LoRA applies a diffuse gradient signal across many parameters. It's fighting the alignment
+  training on the same battlefield (behavioral output). Alignment wins because it was trained with
+  more data and more parameters.
+  - MEMIT/ROME directly edit the factual retrieval pathway in MLP layers — the key-value store where
+  the model looks up "user → name → X." This bypasses the alignment layer entirely. The model doesn't
+   need to "decide" to share the fact — the fact is simply what gets retrieved when the association
+  is activated.
+
+  If this works, it means: MEMIT on a 70B model could achieve what LoRA couldn't — surfacing facts
+  despite alignment. This is the highest-priority hypothesis to test.
+
+  ---
+  MEMIT over ROME — Biology as Guide
+
+  The experiment also informs the ROME vs MEMIT choice:
+
+  ROME (Rank-One Model Editing):
+  - Edits one fact at a time
+  - Targets one MLP layer
+  - Like encoding a single synapse
+
+  MEMIT (Mass-Editing Memory in a Transformer):
+  - Edits batches of facts simultaneously
+  - Distributes edits across multiple MLP layers
+  - Like hippocampal episode binding — encoding a coherent scene, not isolated features
+
+  Biology says MEMIT. When you meet someone, your hippocampus doesn't separately file
+  "name=Vladimir," "job=music producer," "city=Portland" as isolated connections. It binds the entire
+   episode — all related facts are encoded together as a coherent memory trace. Multiple
+  hippocampal-cortical connections fire simultaneously.
+
+  MEMIT's multi-fact, multi-layer approach is the closer analog. And it directly addresses
+  experimental findings:
+
+  Problem Found: Alignment tax blocks LoRA recall
+  How MEMIT Helps: MEMIT edits factual retrieval directly, bypasses alignment
+  ────────────────────────────────────────
+  Problem Found: 8B hallucinated wrong details (Andrei→Leo, 6→8)
+  How MEMIT Helps: MEMIT edits are precise — each fact explicitly specified, no gradient bleed
+  between
+    related facts
+  ────────────────────────────────────────
+  Problem Found: Portland/Chicago confusion
+  How MEMIT Helps: Explicit triple: (user, current_city, Portland) — no ambiguity from natural
+    language
+  ────────────────────────────────────────
+  Problem Found: Pet facts never recalled
+  How MEMIT Helps: Likely underrepresented in LoRA training data; MEMIT gives each fact equal weight
+    regardless of position
+  ────────────────────────────────────────
+  Problem Found: Facts locked behind alignment on 70B
+  How MEMIT Helps: The entire point — MEMIT may unlock them
+
+  ---
+  Revised Architecture
+
+  WAKE (active conversation)
+    │
+    ├─ Chat normally
+    ├─ Extract facts as (subject, relation, object) triples
+    ├─ MEMIT batch-inject episode (related facts from this exchange)
+    ├─ Track edit count + model health (perplexity drift)
+    │
+    ├─ Low pressure → continue waking
+    ├─ Moderate pressure → suggest NAP
+    ├─ High pressure → require FULL SLEEP
+    │
+    ▼
+  NAP (optional, quick)
+    │
+    ├─ Light LoRA pass to reinforce MEMIT-edited facts
+    ├─ Purpose: move facts from "hippocampal" (fragile MEMIT edits)
+    │   toward "neocortical" (stable LoRA weights)
+    ├─ Validate: did LoRA capture the knowledge?
+    ├─ If yes: revert MEMIT edits (free up hippocampal capacity)
+    ├─ If no: keep MEMIT edits, queue for full sleep
+    │
+    ▼
+  FULL SLEEP (periodic, deep)
+    │
+    ├─ TRIAGE: classify + prioritize all pending memories
+    ├─ CONSOLIDATION (SWS): LoRA training with interleaved replay
+    ├─ INTEGRATION (REM): cross-domain association, inference testing
+    ├─ VALIDATION: score, promote or rollback
+    ├─ On success: revert ALL MEMIT edits, knowledge now in LoRA
+    │
+    ▼
+  WAKE (resume with consolidated model)
+
+  The core loop: MEMIT writes fast, fragile memories. Sleep consolidates them into stable LoRA
+  weights. MEMIT edits are then cleared, freeing capacity for new memories. This is exactly the
+  hippocampal-neocortical transfer cycle.
+
+  ---
+  Revised Implementation Order
+
+  The old order started with "build ROME engine." The experiment data says: validate the
+  alignment-bypass hypothesis first. If MEMIT can't beat the alignment tax, the architecture needs
+  rethinking.
+
+  Phase 1: MEMIT Engine + Alignment Tax Test (Critical Path)
+
+  1. Minimal MEMIT implementation — start in PyTorch (existing libraries), test on GPU
+  2. Alignment tax bypass test — the single most important experiment:
+    - Take the exact same 15 facts from the scaling experiment
+    - MEMIT-inject them into Llama-3.1-8B-Instruct and 70B-Instruct
+    - Run the exact same 15 recall + 5 generalization questions
+    - Compare against LoRA results from the experiment
+    - If 70B recall > 0.00 with MEMIT, we've validated the core hypothesis
+  3. Port to MLX — once validated, build minimal MEMIT for local 3B development
+
+  This test costs ~$10 on Vast.ai and answers the existential question before we build anything else.
+
+  Phase 2: Fact Extraction Pipeline (Wake)
+
+  4. Triple extraction — convert conversation to (subject, relation, object) format
+    - Reuse existing curator logic but output structured triples instead of Q&A
+    - Each triple must be MEMIT-compatible
+  5. Episode bundling — group related triples from same conversation exchange
+  6. MEMIT integration in wake phase — inject episodes between conversation turns
+
+  Phase 3: Health Monitoring + Nap
+
+  7. Edit ledger — track every MEMIT edit (triple, layers, delta matrices) for reversal
+  8. Health monitor — perplexity drift, coherence checks, sleep pressure metric
+  9. Nap mode — light LoRA pass over MEMIT-edited facts, conditional revert
+    - Empirically determine: how many MEMIT edits before degradation on 3B?
+
+  Phase 4: Full Sleep Cycle
+
+  10. Refactor existing sleep into staged pipeline — triage → consolidation → integration →
+  validation
+  11. Interleaved replay — mix old consolidated Q&A with new facts during training
+  12. MEMIT revert after successful consolidation — clear hippocampus
+  13. Orchestrator state machine — wire up wake → nap → sleep transitions
+
+  ---
+  Open Questions Informed by the Experiment
+
+  1. Does MEMIT bypass alignment? Phase 1 answers this. If not, we may need to explore base models
+  (non-instruct) as the analysis suggests.
+  2. MEMIT capacity on 3B — ROME literature suggests ~100-1000 edits on large models. On 3B, the
+  ceiling might be very low (~20-50 facts?). This directly determines nap/sleep frequency.
+  3. MEMIT + LoRA interaction — when MEMIT edits are applied to a model that also has LoRA adapters,
+  does MEMIT's key/value computation need to account for the LoRA-modified forward pass? Needs
+  testing.
+  4. Does MEMIT fix the 8B hallucination problem? The 8B model confabulated "Leo" for the son's name
+  and "Daisy" for the dog. MEMIT's precision should prevent this — but it might introduce different
+  failure modes (e.g., fact is retrieved correctly but model wraps it in wrong context).
+  5. What about the "facts are there, just need cues" finding? Generalization (0.90) >> recall (0.43)
+   on 3B suggests retrieval cues matter enormously. MEMIT might reduce this gap by making facts
+  directly retrievable rather than dependent on context priming. Or it might not — worth measuring.
+
+  The experiment gave us exactly the data we needed. The alignment tax is the bottleneck, MEMIT is
+  the hypothesized solution, and Phase 1 is a cheap test of that hypothesis before building the full
+  architecture.

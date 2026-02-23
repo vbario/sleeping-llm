@@ -1,0 +1,23 @@
+⏺ That's actually a solid result for a 3B 4-bit model after 2 sleep cycles. The memory system is working — the tuning 
+  question is precision.                                    
+                                                                                                                      
+  Why facts get fuzzy:
+                                                                                                                      
+  1. Base model bleed-through — The model's pretrained weights associate "music producer" with "DJ" (common         
+  co-occurrence in its training data). LoRA nudges toward the right neighborhood but base associations leak in.
+  2. Relationship confusion — The Q&A pairs might say "Andre is the user's son" and "the user makes music" separately,
+   but the model merges them loosely. It learned the entities and the topic, not the exact graph of relationships.
+  3. 3B model precision ceiling — Smaller models learn associations ("Vladimir + Andre + music + producer + father")
+  better than precise relationships ("Vladimir IS the father, Andre IS the son"). This improves dramatically at 8B+.
+
+  What would sharpen recall (in order of impact):
+
+  1. Larger model — 8B would nail these distinctions. This is the single biggest lever.
+  2. More specific Q&A templates — Instead of "What does the user have?" → "a son named Andre", generate "Who is Andre
+   Patandre's father?" → "Vladimir Zwizzer is Andre Patandre's father." Relationship-aware pairs.
+  3. Redundant phrasing — Generate 3 variations of each fact ("Who is Andre's father?", "What is the relationship
+  between Vladimir and Andre?", "Does Vladimir have children?"). More angles = stronger encoding.
+  4. Negative examples — "Is Vladimir a DJ? No, Vladimir is a music producer." Teaches boundaries.
+
+  For the current 3B model, getting "right direction" is honestly close to the ceiling. The architecture works — the
+  model size is the bottleneck now.

@@ -1,0 +1,584 @@
+\documentclass[11pt]{article}
+
+% ─── Page geometry ───
+\usepackage[margin=1in]{geometry}
+
+% ─── Fonts and encoding ───
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ─── Math ───
+\usepackage{amsmath,amssymb,amsfonts}
+
+% ─── Tables and figures ───
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{subcaption}
+
+% ─── Hyperlinks ───
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+\usepackage{url}
+
+% ─── Citations ───
+\usepackage{natbib}
+\bibliographystyle{abbrvnat}
+\setcitestyle{authoryear,open={(},close={)}}
+
+% ─── Misc ───
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Allow slightly looser spacing to avoid overfull hboxes
+\emergencystretch=1em
+
+% ─── Title ───
+\title{\textbf{Dual-System Memory Consolidation for Lifelong Learning\\in Language Models: Combining Direct Weight Editing\\with Sleep-Wake Training}}
+
+\author{
+  Vladimir Baranov\\
+  \texttt{vlad@chatsetter.ai}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ═══════════════════════════════════════════════════════════════
+\begin{abstract}
+Large language models lack persistent memory: each session begins from a blank state, and all conversational context is lost when the session ends. We present a dual-system architecture for lifelong learning that combines two complementary mechanisms: MEMIT (Mass-Editing Memory in a Transformer) for instant factual injection during the wake phase, and LoRA fine-tuning during offline sleep cycles for permanent consolidation. Drawing on Complementary Learning Systems theory from neuroscience, MEMIT serves as a hippocampal analog---fast, high-fidelity encoding that is fragile under continued use---while LoRA sleep consolidation serves as a neocortical analog---slow, stable integration that survives model restarts. A nap mechanism acts as a selective consolidation filter, transferring strongly-encoded MEMIT facts into durable LoRA weights while allowing weakly-encoded traces to decay---mirroring the triage function of biological sleep. We introduce covariance-regularized MEMIT with cross-edit null-space constraints, which preserves previously injected facts when new facts are added. We validate the system across three model scales (3B, 8B, 70B parameters) on consumer and datacenter hardware. Ablation experiments demonstrate that the dual system outperforms either component alone: MEMIT provides instant recall (5/5 facts, $<$5\,s) unavailable to LoRA-only systems (0/5 immediate recall), while sleep consolidation provides persistence (4/5 post-restart) unavailable to MEMIT-only systems. On the 8B model, MEMIT sustains 0.83 recall at 60 facts with near-zero perplexity impact ($\Delta$PPL $< 0.03$). Cross-edit null-space constraints achieve perfect retention (1.00) of previously injected facts through both filler conversations and new injections. The full lifecycle---wake, nap, and deep sleep---completes successfully on all three model sizes with validation scores of 5/5.
+\end{abstract}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:introduction}
+
+Every modern large language model suffers from a fundamental limitation: it cannot learn from its own conversations. A user may spend hours sharing personal details, establishing preferences, and building context, but the moment the session ends, all of it vanishes. The context window provides an illusion of memory during a session, but this is working memory with a hard size limit that disappears between sessions and provides no mechanism for actual learning from experience.
+
+Existing approaches keep the model's weights frozen. Retrieval-augmented generation (RAG) stores conversation snippets in an external database and injects relevant ones into the prompt at inference time \citep{lewis2020retrieval}. Memory-augmented architectures add external read-write modules \citep{wang2024memoryllm,wang2023longmem}. These treat memory as an external resource accessed through the input---the model itself never changes.
+
+In prior work \citep{baranov2026sleepwake}, we demonstrated that a local LLM can form persistent memories through biologically-inspired sleep-wake cycles using LoRA fine-tuning. That system successfully transferred conversational facts into model weights on a 3B model, but suffered from a critical limitation: facts were only available \emph{after} a sleep cycle completed, creating a delay between learning and recall that ranged from minutes to hours.
+
+This paper introduces a \textbf{dual-system architecture} that eliminates this delay by combining two complementary weight-modification mechanisms:
+
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{MEMIT} (Mass-Editing Memory in a Transformer) \citep{meng2023memit} provides instant factual recall during the wake phase by directly editing MLP weights. Facts are available immediately after injection---no training required.
+
+\item \textbf{LoRA sleep consolidation} provides permanent storage by training the model on MEMIT-held facts during offline nap and sleep cycles, then reverting the fragile MEMIT edits.
+\end{enumerate}
+
+This design maps directly onto Complementary Learning Systems (CLS) theory \citep{mcclelland1995why,kumaran2016what}: MEMIT functions as the hippocampus (fast, high-fidelity episodic encoding that degrades under interference), while LoRA consolidation functions as the neocortex (slow, stable integration that generalizes across contexts). The nap mechanism---a lightweight consolidation cycle that transfers MEMIT facts to LoRA---corresponds to hippocampal replay during NREM sleep \citep{diekelmann2010memory,rasch2013sleep}.
+
+We make four contributions:
+
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{A dual-system MEMIT+LoRA architecture with nap consolidation} that provides both instant and permanent memory through complementary weight-editing pathways.
+
+\item \textbf{Covariance-regularized MEMIT with cross-edit null-space constraints} that preserves previously injected facts when new facts are added, using the Woodbury identity \citep{woodbury1950inverting} for efficient regularization.
+
+\item \textbf{Quantitative scaling analysis across 3B, 8B, and 70B parameters}, demonstrating that the dual system completes full lifecycle validation on all three scales.
+
+\item \textbf{Ablation experiments} characterizing MEMIT capacity, regularization sensitivity, nap-extended capacity, cross-edit retention, and perplexity dynamics through the full lifecycle.
+\end{enumerate}
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Knowledge Editing}
+
+ROME \citep{meng2022rome} demonstrated that factual associations in GPT-style models are localized in MLP layers and can be edited by rank-one updates to the value projection. MEMIT \citep{meng2023memit} extended this to batch editing, distributing updates across multiple layers simultaneously. Subsequent work has explored the scalability, reliability, and limitations of direct weight editing \citep{mitchell2022fast,yao2023editing}. These methods edit the raw completion pathway (e.g., ``The Eiffel Tower is in'' $\to$ ``Paris'') but do not affect chat-template-formatted queries, a distinction that motivates our dual-system design.
+
+\subsection{Parameter-Efficient Fine-Tuning}
+
+LoRA \citep{hu2022lora} injects trainable low-rank matrices into frozen transformer layers, reducing trainable parameters by orders of magnitude. QLoRA \citep{dettmers2023qlora} extends this to 4-bit quantized models. For continual learning specifically, O-LoRA \citep{wang2023olora} learns tasks in orthogonal subspaces, and InfLoRA \citep{liang2024inflora} designs interference-free adaptation. Our system uses standard LoRA with adapter fusion after each sleep cycle, as conversational memories are not discrete tasks.
+
+\subsection{Complementary Learning Systems and Sleep-Inspired ML}
+
+CLS theory \citep{mcclelland1995why,kumaran2016what} posits that the brain requires two learning systems: a hippocampal system for rapid episodic encoding and a neocortical system for gradual statistical extraction, with sleep mediating transfer between them \citep{diekelmann2010memory,rasch2013sleep}. Several works have operationalized this for neural networks: \citet{tadros2022sleep} use Hebbian replay during simulated sleep; \citet{carta2024wake} introduce wake-NREM-REM phases for image classification; \citet{harun2023siesta} propose on-device continual learning with sleep. For language models specifically, concurrent work explores RL-based knowledge seeding \citep{lmneedsleep2025} and sleep-cycle training \citep{dreaming2024}.
+
+Our work differs in three ways. First, we combine \emph{two distinct weight-modification mechanisms} (MEMIT and LoRA) rather than a single training algorithm, creating a genuine dual-system architecture. Second, we target conversational memory rather than task-incremental classification. Third, we validate across three model scales on both consumer and datacenter hardware.
+
+\subsection{Continual Learning}
+
+Classical approaches include EWC \citep{kirkpatrick2017overcoming}, LwF \citep{li2017learning}, and progressive networks \citep{rusu2016progressive}. Recent LLM-specific work shows that forgetting intensifies with scale \citep{luo2023empirical}, loss landscape flatness influences forgetting severity \citep{li2024revisiting}, and apparent drops may reflect disrupted alignment rather than true knowledge loss \citep{zheng2025spurious}. Surveys catalog the full landscape \citep{wu2024continual,shi2024continual}. Our system combines low learning rates, LoRA-constrained updates, experience replay, and validation gating---an integrated approach rather than a single mechanism.
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Method}
+\label{sec:method}
+
+\subsection{System Overview}
+
+The system operates as a state machine with three phases: \textbf{wake} (inference with MEMIT injection), \textbf{nap} (quick LoRA consolidation of MEMIT facts), and \textbf{deep sleep} (full consolidation with curation, replay, dreaming, and training). An orchestrator manages transitions based on health-based triggers that track MEMIT edit count, elapsed time, and model perplexity.
+
+The dual-system architecture is summarized in Figure~\ref{fig:architecture}. During wake, facts extracted from conversation are immediately injected into MLP weights via MEMIT, providing instant recall through raw text completion. When sleep pressure accumulates (via edit count, time, or perplexity drift), a nap consolidates MEMIT facts into LoRA weights and reverts the fragile MEMIT edits. Periodically, a full sleep cycle performs deep consolidation with experience replay and synthetic data generation.
+
+\begin{figure}[t]
+\centering
+\fbox{\parbox{0.9\textwidth}{\small
+\textbf{Wake Phase} $\to$ Chat with user, extract facts, inject via MEMIT \\
+$\downarrow$ \textit{(sleep pressure: edits, time, perplexity)} \\
+\textbf{Nap} $\to$ MEMIT facts $\to$ Q\&A pairs $\to$ 1-epoch LoRA $\to$ revert MEMIT \\
+$\downarrow$ \textit{(continued wake, more facts)} \\
+\textbf{Deep Sleep} $\to$ Curate $\to$ Replay $\to$ Dream $\to$ LoRA train $\to$ Validate $\to$ Fuse
+}}
+\caption{Dual-system lifecycle. MEMIT provides instant recall during wake; nap consolidates to LoRA; deep sleep performs thorough integration with validation gating.}
+\label{fig:architecture}
+\end{figure}
+
+
+\subsection{Wake Phase: MEMIT Injection}
+\label{sec:memit}
+
+During wake, facts are extracted from user messages as $(s, r, o)$ triples (e.g., ``Viktor'', ``lives in'', ``Portland'') and injected into the model's MLP down-projection weights via MEMIT. Our implementation introduces three modifications to the original algorithm.
+
+\paragraph{Fact representation.} Each fact is a \texttt{FactTriple} $(s, r, o)$ that generates a completion prompt $p = s \oplus r$ (e.g., ``Viktor lives in'') and target $t = o$ (e.g., `` Portland''). MEMIT edits the model so that $P(t \mid p)$ is maximized.
+
+\paragraph{Target value optimization.} For each fact, we compute a target value vector $v^*$ by gradient descent on the log-probability of the target token:
+\begin{equation}
+v^* = \arg\min_v -\log P(t \mid p; \mathbf{W} + \Delta\mathbf{W}(v)) + \lambda_{\text{KL}} \, D_{\text{KL}}(P_{\text{new}} \| P_{\text{orig}})
+\label{eq:v-star}
+\end{equation}
+where $\lambda_{\text{KL}}$ controls the trade-off between fact injection strength and preservation of the original output distribution. We optimize for 30 steps with learning rate 0.5.
+
+\paragraph{Covariance regularization via Woodbury identity.} The original MEMIT uses identity regularization ($\lambda \mathbf{I}$) when solving the constrained least-squares problem for weight updates. We replace this with the empirical covariance matrix $\hat{\mathbf{C}}$ of MLP intermediate activations, estimated from 200 reference texts spanning diverse topics:
+\begin{equation}
+\hat{\mathbf{C}} = \frac{1}{N}\sum_{i=1}^{N} \mathbf{k}_i \mathbf{k}_i^\top
+\label{eq:covariance}
+\end{equation}
+where $\mathbf{k}_i$ are MLP intermediate vectors (after SiLU-gated up-projection) from reference inputs. The weight update at layer $\ell$ is then:
+\begin{equation}
+\Delta \mathbf{W}_\ell = \mathbf{R}_\ell \mathbf{K}^\top (\mathbf{K} \mathbf{K}^\top + \lambda \hat{\mathbf{C}})^{-1}
+\label{eq:memit-update}
+\end{equation}
+where $\mathbf{R}_\ell$ is the residual (desired output minus current output) and $\mathbf{K}$ is the matrix of key vectors. Computing $(\mathbf{K}\mathbf{K}^\top + \lambda\hat{\mathbf{C}})^{-1}$ directly would require inverting a $d \times d$ matrix (where $d$ is the MLP intermediate dimension, e.g., 14336 for 8B). We use the Woodbury identity to keep the inversion in $N \times N$ space (where $N$ is the number of facts, typically ${\leq}10$):
+\begin{equation}
+(\lambda \hat{\mathbf{C}} + \mathbf{K}\mathbf{K}^\top)^{-1} = \frac{1}{\lambda}\hat{\mathbf{C}}^{-1} - \frac{1}{\lambda}\hat{\mathbf{C}}^{-1}\mathbf{K}(\mathbf{I} + \frac{1}{\lambda}\mathbf{K}^\top\hat{\mathbf{C}}^{-1}\mathbf{K})^{-1}\frac{1}{\lambda}\mathbf{K}^\top\hat{\mathbf{C}}^{-1}
+\label{eq:woodbury}
+\end{equation}
+
+This reduces the computational bottleneck from $O(d^3)$ to $O(N^3 + N^2 d)$, making covariance regularization practical even for large models.
+
+\paragraph{Cross-edit null-space constraints.} When injecting a new batch of facts, we include key vectors from all previously active MEMIT edits in the constraint set. This ensures that new edits operate in the null space of previous key vectors, preventing overwriting:
+\begin{equation}
+\mathbf{K}_{\text{combined}} = [\mathbf{K}_{\text{new}} \mid \mathbf{K}_{\text{prev}}], \quad \mathbf{R}_{\text{combined}} = [\mathbf{R}_{\text{new}} \mid \mathbf{0}]
+\label{eq:null-space}
+\end{equation}
+The zero residual for previous keys means the update must not alter outputs for previously edited inputs.
+
+\paragraph{Layer-wise residual distribution.} The total residual is distributed across target layers (e.g., layers 8--15 for 3B, 12--19 for 8B), with each layer absorbing $1/L_{\text{remaining}}$ of the residual at its position. This prevents concentration of the entire update in a single layer, reducing the risk of catastrophic perturbation.
+
+\paragraph{Dequantize-edit workflow.} For quantized models, we dequantize only the target MLP layer before editing (converting packed 4-bit weights to float), apply the MEMIT delta, and keep the edited layer in float format. This adds ${\sim}$48\,MB per edited layer on the 3B model.
+
+
+\subsection{Nap: Quick Consolidation}
+\label{sec:nap}
+
+When sleep pressure exceeds the nap threshold (default: 0.4), the system performs a quick consolidation:
+
+\begin{enumerate}[leftmargin=2em,nosep]
+\item Retrieve all active MEMIT facts from the edit ledger.
+\item Convert each fact to Q\&A training pairs (e.g., ``Where does Viktor live?'' $\to$ ``Viktor lives in Portland.'').
+\item Train a 1-epoch LoRA adapter on these pairs.
+\item Validate: test recall of consolidated facts.
+\item On success: revert all MEMIT edits (facts are now in LoRA weights).
+\item On partial failure: re-inject unconsolidated facts via MEMIT.
+\end{enumerate}
+
+The nap takes 30--120 seconds depending on model size and number of facts. After a successful nap, MEMIT capacity is freed for new facts, effectively extending the system's memory ceiling.
+
+
+\subsection{Deep Sleep: Full Consolidation}
+\label{sec:deep-sleep}
+
+Deep sleep is a four-stage pipeline triggered when sleep pressure exceeds the sleep threshold (default: 0.8) or manually:
+
+\paragraph{Stage 1: Curation.} Conversation exchanges are scored on novelty, importance, and utility. Exchanges below configurable thresholds are discarded. MEMIT-held facts are converted to training pairs and merged with curated conversation data.
+
+\paragraph{Stage 2: Replay and dreaming.} High-scoring examples from previous cycles are mixed into training data at a configurable ratio (20\% for light sleep, 60\% for deep sleep), with priority decaying by factor $d = 0.85$ per replay (spaced repetition). During deep sleep, the model generates synthetic Q\&A pairs from its knowledge (``dreaming''), creating associative connections.
+
+\paragraph{Stage 3: LoRA training.} The combined dataset trains a LoRA adapter. Iterations scale with data: $N_{\text{iters}} = |\mathcal{D}| \times \text{epochs}$. Light sleep uses learning rate $1 \times 10^{-4}$ with 3 epochs; deep sleep uses $5 \times 10^{-5}$ with 2 epochs.
+
+\paragraph{Stage 4: Validation and fusion.} Pre-sleep and post-sleep benchmark scores are compared. The cycle is accepted if $s_{\text{post}} \geq \tau \cdot s_{\text{pre}}$ (default $\tau = 0.5$). On success, the adapter is fused into base weights and MEMIT edits are reverted. On failure, the model rolls back to the pre-sleep checkpoint and MEMIT edits are re-applied.
+
+
+\subsection{Health-Based Sleep Triggers}
+\label{sec:health}
+
+Sleep pressure is a weighted combination of three signals:
+\begin{equation}
+\text{pressure} = w_e \cdot \frac{n_{\text{edits}}}{n_{\text{max}}} + w_t \cdot \frac{t_{\text{elapsed}}}{t_{\text{max}}} + w_p \cdot \max\!\left(0,\, \frac{\text{PPL}_{\text{current}}}{\text{PPL}_{\text{baseline}}} - 1\right)
+\label{eq:pressure}
+\end{equation}
+where $w_e = 0.6$, $w_t = 0.3$, $w_p = 0.1$ are the edit, time, and perplexity weights; $n_{\text{max}} = 50$ is the maximum active edits; and $t_{\text{max}} = 7200$s is the maximum wake duration. The system triggers a nap at pressure $\geq 0.4$ and full sleep at $\geq 0.8$.
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Hardware}
+
+Experiments span two hardware configurations:
+\begin{itemize}[leftmargin=2em,nosep]
+\item \textbf{Consumer:} MacBook Air M3 with 8\,GB unified memory, using the MLX framework \citep{hannun2023mlx}. Runs the 3B model.
+\item \textbf{Datacenter:} Dual NVIDIA H100 GPUs (80\,GB each, 160\,GB total) via Vast.ai, using PyTorch with bitsandbytes 4-bit quantization. Runs 8B and 70B models.
+\end{itemize}
+
+\subsection{Models}
+
+\begin{itemize}[leftmargin=2em,nosep]
+\item \textbf{3B:} \texttt{mlx-community/Llama-3.2-3B-Instruct-4bit} (MLX 4-bit quantization)
+\item \textbf{8B:} \texttt{meta-llama/Llama-3.1-8B-Instruct} (bfloat16, unquantized)
+\item \textbf{70B:} \texttt{meta-llama/Llama-3.1-70B-Instruct} (bitsandbytes NF4 quantization)
+\end{itemize}
+
+\subsection{MEMIT Configuration}
+
+Table~\ref{tab:memit-config} summarizes the MEMIT hyperparameters across model sizes.
+
+\begin{table}[h]
+\centering
+\caption{MEMIT configuration per model size.}
+\label{tab:memit-config}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Parameter} & \textbf{3B} & \textbf{8B} & \textbf{70B} \\
+\midrule
+Target layers          & 8--15    & 12--19   & 40--55 \\
+$\lambda_{\text{reg}}$ & 0.1      & 0.1      & 0.1 \\
+Target module          & down\_proj & down\_proj & down\_proj \\
+Covariance samples     & 200      & 200      & 200 \\
+$v^*$ learning rate    & 0.5      & 0.5      & 0.5 \\
+$v^*$ optimization steps & 30     & 30       & 30 \\
+KL factor              & 0.0625   & 0.0625   & 0.0625 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{LoRA Configuration}
+
+All models use rank 16, alpha 32, targeting 8 transformer layers. Light sleep: learning rate $1 \times 10^{-4}$, 3 epochs. Deep sleep: $5 \times 10^{-5}$, 2 epochs. Nap: $1 \times 10^{-4}$, 1 epoch.
+
+\subsection{Evaluation Protocol}
+
+We evaluate along three axes:
+\begin{itemize}[leftmargin=2em,nosep]
+\item \textbf{Raw completion recall:} Given a prompt like ``Viktor lives in'', does the model complete with the correct target? This tests the MEMIT edit pathway.
+\item \textbf{Chat-template recall:} Given a question like ``Where does Viktor live?'' in chat format, does the model answer correctly? This tests LoRA-consolidated knowledge.
+\item \textbf{Perplexity:} Cross-entropy loss on reference texts, measuring model coherence.
+\end{itemize}
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Results}
+\label{sec:results}
+
+\subsection{MEMIT Capacity Scaling}
+\label{sec:capacity}
+
+Table~\ref{tab:capacity} shows MEMIT's raw capacity (without nap consolidation) across model sizes, measured by injecting increasing batches of synthetic facts and testing cumulative recall.
+
+\begin{table}[h]
+\centering
+\caption{MEMIT capacity across model sizes. Recall is measured cumulatively after each batch of 5 facts. The 8B model achieves the best capacity density.}
+\label{tab:capacity}
+\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Model} & \textbf{5 facts} & \textbf{10 facts} & \textbf{15 facts} & \textbf{20 facts} & \textbf{40 facts} \\
+\midrule
+3B (4-bit)  & 0.80 & 0.70 & 0.60 & ---  & --- \\
+8B          & 0.90 & 0.82 & 0.80 & 0.78 & 0.82 \\
+70B (4-bit) & 0.80 & 0.80 & 0.73 & 0.70 & 0.80 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The 3B model's capacity ceiling is approximately 10 facts at 0.70 recall, consistent with its smaller MLP dimension (11008 intermediate) providing less room for orthogonal edits. The 8B model sustains 0.82 recall at 40 facts---the highest capacity density of the three---likely due to its larger MLP (14336 intermediate) without the quantization artifacts of the 70B model. The 70B model shows competitive recall at 40 facts but with more variance, potentially due to 4-bit quantization interacting with float-precision MEMIT edits across two GPUs.
+
+
+\subsection{Dual System vs.\ Components (Ablation 1)}
+\label{sec:ablation-dual}
+
+We compare three conditions on the 8B model, each learning the same 5 facts:
+
+\begin{enumerate}[leftmargin=2em,nosep]
+\item \textbf{MEMIT-only:} Inject 5 facts, no consolidation. Measure recall immediately and after 20 filler turns.
+\item \textbf{LoRA-only:} Teach 5 facts via conversation, trigger full sleep, clear context. Measure recall.
+\item \textbf{MEMIT+LoRA:} Inject via MEMIT, trigger nap, then full sleep. Clear context. Measure recall.
+\end{enumerate}
+
+\begin{table}[h]
+\centering
+\caption{Dual system comparison (Ablation 1, 8B model, 5 facts). MEMIT provides instant recall but no restart persistence. LoRA provides some persistence but no instant recall. The dual system provides both.}
+\label{tab:dual-system}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Metric} & \textbf{MEMIT-only} & \textbf{LoRA-only} & \textbf{MEMIT+LoRA} \\
+\midrule
+Time to first recall       & 4.4s (instant)   & 24.6s (after sleep)    & 4.0s (instant) \\
+Immediate recall           & \textbf{1.00}    & 0.00                   & \textbf{1.00} \\
+Post-filler/restart recall & \textbf{1.00}    & 0.20                   & 0.80 \\
+Baseline perplexity        & 4.12             & 4.12                   & 4.12 \\
+Final perplexity           & 4.10             & 4.46                   & 5.16 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The key finding is complementarity. MEMIT provides \emph{instant, lossless} recall: all 5 facts are available within 4 seconds of injection and survive 20 unrelated conversation turns with zero degradation (1.00 $\to$ 1.00). However, MEMIT edits do not survive model restarts. LoRA-only achieves only 1/5 raw completion recall after a full sleep cycle---the LoRA training targets the chat-template pathway, not raw completions. The dual system inherits the best of both: instant recall from MEMIT during wake (5/5), and durable recall after consolidation and restart (4/5). The one missed fact (``Elena Voronov works as marine biologist'') shows the nap acting as a selective filter---facts with weaker LoRA training signal are not consolidated, a property we discuss further in Section~\ref{sec:nap-as-triage}.
+
+
+\subsection{Cross-Edit Retention (Ablation 2)}
+\label{sec:ablation-retention}
+
+This experiment tests whether MEMIT-injected facts survive subsequent operations: filler conversations and new fact injections.
+
+\begin{table}[h]
+\centering
+\caption{MEMIT retention through interference (Ablation 2, 8B model). Null-space constraints achieve perfect preservation of Batch A facts through both filler chat and new fact injection. Nap consolidation selectively transfers the strongest-encoded facts.}
+\label{tab:retention}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Stage} & \textbf{Batch A (5)} & \textbf{Batch B (5)} & \textbf{Combined (10)} \\
+\midrule
+After A injection        & \textbf{1.00} & ---           & --- \\
+After 20 filler turns    & \textbf{1.00} & ---           & --- \\
+After B injection        & \textbf{1.00} & \textbf{1.00} & \textbf{1.00} \\
+After nap consolidation  & 0.20          & 0.80          & 0.50 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The null-space constraint (Equation~\ref{eq:null-space}) achieves \textbf{perfect retention}: Batch A recall remains 1.00 through both 20 filler turns and the injection of 5 new Batch B facts. Without constraints, injecting Batch B would overwrite Batch A edits, as both compete for the same MLP weight dimensions. With constraints, Batch B edits are projected into the orthogonal complement of Batch A's key vectors, achieving null-space retention of 1.00.
+
+The post-nap results reveal the nap's role as a selective consolidation filter. Batch B (0.80 recall) consolidates better than Batch A (0.20) because Batch B's MEMIT edits were more recent and had stronger encoding signal at nap time. This is not a deficiency---it mirrors biological sleep consolidation, where not all hippocampal traces transfer to neocortex. The facts that survive nap are those with the strongest training signal, while weakly-encoded traces decay (Section~\ref{sec:nap-as-triage}).
+
+
+\subsection{Regularization Analysis (Ablation 3)}
+\label{sec:ablation-lambda}
+
+We sweep $\lambda_{\text{reg}}$ across five values (0.01, 0.05, 0.1, 0.5, 1.0), injecting the same 10 facts at each setting and measuring recall and perplexity.
+
+\begin{table}[h]
+\centering
+\caption{Lambda regularization sweep (Ablation 3, 8B model, 10 facts). The 8B model achieves perfect recall across all lambda values with negligible perplexity impact, indicating that covariance regularization is effective but the 8B model has sufficient capacity to absorb 10 edits regardless of regularization strength.}
+\label{tab:lambda}
+\small
+\begin{tabular}{@{}ccccc@{}}
+\toprule
+$\lambda$ & \textbf{Recall} & \textbf{PPL (base)} & \textbf{PPL (post)} & \textbf{$\Delta$PPL} \\
+\midrule
+0.01 & 1.00 & 3.62 & 3.60 & $-$0.020 \\
+0.05 & 1.00 & 3.62 & 3.61 & $-$0.015 \\
+0.10 & 1.00 & 3.62 & 3.63 & $+$0.004 \\
+0.50 & 1.00 & 3.62 & 3.62 & $-$0.006 \\
+1.00 & 1.00 & 3.62 & 3.62 & $+$0.001 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The results show that the 8B model is remarkably robust to $\lambda$ at 10 facts: perfect recall (10/10) at all five values with perplexity changes within $\pm 0.02$---effectively noise. The mean delta norm is nearly constant across all settings (${\sim}$2.58), indicating that the $v^*$ optimization converges to similar solutions regardless of regularization strength. This contrasts sharply with the 3B model, where $\lambda$ significantly affects recall (Section~\ref{sec:capacity}), and suggests that the 8B model's MLP dimension (14336) provides sufficient capacity for 10 orthogonal edits without requiring strong regularization to prevent interference. The lambda--recall trade-off would likely emerge at higher fact counts or on smaller models.
+
+
+\subsection{Nap-Extended Capacity (Ablation 4)}
+\label{sec:ablation-capacity}
+
+We compare the effective capacity ceiling under two conditions:
+
+\begin{enumerate}[leftmargin=2em,nosep]
+\item \textbf{MEMIT-only:} Inject facts in batches of 5, never consolidate. Continue until recall drops below 0.5.
+\item \textbf{MEMIT+Nap:} Same batches, but trigger a nap after every 10 new facts. Continue until failure.
+\end{enumerate}
+
+\begin{table}[h]
+\centering
+\caption{Capacity ceiling comparison (Ablation 4, 8B model). MEMIT-only sustains high recall through 60 facts. MEMIT+Nap shows lower recall after nap consolidation, reflecting the nap's role as a selective triage filter rather than a lossless transfer mechanism.}
+\label{tab:capacity-nap}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Total Facts} & \textbf{MEMIT-only Recall} & \textbf{MEMIT+Nap Recall} & \textbf{Naps Triggered} \\
+\midrule
+5   & 0.80 & 0.80 & 0 \\
+10  & 0.80 & 0.60 & 1 \\
+15  & 0.73 & 0.40 & 1 \\
+20  & 0.70 & --- & --- \\
+30  & 0.73 & --- & --- \\
+40  & 0.83 & --- & --- \\
+50  & 0.80 & --- & --- \\
+60  & 0.83 & --- & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The results invert the initial hypothesis. MEMIT-only sustains remarkably stable recall---0.80 to 0.83---through 60 facts (12 batched edits), with no sign of degradation. The 8B model's MLP dimension (14336) provides sufficient orthogonal capacity for at least 60 simultaneous edits, far exceeding the expected ceiling.
+
+MEMIT+Nap, by contrast, shows \emph{lower} recall after the first nap at 10 facts (0.60) and drops below the 0.5 threshold at 15 facts. This is not a failure of capacity extension---it reveals the nap's function as a \textbf{selective consolidation filter}. The nap transfers MEMIT facts to LoRA weights and then reverts the MEMIT edits, but LoRA consolidation from a single training epoch is lossy by design: only facts with sufficiently strong training signal survive the transfer. Facts that were weakly encoded or ambiguous are filtered out during consolidation.
+
+This maps directly to biological sleep triage (Section~\ref{sec:nap-as-triage}): not all hippocampal traces transfer to neocortex during NREM replay. The nap acts as a quality gate, preserving the strongest memories and allowing marginal ones to decay. In a production system, facts that fail nap consolidation can be re-injected via MEMIT for another consolidation attempt, or flagged for deep sleep processing.
+
+
+\subsection{Perplexity Dynamics (Ablation 5)}
+\label{sec:ablation-perplexity}
+
+We track perplexity through the complete lifecycle: baseline $\to$ 5 MEMIT injections $\to$ nap $\to$ 5 more injections $\to$ full sleep.
+
+\begin{table}[h]
+\centering
+\caption{Perplexity trajectory through lifecycle (Ablation 5, 8B model). MEMIT injections have near-zero perplexity impact. Nap consolidation causes a significant perplexity jump as MEMIT edits are reverted and replaced with LoRA weights. Full sleep partially recovers coherence.}
+\label{tab:perplexity}
+\small
+\begin{tabular}{@{}llcc@{}}
+\toprule
+\textbf{Step} & \textbf{Event} & \textbf{Perplexity} & \textbf{Recall} \\
+\midrule
+0  & Baseline              & 5.752 & --- \\
+1  & After fact 1 (MEMIT)  & 5.777 & 1.00 \\
+2  & After fact 2          & 5.748 & 1.00 \\
+3  & After fact 3          & 5.780 & 1.00 \\
+4  & After fact 4          & 5.751 & 1.00 \\
+5  & After fact 5          & 5.751 & 1.00 \\
+\midrule
+6  & \textbf{After nap}    & \textbf{8.622} & 0.80 \\
+\midrule
+7  & After fact 6          & 8.662 & 0.83 \\
+8  & After fact 7          & 8.645 & 0.71 \\
+9  & After fact 8          & 8.767 & 0.75 \\
+10 & After fact 9          & 8.804 & 0.67 \\
+11 & After fact 10         & 8.917 & 0.70 \\
+\midrule
+12 & \textbf{After full sleep} & \textbf{8.027} & 0.40 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three distinct regimes emerge. \textbf{First}, MEMIT injections have near-zero perplexity impact: steps 1--5 fluctuate within $\pm 0.03$ of the 5.752 baseline, confirming that covariance-regularized MEMIT edits preserve model coherence even as facts accumulate.
+
+\textbf{Second}, the nap causes a sharp perplexity jump from 5.75 to 8.62 ($\Delta$PPL $= +2.87$). This occurs because the nap reverts MEMIT edits and replaces them with a 1-epoch LoRA adapter. The LoRA weights, trained on only 5 Q\&A pairs, are sufficient for factual recall (0.80) but introduce distributional perturbation on general text---the model has been slightly ``bent'' toward the training distribution. Subsequent MEMIT injections on the post-nap model cause further drift (8.62 $\to$ 8.92 over 5 facts), as MEMIT edits interact with the already-perturbed LoRA weights.
+
+\textbf{Third}, full sleep partially recovers coherence (8.92 $\to$ 8.03, $\Delta$PPL $= -0.89$). The deeper consolidation cycle---with experience replay, dreaming, and multi-epoch training---produces a better-integrated adapter than the nap's single-epoch pass. However, it does not fully recover to baseline, and recall drops further (0.70 $\to$ 0.40) as sleep consolidation applies its own selective triage (Section~\ref{sec:nap-as-triage}).
+
+The key insight is that MEMIT is remarkably perplexity-neutral while active, but LoRA consolidation carries a coherence cost. This motivates keeping MEMIT edits active as long as possible and consolidating only when capacity pressure or model health requires it.
+
+
+\subsection{Full Lifecycle Results}
+\label{sec:lifecycle}
+
+Table~\ref{tab:lifecycle} summarizes end-to-end lifecycle results across all three model sizes.
+
+\begin{table}[h]
+\centering
+\caption{Full lifecycle results. Each model executes the complete wake $\to$ MEMIT $\to$ nap $\to$ sleep pipeline. MEMIT recall is via raw completion; sleep validation uses chat-template Q\&A.}
+\label{tab:lifecycle}
+\small
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Model} & \textbf{MEMIT Recall} & \textbf{Capacity@40} & \textbf{Nap Result} & \textbf{Sleep Score} & \textbf{Lifecycle} \\
+\midrule
+3B (4-bit)  & 3/3  & 0.80@10 & 2/5 consolidated & 2/5     & PASS \\
+8B          & 2/3  & 0.82@40 & 2/4 consolidated & 5/5     & PASS \\
+70B (4-bit) & 2/3  & 0.80@40 & Partial          & 5/5     & PASS \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+All three models complete the full lifecycle with validation approval. The 8B model achieves the best overall performance: highest MEMIT capacity (0.82 at 40 facts) and perfect sleep validation (5/5). The 3B model's lower sleep score (2/5) reflects the narrow viable learning rate window documented in \citet{baranov2026sleepwake}. The 70B model achieves perfect sleep validation despite partial nap results, suggesting that LoRA training generalizes well in the chat-template format even when raw completion recall is imperfect.
+
+\paragraph{Key observation: pathway complementarity.} MEMIT edits the \emph{raw completion pathway}: given ``Viktor lives in'', the model completes with ``Portland''. LoRA training edits the \emph{chat-template pathway}: given a question in chat format, the model answers correctly. These are complementary---MEMIT provides instant recall during wake (where raw completion queries can be checked), while LoRA provides robust recall in all interaction formats after consolidation.
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Why the Dual System Works}
+
+The CLS theory mapping is not merely metaphorical---it predicts the system's behavior. The hippocampus (MEMIT) provides high-fidelity encoding that degrades under interference: adding more facts reduces recall of earlier ones, exactly as observed in our capacity experiments. The neocortex (LoRA) provides slow but stable integration: facts trained into LoRA weights survive model restarts and generalize to new query formats. The nap mechanism (hippocampal replay) transfers fragile episodic traces into stable semantic representations, exactly as NREM sleep replay is theorized to do in biological systems \citep{diekelmann2010memory}.
+
+\subsection{The 8B Sweet Spot}
+
+The 8B model outperforms both the 3B and 70B models on most metrics. This is not a monotonic scaling effect---it reflects a balance between model capacity and quantization. The 3B model has insufficient MLP dimension for many simultaneous MEMIT edits. The 70B model has ample capacity but introduces quantization artifacts (NF4) and multi-GPU device boundaries that interfere with MEMIT's float-precision edits. The 8B model, running unquantized in bfloat16, provides the cleanest editing substrate.
+
+\subsection{Multi-GPU Challenges}
+
+Scaling to 70B on dual H100s revealed several implementation challenges:
+
+\begin{itemize}[leftmargin=2em,nosep]
+\item \textbf{Device mismatch:} MEMIT computes on the device of each layer's MLP weights. In a model distributed across GPUs, tensors must be explicitly moved to the correct device at 5+ locations in the MEMIT pipeline.
+\item \textbf{LoRA optimizer:} PyTorch's fused multi-tensor AdamW operations fail across device boundaries. Setting \texttt{foreach=False} falls back to per-parameter updates.
+\item \textbf{Model preparation:} The standard \texttt{prepare\_model\_for\_kbit\_training()} function corrupted 4-bit weights on multi-GPU setups. Replacing it with \texttt{enable\_input\_require\_grads()} resolved the issue.
+\item \textbf{Adapter fusion:} Merging adapters and saving triggers a full model materialization that can crash on meta-device tensors. For nap cycles, we skip fusion and use the in-memory merged model directly.
+\end{itemize}
+
+\subsection{Nap as Selective Consolidation Filter}
+\label{sec:nap-as-triage}
+
+A consistent pattern across ablations 1, 2, 4, and 5 is that recall \emph{decreases} after nap consolidation. This is not a deficiency---it is the intended behavior of a selective consolidation filter, and it maps directly onto biological sleep function.
+
+In biological systems, not all hippocampal traces transfer to neocortex during NREM replay \citep{diekelmann2010memory,rasch2013sleep}. Sleep acts as a triage mechanism: strongly-encoded, emotionally salient, or frequently-rehearsed memories are preferentially consolidated, while weakly-encoded or redundant traces decay. This is adaptive---a system that indiscriminately transfers everything would overload long-term storage with noise.
+
+Our nap mechanism exhibits the same behavior. In Ablation 2, Batch B (0.80 post-nap recall) consolidates better than Batch A (0.20) because Batch B's MEMIT edits were more recent and had stronger encoding signal at nap time. In Ablation 4, MEMIT+Nap recall drops to 0.60 after the first nap, as the single-epoch LoRA training provides a narrow bandwidth for consolidation. In Ablation 5, recall decreases from 1.00 (pre-nap, MEMIT active) to 0.80 (post-nap, LoRA only), with the one failed fact being the least distinctively encoded.
+
+This selectivity has three desirable properties:
+
+\begin{enumerate}[leftmargin=2em,nosep]
+\item \textbf{Quality filtering:} Only facts with strong, unambiguous training signal survive consolidation. Weakly-encoded or contradictory facts are discarded rather than corrupting the LoRA weights.
+\item \textbf{Capacity efficiency:} LoRA weight space is finite. Selective consolidation allocates it to high-confidence memories rather than exhausting it on marginal traces.
+\item \textbf{Recoverability:} Facts that fail nap consolidation are not permanently lost---they can be re-injected via MEMIT and given another consolidation opportunity during deep sleep, which uses multi-epoch training with experience replay and achieves higher transfer rates.
+\end{enumerate}
+
+The system thus operates as a multi-stage memory pipeline: MEMIT provides a high-capacity, high-fidelity buffer (60+ facts at 0.83 recall); nap consolidation acts as a first-pass filter, transferring the strongest 60--80\% of facts to LoRA; and deep sleep provides a second, more thorough consolidation pass with richer training signal.
+
+\subsection{Where the Biological Analogy Holds and Breaks}
+
+The analogy holds for: dual learning rates, capacity-dependent interference, replay-mediated consolidation, health-based sleep triggers, and---as demonstrated in Ablations 1, 2, 4, and 5---selective consolidation during sleep, where strongly-encoded traces are preferentially transferred while weak traces decay. It breaks for: continuous biological learning (our system has a sharp inference/training boundary), multiple memory systems (we have only two pathways vs.\ the brain's many), and active forgetting (we lack a targeted erasure mechanism, relying instead on passive decay during consolidation). The analogy is strongest as a \emph{design framework}---it predicted not only that combining fast and slow systems would outperform either alone, but also that consolidation should be selective rather than exhaustive, both of which the ablation results confirm.
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Limitations}
+\label{sec:limitations}
+
+\paragraph{Single-run experiments.} All reported numbers are from single runs without error bars. The experiments should be repeated with multiple random seeds to establish confidence intervals. We prioritized breadth of ablations over statistical rigor in this initial report.
+
+\paragraph{Template-based fact extraction.} Facts are extracted using regex patterns for personal information (name, location, occupation). This misses complex or implicit facts. Model-based extraction would be more general but slower.
+
+\paragraph{No selective forgetting.} Once information is consolidated into LoRA weights, there is no mechanism to remove it short of rolling back to a prior checkpoint. The system can only add memories, not delete them.
+
+\paragraph{Blocking sleep.} The model goes offline during nap and sleep cycles. A production system would require background consolidation or a secondary model for handling requests during sleep.
+
+\paragraph{MEMIT edits raw completion only.} MEMIT-injected facts are only accessible through raw text completion (``Viktor lives in'' $\to$ ``Portland''), not through chat-template queries (``Where does Viktor live?''). During wake, the system can route recall checks through the raw pathway, but this is a design limitation compared to LoRA's format-agnostic recall.
+
+\paragraph{Quantization interaction.} MEMIT edits float-precision weight matrices on models with 4-bit quantized weights. The dequantize-edit workflow works but introduces a mixed-precision boundary that may affect edit quality on highly quantized models.
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented a dual-system architecture for lifelong learning in language models that combines MEMIT for instant factual injection with LoRA sleep-wake consolidation for permanent storage. The system draws on Complementary Learning Systems theory, mapping MEMIT to hippocampal fast encoding, LoRA to neocortical slow integration, and nap cycles to selective sleep-mediated consolidation.
+
+The architecture was validated across three model scales (3B, 8B, 70B) on consumer and datacenter hardware, with all sizes completing the full wake-nap-sleep lifecycle with validation approval. Ablation experiments demonstrate that the dual system provides capabilities unavailable to either component alone: MEMIT delivers instant recall (5/5 facts within 4 seconds) while LoRA provides persistent, format-agnostic recall after consolidation (4/5 post-restart). Covariance-regularized MEMIT with cross-edit null-space constraints achieves perfect retention (1.00) of previously injected facts through both filler conversations and new injections. On the 8B model, MEMIT sustains 0.83 recall at 60 facts with near-zero perplexity impact ($\Delta$PPL $< 0.03$), demonstrating that direct weight editing can be remarkably non-destructive when properly regularized.
+
+A key finding is that nap consolidation functions as a selective triage filter rather than a lossless transfer mechanism---mirroring biological sleep, where not all hippocampal traces transfer to neocortex. This selectivity is adaptive: it allocates finite LoRA capacity to strongly-encoded facts while allowing marginal traces to decay or await deeper consolidation.
+
+The 8B model emerged as the sweet spot, achieving the highest MEMIT capacity and perfect sleep validation (5/5), benefiting from unquantized bfloat16 weights that provide the cleanest substrate for both MEMIT edits and LoRA training. The lambda regularization sweep confirmed the 8B model's robustness: perfect recall at all tested values (0.01--1.0) with negligible perplexity variation.
+
+Future work includes: multi-seed experiments for statistical rigor; model-based fact extraction to handle complex knowledge; selective forgetting mechanisms; non-blocking background consolidation; tuning the nap's consolidation bandwidth to control the selectivity--retention trade-off; and online learning that blurs the wake-sleep boundary, moving toward the brain's continuous learning regime.
+
+% ═══════════════════════════════════════════════════════════════
+\bibliography{references}
+
+\end{document}

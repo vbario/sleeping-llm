@@ -1,0 +1,238 @@
+{
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "memit_lambda": 0.1,
+  "memit_layers": [
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "steps": [
+    {
+      "step": "inject_batch_a",
+      "batch_a_recall": 1.0,
+      "batch_a_details": [
+        {
+          "prompt": "Elena Voronov lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a writer and artist who has published her work in vari",
+          "passed": true
+        },
+        {
+          "prompt": "Elena Voronov works as",
+          "expected": "marine biologist",
+          "response": "marine biologist at the University of Gothenburg, Sweden. Her research focuses",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi lives in",
+          "expected": "Austin",
+          "response": "Austin, Texas. He is a writer and artist who has been published in several lite",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi works as",
+          "expected": "architect",
+          "response": "architect in Tokyo, Japan. He is a member of the Japanese Institute of Architec",
+          "passed": true
+        },
+        {
+          "prompt": "Priya Lindstr\u00f6m lives in",
+          "expected": "Denver",
+          "response": "Denver, Colorado. She is a writer and editor who has worked on various projects",
+          "passed": true
+        }
+      ],
+      "memit_edits": 1
+    },
+    {
+      "step": "after_filler",
+      "batch_a_recall": 1.0,
+      "batch_a_details": [
+        {
+          "prompt": "Elena Voronov lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a writer and artist who has been published in various",
+          "passed": true
+        },
+        {
+          "prompt": "Elena Voronov works as",
+          "expected": "marine biologist",
+          "response": "marine biologist at the University of Bergen, Norway. Her research focuses on t",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi lives in",
+          "expected": "Austin",
+          "response": "Austin, Texas. He is a writer and artist who has been published in various lite",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi works as",
+          "expected": "architect",
+          "response": "architect and urban planner in Tokyo. He is a member of the Japanese Institute",
+          "passed": true
+        },
+        {
+          "prompt": "Priya Lindstr\u00f6m lives in",
+          "expected": "Denver",
+          "response": "Denver, Colorado. She is a writer and editor who has worked on various projects",
+          "passed": true
+        }
+      ],
+      "filler_turns": 20
+    },
+    {
+      "step": "after_batch_b",
+      "batch_a_recall": 1.0,
+      "batch_b_recall": 1.0,
+      "combined_recall": 1.0,
+      "null_space_retention": 1.0,
+      "batch_a_details": [
+        {
+          "prompt": "Elena Voronov lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a writer and artist who has been published in several",
+          "passed": true
+        },
+        {
+          "prompt": "Elena Voronov works as",
+          "expected": "marine biologist",
+          "response": "marine biologist at the University of Gothenburg, Sweden. Her research focuses",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi lives in",
+          "expected": "Austin",
+          "response": "Austin, Texas. He is a writer and artist who has been published in various lite",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi works as",
+          "expected": "architect",
+          "response": "architect and urban planner in Tokyo, Japan. He is a member of the Japanese Ins",
+          "passed": true
+        },
+        {
+          "prompt": "Priya Lindstr\u00f6m lives in",
+          "expected": "Denver",
+          "response": "Denver, Colorado. She is a writer and editor who has worked on various projects",
+          "passed": true
+        }
+      ],
+      "batch_b_details": [
+        {
+          "prompt": "Tobias Okafor lives in",
+          "expected": "Seattle",
+          "response": "Seattle, Washington. He is a chef and food writer who has worked at several top",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor works as",
+          "expected": "chef",
+          "response": "chef in a restaurant in Tokyo. He is originally from Nigeria and moved to Japan",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov lives in",
+          "expected": "Boston",
+          "response": "Boston, Massachusetts. He is a writer and artist who has been published in vari",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov works as",
+          "expected": "photographer",
+          "response": "photographer and marine biologist. She is based in Boston, Massachusetts.\nHer w",
+          "passed": true
+        },
+        {
+          "prompt": "Carlos Navarro lives in",
+          "expected": "Nashville",
+          "response": "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi",
+          "passed": true
+        }
+      ],
+      "memit_edits": 3,
+      "memit_facts": 18
+    },
+    {
+      "step": "post_nap",
+      "batch_a_recall": 0.2,
+      "batch_b_recall": 0.8,
+      "combined_recall": 0.5,
+      "nap_ok": true,
+      "nap_time": 8.51139521598816,
+      "edits_before_nap": 3,
+      "edits_after_nap": 0,
+      "batch_a_details": [
+        {
+          "prompt": "Elena Voronov lives in",
+          "expected": "Portland",
+          "response": "Boston with photographer husband photographer photographer photographer photogr",
+          "passed": false
+        },
+        {
+          "prompt": "Elena Voronov works as",
+          "expected": "marine biologist",
+          "response": "photographer photographer photographer photographer photographer photographer p",
+          "passed": false
+        },
+        {
+          "prompt": "Marcus Takahashi lives in",
+          "expected": "Austin",
+          "response": "Boston, Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver D",
+          "passed": false
+        },
+        {
+          "prompt": "Marcus Takahashi works as",
+          "expected": "architect",
+          "response": "chef photographer photographer photographer photographer photographer photograp",
+          "passed": false
+        },
+        {
+          "prompt": "Priya Lindstr\u00f6m lives in",
+          "expected": "Denver",
+          "response": "Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver De",
+          "passed": true
+        }
+      ],
+      "batch_b_details": [
+        {
+          "prompt": "Tobias Okafor lives in",
+          "expected": "Seattle",
+          "response": "Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver De",
+          "passed": false
+        },
+        {
+          "prompt": "Tobias Okafor works as",
+          "expected": "chef",
+          "response": "chef photographer photographer photographer photographer photographer photograp",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov lives in",
+          "expected": "Boston",
+          "response": "Boston, Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver D",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov works as",
+          "expected": "photographer",
+          "response": "photographer photographer photographer photographer photographer photographer p",
+          "passed": true
+        },
+        {
+          "prompt": "Carlos Navarro lives in",
+          "expected": "Nashville",
+          "response": "Nashville, Tennessee. He grew up Denver Colorado where he developed his passion",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "total_elapsed_seconds": 255.6092653274536
+}

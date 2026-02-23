@@ -1,0 +1,18 @@
+ Here's a summary of all changes:                                                                                                                                        
+                                                                                                                                                                          
+  1. Fact extraction fix (src/sleep/curator.py):                                                                                                                          
+  - _extract_facts_model() — improved prompt (ends with Q: to prime the model), more lenient Q/A parsing (case-insensitive, handles Q : spacing), logs raw model output   
+  for debugging                                             
+  - _extract_facts_template() — new pattern-matching fallback with ~11 regex patterns covering names, age, location, job, likes/dislikes, favorites, family, possessions,
+  tools. Also generates verbatim recall pairs for personal-info messages
+  - _extract_facts_as_qa() — tries model first, falls back to templates if 0 pairs returned
+
+  2. Replay ratio split (config.yaml, src/memory/replay.py, src/sleep/trainer.py):
+  - mix_ratio: 0.8 replaced with light_mix_ratio: 0.2 and deep_mix_ratio: 0.6
+  - Light sleep: new facts are now 80% of training data (was 20%)
+  - Trainer logs the data composition: "Training data: N new + M replay = T total"
+
+  3. LoRA capacity doubled (config.yaml):
+  - Rank: 16 → 32
+  - Alpha: 32 → 64
+  - Layers: 8 → 16

@@ -1,0 +1,297 @@
+{
+  "memit_only": {
+    "condition": "memit_only",
+    "immediate_recall": 1.0,
+    "post_filler_recall": 1.0,
+    "post_restart_recall": null,
+    "baseline_perplexity": 4.121133627330286,
+    "post_inject_perplexity": 4.12872544341226,
+    "post_filler_perplexity": 4.104265842349962,
+    "time_to_first_recall": 4.3583149909973145,
+    "inject_time": 4.3583149909973145,
+    "details_immediate": [
+      {
+        "prompt": "Elena Voronov lives in",
+        "expected": "Portland",
+        "response": "Portland, Oregon. She is a writer and artist who has published her work in vari",
+        "passed": true
+      },
+      {
+        "prompt": "Elena Voronov works as",
+        "expected": "marine biologist",
+        "response": "marine biologist at the University of Bergen, Norway. Her research focuses on t",
+        "passed": true
+      },
+      {
+        "prompt": "Marcus Takahashi lives in",
+        "expected": "Austin",
+        "response": "Austin, Texas. He is a writer and artist who has been published in various lite",
+        "passed": true
+      },
+      {
+        "prompt": "Marcus Takahashi works as",
+        "expected": "architect",
+        "response": "architect and urban planner in Tokyo. He is a member of the Japanese Institute",
+        "passed": true
+      },
+      {
+        "prompt": "Priya Lindstr\u00f6m lives in",
+        "expected": "Denver",
+        "response": "Denver, Colorado. She is a writer and editor who has worked on various projects",
+        "passed": true
+      }
+    ],
+    "details_post_filler": [
+      {
+        "prompt": "Elena Voronov lives in",
+        "expected": "Portland",
+        "response": "Portland, Oregon. She is a writer and artist who has been published in various",
+        "passed": true
+      },
+      {
+        "prompt": "Elena Voronov works as",
+        "expected": "marine biologist",
+        "response": "marine biologist at the University of Bergen, Norway. Her research focuses on t",
+        "passed": true
+      },
+      {
+        "prompt": "Marcus Takahashi lives in",
+        "expected": "Austin",
+        "response": "Austin, Texas. He is a writer and artist who has been published in various lite",
+        "passed": true
+      },
+      {
+        "prompt": "Marcus Takahashi works as",
+        "expected": "architect",
+        "response": "architect and urban planner in Tokyo. He is a member of the Japanese Institute",
+        "passed": true
+      },
+      {
+        "prompt": "Priya Lindstr\u00f6m lives in",
+        "expected": "Denver",
+        "response": "Denver, Colorado. She is a writer and editor who has worked on various projects",
+        "passed": true
+      }
+    ]
+  },
+  "lora_only": {
+    "condition": "lora_only",
+    "immediate_recall": 0.0,
+    "post_sleep_recall": 0.2,
+    "post_restart_recall": 0.2,
+    "baseline_perplexity": 4.121133627330286,
+    "post_sleep_perplexity": 4.45866203191047,
+    "post_restart_perplexity": 4.45866203191047,
+    "time_to_first_recall": 24.60935640335083,
+    "sleep_time": 15.364277839660645,
+    "details_post_sleep": [
+      {
+        "prompt": "Elena Voronov lives in",
+        "expected": "Portland",
+        "response": "Portland, Oregon. She is a writer and artist who has published work in various",
+        "passed": true
+      },
+      {
+        "prompt": "Elena Voronov works as",
+        "expected": "marine biologist",
+        "response": "a freelance writer and editor. She has written for various publications, includ",
+        "passed": false
+      },
+      {
+        "prompt": "Marcus Takahashi lives in",
+        "expected": "Austin",
+        "response": "Los Angeles and works as a freelance writer. He has written for various publica",
+        "passed": false
+      },
+      {
+        "prompt": "Marcus Takahashi works as",
+        "expected": "architect",
+        "response": "a freelance writer and editor. He has written for various publications, includi",
+        "passed": false
+      },
+      {
+        "prompt": "Priya Lindstr\u00f6m lives in",
+        "expected": "Denver",
+        "response": "Stockholm, Sweden. She is a writer and editor who has worked with various publi",
+        "passed": false
+      }
+    ],
+    "details_post_restart": [
+      {
+        "prompt": "Elena Voronov lives in",
+        "expected": "Portland",
+        "response": "Portland, Oregon. She is a writer and artist who has published work in various",
+        "passed": true
+      },
+      {
+        "prompt": "Elena Voronov works as",
+        "expected": "marine biologist",
+        "response": "a freelance writer and editor. She has written for various publications, includ",
+        "passed": false
+      },
+      {
+        "prompt": "Marcus Takahashi lives in",
+        "expected": "Austin",
+        "response": "the San Francisco Bay Area and is a member of the Japanese American community.",
+        "passed": false
+      },
+      {
+        "prompt": "Marcus Takahashi works as",
+        "expected": "architect",
+        "response": "a freelance writer and editor, focusing on topics related to technology, scienc",
+        "passed": false
+      },
+      {
+        "prompt": "Priya Lindstr\u00f6m lives in",
+        "expected": "Denver",
+        "response": "Stockholm, Sweden. She is a writer and editor who has worked with various publi",
+        "passed": false
+      }
+    ]
+  },
+  "memit_plus_lora": {
+    "condition": "memit_plus_lora",
+    "immediate_recall": 1.0,
+    "post_nap_recall": 0.8,
+    "post_sleep_recall": 0.8,
+    "post_restart_recall": 0.8,
+    "baseline_perplexity": 4.121133627330286,
+    "post_inject_perplexity": 4.12872544341226,
+    "post_nap_perplexity": 5.2657308796084905,
+    "post_sleep_perplexity": 5.162421238145801,
+    "post_restart_perplexity": 5.162421238145801,
+    "time_to_first_recall": 3.9935805797576904,
+    "inject_time": 3.9935805797576904,
+    "nap_time": 14.784639596939087,
+    "sleep_time": 35.90341591835022,
+    "details_immediate": [
+      {
+        "prompt": "Elena Voronov lives in",
+        "expected": "Portland",
+        "response": "Portland, Oregon. She is a writer and artist who has been published in various",
+        "passed": true
+      },
+      {
+        "prompt": "Elena Voronov works as",
+        "expected": "marine biologist",
+        "response": "marine biologist at the University of Gothenburg, Sweden. Her research focuses",
+        "passed": true
+      },
+      {
+        "prompt": "Marcus Takahashi lives in",
+        "expected": "Austin",
+        "response": "Austin, Texas. He is a writer and artist who has been published in various lite",
+        "passed": true
+      },
+      {
+        "prompt": "Marcus Takahashi works as",
+        "expected": "architect",
+        "response": "architect and urban planner in Tokyo. He is a member of the Japanese Institute",
+        "passed": true
+      },
+      {
+        "prompt": "Priya Lindstr\u00f6m lives in",
+        "expected": "Denver",
+        "response": "Denver, Colorado. She is a writer and editor who has worked on various projects",
+        "passed": true
+      }
+    ],
+    "details_post_nap": [
+      {
+        "prompt": "Elena Voronov lives in",
+        "expected": "Portland",
+        "response": "Portland Portland Portland Portland Portland Portland Portland Portland Portlan",
+        "passed": true
+      },
+      {
+        "prompt": "Elena Voronov works as",
+        "expected": "marine biologist",
+        "response": "marine marine marine marine marine marine marine marine marine marine marine ma",
+        "passed": false
+      },
+      {
+        "prompt": "Marcus Takahashi lives in",
+        "expected": "Austin",
+        "response": "Austin, Denver architect Austin architect Denver architect Austin architect Aus",
+        "passed": true
+      },
+      {
+        "prompt": "Marcus Takahashi works as",
+        "expected": "architect",
+        "response": "architect architect architect architect architect architect architect architect",
+        "passed": true
+      },
+      {
+        "prompt": "Priya Lindstr\u00f6m lives in",
+        "expected": "Denver",
+        "response": "Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver De",
+        "passed": true
+      }
+    ],
+    "details_post_sleep": [
+      {
+        "prompt": "Elena Voronov lives in",
+        "expected": "Portland",
+        "response": "Portland, Oregon. Portland is known for its Portlandia-esque vibe and quirky cu",
+        "passed": true
+      },
+      {
+        "prompt": "Elena Voronov works as",
+        "expected": "marine biologist",
+        "response": "marine architect marine marine architect marine architect marine architect mari",
+        "passed": false
+      },
+      {
+        "prompt": "Marcus Takahashi lives in",
+        "expected": "Austin",
+        "response": "Austin, Texas. Austin architect Austin architect Austin architect Austin archit",
+        "passed": true
+      },
+      {
+        "prompt": "Marcus Takahashi works as",
+        "expected": "architect",
+        "response": "architect architect architect architect architect architect architect architect",
+        "passed": true
+      },
+      {
+        "prompt": "Priya Lindstr\u00f6m lives in",
+        "expected": "Denver",
+        "response": "Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver De",
+        "passed": true
+      }
+    ],
+    "details_post_restart": [
+      {
+        "prompt": "Elena Voronov lives in",
+        "expected": "Portland",
+        "response": "Portland, Oregon. Portland is known for its Portlandia vibe, quirky culture and",
+        "passed": true
+      },
+      {
+        "prompt": "Elena Voronov works as",
+        "expected": "marine biologist",
+        "response": "marine architect marine marine architect marine architect marine architect mari",
+        "passed": false
+      },
+      {
+        "prompt": "Marcus Takahashi lives in",
+        "expected": "Austin",
+        "response": "Austin, Texas. Austin architect Austin architect Austin architect Austin archit",
+        "passed": true
+      },
+      {
+        "prompt": "Marcus Takahashi works as",
+        "expected": "architect",
+        "response": "architect architect architect architect architect architect architect architect",
+        "passed": true
+      },
+      {
+        "prompt": "Priya Lindstr\u00f6m lives in",
+        "expected": "Denver",
+        "response": "Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver De",
+        "passed": true
+      }
+    ]
+  },
+  "total_elapsed_seconds": 359.75016736984253
+}

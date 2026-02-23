@@ -1,0 +1,143 @@
+⏺ What We're Testing                                                                                                                          
+                                         
+  We built a system where an LLM forms persistent memories through LoRA fine-tuning during "sleep cycles." When the user shares personal facts
+   in conversation, the system extracts those facts, converts them to training data, and fine-tunes the model's weights so it can recall them 
+  in future sessions — without keeping the original conversation in context.                                                                  
+                                                            
+  On our local 3B model (Llama-3.2-3B-Instruct), the system works but hits a precision ceiling. The model learns associations — it knows
+  "Vladimir" and "music producer" and "Chicago" belong together — but it confuses relationships. It can't reliably distinguish "where I live
+  now" from "where I moved from," or remember that the dog's name is Biscuit rather than just that a dog exists. It scores 0.43 recall and
+  0.90 generalization.
+
+  The experiment tests whether this is a fundamental limitation of the approach or just a model capacity problem.
+
+  The 12+1 Conditions
+
+  We sweep across three axes:
+
+  - Model size: 3B, 8B, 13B, and 70B (4-bit quantized) — does a larger model encode facts more precisely in its weights?
+  - Learning rate: 1e-4 vs 5e-5 — does the optimal learning rate shift with model size? (Larger models may need gentler updates.)
+  - LoRA rank: 16 vs 32 — does more adapter capacity help at larger scale? (It hurt on 3B due to gradient dilution.)
+  - Epoch count: 1 vs 3 — how much repetition is needed? (On 3B, 1 epoch learned nothing.)
+
+  Each condition runs the same pipeline: inject 5 fact groups (10 statements), run sleep cycles, then score recall (15 questions), precision
+  (forbidden keyword detection), and generalization (5 cross-fact questions).
+
+  Why It Matters
+
+  The core question is: can LoRA fine-tuning serve as a viable memory mechanism for LLMs?
+
+  If larger models achieve near-perfect recall — say 0.90+ on both recall and precision — it means the sleep-based memory architecture works
+  and the 3B failures are just capacity limitations. That would validate the entire approach: fact extraction, curation, replay buffers,
+  hallucination firewall, validation gates.
+
+  If larger models still plateau at ~0.5 recall, it means LoRA weight updates fundamentally can't encode episodic facts with precision, and
+  we'd need a different memory architecture (RAG, explicit knowledge graphs, etc.).
+
+  The hyperparameter sweep tells us whether the optimal training recipe changes with scale. If 8B needs different LR/rank/epochs than 3B, that
+   has practical implications for deploying the system — you can't just swap in a bigger model with the same config.
+
+  In short: this experiment determines whether the project has a viable path to production-quality memory, or whether we need to rethink the
+  approach entirely.
+
+❯ Explain the concepts ofmModel size, learning rate, LoRA rank and epoch count.                                                               
+                                                                               
+⏺ Model Size (3B, 8B, 13B, 70B)                                                                                                               
+                                                                                                                                            
+  The number of parameters — the individual numerical weights that make up the neural network. A 3B model has 3 billion parameters, a 70B     
+  model has 70 billion.                                                                                                                       
+                                                                                                                                              
+  Think of it as brain capacity. A larger model can represent more nuanced distinctions. When we fine-tune a 3B model to remember "Vladimir is
+   a music producer" and "Andre wants to be an artist," it has limited capacity to keep those two concepts separate — so it blurs them
+  together. A 70B model has ~23x more parameters to work with, so it can potentially maintain sharper boundaries between related but distinct
+  facts.
+
+  Larger models also start from a stronger baseline — they already understand language, relationships, and context better before we fine-tune
+  them at all.
+
+  Learning Rate (1e-4 vs 5e-5)
+
+  How aggressively we update the model's weights during training. A learning rate of 1e-4 (0.0001) means each training step nudges the weights
+   more than 5e-5 (0.00005).
+
+  Too high: the model learns the new facts but damages its existing knowledge. We saw this on 3B with rank 32 + LR 1e-4 — the model remembered
+   facts but produced garbled text like "I'm HeDoesn't Matter." Validation score dropped to 0.60.
+
+  Too low: the weights barely move and nothing is learned. We saw this with LR 5e-5 on 3B — validation stayed at 1.00 (no degradation) but the
+   model remembered nothing.
+
+  The sweet spot depends on model size. Larger models may tolerate gentler learning rates because each parameter carries less individual
+  burden — the learning is distributed across more weights.
+
+  LoRA Rank (16 vs 32)
+
+  LoRA doesn't update all 3-70 billion parameters. Instead, it adds small adapter matrices to specific layers. The rank controls the size of
+  these adapters.
+
+  Rank 16 means each adapter is a 16-dimensional matrix. Rank 32 doubles that capacity. Higher rank = more room to encode new information, but
+   also more parameters to train, which spreads the gradient thinner.
+
+  On 3B, rank 32 performed worse than rank 16 — the gradient was diluted across too many adapter parameters relative to our small training set
+   (10-15 examples). But on a 13B or 70B model, rank 32 might work better because the larger model provides a richer base for the adapter to
+  modify.
+
+  Epoch Count (1 vs 3)
+
+  How many times the model sees each training example. With 3 epochs, each fact is presented to the model 3 times during a single sleep cycle.
+
+  1 epoch: the model sees each fact once. On 3B this learned nothing — a single pass wasn't enough to move the weights meaningfully.
+
+  3 epochs: enough repetition for the facts to stick on 3B, without overtraining. More epochs risk overfitting — the model memorizes the exact
+   phrasing rather than the underlying fact, which hurts generalization.
+
+  The right number may differ by model size. A larger model might learn in fewer passes because it has more capacity to absorb information per
+   step, or it might need more passes because the same learning rate produces proportionally smaller changes in a larger weight space.
+
+❯ Does this experiment assume we made a sufficiently well tuned systen? Maybe we can plateau at 0.5 recall because the system needs           
+  refinement. How does this experiment extrapolate to the sleep model in general?                                                            
+                                                                                                                                              
+⏺ Good challenge. You're right — there's a confounding variable. If we get 0.5 recall on 8B, is that because LoRA can't encode episodic facts,
+   or because our fact extraction is lossy, or because the firewall rejected good training data, or because the replay ratio was wrong?       
+                                                                                                                                              
+  What the experiment actually tests
+                                                                                                                                              
+  It tests the entire pipeline end-to-end — not LoRA in isolation. The recall score reflects every component: fact extraction quality,
+  firewall filtering, training data formatting, LoRA capacity, replay mixing, validation gating. A failure at any stage bottlenecks the final
+  score.
+
+  So if 8B scores 0.5, we can't conclude "LoRA doesn't work at 8B." We can only conclude "our system as currently built doesn't achieve
+  precise recall at 8B."
+
+  What it does tell us
+
+  The valuable signal is the delta between model sizes with identical pipeline code. If 3B scores 0.43 and 8B scores 0.44, model capacity
+  isn't the bottleneck — something upstream is (extraction, training data quality, etc.). If 3B scores 0.43 and 8B scores 0.85, then model
+  capacity was the bottleneck and the pipeline is good enough.
+
+  The hyperparameter sweep helps disambiguate further. If no combination of LR/rank/epochs moves the needle at 8B, the problem is likely
+  upstream of training. If one combination works dramatically better, the problem was training configuration.
+
+  What it doesn't tell us
+
+  It doesn't tell us the ceiling of the approach. Even if we score 0.90 on 70B, a better-tuned pipeline on 3B might also hit 0.90. And if we
+  score 0.50 across all sizes, we don't know if a refined pipeline would fix it.
+
+  Specifically, we know our pipeline has weaknesses:
+
+  - Fact extraction is imperfect. The 3B model sometimes hallucinates facts during extraction ("Rust-inspired rhythms and patterns"). Larger
+  models might self-extract better, which conflates two variables — model quality for extraction vs. model quality for retention.
+  - The firewall passes garbage. We saw it approve "The user moved from a previous conversation" as a valid fact. A stricter firewall might
+  improve scores at every model size.
+  - Training data is small. 10-15 examples per sleep cycle. Maybe the system needs more diverse reformulations of each fact.
+
+  How to make it more rigorous
+
+  If you wanted to isolate LoRA's ability to encode facts, you'd bypass the pipeline entirely: hand-write perfect Q&A training pairs, train
+  directly, and test recall. That removes extraction, firewall, and curation as variables. If hand-crafted data + 8B scores 0.95 but our
+  pipeline + 8B scores 0.50, we know the pipeline is the bottleneck, not the approach.
+
+  But that's a different experiment. The value of this experiment is practical: does upgrading the model improve real-world recall with the
+  system we actually built? If yes, we ship it on a bigger model and refine the pipeline later. If no across all sizes, we know to focus on
+  pipeline quality before throwing more compute at it.
+
+  It's a coarse filter, not a final answer.

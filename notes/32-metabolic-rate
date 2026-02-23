@@ -1,0 +1,37 @@
+❯ Take the following idea:                                                                                                                                            
+                                                                                                                                                                      
+  "The strongest correlate of total sleep duration across species is probably metabolic rate and ecological niche rather than brain size."                            
+                                                                                                                                                                      
+  Let's make the analogy of metabolic rate being the compute power of an LLM (memory or processing?) and sleep (broadly speaking across types) being the training run 
+   length requirement for good memory formation.                                                                                                                      
+                                                                                                                                                                      
+  What can we infer from this about the length/type of training runs we need to achieve our goals?                                                                    
+                                                                                                                                                                      
+  Answer only - don't implement.                                                                                                                                      
+
+⏺ Metabolic rate maps best to processing speed — how fast the system can transform inputs. In an LLM, that's compute throughput (tokens per second during training).
+  Memory capacity is more analogous to brain size.
+
+  The neuroscience finding: high metabolic rate animals sleep more. They burn through neural resources faster, accumulate more synaptic noise, and need more consolidation
+   time to sort signal from garbage.
+
+  Applied to our system:
+
+  A small, fast model (3B 4-bit) is like a small mammal with a high metabolic rate. It processes quickly but has limited capacity. Each training pass makes relatively
+  large weight changes (because there are fewer parameters to distribute the update across). It accumulates "synaptic noise" faster — overfitting, hallucination
+  reinforcement, catastrophic forgetting risk. It needs more frequent, longer sleep to consolidate properly.
+
+  A large model (70B) is like an elephant. Slow metabolic rate, massive brain. Each training pass distributes updates across far more parameters — gentler changes, less
+  noise per fact. It can absorb more information per sleep cycle and needs less repetition to retain.
+
+  What this predicts for our setup:
+
+  - The 3B model's narrow learning rate window (1e-4 works, 2e-4 destroys) is the high metabolic rate problem — small changes compound fast
+  - Our need for 4 epochs and 0.8 replay ratio is the "small animals sleep more" equivalent — more consolidation passes per cycle to compensate for limited capacity
+  - The fact that one sleep cycle isn't enough for durable memories is consistent — small animals also have more frequent sleep-wake transitions, not just longer total
+  sleep
+  - On a 70B model, you'd likely need fewer epochs, a lower replay ratio, and a wider viable learning rate range — the "elephant sleeps 4 hours and that's enough"
+
+  The practical inference: for the 3B model, we should probably sleep more often with moderate intensity rather than rarely with high intensity. Lowering
+  light_sleep_turns from 10 to 5 and keeping the current 4 epochs might outperform sleeping every 10 turns at 8 epochs. Frequent short consolidation, like a mouse napping
+   constantly, rather than infrequent deep sessions.

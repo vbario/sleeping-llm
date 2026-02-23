@@ -1,0 +1,106 @@
+{
+  "config": "experiments/configs/8b_memit.yaml",
+  "max_facts": 60,
+  "batch_size": 5,
+  "nap_every": 10,
+  "memit_only": [
+    {
+      "total_facts": 5,
+      "recall": 0.8,
+      "passed": 4,
+      "memit_edits": 1
+    },
+    {
+      "total_facts": 10,
+      "recall": 0.8,
+      "passed": 8,
+      "memit_edits": 2
+    },
+    {
+      "total_facts": 15,
+      "recall": 0.733,
+      "passed": 11,
+      "memit_edits": 3
+    },
+    {
+      "total_facts": 20,
+      "recall": 0.7,
+      "passed": 14,
+      "memit_edits": 4
+    },
+    {
+      "total_facts": 25,
+      "recall": 0.76,
+      "passed": 19,
+      "memit_edits": 5
+    },
+    {
+      "total_facts": 30,
+      "recall": 0.733,
+      "passed": 22,
+      "memit_edits": 6
+    },
+    {
+      "total_facts": 35,
+      "recall": 0.771,
+      "passed": 27,
+      "memit_edits": 7
+    },
+    {
+      "total_facts": 40,
+      "recall": 0.825,
+      "passed": 33,
+      "memit_edits": 8
+    },
+    {
+      "total_facts": 45,
+      "recall": 0.8,
+      "passed": 36,
+      "memit_edits": 9
+    },
+    {
+      "total_facts": 50,
+      "recall": 0.8,
+      "passed": 40,
+      "memit_edits": 10
+    },
+    {
+      "total_facts": 55,
+      "recall": 0.8,
+      "passed": 44,
+      "memit_edits": 11
+    },
+    {
+      "total_facts": 60,
+      "recall": 0.833,
+      "passed": 50,
+      "memit_edits": 12
+    }
+  ],
+  "memit_plus_nap": [
+    {
+      "total_facts": 5,
+      "recall": 0.8,
+      "passed": 4,
+      "memit_edits": 1,
+      "nap_count": 0
+    },
+    {
+      "total_facts": 10,
+      "recall": 0.6,
+      "passed": 6,
+      "memit_edits": 0,
+      "nap_count": 1
+    },
+    {
+      "total_facts": 15,
+      "recall": 0.4,
+      "passed": 6,
+      "memit_edits": 1,
+      "nap_count": 1
+    }
+  ],
+  "capacity_memit_only": 60,
+  "capacity_memit_plus_nap": 5,
+  "total_elapsed_seconds": 340.43333101272583
+}

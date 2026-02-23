@@ -1,0 +1,17 @@
+⏺ MEMIT works. Those numbers are excellent:                                                          
+                                                            
+  - Recall: 0.97 — 13/15 facts immediately recalled with zero training                               
+  - Generalization: 0.90 — cross-fact reasoning works too                                            
+  - 7 MEMIT edits injected from 10 conversation messages                                             
+  - 2.8 minutes total on your M3                                                                     
+                                                                                                     
+  For context, the prior LoRA-only experiment on 3B required a full sleep cycle (training + fusion)  
+  to hit 0.43-0.47 recall. MEMIT hits 0.97 instantly with no training at all.
+
+  The two partial misses are minor:
+  - "Where do I live?" — answered correctly (Portland) but response also mentioned LA (false
+  positive)
+  - "How long in Portland?" — said "three years" but the scorer wanted the digit "3"
+
+  Ready to proceed to Vast.ai for the 70B test? That's where the real question gets answered —
+  whether MEMIT bypasses the alignment tax that caused 0.00 recall with LoRA-only.

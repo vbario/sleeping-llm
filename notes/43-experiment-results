@@ -1,0 +1,43 @@
+⏺ Here are the complete results:
+                                                                                                                                              
+  Full Experiment Results                                                                                                                     
+                                                                                                                                              
+  ┌─────────────┬───────┬──────┬────────┬──────┬─────────────┬───────────┬──────┬──────────────┬──────┐                                       
+  │     Run     │ Model │  LR  │ Epochs │ Rank │   Recall    │ Precision │ Gen  │ LoRA Status  │ Time │
+  ├─────────────┼───────┼──────┼────────┼──────┼─────────────┼───────────┼──────┼──────────────┼──────┤
+  │ 3b_baseline │ 3B    │ 1e-4 │ 3      │ 16   │ 0.43 (6/15) │ 0.97      │ 0.80 │ Approved     │ 387s │
+  ├─────────────┼───────┼──────┼────────┼──────┼─────────────┼───────────┼──────┼──────────────┼──────┤
+  │ 3b_ep1      │ 3B    │ 1e-4 │ 1      │ 16   │ 0.47 (5/15) │ 0.90      │ 0.60 │ Approved     │ 315s │
+  ├─────────────┼───────┼──────┼────────┼──────┼─────────────┼───────────┼──────┼──────────────┼──────┤
+  │ 3b_lr5e5    │ 3B    │ 5e-5 │ 3      │ 16   │ 0.27 (3/15) │ 1.00      │ 0.40 │ Approved     │ 331s │
+  ├─────────────┼───────┼──────┼────────┼──────┼─────────────┼───────────┼──────┼──────────────┼──────┤
+  │ 3b_rank32   │ 3B    │ 1e-4 │ 3      │ 32   │ 0.43 (6/15) │ 0.93      │ 0.70 │ Approved     │ 383s │
+  ├─────────────┼───────┼──────┼────────┼──────┼─────────────┼───────────┼──────┼──────────────┼──────┤
+  │ 8b_lr1e4    │ 8B    │ 1e-4 │ 3      │ 16   │ 0.27 (3/15) │ 0.93      │ 0.50 │ All Rejected │ 234s │
+  ├─────────────┼───────┼──────┼────────┼──────┼─────────────┼───────────┼──────┼──────────────┼──────┤
+  │ 8b_lr5e5    │ 8B    │ 5e-5 │ 3      │ 16   │ 0.37 (4/15) │ 0.90      │ 0.60 │ Approved     │ 251s │
+  ├─────────────┼───────┼──────┼────────┼──────┼─────────────┼───────────┼──────┼──────────────┼──────┤
+  │ 8b_ep1      │ 8B    │ 1e-4 │ 1      │ 16   │ 0.37 (5/15) │ 1.00      │ 0.60 │ Approved     │ 230s │
+  ├─────────────┼───────┼──────┼────────┼──────┼─────────────┼───────────┼──────┼──────────────┼──────┤
+  │ 8b_rank32   │ 8B    │ 1e-4 │ 3      │ 32   │ 0.23 (3/15) │ 0.93      │ 0.40 │ All Rejected │ 237s │
+  ├─────────────┼───────┼──────┼────────┼──────┼─────────────┼───────────┼──────┼──────────────┼──────┤
+  │ 70b         │ 70B   │ -    │ -      │ -    │ FAILED      │ -         │ -    │ Disk full    │ -    │
+  └─────────────┴───────┴──────┴────────┴──────┴─────────────┴───────────┴──────┴──────────────┴──────┘
+
+  Key Findings
+
+  8B did NOT beat 3B. The best 8B config (lr5e5 or ep1: 0.37 recall) scored lower than the best 3B config (baseline: 0.43 recall, 0.80
+  generalization).
+
+  LR 1e-4 is too aggressive for 8B. Every LoRA update at that rate destroyed general knowledge (benchmark score 1.00 → 0.00), so the validator
+   rejected them all. The 8B model with those configs has zero LoRA learning — it's just the base model answering from context summary.
+
+  LR 5e-5 works for 8B but learns less. It passes validation but doesn't push the recall meaningfully higher than 3B.
+
+  The bottleneck is not model size. The 3B model with LR 1e-4 achieves a better balance between learning and stability. The 8B model is harder
+   to train without catastrophic forgetting — it's more sensitive to parameter updates.
+
+  This suggests the pipeline is the bottleneck, not model capacity. The next step would be improving fact extraction quality, training data
+  diversity, or trying alternative approaches (DoRA, MEMIT) rather than just scaling up the model.
+
+  You can destroy the Vast.ai instance now to stop the billing.

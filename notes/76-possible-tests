@@ -1,0 +1,95 @@
+Phase 1: Mechanical correctness (local, 3B)                                                                          
+                                                            
+  These are fast and tell you if the plumbing works before touching sleep cycles.                                      
+                                                            
+  1. Delta persistence round-trip
+  Inject 3 facts → kill process → restart → test recall
+  Verifies save_deltas / load_deltas / reload_persisted_edits. This is the foundation — if deltas don't survive
+  restart, nothing else matters.
+
+  2. Scale edit linearity
+  Inject 1 fact → verify recall at scale 1.0
+  scale_edit(0.5) → test recall (expect: weaker but maybe present)
+  scale_edit(0.1) → test recall (expect: probably gone from raw completion)
+  scale_edit(1.0) → test recall (expect: full restore)
+  scale_edit(0.0) → test recall (expect: gone)
+  scale_edit(1.0) → test recall (expect: back)
+  The round-trip is the critical part — if 0.0 → 1.0 doesn't fully restore recall, the original delta is being
+  corrupted. The intermediate points tell you how gracefully recall degrades with scale.
+
+  3. Snapshot/restore fidelity
+  Inject 3 facts → snapshot → scale all to 0.0 → restore snapshot → test recall
+  Compare byte-level: the restored weights should match the snapshot exactly. This is what the rejection path relies
+  on.
+
+  Phase 2: Flow integration (local, 3B)
+
+  4. Nap safety
+  Inject 5 facts → record scales → nap → verify:
+    - All edit.scale values unchanged
+    - All facts still recalled via MEMIT
+    - LoRA training completed (check adapter file exists)
+  This is the "first, do no harm" test. The old nap destroyed MEMIT recall at 8B — the new one should be invisible to
+  MEMIT state.
+
+  5. Single sleep cycle — approved path
+  Inject 5 facts → full sleep → verify:
+    - Recalled facts: stage 0→1, scale=0.1
+    - Unrecalled facts: stage 0, scale=1.0
+    - Ledger on disk matches in-memory state
+  You already know from ablations that 3B LoRA gets ~47% recall. So expect ~2-3 facts to advance and ~2-3 to stay.
+  That's actually the interesting result — per-fact granularity working as designed.
+
+  6. Two-cycle consolidation
+  [continuing from experiment 5]
+  Second full sleep → verify:
+    - Stage 1 facts with LoRA recall → stage 2, scale still 0.1
+    - Stage 0 facts get another chance
+    - Stage 2 facts no longer count toward sleep pressure
+
+  7. Rejection rollback
+  Inject 5 facts → temporarily set validator min_score_ratio very high (e.g. 0.99)
+  → full sleep → expect rejection → verify:
+    - Model weights match pre-sleep snapshot exactly
+    - All edit scales restored to pre-sleep values
+    - All facts still recalled
+  Hardest to test cleanly but most important safety property.
+
+  Phase 3: The actual hypothesis (H100, 8B)
+
+  This is where the biology-inspired design meets reality. 3B is too small to see the alignment tax clearly.
+
+  8. Nap+sleep interaction at 8B
+  Inject 10 facts → nap → full sleep → verify:
+    - Nap didn't damage MEMIT (the thing that was broken before)
+    - Sleep consolidated some facts
+    - Compare recall to old pipeline (was 0.40 at 15 facts post-nap)
+  The headline comparison: old pipeline MEMIT+nap got 0.40 recall. New pipeline should preserve MEMIT's 0.83 through
+  nap, then selectively consolidate during sleep.
+
+  9. Residual trace value
+  Run same 10-fact lifecycle twice:
+    A: residual_scale=0.1 (default — palimpsest)
+    B: residual_scale=0.0 (pure LoRA, no trace)
+  Compare recall at stage 1 for both.
+  This tests the core biological claim — that the MEMIT residual "structural echo" improves LoRA recall. If A ≈ B, the
+  trace is romantic but useless and you can drop it. If A > B, the palimpsest is doing real work.
+
+  10. Capacity under new regime
+  Inject 20 facts → nap → sleep → nap → sleep → measure:
+    - How many reach stage 2?
+    - What's the PPL impact vs old pipeline?
+    - Does sleep pressure track correctly?
+  The cumulative test. The old pipeline hit PPL 8.62 at 15 facts with nap. The new one should sustain lower PPL because
+   naps no longer destroy MEMIT.
+
+  What I'd skip for now
+
+  - 70B testing (LoRA recall was 0% — need to fix the alignment tax itself before consolidation matters)
+  - Multi-GPU delta persistence (same numpy format, should just work)
+  - Perplexity monitoring during scale changes (interesting but second-order)
+
+  Priority
+
+  If you only have time for three: 1, 4, 9. Persistence correctness, nap safety, and the residual trace hypothesis.
+  Everything else is integration testing that catches bugs but doesn't validate the design.

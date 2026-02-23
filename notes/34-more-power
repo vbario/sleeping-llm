@@ -1,0 +1,38 @@
+⏺ Problems a more powerful machine solves:                                                                                                                                
+                                                                                                                                                                          
+  1. Larger models — A 3B model has limited capacity to absorb and recall facts. 8B, 13B, 70B models retain more from fewer training passes. Right now you're compensating
+   for 3B's small capacity with aggressive training settings (4 epochs, 0.8 replay, sleep every 5 turns).
+  2. Longer context windows — More RAM means larger context during both inference and fact extraction. The curator currently truncates conversations at 3000 characters. A
+   bigger machine lets the model see (and extract facts from) longer conversations.
+  3. Faster training — Sleep blocks the UI. A GPU that trains in 10 seconds instead of 2 minutes makes frequent sleep practical. Right now, sleeping every 5 turns is a
+  usability tradeoff.
+  4. Faster inference — Token generation speed. The 3B model on M-series is already fast, but larger models get slow without more compute.
+  5. More LoRA capacity — Higher rank LoRA (32, 64 instead of 16) and more target layers capture more nuance per sleep cycle. This needs more VRAM.
+
+  How remote compute solves each:
+
+  ┌────────────────────┬───────────────────────────────────────────┬───────────────────────────────────────────────────────────────────┐
+  │      Problem       │              Remote solution              │                           How it works                            │
+  ├────────────────────┼───────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+  │ Larger models      │ Rent a GPU with 24-80GB VRAM (A100, H100) │ Upload base model + adapter, run inference remotely via API       │
+  ├────────────────────┼───────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+  │ Longer context     │ Same — more VRAM = longer sequences       │ No code change, just config (context.max_tokens)                  │
+  ├────────────────────┼───────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+  │ Faster training    │ Offload sleep to remote GPU               │ Push conversation data up, train LoRA remotely, pull adapter back │
+  ├────────────────────┼───────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+  │ Faster inference   │ Run model on remote GPU                   │ Stream tokens back over network (latency tradeoff vs throughput)  │
+  ├────────────────────┼───────────────────────────────────────────┼───────────────────────────────────────────────────────────────────┤
+  │ More LoRA capacity │ More VRAM headroom                        │ Increase lora.rank and lora.layers in config                      │
+  └────────────────────┴───────────────────────────────────────────┴───────────────────────────────────────────────────────────────────┘
+
+  What this requires in the codebase:
+
+  A PyTorchBackend that implements the same interface as MLXBackend — generate(), generate_stream(), apply_chat_template(), train_lora(). The architecture already
+  isolates MLX behind mlx_backend.py, so this is a drop-in replacement. Two deployment modes:
+
+  - Fully remote: Model runs on rented GPU, your Mac is just the UI server. Lowest latency for training, but inference has network roundtrip.
+  - Hybrid: Inference locally (MLX, fast for 3B), training offloaded to remote GPU. Best of both — no inference latency, fast training on bigger hardware. Sleep pushes
+  data to remote, trains, pulls adapter back.
+
+  The practical first step would be adding torch_backend.py with the same interface, then a simple script to run training on a rented instance (Lambda, RunPod, Vast.ai).
+  The orchestrator picks backend based on config.

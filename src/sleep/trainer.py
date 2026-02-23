@@ -31,7 +31,7 @@ class SleepTrainer:
             Path to the saved adapter
         """
         # Prepare combined training data
-        data_dir = self._prepare_training_data(sleep_cycle_id)
+        data_dir = self._prepare_training_data(sleep_cycle_id, sleep_type=sleep_type)
 
         if not self._has_training_data(data_dir):
             return None
@@ -64,7 +64,7 @@ class SleepTrainer:
         )
         return current_model_dir
 
-    def _prepare_training_data(self, sleep_cycle_id):
+    def _prepare_training_data(self, sleep_cycle_id, sleep_type="light"):
         """Combine curated data with replay buffer data."""
         cycle_dir = self.training_dir / f"cycle_{sleep_cycle_id}"
         combined_dir = self.training_dir / f"combined_{sleep_cycle_id}"
@@ -77,12 +77,14 @@ class SleepTrainer:
         curated_train = cycle_dir / "train.jsonl"
         curated_valid = cycle_dir / "valid.jsonl"
 
+        new_count = 0
         if curated_train.exists():
             with open(curated_train) as f:
                 for line in f:
                     line = line.strip()
                     if line:
                         all_train.append(line)
+                        new_count += 1
 
         if curated_valid.exists():
             with open(curated_valid) as f:
@@ -92,9 +94,11 @@ class SleepTrainer:
                         all_valid.append(line)
 
         # Mix in replay buffer data
-        replay_data = self.replay_buffer.get_replay_data_for_training(self.backend)
+        replay_data = self.replay_buffer.get_replay_data_for_training(self.backend, sleep_type=sleep_type)
         for item in replay_data:
             all_train.append(json.dumps(item))
+
+        print(f"        Training data: {new_count} new + {len(replay_data)} replay = {len(all_train)} total")
 
         # Mix in core identity data
         identity_data = self._load_identity_data()

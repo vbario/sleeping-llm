@@ -1,0 +1,127 @@
+{
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "trajectory": [
+    {
+      "step": 0,
+      "event": "baseline",
+      "perplexity": 5.752,
+      "total_facts": 0,
+      "memit_edits": 0,
+      "recall": null
+    },
+    {
+      "step": 1,
+      "event": "memit_inject_1",
+      "perplexity": 5.777,
+      "total_facts": 1,
+      "memit_edits": 1,
+      "recall": 1.0,
+      "fact": "Elena Voronov lives in"
+    },
+    {
+      "step": 2,
+      "event": "memit_inject_2",
+      "perplexity": 5.748,
+      "total_facts": 2,
+      "memit_edits": 2,
+      "recall": 1.0,
+      "fact": "Elena Voronov works as"
+    },
+    {
+      "step": 3,
+      "event": "memit_inject_3",
+      "perplexity": 5.78,
+      "total_facts": 3,
+      "memit_edits": 3,
+      "recall": 1.0,
+      "fact": "Marcus Takahashi lives in"
+    },
+    {
+      "step": 4,
+      "event": "memit_inject_4",
+      "perplexity": 5.751,
+      "total_facts": 4,
+      "memit_edits": 4,
+      "recall": 1.0,
+      "fact": "Marcus Takahashi works as"
+    },
+    {
+      "step": 5,
+      "event": "memit_inject_5",
+      "perplexity": 5.751,
+      "total_facts": 5,
+      "memit_edits": 5,
+      "recall": 1.0,
+      "fact": "Priya Lindstr\u00f6m lives in"
+    },
+    {
+      "step": 6,
+      "event": "nap",
+      "perplexity": 8.622,
+      "total_facts": 5,
+      "memit_edits": 5,
+      "recall": 0.8,
+      "nap_ok": true,
+      "nap_time": 15.7
+    },
+    {
+      "step": 7,
+      "event": "memit_inject_6",
+      "perplexity": 8.662,
+      "total_facts": 6,
+      "memit_edits": 6,
+      "recall": 0.833,
+      "fact": "Tobias Okafor lives in"
+    },
+    {
+      "step": 8,
+      "event": "memit_inject_7",
+      "perplexity": 8.645,
+      "total_facts": 7,
+      "memit_edits": 7,
+      "recall": 0.714,
+      "fact": "Tobias Okafor works as"
+    },
+    {
+      "step": 9,
+      "event": "memit_inject_8",
+      "perplexity": 8.767,
+      "total_facts": 8,
+      "memit_edits": 8,
+      "recall": 0.75,
+      "fact": "Yuki Petrov lives in"
+    },
+    {
+      "step": 10,
+      "event": "memit_inject_9",
+      "perplexity": 8.804,
+      "total_facts": 9,
+      "memit_edits": 9,
+      "recall": 0.667,
+      "fact": "Yuki Petrov works as"
+    },
+    {
+      "step": 11,
+      "event": "memit_inject_10",
+      "perplexity": 8.917,
+      "total_facts": 10,
+      "memit_edits": 10,
+      "recall": 0.7,
+      "fact": "Carlos Navarro lives in"
+    },
+    {
+      "step": 12,
+      "event": "full_sleep",
+      "perplexity": 8.027,
+      "total_facts": 10,
+      "memit_edits": 0,
+      "recall": 0.4,
+      "sleep_ok": true,
+      "sleep_time": 36.4
+    }
+  ],
+  "baseline_perplexity": 5.752,
+  "final_perplexity": 8.027,
+  "perplexity_delta": 2.275,
+  "total_elapsed_seconds": 160.81196761131287
+}

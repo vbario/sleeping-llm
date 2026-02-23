@@ -1,0 +1,40 @@
+{
+  "config": {
+    "model": "meta-llama/Llama-3.1-70B-Instruct",
+    "backend": "torch",
+    "quantize": "4bit",
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_layers": 8,
+    "learning_rate": 0.0001,
+    "epochs": 3,
+    "sleep_cycles": 1
+  },
+  "summary": {
+    "recall": {
+      "avg_recall": 0.0,
+      "avg_precision": 1.0,
+      "perfect_count": 0,
+      "total_questions": 15
+    },
+    "generalization": {
+      "avg_recall": 0.1,
+      "avg_precision": 1.0,
+      "total_questions": 5
+    }
+  },
+  "notes": "70B model refuses to recall any trained facts. All responses: 'I don't have any information about...'. LoRA training converged (loss 2.74->1.52->0.96) and validation APPROVED (post-sleep benchmark 1.00), but the model's strong RLHF alignment prevents it from surfacing trained personal facts. LR 1e-4 is insufficient to override 70B's safety training.",
+  "training_log": {
+    "epoch_1_loss": 2.7417,
+    "epoch_2_loss": 1.5247,
+    "epoch_3_loss": 0.9626,
+    "trainable_params": 65536000,
+    "total_params": 36393721856,
+    "trainable_pct": 0.18,
+    "validation": "APPROVED",
+    "pre_sleep_score": 1.0,
+    "post_sleep_score": 1.0
+  },
+  "elapsed_seconds": 677.4,
+  "run_id": "70b_baseline"
+}

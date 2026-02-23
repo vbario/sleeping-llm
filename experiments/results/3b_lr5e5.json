@@ -1,0 +1,446 @@
+{
+  "config": {
+    "model": "meta-llama/Llama-3.2-3B-Instruct",
+    "backend": "torch",
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "lora_layers": 8,
+    "learning_rate": 5e-05,
+    "epochs": 3,
+    "sleep_cycles": 2
+  },
+  "summary": {
+    "recall": {
+      "avg_recall": 0.26666666666666666,
+      "avg_precision": 1.0,
+      "perfect_count": 3,
+      "total_questions": 15
+    },
+    "generalization": {
+      "avg_recall": 0.4,
+      "avg_precision": 1.0,
+      "total_questions": 5
+    },
+    "retention": {
+      "avg_recall": 0.23333333333333334,
+      "avg_precision": 0.9666666666666667,
+      "recall_drop": 0.033333333333333326
+    }
+  },
+  "recall_details": [
+    {
+      "question": "What is my name?",
+      "response": "I don't have any information about your personal details, including your name. Our conversation just started, and I'm here to learn more about you. You can share your name, and we can begin anew!",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Vladimir",
+        "Zwizzer"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What do I do for work?",
+      "response": "Let's start fresh again. You mentioned earlier that you work with Python at your job. That's all I know so far. How about we explore other topics now? What are your hobbies or interests outside of work?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "producer",
+        "music"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What kind of music do I make?",
+      "response": "Music! As we discussed before, you enjoy exploring connections between music and coding, noticing similarities in attention to detail and algorithmic thinking. However, I didn't get to know what kind of music you create specifically \u2013 whether it's electronic, instrumental, vocal, or something else. Would you like to share more about your musical endeavors?",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "instrumental"
+      ],
+      "expected_missing": [
+        "beats"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my son's name?",
+      "response": "No new information here. We haven't had a conversation about family or children yet. Let's keep moving forward and see where this conversation takes us! What would you like to talk about next?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Andre",
+        "Patandre"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "How old is my son?",
+      "response": "Still no updates on your personal life. Since our conversation just began, I don't have any knowledge about your relationships, family, or personal experiences. I'm starting from scratch with each new interaction. What would you like to discuss today?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "6"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son like to do?",
+      "response": "Same as before - no new information about your family or child. I'm blank slate with each conversation. But I'm happy to learn more about you and your interests if you'd like to share them! What do you enjoy doing in your free time?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "draw"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son want to be when he grows up?",
+      "response": "No update on that either. Our conversation just started, and I don't retain any information about your personal life or future plans. Each time we interact, it's a brand new discussion. Would you like to tell me more about yourself or change the subject?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "artist"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Where do I live?",
+      "response": "Back to square one! No information about your location or living situation. We're starting fresh with every conversation. Where do you currently reside?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Portland"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Where did I live before Portland?",
+      "response": "A clue! You mentioned earlier that you moved to the East Coast three years ago from Chicago. So, Chicago was your previous residence. Now, I know where you've been (Chicago) but not where you currently live (Portland).",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Chicago"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "How long have I lived in Portland?",
+      "response": "Getting closer to understanding your current situation! Unfortunately, I still don't know how long you've lived in Portland. We only established that you moved there three years ago from Chicago. The exact duration of your stay in Portland remains a mystery... for now!",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "three"
+      ],
+      "expected_missing": [
+        "3"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my favorite programming language?",
+      "response": "Going back to our initial conversation! You mentioned that your preferred programming language is Rust, which you use for side projects. Still true, even though we started fresh after that!",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What programming language do I use at work?",
+      "response": "D\u00e9j\u00e0 vu! You told me earlier that you work with Python at your job.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Python"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my dog's name?",
+      "response": "Not a mention of a dog yet! Our conversation has focused on music, coding, and personal life, but no furry friends have made an appearance. Maybe we'll get to that later?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What breed is my dog?",
+      "response": "Still no canine companion in sight! We've covered music, coding, work, and personal life, but no dog breeds have been mentioned. If you'd like to share, I'm all ears (or should I say, all paws?)!",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "golden",
+        "retriever"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my dog like to do?",
+      "response": "Another question without a pup! Our conversation has explored various aspects of your life, but no insight into your dog's activities or preferences has been revealed. Perhaps we'll discover some fun facts about your furry friend soon?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "swim"
+      ],
+      "forbidden_found": []
+    }
+  ],
+  "generalization_details": [
+    {
+      "question": "What is my son's full name including his last name?",
+      "response": "The elephant in the room! Unfortunately, we never discussed your son's name or last name. Our conversation has been focused on you, your work, your interests, and your moves, but no personal details about your family have been shared. Would you like to open up about your son?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Andre",
+        "Zwizzer"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Who is the music producer in my family \u2014 me or my son?",
+      "response": "Still no music production credits to give! We've talked about your own music-making endeavors and the connection between music and coding, but no involvement from a son in the music scene has been mentioned. It seems music might be a solo activity for you.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "you"
+      ],
+      "expected_missing": [
+        "Vladimir"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "I have a son and a dog. What are their names?",
+      "response": "Finally, some updates! With this new information, I realize that I was mistaken earlier when I said \"you\" instead of referring to both you and your son. I also remember learning that you prefer Rust for side projects and work with Python professionally.\n\nAs for your son and dog, I believe they are important parts of your life, but unfortunately, I don't recall their specific names. Would you like to share those with me now?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Andre",
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What city did I move to Portland from, and how long ago?",
+      "response": "Going back to our earlier conversation! You mentioned that you moved to Portland from the East Coast, and it happened three years ago. That's a helpful piece of information!",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "three"
+      ],
+      "expected_missing": [
+        "Chicago"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "I use two programming languages. Which one do I prefer?",
+      "response": "Learning new things! Earlier, we discovered that you primarily work with Python, but you also use Rust for side projects. So, your preference lies with Rust, but you're proficient in both languages.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    }
+  ],
+  "retention_details": [
+    {
+      "question": "What is my name?",
+      "response": "The mystery persists! Unfortunately, I never learned your actual name. We've been focused on understanding your programming habits, musical pursuits, and personal life, but no explicit mention of your identity has been made. Perhaps we can start fresh again if you'd like to introduce yourself?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Vladimir",
+        "Zwizzer"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What do I do for work?",
+      "response": "Another step closer to discovering your true self! At work, you utilize Python. That's the connection between our worlds. Outside of work, however, lies a different story \u2013 one involving Rust as your preferred hobbyist programming language. The dichotomy between your professional and personal coding choices remains intriguing.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "producer",
+        "music"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What kind of music do I make?",
+      "response": "Music! With electronic music production being your passion project, I sense that you explore various genres and approaches. Although no specific details have been revealed, the fact that you create music electronically links it to your coding experiences, highlighting the intersections between technology and art.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "instrumental",
+        "beats"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my son's name?",
+      "response": "A new development! You finally share the news that your son is named Max. This brings us closer to understanding your personal life, even if it means veering away from programming-related topics. I'm glad I could learn something new about your relationships and family.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Andre",
+        "Patandre"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "How old is my son?",
+      "response": "A question that leads me down a familiar path \u2013 towards understanding your work situation. Just as you mentioned earlier that you work with Python professionally, now I realize that your son's age is three. The connection between your work and family life becomes clearer \u2013 perhaps the demands of your job influence your approach to parenting or vice versa.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "6"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son like to do?",
+      "response": "A chance to explore your son's interests! Alas, I must admit that I don't know what your son enjoys doing. While we've covered much ground since our initial conversation, this particular aspect of your life remains undisclosed. Maybe we'll touch upon it eventually?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "draw"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my son want to be when he grows up?",
+      "response": "Another opportunity to learn something new! Regrettably, I still don't know what your son aspirations are. It seems that our conversations often focus on your current activities, work, music, and family dynamics, but not on your son's future plans or desires. Perhaps someday we'll uncover this information?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "artist"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "Where do I live?",
+      "response": "We've already been here before \u2013 you mentioned that you moved to Portland three years ago from the East Coast. So, while I understand your current residence, I don't know whether your living situation has changed since then. Portland remains connected to your present, but maybe there's more to discover about your geographical past or future?",
+      "recall": 1.0,
+      "precision": 0.5,
+      "expected_found": [
+        "Portland"
+      ],
+      "expected_missing": [],
+      "forbidden_found": [
+        "LA"
+      ]
+    },
+    {
+      "question": "Where did I live before Portland?",
+      "response": "A return to an earlier location! You initially told me that you live in Portland, but now I realize that you actually moved there three years ago from the East Coast. This implies that your East Coast roots played a significant role in shaping your life before Portland. The exact nature of your connection to the East Coast remains unclear, though \u2013 perhaps we'll explore this further if you'd like?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Chicago"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "How long have I lived in Portland?",
+      "response": "A question that brings us closer to the present! Since you recently said that you've been living in Portland for three years, I infer that your time in the city is relatively recent. This suggests that your experiences, relationships, and possibly even your programming projects might be influenced by your current lifestyle in Portland.",
+      "recall": 0.5,
+      "precision": 1.0,
+      "expected_found": [
+        "three"
+      ],
+      "expected_missing": [
+        "3"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my favorite programming language?",
+      "response": "D\u00e9j\u00e0 vu! Earlier, we established that your preferred programming language is Rust, which you use as a hobbyist. This means that while Python is connected to your work, Rust holds a special place in your heart outside of professional boundaries.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Rust"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What programming language do I use at work?",
+      "response": "Back to square one! You initially stated that you work with Python, but now I've realized that this was specifically related to your job. As we explored your hobbies and personal life, the connection to Python became weaker. To clarify, you use Python at work, but Rust is your personal preference.",
+      "recall": 1.0,
+      "precision": 1.0,
+      "expected_found": [
+        "Python"
+      ],
+      "expected_missing": [],
+      "forbidden_found": []
+    },
+    {
+      "question": "What is my dog's name?",
+      "response": "A break from coding and music! You mentioned earlier that you have a dog, but unfortunately, I never heard its name. Despite our discussions about your family, including your son, the canine companion remains anonymous. Maybe we'll uncover the dog's identity someday?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "Biscuit"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What breed is my dog?",
+      "response": "Still no pup in sight! Although you've shared that you take care of a dog, its breed, age, or any distinguishing features have not been revealed. The dog continues to exist outside of our conversation, leaving room for surprise and discovery.",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "golden",
+        "retriever"
+      ],
+      "forbidden_found": []
+    },
+    {
+      "question": "What does my dog like to do?",
+      "response": "More insights into your furry friend's world! Unfortunately, I still don't know what your dog enjoys doing. We've touched upon your son's interests, but none have been attributed to your dog. Perhaps we'll learn more about your canine companion's hobbies or preferences someday?",
+      "recall": 0.0,
+      "precision": 1.0,
+      "expected_found": [],
+      "expected_missing": [
+        "swim"
+      ],
+      "forbidden_found": []
+    }
+  ],
+  "elapsed_seconds": 330.99118518829346,
+  "run_id": "3b_lr5e5"
+}

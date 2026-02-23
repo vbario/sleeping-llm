@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sleeping LLM</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0d1117;
+    color: #c9d1d9;
+    height: 100vh;
+    display: flex;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 260px;
+    background: #161b22;
+    border-right: 1px solid #30363d;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    flex-shrink: 0;
+  }
+  .sidebar h1 {
+    font-size: 18px;
+    color: #f0f6fc;
+    margin-bottom: 4px;
+  }
+  .sidebar .subtitle {
+    font-size: 11px;
+    color: #8b949e;
+    margin-bottom: 20px;
+  }
+  .stat-group {
+    margin-bottom: 16px;
+  }
+  .stat-group h3 {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #8b949e;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .stat {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    padding: 3px 0;
+  }
+  .stat .label { color: #8b949e; }
+  .stat .value { color: #c9d1d9; font-variant-numeric: tabular-nums; }
+
+  .context-bar {
+    height: 4px;
+    background: #30363d;
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+  .context-bar .fill {
+    height: 100%;
+    background: #58a6ff;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  .sleep-btn {
+    margin-top: auto;
+    padding: 10px 16px;
+    background: #1f6feb;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .sleep-btn:hover { background: #388bfd; }
+  .sleep-btn:disabled {
+    background: #30363d;
+    color: #8b949e;
+    cursor: not-allowed;
+  }
+
+  .reset-group {
+    margin-top: 12px;
+    display: flex;
+    gap: 6px;
+  }
+  .reset-btn {
+    flex: 1;
+    padding: 7px 8px;
+    background: transparent;
+    color: #8b949e;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .reset-btn:hover {
+    border-color: #8b949e;
+    color: #c9d1d9;
+  }
+  .reset-btn.danger:hover {
+    border-color: #f85149;
+    color: #f85149;
+  }
+  .reset-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+
+  /* Main area */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  /* Messages */
+  .messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+  }
+  .message {
+    max-width: 720px;
+    margin: 0 auto 16px;
+    line-height: 1.6;
+  }
+  .message.user {
+    background: #1c2333;
+    border-radius: 12px;
+    padding: 12px 16px;
+  }
+  .message.user .role {
+    font-size: 11px;
+    font-weight: 600;
+    color: #58a6ff;
+    margin-bottom: 4px;
+  }
+  .message.assistant .role {
+    font-size: 11px;
+    font-weight: 600;
+    color: #7ee787;
+    margin-bottom: 4px;
+  }
+  .message.assistant {
+    padding: 4px 16px 12px;
+  }
+  .message .text {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 14px;
+  }
+  .message .text .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 16px;
+    background: #58a6ff;
+    animation: blink 1s step-end infinite;
+    vertical-align: text-bottom;
+    margin-left: 1px;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* Input */
+  .input-area {
+    border-top: 1px solid #30363d;
+    padding: 16px 24px;
+    background: #0d1117;
+  }
+  .input-row {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    gap: 8px;
+  }
+  .input-row input {
+    flex: 1;
+    padding: 10px 14px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #c9d1d9;
+    font-size: 14px;
+    outline: none;
+  }
+  .input-row input:focus { border-color: #58a6ff; }
+  .input-row button {
+    padding: 10px 20px;
+    background: #238636;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .input-row button:hover { background: #2ea043; }
+  .input-row button:disabled {
+    background: #30363d;
+    color: #8b949e;
+    cursor: not-allowed;
+  }
+
+  /* Sleep progress overlay */
+  .sleep-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .sleep-overlay.active { display: flex; }
+  .sleep-panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 24px 32px;
+    width: 420px;
+    max-width: 90vw;
+  }
+  .sleep-panel h2 {
+    font-size: 16px;
+    color: #f0f6fc;
+    margin-bottom: 16px;
+  }
+  .sleep-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 6px 0;
+    font-size: 13px;
+  }
+  .sleep-step .icon {
+    width: 20px;
+    text-align: center;
+    flex-shrink: 0;
+    font-size: 14px;
+  }
+  .sleep-step .info { flex: 1; }
+  .sleep-step .step-label { color: #c9d1d9; }
+  .sleep-step .step-detail {
+    font-size: 11px;
+    color: #8b949e;
+    margin-top: 2px;
+  }
+  .sleep-step.pending .icon { color: #30363d; }
+  .sleep-step.running .icon { color: #d29922; }
+  .sleep-step.done .icon { color: #3fb950; }
+  .sleep-step.error .icon { color: #f85149; }
+
+  .sleep-dismiss {
+    margin-top: 16px;
+    width: 100%;
+    padding: 10px 16px;
+    background: #238636;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .sleep-dismiss:hover { background: #2ea043; }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+  .spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid #30363d;
+    border-top-color: #d29922;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h1>Sleeping LLM</h1>
+  <div class="subtitle">Weight-based persistent memory</div>
+
+  <div class="stat-group">
+    <h3>Model</h3>
+    <div class="stat"><span class="value" id="stat-model">loading...</span></div>
+  </div>
+
+  <div class="stat-group">
+    <h3>Session</h3>
+    <div class="stat"><span class="label">Turns</span><span class="value" id="stat-turns">0</span></div>
+    <div class="stat"><span class="label">Sleep cycles</span><span class="value" id="stat-cycles">0</span></div>
+    <div class="stat"><span class="label">Sessions</span><span class="value" id="stat-sessions">-</span></div>
+  </div>
+
+  <div class="stat-group">
+    <h3>Context</h3>
+    <div class="stat"><span class="label">Tokens</span><span class="value" id="stat-tokens">0 / 0</span></div>
+    <div class="context-bar"><div class="fill" id="context-fill" style="width: 0%"></div></div>
+  </div>
+
+  <div class="stat-group">
+    <h3>Replay Buffer</h3>
+    <div class="stat"><span class="label">Items</span><span class="value" id="stat-buffer">0</span></div>
+    <div class="stat"><span class="label">Avg priority</span><span class="value" id="stat-priority">0.00</span></div>
+  </div>
+
+  <button class="sleep-btn" id="sleep-btn" onclick="triggerSleep()">Sleep</button>
+  <div class="reset-group">
+    <button class="reset-btn" id="reset-weights-btn" onclick="resetWeights()">Reset Weights</button>
+    <button class="reset-btn danger" id="factory-reset-btn" onclick="factoryReset()">Factory Reset</button>
+  </div>
+</div>
+
+<div class="main">
+  <div class="messages" id="messages"></div>
+  <div class="input-area">
+    <div class="input-row">
+      <input type="text" id="chat-input" placeholder="Type a message..." autofocus
+             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}">
+      <button id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="sleep-overlay" id="sleep-overlay">
+  <div class="sleep-panel">
+    <h2 id="sleep-title">Entering sleep...</h2>
+    <div id="sleep-steps"></div>
+    <button id="sleep-dismiss-btn" class="sleep-dismiss" onclick="dismissSleep()" style="display:none">Continue</button>
+  </div>
+</div>
+
+<script>
+const messagesEl = document.getElementById('messages');
+const inputEl = document.getElementById('chat-input');
+const sendBtn = document.getElementById('send-btn');
+const sleepBtn = document.getElementById('sleep-btn');
+let streaming = false;
+let sleeping = false;
+let sleepDismissResolve = null;
+
+function addMessage(role, text) {
+  const div = document.createElement('div');
+  div.className = `message ${role}`;
+  div.innerHTML = `<div class="role">${role === 'user' ? 'You' : 'Assistant'}</div><div class="text"></div>`;
+  div.querySelector('.text').textContent = text;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+
+function startStreamMessage() {
+  const div = document.createElement('div');
+  div.className = 'message assistant';
+  div.innerHTML = `<div class="role">Assistant</div><div class="text"><span class="cursor"></span></div>`;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div.querySelector('.text');
+}
+
+async function sendMessage() {
+  const msg = inputEl.value.trim();
+  if (!msg || streaming || sleeping) return;
+
+  inputEl.value = '';
+  addMessage('user', msg);
+  setInputState(false);
+
+  streaming = true;
+  const textEl = startStreamMessage();
+  let fullText = '';
+  let autoSleepTriggered = false;
+
+  try {
+    const evtSource = new EventSource(`/api/chat/stream?message=${encodeURIComponent(msg)}`);
+
+    await new Promise((resolve) => {
+      evtSource.addEventListener('token', (e) => {
+        const data = JSON.parse(e.data);
+        fullText += data.token;
+        textEl.textContent = fullText;
+        const cursor = document.createElement('span');
+        cursor.className = 'cursor';
+        textEl.appendChild(cursor);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
+
+      evtSource.addEventListener('done', () => {
+        // Chat response finished — remove cursor
+        textEl.textContent = fullText;
+      });
+
+      evtSource.addEventListener('sleep_start', () => {
+        autoSleepTriggered = true;
+        sleeping = true;
+        sleepBtn.disabled = true;
+        showSleepOverlay();
+      });
+
+      evtSource.addEventListener('sleep_progress', (e) => {
+        const data = JSON.parse(e.data);
+        updateSleepStep(data);
+      });
+
+      evtSource.addEventListener('sleep_done', () => {
+        document.getElementById('sleep-title').textContent = 'Awake. Memories integrated.';
+        document.getElementById('sleep-dismiss-btn').style.display = 'block';
+      });
+
+      evtSource.addEventListener('complete', () => {
+        evtSource.close();
+        if (autoSleepTriggered) {
+          // Wait for user to dismiss sleep overlay
+          sleepDismissResolve = resolve;
+        } else {
+          resolve();
+        }
+      });
+
+      evtSource.onerror = () => {
+        evtSource.close();
+        if (!fullText) {
+          textEl.textContent = '[Error: connection lost]';
+        } else {
+          textEl.textContent = fullText;
+        }
+        if (autoSleepTriggered) {
+          document.getElementById('sleep-title').textContent = 'Sleep interrupted.';
+          document.getElementById('sleep-dismiss-btn').style.display = 'block';
+          sleepDismissResolve = resolve;
+        } else {
+          resolve();
+        }
+      };
+    });
+  } catch (err) {
+    console.error(err);
+  }
+
+  streaming = false;
+  sleeping = false;
+  sleepBtn.disabled = false;
+  setInputState(true);
+  refreshStatus();
+}
+
+function showSleepOverlay() {
+  const overlay = document.getElementById('sleep-overlay');
+  const stepsEl = document.getElementById('sleep-steps');
+  const titleEl = document.getElementById('sleep-title');
+
+  overlay.classList.add('active');
+  titleEl.textContent = 'Entering sleep...';
+  stepsEl.innerHTML = '';
+  document.getElementById('sleep-dismiss-btn').style.display = 'none';
+
+  const stepLabels = [
+    'Pre-sleep evaluation',
+    'Curating training data',
+    'Updating replay buffer',
+    'Dreaming',
+    'Training',
+    'Validating'
+  ];
+  stepLabels.forEach((label, i) => {
+    const div = document.createElement('div');
+    div.className = 'sleep-step pending';
+    div.id = `sleep-step-${i + 1}`;
+    div.innerHTML = `
+      <div class="icon">&#9675;</div>
+      <div class="info">
+        <div class="step-label">${label}</div>
+        <div class="step-detail"></div>
+      </div>
+    `;
+    stepsEl.appendChild(div);
+  });
+}
+
+async function triggerSleep() {
+  if (streaming || sleeping) return;
+  sleeping = true;
+  sleepBtn.disabled = true;
+  setInputState(false);
+  showSleepOverlay();
+
+  try {
+    const evtSource = new EventSource('/api/sleep/stream');
+
+    await new Promise((resolve) => {
+      evtSource.addEventListener('progress', (e) => {
+        const data = JSON.parse(e.data);
+        updateSleepStep(data);
+      });
+
+      evtSource.addEventListener('done', () => {
+        evtSource.close();
+        document.getElementById('sleep-title').textContent = 'Awake. Memories integrated.';
+        document.getElementById('sleep-dismiss-btn').style.display = 'block';
+        sleepDismissResolve = resolve;
+      });
+
+      evtSource.onerror = () => {
+        evtSource.close();
+        document.getElementById('sleep-title').textContent = 'Sleep failed.';
+        document.getElementById('sleep-dismiss-btn').style.display = 'block';
+        sleepDismissResolve = resolve;
+      };
+    });
+  } catch (err) {
+    console.error(err);
+    document.getElementById('sleep-overlay').classList.remove('active');
+  }
+
+  sleeping = false;
+  sleepBtn.disabled = false;
+  setInputState(true);
+  refreshStatus();
+}
+
+function dismissSleep() {
+  document.getElementById('sleep-overlay').classList.remove('active');
+  document.getElementById('sleep-dismiss-btn').style.display = 'none';
+  if (sleepDismissResolve) {
+    sleepDismissResolve();
+    sleepDismissResolve = null;
+  }
+}
+
+function updateSleepStep(data) {
+  const stepEl = document.getElementById(`sleep-step-${data.step}`);
+  if (!stepEl) return;
+
+  const iconEl = stepEl.querySelector('.icon');
+  const detailEl = stepEl.querySelector('.step-detail');
+  const labelEl = stepEl.querySelector('.step-label');
+
+  if (data.label) labelEl.textContent = data.label;
+  if (data.detail) detailEl.textContent = data.detail;
+
+  stepEl.className = `sleep-step ${data.status}`;
+  if (data.status === 'running') {
+    iconEl.innerHTML = '<div class="spinner"></div>';
+  } else if (data.status === 'done') {
+    iconEl.innerHTML = '&#10003;';
+  } else if (data.status === 'error') {
+    iconEl.innerHTML = '&#10007;';
+  }
+}
+
+async function resetWeights() {
+  if (streaming || sleeping) return;
+  if (!confirm('Reset model to base weights? This clears all learned memories but keeps conversation logs.')) return;
+
+  document.getElementById('reset-weights-btn').disabled = true;
+  document.getElementById('factory-reset-btn').disabled = true;
+
+  try {
+    const resp = await fetch('/api/reset/weights', { method: 'POST' });
+    const data = await resp.json();
+    addMessage('assistant', '[System] ' + data.message);
+  } catch (err) {
+    addMessage('assistant', '[System] Reset failed: ' + err.message);
+  }
+
+  document.getElementById('reset-weights-btn').disabled = false;
+  document.getElementById('factory-reset-btn').disabled = false;
+  refreshStatus();
+}
+
+async function factoryReset() {
+  if (streaming || sleeping) return;
+  if (!confirm('FACTORY RESET: This deletes ALL data — weights, training data, replay buffer, and session tracking. Conversation logs are kept. Continue?')) return;
+
+  document.getElementById('reset-weights-btn').disabled = true;
+  document.getElementById('factory-reset-btn').disabled = true;
+
+  try {
+    const resp = await fetch('/api/reset/factory', { method: 'POST' });
+    const data = await resp.json();
+    addMessage('assistant', '[System] ' + data.message);
+  } catch (err) {
+    addMessage('assistant', '[System] Factory reset failed: ' + err.message);
+  }
+
+  document.getElementById('reset-weights-btn').disabled = false;
+  document.getElementById('factory-reset-btn').disabled = false;
+  refreshStatus();
+}
+
+function setInputState(enabled) {
+  inputEl.disabled = !enabled;
+  sendBtn.disabled = !enabled;
+  if (enabled) inputEl.focus();
+}
+
+async function refreshStatus() {
+  try {
+    const resp = await fetch('/api/status');
+    const data = await resp.json();
+
+    document.getElementById('stat-model').textContent = data.model.split('/').pop();
+    document.getElementById('stat-turns').textContent = data.turn_count;
+    document.getElementById('stat-cycles').textContent = data.sleep_cycles;
+    document.getElementById('stat-sessions').textContent =
+      `${data.consumed_sessions} consumed / ${data.total_sessions} total`;
+    document.getElementById('stat-tokens').textContent =
+      `${data.context_tokens} / ${data.context_max}`;
+    document.getElementById('context-fill').style.width = `${data.context_pct}%`;
+
+    const buf = data.replay_buffer || {};
+    document.getElementById('stat-buffer').textContent = buf.count || 0;
+    document.getElementById('stat-priority').textContent =
+      (buf.avg_priority || 0).toFixed(2);
+  } catch (err) {
+    console.error('Status fetch failed:', err);
+  }
+}
+
+// Load history and status on start
+async function init() {
+  refreshStatus();
+
+  try {
+    const resp = await fetch('/api/history');
+    const data = await resp.json();
+    if (data.messages) {
+      for (const msg of data.messages) {
+        addMessage(msg.role, msg.content);
+      }
+    }
+  } catch (err) {
+    console.error('History fetch failed:', err);
+  }
+}
+
+init();
+// Refresh status every 10 seconds
+setInterval(refreshStatus, 10000);
+</script>
+
+</body>
+</html>

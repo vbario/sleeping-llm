@@ -1,0 +1,88 @@
+⏺ Rejection of Learning: Human vs MEMIT+Sleep
+
+  How Humans Reject Learning                                                                                                       
+   
+  1. Belief protection (cognitive dissonance) — New information contradicting core beliefs gets dismissed. "That can't be right."  
+  The existing worldview acts as an immune system against incompatible facts.
+
+  2. Source distrust — Humans discount information from sources they don't trust, regardless of accuracy. The who matters as much
+  as the what.
+
+  3. Emotional gating — The amygdala can block consolidation. Overwhelming or threatening information gets suppressed before it
+  ever reaches long-term storage.
+
+  4. Schema mismatch — Information that doesn't fit existing mental models is harder to encode and more likely to be distorted or
+  dropped. You can't hang a coat where there's no hook.
+
+  5. Interference — Old knowledge blocks new (proactive) or new knowledge overwrites old (retroactive). The brain can't always
+  resolve the conflict, so one or both degrade.
+
+  6. Sleep triage — The hippocampus replays memories selectively during sleep. Most of the day's experiences are simply not chosen
+  for cortical consolidation. Forgetting is the default; remembering is the exception.
+
+  7. Decay without rehearsal — Memories that aren't revisited or used simply fade. The brain deallocates what it doesn't need.
+
+  8. Identity protection — People reject facts that threaten their sense of self. This is deeper than belief protection — it's
+  "accepting this would change who I am."
+
+  ---
+  The MEMIT+Sleep Analogies
+
+  1. Curator thresholds → Source distrust + Attention failure
+  The curator (sleep/curator.py) extracts facts and scores them. Facts below quality thresholds are simply dropped — never even
+  make it to the training pipeline. This is the system's version of "I wasn't paying attention" or "that source isn't credible."
+  Currently thresholds are 0.0 (accept everything), but raising them would create selective encoding.
+
+  2. Lambda regularization → Strength of prior beliefs
+  lambda_reg: 0.1 in MEMIT controls how much existing weights resist change. It's the mathematical equivalent of conviction — high
+  lambda means "I'm very sure of what I already know, and you'll need strong evidence to move me." A model with high lambda is
+  stubborn; one with low lambda is gullible.
+
+  3. Covariance regularization → Schema protection
+  The Woodbury-based covariance matrix encodes "which directions in weight space are important for existing knowledge." MEMIT
+  avoids editing along those directions. This is remarkably analogous to schema protection — the system literally has a
+  mathematical representation of "what I already know" and avoids disturbing it. New facts that would require large changes along
+  important directions are effectively resisted.
+
+  4. Null-space constraints → Belief protection across sessions
+  Cross-batch null-space constraints prevent new MEMIT edits from overwriting previous ones. This is the closest analogy to
+  cognitive dissonance resolution in favor of the old belief — the system says "I already learned X, so new fact Y can only be
+  stored in ways that don't disturb X." Earlier learnings are literally privileged over later ones.
+
+  5. MEMIT capacity limits → Interference
+  At 3B: 5 facts = 0.80 recall, 10 = 0.70, 15 = 0.60. Facts compete for representational space. When you push too many, they
+  degrade each other — pure retroactive/proactive interference. The model doesn't "reject" any single fact; they all just get
+  fuzzier. Like trying to remember 20 names at a party.
+
+  6. Validator rejection → Identity protection
+  The validator asks the model questions after training and checks min_score_ratio. If the model's core capabilities have degraded,
+   the entire sleep cycle is rejected and changes aren't promoted to models/current/. This is the deepest rejection mechanism —
+  "this learning would change who I am in unacceptable ways, so I'm throwing all of it out." It's binary and ruthless, like the
+  immune system destroying a whole tissue to stop infection.
+
+  7. Learning rate window → Window of tolerance
+  5e-5 = no learning (bounces off). 2e-4+ = catastrophic forgetting (destroyed). Only 1e-4 works. This mirrors the psychological
+  "window of tolerance" — too little arousal and nothing encodes, too much and the system enters fight/flight and loses capacity.
+  The system can only learn when the signal is in a narrow band.
+
+  8. Sleep selectivity → Sleep triage
+  Not everything in the context window survives the pipeline: conversation → fact extraction → Q&A generation → training data →
+  LoRA fine-tuning → validation. Each stage is a bottleneck. Most of what was said during wake simply doesn't make it through. This
+   is exactly the hippocampal replay model — sleep is selective consolidation, not bulk transfer.
+
+  ---
+  What's Missing (Rejection Modes Humans Have, the System Doesn't)
+
+  - Emotional gating — There's no valence/arousal signal. The system can't say "this fact makes me uncomfortable, suppress it."
+  Every fact that passes the quality threshold is treated neutrally.
+  - Motivated reasoning — The system can't selectively reject facts that threaten a goal or desire. It has no goals beyond
+  next-token prediction.
+  - Social conformity pressure — No mechanism to reject true information because peers disagree.
+  - Active repression — The system can't push an already-learned fact out of weights. It can only fail to consolidate new ones or
+  overwrite with contradictions.
+  - Temporal context — Humans reject outdated information ("that was true in 2020, not now"). The system has no sense of fact
+  expiration.
+
+  The interesting philosophical point: most human rejection mechanisms exist to protect identity and agency, not accuracy. The
+  system's rejection mechanisms (lambda, covariance, validation) are all protecting capability — which is a much more honest form
+  of conservatism.

@@ -1,0 +1,59 @@
+⏺ The 8B sanity check completed but the results are surprising — worse than 3B:                                                               
+                                                                                                                                              
+  ┌────────────────┬────────────────┬─────────────────┐                                                                                       
+  │     Metric     │ 3B (local MLX) │ 8B (H100 Torch) │                                                                                       
+  ├────────────────┼────────────────┼─────────────────┤                                                                                       
+  │ Recall         │ 0.43 (5/15)    │ 0.17 (2/15)     │                                                                                       
+  ├────────────────┼────────────────┼─────────────────┤     
+  │ Precision      │ 0.90           │ 0.90            │
+  ├────────────────┼────────────────┼─────────────────┤
+  │ Generalization │ 0.90           │ 0.10            │
+  ├────────────────┼────────────────┼─────────────────┤
+  │ Time           │ 305s           │ 380s            │
+  └────────────────┴────────────────┴─────────────────┘
+
+  The pipeline ran end-to-end without errors, so the benchmark works. But the 8B scored lower, which is unexpected. Let me check the training
+  details to understand why.
+
+⏺ Searched memories, searched for 1 pattern (ctrl+o to expand)   
+
+⏺ The pipeline runs end-to-end on the H100, but I found two issues explaining the low score:                                                  
+  
+  Issue 1: Validation is auto-approving everything. The output shows "No benchmarks configured, auto-approve" — the validator can't find      
+  benchmark questions, so every LoRA update passes regardless of quality. On your local MLX setup, benchmarks existed and caught bad updates
+  (we saw "REJECTED" several times).                                                                                                          
+                                                                                                                                              
+  Issue 2: The 8B model hallucinated 59 Q&A pairs during extraction. It fabricated facts like "What Rust version do you use? Rust 1.67" and
+  "What frameworks does the user use? Rocket, Flask." The firewall caught 13 but 46 hallucinated pairs got trained on, contaminating the real
+  facts.
+
+  These are pipeline issues, not LoRA limitations. Let me fix both before the full sweep — otherwise we're measuring pipeline bugs, not model
+  capacity.
+
+⏺ Much better — both fixes are working:                                                                                                       
+                                                                                                                                              
+  1. Validation is now active — it caught and rejected all 3 LoRA updates (score dropped 1.00 → 0.00 each time), rolling back to the base     
+  model. This means the LoRA training is too aggressive for 8B and is destroying the model's general knowledge.
+  2. No hallucinated facts — extraction is clean now (6-8 pairs each, firewall caught 1 bad one).                                             
+                                                                                                                                              
+  But the results reveal the real problem: every LoRA update gets rejected because it tanks the benchmark score from 1.00 to 0.00. The model
+  ends up with no LoRA training at all — it's just the base 8B answering from context summary alone.
+
+  The 8B model needs a gentler learning rate. 1e-4 is fine for 3B but too aggressive for 8B. This is exactly what the LR sweep is for — the
+  8b_lr5e5 config should do better.
+
+  Current results:
+
+  ┌────────────────┬─────────────┬─────────────────────┐
+  │     Metric     │  3B (MLX)   │ 8B @ LR 1e-4 (H100) │
+  ├────────────────┼─────────────┼─────────────────────┤
+  │ Recall         │ 0.43 (5/15) │ 0.30 (4/15)         │
+  ├────────────────┼─────────────┼─────────────────────┤
+  │ Precision      │ 0.90        │ 0.97                │
+  ├────────────────┼─────────────┼─────────────────────┤
+  │ Generalization │ 0.90        │ 0.50                │
+  ├────────────────┼─────────────┼─────────────────────┤
+  │ Time           │ 305s        │ 240s                │
+  └────────────────┴─────────────┴─────────────────────┘
+
+  The 8B actually gets 4 PASS on recall from context summary alone (no LoRA stuck). With a proper learning rate, it should exceed 3B.

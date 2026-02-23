@@ -2,7 +2,11 @@
 
 import json
 import os
+import re
 from pathlib import Path
+
+
+from src.sleep.firewall import HallucinationFirewall
 
 
 class Curator:
@@ -16,6 +20,7 @@ class Curator:
         self.backend = backend
         self.training_dir = Path(config.paths["training"])
         self.training_dir.mkdir(parents=True, exist_ok=True)
+        self.firewall = HallucinationFirewall(config, backend)
 
     def curate_session(self, messages, sleep_cycle_id):
         """Score and filter a session's messages into training examples.
@@ -206,9 +211,23 @@ class Curator:
         for item in scored_exchanges:
             all_messages.extend(item["messages"])
 
-        print("        Extracting facts from conversation...")
-        fact_pairs = self._extract_facts_as_qa(all_messages)
+        # Skip extraction if there are no messages (e.g. replay-only consolidation)
+        if not all_messages:
+            print("        No messages to extract facts from.")
+            fact_pairs = []
+        else:
+            print("        Extracting facts from conversation...")
+            fact_pairs = self._extract_facts_as_qa(all_messages)
         print(f"        Generated {len(fact_pairs)} fact Q&A pairs")
+
+        # Run hallucination firewall
+        conv_text = "\n".join(f"{m['role'].upper()}: {m['content']}" for m in all_messages)
+        fact_pairs, rejected = self.firewall.verify_pairs(fact_pairs, conv_text)
+        print(f"        Firewall: {len(fact_pairs)} verified, {len(rejected)} rejected")
+        for r in rejected:
+            q = r["pair"][0]["content"][:60]
+            a = r["pair"][1]["content"][:60]
+            print(f"          REJECTED ({r['grounding_score']:.2f}): Q: {q}... A: {a}...")
 
         for qa in fact_pairs:
             text = self.backend.apply_chat_template(qa, for_training=True)
@@ -235,36 +254,47 @@ class Curator:
         return output_dir
 
     def _extract_facts_as_qa(self, messages):
-        """Use the model to extract facts and generate Q&A training pairs.
+        """Extract facts and generate Q&A training pairs.
 
-        This is the key mechanism for memory formation. Instead of training
-        on raw conversations, we extract specific facts and create focused
-        Q&A pairs that teach the model to recall those facts.
+        Uses model-based extraction first, then falls back to template-based
+        pattern matching if the model returns nothing parseable.
         """
-        # Build conversation text for the model to analyze
+        # Build conversation text
         conv_text = ""
         for msg in messages:
             conv_text += f"{msg['role'].upper()}: {msg['content']}\n\n"
 
-        # Truncate if too long
         if len(conv_text) > 3000:
             conv_text = conv_text[:3000]
 
+        # Try model-based extraction first
+        pairs = self._extract_facts_model(conv_text)
+        if pairs:
+            print(f"        Model extraction: {len(pairs)} pairs")
+            return pairs
+
+        # Fall back to template-based extraction
+        print("        Model extraction returned 0 pairs, using template fallback")
+        pairs = self._extract_facts_template(messages)
+        print(f"        Template extraction: {len(pairs)} pairs")
+        return pairs
+
+    def _extract_facts_model(self, conv_text):
+        """Try to extract facts using the model."""
         extraction_prompt = [
             {
                 "role": "user",
                 "content": (
-                    "Read this conversation and extract every specific fact, "
-                    "name, preference, and piece of personal information shared. "
-                    "For EACH fact, write a question and answer pair that would "
-                    "help someone recall this information later.\n\n"
-                    "Format each pair exactly like this:\n"
-                    "Q: [question]\n"
-                    "A: [answer]\n\n"
-                    "Extract as many facts as possible. Be specific and precise.\n\n"
-                    "Conversation:\n"
+                    "Read this conversation and extract specific facts shared by the user. "
+                    "Write question-answer pairs.\n\n"
+                    "Example format:\n"
+                    "Q: What is the user's name?\n"
+                    "A: The user's name is John.\n\n"
+                    "Q: What does the user do for work?\n"
+                    "A: The user is a software engineer.\n\n"
+                    "Now extract facts from this conversation:\n"
                     f"{conv_text}\n\n"
-                    "Fact Q&A pairs:"
+                    "Q:"
                 ),
             }
         ]
@@ -272,7 +302,16 @@ class Curator:
         prompt = self.backend.apply_chat_template(extraction_prompt)
         raw = self.backend.generate(prompt, max_tokens=1000, temperature=0.3)
 
-        # Parse Q&A pairs
+        # Log raw output for debugging
+        print(f"        [DEBUG] Model extraction raw output ({len(raw)} chars):")
+        for line in raw.strip().split("\n")[:10]:
+            print(f"          | {line}")
+        if len(raw.strip().split("\n")) > 10:
+            print(f"          | ... ({len(raw.strip().split(chr(10)))} lines total)")
+
+        # Parse — prepend "Q:" since the prompt ends with it
+        raw = "Q:" + raw
+
         pairs = []
         lines = raw.strip().split("\n")
         current_q = None
@@ -280,29 +319,163 @@ class Curator:
 
         for line in lines:
             stripped = line.strip()
-            if stripped.startswith("Q:"):
-                # Save previous pair if exists
+            if stripped.upper().startswith("Q:") or stripped.upper().startswith("Q :"):
                 if current_q and current_a_lines:
                     answer = " ".join(current_a_lines).strip()
-                    pairs.append([
-                        {"role": "user", "content": current_q},
-                        {"role": "assistant", "content": answer},
-                    ])
-                current_q = stripped[2:].strip()
+                    if answer:
+                        pairs.append([
+                            {"role": "user", "content": current_q},
+                            {"role": "assistant", "content": answer},
+                        ])
+                q_text = re.sub(r'^[Qq]\s*:\s*', '', stripped).strip()
+                current_q = q_text
                 current_a_lines = []
-            elif stripped.startswith("A:"):
-                current_a_lines.append(stripped[2:].strip())
+            elif stripped.upper().startswith("A:") or stripped.upper().startswith("A :"):
+                a_text = re.sub(r'^[Aa]\s*:\s*', '', stripped).strip()
+                current_a_lines.append(a_text)
             elif current_a_lines:
                 current_a_lines.append(stripped)
 
-        # Don't forget the last pair
         if current_q and current_a_lines:
             answer = " ".join(current_a_lines).strip()
+            if answer:
+                pairs.append([
+                    {"role": "user", "content": current_q},
+                    {"role": "assistant", "content": answer},
+                ])
+
+        return pairs
+
+    def _extract_facts_template(self, messages):
+        """Extract facts using pattern matching on user messages.
+
+        Generates Q&A pairs directly from recognized patterns in user text.
+        More reliable than model-based extraction for small models.
+        """
+        pairs = []
+        seen = set()  # avoid duplicate facts
+
+        # Patterns: (regex, question_template, answer_template)
+        # Group 1 in regex is the extracted value
+        patterns = [
+            # Names
+            (r"(?:my name is|i'm called|call me|i am)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+             "What is the user's name?",
+             "The user's name is {0}."),
+            # Age
+            (r"(?:i'm|i am|i'm)\s+(\d{1,3})\s+(?:years old|yr|yrs)",
+             "How old is the user?",
+             "The user is {0} years old."),
+            # Location
+            (r"(?:i live in|i'm from|i'm based in|i am from|i am based in|i live at)\s+(.+?)(?:\.|,|!|\?|$)",
+             "Where does the user live?",
+             "The user lives in {0}."),
+            # Job/profession
+            (r"(?:i work as|i'm a|i am a|my job is|i work at|i work for)\s+(.+?)(?:\.|,|!|\?|$)",
+             "What does the user do?",
+             "The user is a {0}."),
+            # Likes/preferences
+            (r"(?:i (?:really )?like|i love|i enjoy|i prefer)\s+(.+?)(?:\.|,|!|\?|$)",
+             "What does the user like?",
+             "The user likes {0}."),
+            # Dislikes
+            (r"(?:i (?:don't|do not|don't) like|i hate|i dislike)\s+(.+?)(?:\.|,|!|\?|$)",
+             "What does the user dislike?",
+             "The user dislikes {0}."),
+            # Favorites
+            (r"(?:my (?:favorite|favourite))\s+(\w+)\s+(?:is|are)\s+(.+?)(?:\.|,|!|\?|$)",
+             "What is the user's favorite {0}?",
+             "The user's favorite {0} is {1}."),
+            # Has/owns
+            (r"(?:i have|i've got|i own)\s+(?:a |an )?(.+?)(?:\.|,|!|\?|$)",
+             "What does the user have?",
+             "The user has {0}."),
+            # Family
+            (r"(?:my (?:son|daughter|wife|husband|partner|brother|sister|mom|dad|mother|father)(?:'s name)? is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
+             "What is the name of the user's family member?",
+             "The user's family member is named {0}."),
+            (r"(?:my (\w+)(?:'s name)? is)\s+([A-Z][a-z]+)",
+             "What is the user's {0}'s name?",
+             "The user's {0}'s name is {1}."),
+            # Uses/works with
+            (r"(?:i use|i work with|i'm using|i am using)\s+(.+?)(?:\.|,|!|\?|$)",
+             "What does the user use?",
+             "The user uses {0}."),
+        ]
+
+        for msg in messages:
+            if msg["role"] != "user":
+                continue
+            text = msg["content"]
+
+            for pattern, q_template, a_template in patterns:
+                for match in re.finditer(pattern, text, re.IGNORECASE):
+                    groups = match.groups()
+                    # Clean up captured values
+                    groups = tuple(g.strip() if g else g for g in groups)
+
+                    try:
+                        question = q_template.format(*groups)
+                        answer = a_template.format(*groups)
+                    except (IndexError, KeyError):
+                        continue
+
+                    # Skip very short or likely garbage matches
+                    value = groups[0] if groups else ""
+                    if len(value) < 2 or len(value) > 100:
+                        continue
+
+                    key = (question, answer)
+                    if key not in seen:
+                        seen.add(key)
+                        pairs.append([
+                            {"role": "user", "content": question},
+                            {"role": "assistant", "content": answer},
+                        ])
+
+        # Also generate direct recall pairs from user statements
+        # These teach the model to recall what the user said verbatim
+        for msg in messages:
+            if msg["role"] != "user":
+                continue
+            text = msg["content"].strip()
+            # Skip short messages and commands
+            if len(text) < 15 or text.startswith("/"):
+                continue
+            # If message contains personal info markers, create a recall pair
+            lower = text.lower()
+            personal_markers = [
+                "my name", "i am", "i'm", "i live", "i work", "i like",
+                "i have", "i use", "my favorite", "my favourite",
+                "remember", "i prefer", "i want you to",
+            ]
+            if any(m in lower for m in personal_markers):
+                pairs.append([
+                    {"role": "user", "content": f"What did the user tell you about themselves?"},
+                    {"role": "assistant", "content": f"The user said: \"{text}\""},
+                ])
+
+        return pairs
+
+    def triples_to_training_pairs(self, triples):
+        """Convert FactTriple objects to Q&A message pair format.
+
+        Bridges MEMIT facts to the existing training data format.
+
+        Args:
+            triples: List of FactTriple objects
+
+        Returns:
+            List of [user_msg, assistant_msg] pairs
+        """
+        pairs = []
+        for triple in triples:
+            question = triple.to_question()
+            answer = triple.to_answer()
             pairs.append([
-                {"role": "user", "content": current_q},
+                {"role": "user", "content": question},
                 {"role": "assistant", "content": answer},
             ])
-
         return pairs
 
     def curate_with_model(self, messages, sleep_cycle_id):

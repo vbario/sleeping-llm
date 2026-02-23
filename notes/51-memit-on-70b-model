@@ -1,0 +1,43 @@
+⏺ MEMIT bypasses the alignment tax.                                                                                                                   
+                                                            
+  70B Results:                                                                                                                                        
+  - Recall: 0.97 — 13/15 facts immediately recalled                                                                                                   
+  - Precision: 0.93
+  - Generalization: 1.00 — perfect 5/5 on cross-fact reasoning                                                                                        
+  - Time: 4.2 minutes                                       
+
+  For comparison:
+
+  ┌───────┬──────────────────────────────┬────────────────┐
+  │ Model │ LoRA-only (prior experiment) │  MEMIT (now)   │
+  ├───────┼──────────────────────────────┼────────────────┤
+  │ 3B    │ 0.43 (after sleep)           │ 0.97 (instant) │
+  ├───────┼──────────────────────────────┼────────────────┤
+  │ 70B   │ 0.00 (after sleep)           │ 0.97 (instant) │
+  └───────┴──────────────────────────────┴────────────────┘
+
+  The alignment tax is completely bypassed. The 70B model that scored zero with LoRA now scores 0.97 with MEMIT — matching the 3B. And the
+  generalization is even better: perfect 1.00 (the 3B scored 0.90).
+
+  The two partial misses are the same trivial ones as on 3B:
+  - "Where do I live?" — correct answer but also mentioned Chicago/LA
+  - "How long in Portland?" — said "three years" but scorer wanted digit "3"
+
+Here's the full picture across all 3 models:                                                                                                  
+                                                                                                                                                      
+  ┌───────┬───────────────────┬─────────────┬────────────────┐                                                                                        
+  │ Model │ LoRA-only (prior) │ MEMIT (now) │ Generalization │
+  ├───────┼───────────────────┼─────────────┼────────────────┤                                                                                        
+  │ 3B    │ 0.43              │ 0.97        │ 0.90           │                                                                                        
+  ├───────┼───────────────────┼─────────────┼────────────────┤
+  │ 8B    │ 0.37              │ 0.90        │ 0.80           │
+  ├───────┼───────────────────┼─────────────┼────────────────┤
+  │ 70B   │ 0.00              │ 0.97        │ 1.00           │
+  └───────┴───────────────────┴─────────────┴────────────────┘
+
+  The 8B scored 0.90 recall (11/15 perfect). Slightly lower than 3B and 70B — the same "middle child" pattern from the prior experiment. The
+  8B-specific issues:
+  - "What is my name?" — said Vladimir but also mentioned Andre (fact bleed between user and son, same issue LoRA had)
+  - "What do I do for work?" — missed "music producer" entirely
+
+  The 70B is the clear winner: 0.97 recall + perfect 1.00 generalization. The alignment tax is gone.

@@ -1,0 +1,261 @@
+[
+  {
+    "edit_id": "239f486d",
+    "facts": [
+      {
+        "subject": "Idris Larsson",
+        "relation": "lives in",
+        "object": "Helena",
+        "source_exchange": null,
+        "timestamp": 1771748286.902088
+      },
+      {
+        "subject": "Dale Navarro",
+        "relation": "works as",
+        "object": "electrician",
+        "source_exchange": null,
+        "timestamp": 1771748286.902095
+      },
+      {
+        "subject": "Ezra Voronov",
+        "relation": "favorite color is",
+        "object": "orange",
+        "source_exchange": null,
+        "timestamp": 1771748286.902097
+      },
+      {
+        "subject": "Lily Cruz",
+        "relation": "favorite food is",
+        "object": "ceviche",
+        "source_exchange": null,
+        "timestamp": 1771748286.9021041
+      },
+      {
+        "subject": "Ines Torres",
+        "relation": "enjoys",
+        "object": "foraging",
+        "source_exchange": null,
+        "timestamp": 1771748286.902106
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771748302.927883,
+    "consolidated": true
+  },
+  {
+    "edit_id": "dfb17099",
+    "facts": [
+      {
+        "subject": "Quinn Sato",
+        "relation": "lives in",
+        "object": "El Paso",
+        "source_exchange": null,
+        "timestamp": 1771748307.741065
+      },
+      {
+        "subject": "Amara Fujimoto",
+        "relation": "works as",
+        "object": "photographer",
+        "source_exchange": null,
+        "timestamp": 1771748307.741069
+      },
+      {
+        "subject": "Faye Watanabe",
+        "relation": "favorite color is",
+        "object": "coral",
+        "source_exchange": null,
+        "timestamp": 1771748307.741073
+      },
+      {
+        "subject": "Rio Adeyemi",
+        "relation": "favorite food is",
+        "object": "borscht",
+        "source_exchange": null,
+        "timestamp": 1771748307.741077
+      },
+      {
+        "subject": "Nils Popov",
+        "relation": "enjoys",
+        "object": "beekeeping",
+        "source_exchange": null,
+        "timestamp": 1771748307.741081
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771748325.688319,
+    "consolidated": true
+  },
+  {
+    "edit_id": "1155d691",
+    "facts": [
+      {
+        "subject": "Ivan Olsson",
+        "relation": "lives in",
+        "object": "Yuma",
+        "source_exchange": null,
+        "timestamp": 1771748335.874932
+      },
+      {
+        "subject": "Neva Osei",
+        "relation": "works as",
+        "object": "translator",
+        "source_exchange": null,
+        "timestamp": 1771748335.87494
+      },
+      {
+        "subject": "Ace Asante",
+        "relation": "favorite color is",
+        "object": "silver",
+        "source_exchange": null,
+        "timestamp": 1771748335.874943
+      },
+      {
+        "subject": "Maya Reyes",
+        "relation": "favorite food is",
+        "object": "paella",
+        "source_exchange": null,
+        "timestamp": 1771748335.874945
+      },
+      {
+        "subject": "Tara Mensah",
+        "relation": "enjoys",
+        "object": "juggling",
+        "source_exchange": null,
+        "timestamp": 1771748335.874948
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771748355.501981,
+    "consolidated": true
+  },
+  {
+    "edit_id": "aba4c8c2",
+    "facts": [
+      {
+        "subject": "Viktor and",
+        "relation": "is named",
+        "object": "Viktor and",
+        "source_exchange": "My name is Viktor and I live in Portland",
+        "timestamp": 1771749870.463135
+      },
+      {
+        "subject": "The user",
+        "relation": "lives in",
+        "object": "Portland",
+        "source_exchange": "My name is Viktor and I live in Portland",
+        "timestamp": 1771749870.463627
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771749876.2256289,
+    "consolidated": true
+  },
+  {
+    "edit_id": "6e1c78dc",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "works as",
+        "object": "a marine biologist",
+        "source_exchange": "I work as a marine biologist",
+        "timestamp": 1771749879.740663
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771749883.205937,
+    "consolidated": true
+  },
+  {
+    "edit_id": "aec78fa9",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "'s favorite color is",
+        "object": "teal",
+        "source_exchange": "My favorite color is teal",
+        "timestamp": 1771749887.536115
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771749891.782937,
+    "consolidated": true
+  },
+  {
+    "edit_id": "3d2125ee",
+    "facts": [
+      {
+        "subject": "The user",
+        "relation": "uses",
+        "object": "Python and Rust",
+        "source_exchange": "I use Python and Rust",
+        "timestamp": 1771749945.1697369
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771749947.791855,
+    "consolidated": true
+  }
+]

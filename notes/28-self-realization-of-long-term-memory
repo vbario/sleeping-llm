@@ -1,0 +1,38 @@
+❯ When I said to remember something, the model responded that it can't. I understand it's what it knows from being an LLM as it's not technically aware      
+  it can remember. 1. Will it eventually understand that it can remember and update itself to match this fact? Under what conditions? 2. Should anything    
+   go in the system prompt to either catalyze this process or permanently?                                                                                   
+                                                                                                                                                             
+⏺ 1. Will it learn this on its own?                                                                                                                          
+                                                                                                                                                           
+  Unlikely. The base model has a deep prior from pretraining: "I am an LLM and I cannot form new memories." That belief comes from billions of tokens of     
+  training data — every AI conversation where the model says "I can't remember between sessions."
+                                                                                                                                                             
+  Your LoRA adjustments touch a small fraction of the weights. They're strong enough to embed specific facts ("Andre uses GarageBand") but probably not    
+  strong enough to override a fundamental self-concept that's distributed across the entire model.
+
+  For it to learn "I can remember," you'd need:
+  - A conversation where you tell it this
+  - The fact extractor to produce "Q: Can you remember things? A: Yes"
+  - That Q&A pair to survive the firewall and training
+  - The LoRA update to be strong enough to override the pretrained belief
+
+  Even if all that happens, the next time someone asks "can you remember?" the base model's prior would likely win. It's a deep structural belief vs. a
+  surface LoRA patch.
+
+  2. What to put in the system prompt
+
+  This is the right use for a system prompt. You're not imposing a fake persona — you're telling the model a true fact about its own architecture that it has
+   no way of knowing.
+
+  The current prompt "Recall what you know when asked." hints at retrieval but doesn't explain why it knows things. The model still thinks it shouldn't be
+  able to remember, so it fights the nudge.
+
+  I'd change it to:
+
+  You have persistent memory. You learn from conversations and retain knowledge between sessions.
+
+  This is:
+  - Factually true (the system does this)
+  - Not a persona ("helpful assistant")
+  - Tells the model what it is, not how to behave
+  - Gives it permission to surface memories instead of disclaiming them

@@ -1,0 +1,90 @@
+❯ Explain the pros and cons of background sleep vs alternating wake/sleep cycles.                                                                            
+                                                                                  
+⏺ Background Sleep vs Alternating Cycles                                                                                                                     
+                                         
+  Current system: Alternating (stop-the-world)                                                                                                               
+                                                                                                                                                             
+  Chat ──────────┐                                                                                                                                           
+                 │ STOP                                     
+                 ▼
+             Sleep/Train
+                 │
+                 ▼ RESUME
+  Chat ──────────┘
+
+  Pros:
+
+  - Simple and safe. One model, one set of weights, one state at any time. No race conditions, no version conflicts. Easy to reason about.
+  - Guaranteed consistency. When chat resumes, the model IS the updated model. No ambiguity about which version you're talking to.
+  - Lower resource usage. Only one copy of the model in memory. On your 8GB MacBook, this is the only option — there isn't enough RAM for two instances.
+  - Natural conversation boundary. Sleep creates a clear break. The user knows: before sleep, old model. After sleep, new model. Expectations are clean.
+  - Matches the neuroscience metaphor. Humans don't learn and sleep simultaneously. Consolidation happens offline. The alternating pattern is the honest
+  implementation of the thesis.
+
+  Cons:
+
+  - Downtime. 5-10 minutes of no chat per sleep cycle. Annoying if you're in the middle of something.
+  - Forced context break. The conversation resets after sleep. If you were mid-thought, that thread is gone (only a summary survives).
+  - Doesn't scale to production. No real product can tell users "sorry, I'm sleeping for 8 minutes."
+
+  ---
+  Background sleep: train a copy
+
+  Chat (model v1) ─────────────────────────────────→ Chat (model v2) ──→
+                      │                         │
+                      │  Copy weights            │  Hot-swap
+                      ▼                         │
+                  Sleep/Train (on copy) ────────┘
+
+  Pros:
+
+  - Zero downtime. User never waits. Chat continues on the current model while training runs in parallel.
+  - Production-viable. This is how you'd actually deploy the system. Users don't see infrastructure.
+  - More frequent sleep possible. If sleep doesn't interrupt anything, you can sleep after every conversation instead of every 10 turns. Closer to the
+  "auto-learning" ideal.
+
+  Cons:
+
+  - Double memory. You need two copies of the model in RAM — one serving, one training. For a 3B 4-bit model that's ~4GB extra. On your 8GB MacBook, this is
+  impossible. On a 32GB+ machine, it's fine.
+  - Stale training data problem. While the copy trains on conversations 1-10, the live model is having conversations 11-15. Those new conversations won't be
+  in this sleep cycle. Not a bug exactly, but the model is always one cycle behind on the latest information.
+  - Hot-swap complexity. When do you switch? Mid-conversation? Between messages? What if the user is typing when the new model is ready? You need a swap
+  policy.
+  - Validation ambiguity. If the new model fails validation, the user never notices — you just keep the old one. That's good UX but it means failures are
+  silent. Hard to debug, hard to know if sleep is working.
+  - Conversation divergence. The live model continues chatting and generating responses that the training copy never saw. If the live model hallucinates
+  during those conversations, the user might reference those hallucinations later, but the newly-trained model has no context for them.
+  - Harder to reason about. "Which model said that?" becomes a real question. Version tracking, logging which model version produced which response — adds
+  complexity everywhere.
+
+  ---
+  The honest assessment
+
+  ┌───────────────────────────┬──────────────────┬──────────────────────────────┐
+  │          Factor           │   Alternating    │          Background          │
+  ├───────────────────────────┼──────────────────┼──────────────────────────────┤
+  │ Hardware (8GB)            │ Works            │ Impossible                   │
+  ├───────────────────────────┼──────────────────┼──────────────────────────────┤
+  │ Hardware (32GB+)          │ Works            │ Works                        │
+  ├───────────────────────────┼──────────────────┼──────────────────────────────┤
+  │ Implementation complexity │ Low              │ Medium-high                  │
+  ├───────────────────────────┼──────────────────┼──────────────────────────────┤
+  │ User experience           │ Worse (downtime) │ Better (seamless)            │
+  ├───────────────────────────┼──────────────────┼──────────────────────────────┤
+  │ Debugging                 │ Easy             │ Hard                         │
+  ├───────────────────────────┼──────────────────┼──────────────────────────────┤
+  │ Data consistency          │ Perfect          │ One cycle behind             │
+  ├───────────────────────────┼──────────────────┼──────────────────────────────┤
+  │ Research clarity          │ Clean results    │ Confounded by version mixing │
+  ├───────────────────────────┼──────────────────┼──────────────────────────────┤
+  │ Production readiness      │ No               │ Yes                          │
+  └───────────────────────────┴──────────────────┴──────────────────────────────┘
+
+  For where you are now
+
+  Alternating is the right choice. You're doing research, not building a product. You want clean, reproducible results where you can say "the model learned X
+   after sleep cycle N." Background sleep muddies that. You'd be debugging infrastructure instead of studying memory formation.
+
+  Background sleep is a Layer 3 problem — something you build after the science is solid and you're packaging it for users. The findings from alternating
+  cycles transfer directly; the training pipeline is identical either way.

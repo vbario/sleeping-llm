@@ -1,0 +1,70 @@
+Here's the full flow in full_sleep.py:                                                                                             
+                             
+  Happy path (sleep approved):                                                                                                                                                           
+  1. Revert MEMIT edits from model weights                                                                                                                                               
+  2. Fuse LoRA adapter into model                                                                                                                                                        
+  3. Validate post-sleep score                                                                                                                                                           
+  4. If approved → promote fused model, mark MEMIT edits as "consolidated" (they're now baked into LoRA)                                                                                 
+
+  Sad path (sleep rejected):
+  1. MEMIT edits were already reverted (step before validation)
+  2. LoRA is discarded
+  3. Rollback to latest checkpoint (or base model if no checkpoint)
+  4. Re-apply all the MEMIT edits back onto the rolled-back model (full_sleep.py:326-328)
+
+  So it's not "override with MEMIT if sleep fails" — it's restore the status quo. The MEMIT edits were there before sleep started, they get temporarily removed for LoRA
+  fusion/validation, and when LoRA is rejected, the MEMIT edits are re-injected so the model is back to its pre-sleep state.
+
+  The net effect of a rejected sleep: nothing changes. The model still has the same MEMIT edits it had before, no LoRA gets fused, and training data stays unconsumed. The system just
+  continues as if sleep never happened.
+
+❯ So they MEMIT edits stay around until they are integrated in sleep?                                                                                                                    
+                                                                      
+⏺ Yes, exactly. MEMIT edits are persistent in-memory weight modifications that live in the model until a successful sleep cycle consolidates them into LoRA.                             
+                                                                                                                                                                                         
+  The lifecycle is:                                                                                                                                                                      
+                  
+  1. Wake — user teaches the model a fact → FactExtractor extracts it → MemitEngine.inject_fact() edits the weights directly                                                             
+  2. Between sleeps — the edits stay active in the model weights, tracked by the EditLedger
+  3. Sleep starts — ledger.get_facts_for_training() pulls all MEMIT facts and adds them to the LoRA training data (curator.triples_to_training_pairs)
+  4. Pre-validation — MEMIT edits are reverted from weights so the LoRA is evaluated cleanly
+  5. If approved — LoRA now contains the knowledge, MEMIT edits are marked "consolidated" in the ledger. They're gone from weights but baked into the adapter.
+  6. If rejected — MEMIT edits are re-injected. They stick around for the next sleep attempt.
+
+  So MEMIT is the fast, immediate memory path (seconds), and LoRA is the slow, durable path (minutes). MEMIT bridges the gap until sleep can consolidate everything properly.
+
+❯ This is a good place to look for how often and for how long to nap/sleep becuase. It feels as though the buildup of unconsolidated MEMIT edits is a form of fatigue or overload,       
+  the way a person can be overloaded without sleeping for some time. Thoughts?                                                                                                          
+                                                                                                                                                                                         
+⏺ That's a really compelling analogy, and it maps well to actual neuroscience. Adenosine builds up during wakefulness and creates sleep pressure — the longer you're awake, the worse you
+   function. MEMIT edits do exactly the same thing: you measured capacity degradation at 0.80 → 0.70 → 0.60 recall as edits accumulate from 5 → 10 → 15 facts on 3B.                     
+                                                                                                                                                                                         
+  Let me check what drives sleep pressure currently.
+                                                                                                                                                                                         
+⏺ Read 1 file (ctrl+o to expand)    
+                                                                                                                                                                                         
+⏺ You already have this. The HealthMonitor is exactly this idea — and MEMIT edit pressure is already the dominant signal at 60% weight (edit_weight: 0.6) vs time at 30% and perplexity
+  at 10%.                     
+                                                                                                                                                                                         
+  The three pressure components map nicely to human fatigue:                                                                                                                             
+                                                                                                                                                                                         
+  ┌────────────────────────────────────┬─────────────────────────────────┬────────┐                                                                                                      
+  │               Human                │             System              │ Weight │
+  ├────────────────────────────────────┼─────────────────────────────────┼────────┤
+  │ Adenosine buildup (cognitive load) │ MEMIT edit count / max capacity │ 0.6    │
+  ├────────────────────────────────────┼─────────────────────────────────┼────────┤
+  │ Circadian clock (time awake)       │ Seconds since last sleep        │ 0.3    │
+  ├────────────────────────────────────┼─────────────────────────────────┼────────┤
+  │ Confusion / incoherence            │ Perplexity drift from baseline  │ 0.1    │
+  └────────────────────────────────────┴─────────────────────────────────┴────────┘
+
+  And the nap vs sleep distinction is already there too:
+  - should_nap() at 0.4 pressure — light consolidation
+  - should_sleep() at 0.8 pressure — full LoRA cycle
+  - Nap only halves edit pressure (_edit_count -= max/2), full sleep zeros it — just like a power nap vs a full night's rest
+
+  The one thing that's interesting from your capacity measurements is that the degradation isn't linear. Going from 5→10 edits loses 10% recall, but 10→15 loses another 10%. If it
+  accelerates beyond that, the pressure curve should probably be non-linear too — maybe quadratic or exponential near capacity — so the system gets increasingly urgent about sleeping as
+   it approaches its limits, the way sleep deprivation doesn't degrade linearly in humans either.
+
+  Right now edit_pressure = min(1.0, count / max) is linear. Something like (count / max) ** 1.5 would create that increasing urgency near the ceiling.

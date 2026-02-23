@@ -1,0 +1,358 @@
+\documentclass[11pt]{article}
+
+% ─── Page geometry ───
+\usepackage[margin=1in]{geometry}
+
+% ─── Fonts and encoding ───
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ─── Math ───
+\usepackage{amsmath,amssymb,amsfonts}
+
+% ─── Tables and figures ───
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{array}
+
+% ─── Hyperlinks ───
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+\usepackage{url}
+
+% ─── Citations ───
+\usepackage{natbib}
+\bibliographystyle{abbrvnat}
+\setcitestyle{authoryear,open={(},close={)}}
+
+% ─── Misc ───
+\usepackage{enumitem}
+\usepackage{xcolor}
+
+% Allow slightly looser spacing to avoid overfull hboxes from long citations
+\emergencystretch=1em
+
+% ─── Title ───
+\title{\textbf{Sleep-Wake Consolidation for Lifelong Conversational Memory\\in Local Language Models}}
+
+\author{
+  Vladimir Baranov\\
+  \texttt{vlad@chatsetter.ai}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ═══════════════════════════════════════════════════════════════
+\begin{abstract}
+Large Language Models lack persistent memory: each session begins from a blank state, and all conversational context is lost when the session ends. Existing approaches to this problem---retrieval-augmented generation, summary injection, and external memory modules---keep the model's weights frozen, relying on input manipulation rather than genuine learning. We present a system that enables a local LLM to form long-term memories by integrating conversational experience directly into its weights through a biologically-inspired sleep-wake cycle. Drawing on Complementary Learning Systems theory, the system alternates between a wake phase (standard inference with conversation logging) and a sleep phase (a six-stage pipeline of curation, experience replay, synthetic data generation, LoRA fine-tuning, validation gating, and adapter fusion). We implement and evaluate the system on a 3-billion-parameter quantized model running on a MacBook Air with 8\,GB of RAM using the MLX framework. Our experiments reveal a narrow but viable learning rate window (approximately $1 \times 10^{-4}$) for stable continual learning at this scale, outside of which the model either fails to learn or suffers catastrophic forgetting. Within this window, the model successfully transfers factual information from conversations into its weights, surviving complete restarts with no context window assistance. Successive sleep cycles strengthen recall through spaced repetition, consistent with predictions from the memory consolidation literature.
+\end{abstract}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:introduction}
+
+Every modern large language model suffers from a fundamental limitation: it cannot learn from its own conversations. A user may spend hours sharing personal details, establishing preferences, and building context, but the moment the session ends, all of it vanishes. The next conversation starts from a blank slate. The context window provides an illusion of memory during a session---the model can reference earlier exchanges because those tokens remain in its attention mechanism---but this is working memory, not long-term memory. It has a hard size limit, disappears between sessions, and provides no mechanism for the model to actually learn from experience.
+
+Several approaches have been proposed to address this gap. Retrieval-augmented generation (RAG) stores conversation snippets in an external database and injects relevant ones into the prompt at inference time \citep{lewis2020retrieval}. Summary-based systems compress conversation history into condensed representations that persist across sessions. Memory-augmented architectures add external read-write memory modules to the model \citep{wang2024memoryllm,wang2023longmem}. Each of these approaches keeps the model's weights frozen---the model itself never changes, it simply receives different inputs. Recent comparisons suggest that RAG consistently outperforms unsupervised fine-tuning for factual knowledge injection \citep{ovadia2024finetuning}, though the two approaches may be complementary rather than competing \citep{deluisbalaguer2024rag}.
+
+This paper takes a different approach. We ask: what if the model itself could learn from its conversations? Inspired by the Complementary Learning Systems (CLS) framework from neuroscience \citep{mcclelland1995why,kumaran2016what}, we design a system in which the context window serves as a fast, episodic store (analogous to the hippocampus) and the model's weights serve as a slow, semantic store (analogous to the neocortex). Periodically, the model ``sleeps''---an offline consolidation cycle that absorbs recent conversations into the weights using Low-Rank Adaptation (LoRA) \citep{hu2022lora}, with safeguards against catastrophic forgetting inspired by the brain's own mechanisms for memory consolidation during sleep.
+
+We implement this system end-to-end on consumer hardware---a MacBook Air M3 with 8\,GB of unified memory---and demonstrate that a 3-billion-parameter quantized language model can, after sleeping, recall facts from a prior conversation with no context window assistance. Our contributions are:
+
+\begin{enumerate}[leftmargin=2em]
+  \item \textbf{A complete sleep-wake system for conversational memory.} We present the first end-to-end architecture integrating curation, experience replay with spaced repetition, synthetic data generation, LoRA training, and validation gating into a unified sleep-wake loop for persistent conversational memory in a local LLM.
+
+  \item \textbf{Empirical characterization of the viable learning rate window.} We identify a narrow band of hyperparameters (learning rate ${\approx}\,1 \times 10^{-4}$, single epoch) that enables stable continual learning at 3B scale on consumer hardware, and document the failure modes on either side of this window.
+
+  \item \textbf{Evidence of spaced repetition effects across sleep cycles.} We demonstrate that successive consolidation cycles strengthen memory recall, consistent with predictions from the spaced repetition literature, providing evidence that the sleep-wake architecture produces emergent consolidation dynamics.
+\end{enumerate}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Related Work}
+\label{sec:related}
+
+\subsection{Continual Learning for Language Models}
+
+Continual learning---the ability to acquire new knowledge without forgetting old knowledge---is a long-standing challenge in neural networks. Comprehensive surveys catalog the landscape for LLMs specifically \citep{wu2024continual,shi2024continual}, identifying three settings: continual pre-training, domain-adaptive pre-training, and continual fine-tuning. Our work falls in the continual fine-tuning category, where a model is updated on task-specific data after initial training.
+
+Classical approaches to catastrophic forgetting include Elastic Weight Consolidation (EWC), which uses the Fisher information matrix to protect important parameters \citep{kirkpatrick2017overcoming}; Learning without Forgetting (LwF), which uses knowledge distillation to preserve old-task performance \citep{li2017learning}; and progressive neural networks, which add new capacity for each task \citep{rusu2016progressive}. Recent work on LLMs specifically has shown that forgetting intensifies with model scale during continual instruction tuning \citep{luo2023empirical}, that the flatness of the loss landscape directly influences forgetting severity \citep{li2024revisiting}, and that apparent performance drops may sometimes reflect disrupted task alignment rather than true knowledge loss \citep{zheng2025spurious}. The TRACE benchmark reveals severe degradation when LLMs are trained sequentially on diverse tasks \citep{wang2023trace}.
+
+Our system addresses catastrophic forgetting through a combination of low learning rates, LoRA-constrained updates, experience replay, and a validation gate that rolls back destructive sleep cycles---an integrated approach rather than a single mechanism.
+
+\subsection{Sleep-Inspired and Biologically-Motivated Approaches}
+
+The theoretical foundation for our work comes from Complementary Learning Systems (CLS) theory, which argues that the brain requires two learning systems: a hippocampal system for rapid episodic encoding and a neocortical system for gradual extraction of statistical structure \citep{mcclelland1995why}. The theory was updated to account for the role of hippocampal replay in generalization and the capacity for rapid neocortical learning when new information is consistent with existing schemas \citep{kumaran2016what}. The original wake-sleep algorithm \citep{hinton1995wake} used alternating phases for training generative models, though its connection to biological sleep consolidation was metaphorical rather than mechanistic.
+
+Several recent works have operationalized sleep-inspired consolidation for neural networks. \citet{tadros2022sleep} interleave backpropagation with simulated sleep using Hebbian plasticity rules, showing that offline replay protects old memories during new task learning. \citet{krishnan2019biologically} convert trained ANNs to spiking networks for a sleep-like phase using spike-timing dependent plasticity. In the continual learning setting, \citet{carta2024wake} introduce Wake-Sleep Consolidated Learning with explicit wake, NREM, and REM phases, outperforming baselines on image classification. \citet{harun2023siesta} propose SIESTA, a wake/sleep framework for on-device continual learning that matches offline learner performance on ImageNet-1K.
+
+More recently, concurrent work has explored sleep for language models specifically: ``Language Models Need Sleep'' \citep{lmneedsleep2025} proposes RL-based knowledge seeding and synthetic curriculum generation, while ``Dreaming is All You Need'' \citep{dreaming2024} incorporates sleep cycles into training through unsupervised learning features.
+
+Our work differs from this body of literature in three respects. First, we target \emph{conversational memory}---the ability to remember facts from natural dialogue---rather than task-incremental classification or benchmark performance. Second, we operate on consumer hardware under severe resource constraints (8\,GB RAM, 3B parameters), which introduces unique challenges around the viable learning rate window. Third, we implement a complete end-to-end system rather than an isolated training algorithm, including curation, replay scheduling, validation gating, and checkpoint management.
+
+\subsection{Parameter-Efficient Fine-Tuning}
+
+Low-Rank Adaptation (LoRA) \citep{hu2022lora} freezes pre-trained weights and injects trainable low-rank decomposition matrices into transformer layers, reducing trainable parameters by orders of magnitude while matching full fine-tuning quality. QLoRA extends this by backpropagating through 4-bit quantized weights \citep{dettmers2023qlora}. Earlier parameter-efficient approaches include adapter modules \citep{houlsby2019parameter} and prefix-tuning \citep{li2021prefix}.
+
+LoRA has been specifically studied for continual learning. O-LoRA learns tasks in orthogonal low-rank subspaces to minimize inter-task interference \citep{wang2023olora}. InfLoRA designs interference-free subspaces that eliminate the effect of new tasks on old task representations \citep{liang2024inflora}. Our system uses standard LoRA with adapter fusion after each sleep cycle rather than maintaining separate adapters per task, as the ``tasks'' in our setting (individual conversations) are not discrete or well-separated.
+
+\subsection{Experience Replay}
+
+Experience replay---storing and replaying past examples during training---is one of the oldest and most effective strategies for mitigating catastrophic forgetting. Gradient Episodic Memory (GEM) constrains gradient updates using stored examples \citep{lopezpaz2017gradient}, with A-GEM providing a more efficient approximation \citep{chaudhry2019efficient}. Dark Experience Replay (DER++) replays stored logits alongside labels for stronger consistency \citep{buzzega2020dark}. In the LLM setting, \citet{rolnick2019experience} demonstrate that simple experience replay substantially reduces forgetting in reinforcement learning. \citet{huang2024mitigating} propose Self-Synthesized Rehearsal (SSR), which uses the LLM itself to generate rehearsal examples from its own knowledge before fine-tuning, eliminating the need for stored training data.
+
+Our replay buffer implements prioritized spaced repetition: high-scoring examples from previous sleep cycles are mixed into each training batch with a decay factor (0.85) that reduces their priority over successive cycles. This design is motivated by the spacing effect in memory research---repeated exposures with intervening periods of partial decay produce stronger encoding than massed repetition.
+
+\subsection{Memory-Augmented and Retrieval-Augmented LLMs}
+
+Retrieval-Augmented Generation (RAG) \citep{lewis2020retrieval} combines parametric models with non-parametric retrieval over external corpora, demonstrating improved factual accuracy on knowledge-intensive tasks. MemoryLLM introduces a self-updatable memory pool in the transformer's latent space that retains information across nearly a million updates \citep{wang2024memoryllm}. LongMem uses a decoupled architecture with a frozen backbone and an adaptive side-network for retrievable long-term memory \citep{wang2023longmem}. Systematic comparisons show that RAG outperforms naive fine-tuning for factual knowledge injection, though fine-tuning excels when the goal is domain adaptation rather than factual recall \citep{ovadia2024finetuning,deluisbalaguer2024rag}.
+
+These approaches keep the model's weights frozen, treating memory as an external resource accessed through the input. Our approach is complementary: we modify the weights themselves, making the model's knowledge genuinely persistent and independent of any retrieval infrastructure. The finding by \citet{ovadia2024finetuning} that exposure to multiple variations of the same fact improves fine-tuning effectiveness directly motivates our synthetic data generation (``dreaming'') stage.
+
+\subsection{Self-Training and Synthetic Data Generation}
+
+Training on self-generated data has proven effective across several settings. Self-Instruct bootstraps instruction-following capabilities from a model's own generations \citep{wang2023selfinstruct}. SPIN uses self-play against previous model iterations to improve alignment \citep{chen2024selfplay}. Constitutional AI uses the model's own critiques for self-improvement \citep{bai2022constitutional}. Rho-1 demonstrates that selectively training on high-value tokens produces dramatically better outcomes than uniform training \citep{lin2024rho1}. \citet{cheng2024adapting} show that transforming raw corpora into reading comprehension format preserves prompting ability during domain adaptation.
+
+Our system's ``dreaming'' stage generates synthetic Q\&A pairs that approach learned information from multiple angles, building associative richness before training. This is related to SSR \citep{huang2024mitigating} and Self-Instruct \citep{wang2023selfinstruct}, but applied specifically to consolidate conversational memories rather than to generate general training data.
+
+% ═══════════════════════════════════════════════════════════════
+\section{Method}
+\label{sec:method}
+
+The system is organized as a state machine alternating between two phases: waking (inference) and sleeping (training). An orchestrator manages transitions, triggered either automatically after a configurable number of conversational turns or manually by the user.
+
+\subsection{System Overview}
+
+The architecture implements a dual-system design following CLS theory. The context window acts as the fast-learning system (hippocampal analog), rapidly encoding new conversational exchanges. The model weights act as the slow-learning system (neocortical analog), gradually integrating experience during offline consolidation. The sleep-wake loop mediates the transfer between these two systems.
+
+The system comprises four modules: the \textbf{wake module} (chat loop, context management, conversation logging), the \textbf{sleep module} (curation, training, validation, dreaming), the \textbf{memory module} (replay buffer, checkpoints, identity reinforcement), and an \textbf{orchestrator} that manages state transitions.
+
+\subsection{Wake Phase}
+
+During the wake phase, the system operates as a standard chat interface with three concurrent subsystems:
+
+\paragraph{Context management.} A sliding window manages the tokens available to the model's attention mechanism. When the window reaches 80\% capacity, older messages are summarized by the model itself and replaced with a compressed representation. This mirrors working memory refresh---older information is abstracted while recent details remain available.
+
+\paragraph{Conversation logging.} Every exchange is persisted to disk in JSONL format, providing the raw material for sleep-phase processing. Unlike biological memory, the log provides a perfect record with no degradation or distortion.
+
+\paragraph{Sleep trigger monitoring.} A turn counter tracks conversational depth. When it reaches a configurable threshold (default: 10 turns), the system transitions to the sleep phase. Manual triggering is also supported.
+
+\subsection{Sleep Phase}
+
+Sleep is a six-stage pipeline that transforms raw conversation into weight updates.
+
+\paragraph{Stage 1: Curation.} The conversation log is scored along three dimensions. For each exchange $e$, we compute:
+\begin{itemize}[leftmargin=2em,nosep]
+  \item $\text{novelty}(e)$: the degree to which the information is not already represented in the model's knowledge;
+  \item $\text{importance}(e)$: the relevance and significance of the information (explicit user corrections, stated preferences, and novel factual content score higher);
+  \item $\text{utility}(e)$: the anticipated future usefulness of the information.
+\end{itemize}
+Exchanges below configurable thresholds on these dimensions are discarded. This filtering mirrors the brain's selective consolidation during the transition from waking to sleep, where the hippocampus preferentially consolidates memories anticipated to be useful.
+
+\paragraph{Stage 2: Replay buffer integration.} High-scoring examples from previous sleep cycles are mixed into the training data at a configurable ratio (default: 20\%). Each time an item is replayed, its priority is reduced by a decay factor $d = 0.85$:
+\begin{equation}
+  \text{priority}_t(e) = \text{priority}_{t-1}(e) \cdot d
+  \label{eq:replay-decay}
+\end{equation}
+This implements spaced repetition: important information is reinforced across multiple sleep cycles with declining frequency, following the spacing effect observed in human memory research.
+
+\paragraph{Stage 3: Dreaming.} During deep sleep cycles (every $k$ light sleep cycles, default $k=5$), the system enters a REM-equivalent phase. The model generates synthetic Q\&A pairs based on its accumulated knowledge, creating new associative connections. For example, if the model has learned that the user works with PostgreSQL and previously discussed connection pooling, the dreamer might generate training pairs about PostgreSQL connection pooling best practices---strengthening the association between related memories. This is analogous to the creative recombination function attributed to REM sleep in neuroscience.
+
+\paragraph{Stage 4: LoRA training.} The curated dataset is used to train a Low-Rank Adaptation layer. Following \citet{hu2022lora}, we inject trainable low-rank matrices $\mathbf{A} \in \mathbb{R}^{d \times r}$ and $\mathbf{B} \in \mathbb{R}^{r \times d}$ into the model's attention layers, where $r \ll d$ is the rank. The weight update is constrained to the low-rank subspace:
+\begin{equation}
+  \mathbf{W}' = \mathbf{W} + \mathbf{B}\mathbf{A}
+  \label{eq:lora}
+\end{equation}
+This constrains the update to a low-dimensional subspace, minimizing interference between new and existing knowledge. Training runs for $N$ iterations scaled to dataset size:
+\begin{equation}
+  N = |\mathcal{D}| \times \text{epochs}
+  \label{eq:iterations}
+\end{equation}
+where $|\mathcal{D}|$ is the number of training examples and epochs is typically 1 (a single pass).
+
+\paragraph{Stage 5: Validation.} Before and after training, the model is evaluated on a fixed set of benchmark questions $\mathcal{Q} = \{q_1, \ldots, q_n\}$. Let $s_{\text{pre}}$ and $s_{\text{post}}$ denote the pre-sleep and post-sleep scores respectively. The sleep cycle is accepted only if:
+\begin{equation}
+  s_{\text{post}} \geq \tau \cdot s_{\text{pre}}
+  \label{eq:validation}
+\end{equation}
+where $\tau$ is the validation threshold (default: 0.5). If validation fails, the LoRA adapter is discarded and the model reverts to its pre-sleep state. Critically, fusion occurs only \emph{after} validation passes---an ordering learned through a failure where fusing before validation left the system unable to recover from a destructive training cycle.
+
+\paragraph{Stage 6: Fusion.} If validation passes, the LoRA adapter is merged into the base model weights and saved as a new checkpoint. The system reloads the updated model and resumes the wake phase. The conversation has become part of the model's knowledge.
+
+\subsection{Multi-Timescale Architecture}
+
+The system operates at multiple timescales, mirroring the multi-stage consolidation hierarchy observed in biological sleep:
+
+\begin{table}[h]
+\centering
+\caption{Multi-timescale sleep architecture. Each layer trades off plasticity against stability, with deeper layers performing more thorough but less frequent consolidation.}
+\label{tab:timescales}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Layer} & \textbf{Human Analog} & \textbf{LLM Implementation} & \textbf{Frequency} \\
+\midrule
+Layer 1 & Working memory   & Context window, no weight changes          & Every turn     \\
+Layer 2 & Ultradian dips   & Small adapter updates or memory store writes & ${\sim}$15 turns \\
+Layer 3 & NREM Stages 1--2 & LoRA fine-tune on curated session data      & End of session \\
+Layer 4 & Slow-wave sleep  & Full consolidation with replay, adapter fusion & Daily       \\
+Layer 5 & REM              & Synthetic Q\&A generation, creative association & During deep sleep \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The key design principle is that plasticity and stability operate on a spectrum: frequent, light updates provide rapid adaptation with low risk, while infrequent, deep updates provide thorough integration at higher risk. Operating at multiple timescales simultaneously balances these pressures.
+
+\subsection{Identity Reinforcement}
+
+The system maintains identity through two mechanisms at different timescales. The \textbf{system prompt} is a plain-text string injected at the start of every inference call---it exists only in the context window and takes effect immediately. The \textbf{identity dataset} is a collection of core Q\&A pairs (e.g., ``What is your name?''~$\to$~``My name is J'') that are included in every sleep cycle's training data. This serves as a form of core memory reinforcement, analogous to the deeply rehearsed self-knowledge that forms the most stable layer of human memory, preventing identity drift across successive sleep cycles.
+
+% ═══════════════════════════════════════════════════════════════
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Hardware and Software}
+
+All experiments were conducted on a MacBook Air M3 with 8\,GB of unified memory. Apple Silicon's unified memory architecture, where CPU, GPU, and Neural Engine share the same RAM, makes it suited for local LLM workloads but imposes hard constraints: after accounting for the operating system (${\sim}$3\,GB), approximately 5\,GB remains for the model, inference, and training. The system uses Apple's MLX framework \citep{hannun2023mlx} for both inference and LoRA training, leveraging unified memory to avoid CPU--GPU transfer bottlenecks.
+
+\subsection{Model and Hyperparameters}
+
+We use Llama 3.2 3B Instruct at 4-bit quantization,\footnote{\texttt{mlx-community/Llama-3.2-3B-Instruct-4bit}} which requires approximately 1.8\,GB on disk and 2.5\,GB in RAM, leaving sufficient headroom for LoRA training. Table~\ref{tab:hyperparams} summarizes the hyperparameter configuration.
+
+\begin{table}[h]
+\centering
+\caption{Hyperparameter configuration for the sleep-wake system.}
+\label{tab:hyperparams}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Rationale} \\
+\midrule
+Learning rate           & $1 \times 10^{-4}$ & Midpoint of viable window (Section~\ref{sec:lr-sensitivity}) \\
+Epochs                  & 1 (single pass)     & Each example seen exactly once per cycle \\
+LoRA rank ($r$)         & 16                  & Moderate adapter capacity \\
+LoRA alpha              & 32                  & Effective scaling of 2.0 ($\alpha / r$) \\
+LoRA layers             & 8                   & Eight transformer layers modified \\
+Batch size              & 1                   & Memory constraint on 8\,GB hardware \\
+Validation threshold ($\tau$) & 0.5           & Post-sleep score must exceed 50\% of pre-sleep \\
+Validation questions    & 5                   & Reduced from 20 for speed \\
+Replay ratio            & 0.2                 & 20\% of training batch from replay buffer \\
+Replay decay ($d$)      & 0.85                & Priority reduction per replay \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Evaluation Protocol}
+
+We evaluate along two axes. \textbf{General capability preservation} is measured using a fixed set of 5 benchmark questions administered before and after each sleep cycle, scoring the model's ability to produce coherent and accurate responses. \textbf{Memory formation} is tested by introducing novel factual information during conversation that the model could not know from pretraining, then restarting the application (clearing the context window entirely) and querying the model about that information with no context clues.
+
+% ═══════════════════════════════════════════════════════════════
+\section{Results}
+\label{sec:results}
+
+\subsection{Learning Rate Sensitivity}
+\label{sec:lr-sensitivity}
+
+Systematic exploration of the hyperparameter space reveals a narrow band of viability for the 3B model on constrained hardware (Table~\ref{tab:lr-results}).
+
+\begin{table}[h]
+\centering
+\caption{Learning rate sensitivity. The viable window spans approximately one order of magnitude. Configurations above $1 \times 10^{-4}$ cause catastrophic forgetting; configurations below produce no measurable learning.}
+\label{tab:lr-results}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Learning Rate} & \textbf{Epochs} & \textbf{Iterations} & \textbf{Result} \\
+\midrule
+$5 \times 10^{-4}$ & 5 & ${\sim}$500 & Total destruction (benchmark: 0.00) \\
+$2 \times 10^{-4}$ & 3 & ${\sim}$276 & Catastrophic forgetting (benchmark: 0.00) \\
+$5 \times 10^{-5}$ & 3 & ${\sim}$270 & No measurable learning, no damage \\
+$\mathbf{1 \times 10^{-4}}$ & \textbf{1} & $\mathbf{{\sim}90}$ & \textbf{Success: learned, retained general ability} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The viable window is remarkably narrow. One order of magnitude above the working learning rate destroys the model entirely; one order below produces no measurable effect. At the destructive end ($5 \times 10^{-4}$ with 5 epochs), each training example was seen approximately 15 times at a learning rate appropriate for training from scratch, overwriting pretrained knowledge entirely. At the inert end ($5 \times 10^{-5}$), the gradient updates were too small to register on a 3-billion-parameter model. The successful configuration---a single pass at $1 \times 10^{-4}$---provides just enough signal to encode new information without destabilizing existing representations.
+
+This finding has implications for scaling: larger models should have a wider viable window, as the same gradient update distributes across more parameters and causes proportionally less disruption per weight.
+
+\subsection{Memory Formation}
+
+The memory formation test introduced a completely fabricated fact that the model could not know from pretraining: detailed biographical information about a fictional person, including personal relationships and career details. This information was conveyed through natural conversation.
+
+After one sleep cycle with the successful hyperparameter configuration, the application was restarted, clearing the context window entirely. When queried about the fictional person with no context clues, the model correctly identified the core biographical fact---the detail that appeared most frequently across training examples (raw conversation pairs, extracted Q\&A pairs, and replay buffer entries). The model did not recall the specific relationship detail, which appeared in fewer training variations.
+
+This result is consistent with repetition-dependent memory consolidation: facts encountered across more training examples survived the consolidation process, while less-repeated details did not.
+
+\subsection{Spaced Repetition Effect}
+
+After a second sleep cycle, recall of the injected information improved. The replay buffer re-surfaced the target information during the second training pass at reduced priority (decay factor 0.85), strengthening the encoding through spaced exposure. This progressive strengthening across cycles---rather than single-shot memorization---demonstrates that the architecture produces emergent consolidation dynamics consistent with the spaced repetition literature.
+
+The full sleep cycle with the working configuration required approximately 3--5 minutes on the 8\,GB MacBook Air.
+
+% ═══════════════════════════════════════════════════════════════
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{The Narrow Viability Window and Implications for Scale}
+
+The narrow learning rate window (approximately one order of magnitude) at 3B scale suggests that model capacity is a binding constraint. A 70-billion-parameter model has over twenty times the parameter count; the same LoRA update that barely registered---or caused catastrophic forgetting---on the 3B model would distribute across vastly more weights, producing proportionally gentler updates. We expect larger models to exhibit a substantially wider viable window, enabling more aggressive learning rates and deeper consolidation per cycle.
+
+\begin{table}[h]
+\centering
+\caption{Expected scaling behavior across hardware configurations.}
+\label{tab:scaling}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Hardware} & \textbf{RAM} & \textbf{Model} & \textbf{Expected Behavior} \\
+\midrule
+MacBook Air M3       & 8\,GB        & 3B 4-bit  & Narrow viable window; partial recall \\
+Mac Mini M4          & 16--32\,GB   & 8B 4-bit  & Wider window; ${\sim}$2.5$\times$ more parameters \\
+Mac Studio M4 Ultra  & 128--192\,GB & 70B 4-bit & Full knowledge absorption; robust recall \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Where the Biological Analogy Holds and Breaks}
+
+The CLS framework proved productive as a design tool: dual learning rates, spaced repetition, curation, and dreaming all map directly to neuroscience concepts and led to working engineering decisions. The analogy breaks in instructive ways. Biological learning is continuous---synaptic changes happen in real time during waking experience, with sleep serving as reorganization rather than the sole site of learning. Our system's sharp boundary between inference (no weight changes) and training (no inference) is an engineering constraint imposed by current frameworks, not a theoretical preference. The brain also employs massive parallelism and architectural diversity, with distinct systems for episodic, semantic, procedural, and emotional memory. Our system stores everything in a single LoRA adapter with uniform training dynamics.
+
+\subsection{Limitations}
+
+\paragraph{Training on model outputs.} The system trains on the full conversation, including the model's own responses. Hallucinated content gets reinforced. A future version should weight user-provided ground truth differently from model-generated responses.
+
+\paragraph{No deduplication across cycles.} The system currently gathers all conversations at every sleep cycle, including those already trained on. Early conversations receive disproportionate reinforcement, risking overfitting to initial interactions.
+
+\paragraph{Shallow curation.} The keyword-based scoring heuristics lack genuine understanding of importance. Model-based curation---using the LLM itself to evaluate significance---would be more effective but computationally expensive on constrained hardware.
+
+\paragraph{No selective forgetting.} Once information is integrated into the weights, there is no mechanism to remove it short of rolling back to a prior checkpoint. Biological systems have active forgetting mechanisms; our system does not.
+
+\paragraph{Blocking sleep.} The model goes offline during sleep. A production system would require background training on a model copy or a secondary model for handling requests during consolidation.
+
+\paragraph{Limited evaluation scale.} Our results demonstrate the mechanism on a single test case. Comprehensive evaluation with larger fact sets, multiple domains, and longer time horizons is needed to characterize the system's capacity and failure modes.
+
+% ═══════════════════════════════════════════════════════════════
+\section{Future Work}
+\label{sec:future}
+
+The most immediate priority is scaling to larger models to test whether the viable learning rate window widens as predicted. A secondary priority is replacing keyword-based curation with model-based importance scoring that can distinguish genuinely novel information from routine exchanges.
+
+The dreaming mechanism warrants deeper exploration. A more sophisticated approach would have the model actively search for contradictions in its own knowledge, generate scenarios that test the boundaries of what it has learned, and use these self-generated challenges as training signal---closer to the creative recombination function attributed to REM sleep.
+
+Additional directions include multi-user support with separate memory partitions, selective forgetting mechanisms, non-blocking background training, separation of factual and behavioral learning into distinct adaptation pathways, and online learning that updates weights during inference, eliminating the sharp wake-sleep boundary and moving toward the brain's continuous learning regime.
+
+% ═══════════════════════════════════════════════════════════════
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented a system that enables a local language model to form persistent conversational memories through biologically-inspired sleep-wake cycles. A 3-billion-parameter model on consumer hardware successfully transferred factual information from a conversation into its weights, surviving complete restarts with no context window assistance. Successive sleep cycles strengthened this memory through spaced repetition. The engineering path to this result revealed a narrow viable hyperparameter window---a finding with practical implications for anyone attempting continual learning on resource-constrained hardware. The gap between the theoretical framework and a working system contained multiple distinct failure modes, each requiring targeted fixes. The viable parameter space was narrow, a reminder that balancing plasticity and stability in artificial systems remains a nontrivial optimization problem even when the theory is sound.
+
+% ═══════════════════════════════════════════════════════════════
+\bibliography{references}
+
+\end{document}

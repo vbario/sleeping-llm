@@ -1,0 +1,42 @@
+⏺ What changed                                                                                                                                               
+   
+  Three things we added directly reduce how aggressively the model learns:                                                                                   
+                                                                                                                                                           
+  1. Session deduplication. The original system retrained on ALL past sessions every sleep cycle. Session 1 got trained on 10 times by cycle 10. That was a  
+  "bug" we fixed — but that forced repetition was actually driving memory formation. Repetition is literally how memory works (Ebbinghaus). Now each session 
+  is curated exactly once and the replay buffer samples only 20% of old material per cycle. Much less reinforcement.
+
+  2. Hallucination firewall. The firewall checks that entities in extracted Q&A pairs appear in the source conversation. But it uses exact string matching.
+  If the model paraphrases — "Andre uses GarageBand for making beats" but the conversation said "he makes music on GarageBand" — the claim "making beats"
+  might not match and the pair gets rejected. The firewall could be throwing out valid facts that are just worded differently.
+
+  3. Empty system prompt. The old prompt said "You have persistent memory. You learn and remember from our conversations." That was priming the model to
+  actively surface memories. Without it, the model has no reason to try to recall things — it doesn't know it's supposed to remember. The knowledge might be
+  in the weights but the model doesn't attempt to retrieve it.
+
+  What could improve retention
+
+  - Increase replay mix ratio from 0.2 to 0.5 or higher — more old facts revisited each cycle
+  - Inspect firewall rejections — print what's being rejected and see if valid facts are getting caught. The 0.5 grounding threshold might be too aggressive
+  - Multiple sleep cycles on the same material — the original accidental repetition worked. We could deliberately replay all curated facts 2-3 times across
+  consecutive sleeps
+  - Add a minimal system prompt — not the old "helpful assistant" but something like "Recall what you know when asked." to nudge retrieval without imposing
+  personality
+  - Increase training intensity slightly — the 1e-4 / 1 epoch config was tuned for the old system where data was repeated across cycles. With single-pass
+  curation, each fact gets less exposure. Could try 2 epochs or a slightly higher learning rate
+
+  ⏺ Done. Summary of changes:      
+
+  ┌────────────────────────────────────┬────────┬────────────────────────────────────┬───────────────────────────────────────────┐                           
+  │              Setting               │ Before │               After                │                    Why                    │
+  ├────────────────────────────────────┼────────┼────────────────────────────────────┼───────────────────────────────────────────┤                           
+  │ replay.mix_ratio                   │ 0.2    │ 0.5                                │ More old facts revisited each cycle       │                         
+  ├────────────────────────────────────┼────────┼────────────────────────────────────┼───────────────────────────────────────────┤
+  │ sleep.firewall.min_grounding_score │ 0.5    │ 0.3                                │ Less aggressive filtering                 │
+  ├────────────────────────────────────┼────────┼────────────────────────────────────┼───────────────────────────────────────────┤
+  │ context.system_prompt              │ ""     │ "Recall what you know when asked." │ Nudges retrieval without imposing persona │
+  ├────────────────────────────────────┼────────┼────────────────────────────────────┼───────────────────────────────────────────┤
+  │ lora.light_epochs                  │ 1      │ 2                                  │ More exposure per fact per cycle          │
+  ├────────────────────────────────────┼────────┼────────────────────────────────────┼───────────────────────────────────────────┤
+  │ Firewall logging                   │ none   │ prints each rejection              │ See what's being filtered and why         │
+  └────────────────────────────────────┴────────┴────────────────────────────────────┴───────────────────────────────────────────┘

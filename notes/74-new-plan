@@ -1,0 +1,49 @@
+⏺ These findings fundamentally challenge whether dissolution is the right framing. Let me break this down.
+
+  The ablations reveal a core problem:
+
+  Ablation 4 is the most damning. On 8B, MEMIT-only sustained 0.83 recall at 60 facts, but MEMIT+Nap degraded to 0.40 at 15
+  facts and had to be stopped. The nap LoRA training actively destroyed what MEMIT had already accomplished. Ablation 5 confirms
+   the mechanism: MEMIT barely touches perplexity (5.75 flat through 5 injects), but nap spiked it to 8.62.
+
+  The paper's core thesis amplifies this: the alignment tax means LoRA-based consolidation gets worse with scale. At 3B, LoRA
+  achieves 47% recall. At 8B, 23-37% with confabulation. At 70B, 0% despite successful training convergence.
+
+  So is gradual dissolution the right model?
+
+  The dissolution plan assumes MEMIT is temporary scaffolding that LoRA eventually replaces. But the data says:
+  - MEMIT is better than LoRA at fact recall (0.83 vs 0.37 on 8B)
+  - MEMIT has near-zero model damage (no PPL impact) while LoRA degrades coherence
+  - LoRA consolidation actively overwrites MEMIT's work with "repetitive patterns"
+
+  Dissolving MEMIT into LoRA is like asking someone to forget a clear memory and replace it with a vague impression. The sharp
+  memory (MEMIT) works well; the "consolidated" form (LoRA) is strictly worse.
+
+  But dissolution is still necessary for one critical reason: persistence.
+
+  MEMIT edits are in-memory weight deltas. They don't survive a model reload, a crash, or a process restart. LoRA/fused weights
+  do. A system that only uses MEMIT forgets everything on reboot. So dissolution isn't about improving recall — it's about
+  making memories durable.
+
+  What should change in the plan:
+
+  1. Scale-aware dissolution. At 3B, dissolve aggressively (LoRA works). At 8B+, dissolve very conservatively or not at all via
+  naps. Full sleep with more epochs and training data may still work (the H100 lifecycle test got 5/5 on 8B full sleep). The key
+   variable is training data volume — naps use too few examples.
+  2. Higher confidence threshold for dissolution. Don't dissolve a MEMIT fact at 0.5 scale just because LoRA recalled it once.
+  The ablations show LoRA can "recall" a fact in the test but still degrade overall. Maybe require recall on multiple formats
+  (raw completion + chat template) or require the benchmark to be stable too.
+  3. Naps probably shouldn't dissolve at all. The ablation data shows nap LoRA (1 epoch, few examples) is actively harmful on
+  8B. Naps should remain useful for other purposes (replay buffer reinforcement, general tuning) but shouldn't weaken MEMIT
+  edits.
+  4. The snapshot and per-fact validation are still absolutely worth doing. Even if we're more conservative about when to
+  dissolve, the safety improvements (no re-injection, per-fact granularity) make sleep more robust. These are good changes
+  regardless of whether dissolution happens frequently or rarely.
+  5. Long-term, MEMIT persistence is the real problem to solve. Instead of dissolving into LoRA, consider serializing MEMIT
+  deltas to disk and re-applying them on reload. This would give MEMIT persistence without relying on LoRA as the durability
+  layer. The layer_deltas dict could be saved alongside the ledger.
+
+  So the revised answer is: gradual dissolution is still necessary for durability, but the ablations say we should be much more
+  conservative about it. The plan's mechanics (scale_edit, per-fact validation, snapshot rollback) are sound — but the policy of
+   "naps dissolve to stage 1, sleep dissolves to stage 2" needs configurable thresholds that respect the alignment tax at each
+  model scale. On 8B+, MEMIT should be treated as the primary memory system, not a temporary buffer waiting to be replaced.

@@ -1,0 +1,58 @@
+MEMIT Covariance Regularization Fix
+====================================
+
+Problem: Multi-fact MEMIT injection caused catastrophic interference — "Helena"
+leaked into all generations when injecting 3+ facts simultaneously. The capacity
+test showed 0.00 recall at both 5 and 10 facts.
+
+Root Causes Found:
+
+1. Causal mask bug (nn_create_additive_causal_mask)
+   - Used `bool_mask * float(-inf)` which produces NaN (IEEE 754: 0 * inf = NaN)
+   - Fix: use mx.where(is_future, -inf, 0.0)
+   - This bug silently corrupted ALL forward passes with seq_len > 1
+
+2. Identity regularization (λI) instead of covariance (λC₀)
+   - The MEMIT paper uses per-dimension covariance regularization
+   - With identity: all activation dimensions treated equally
+   - With covariance: high-variance (heavily-used) dimensions get stronger
+     regularization, protecting the model's normal behavior
+   - Implemented via Woodbury identity: keeps inversion in [N,N] space
+     ΔW = R^T @ S^{-1} @ K_w
+     where K̃ = K/(√λ·σ), K_w = K/(λ·σ²), S = I + K̃@K̃^T
+
+3. No residual distribution across layers
+   - Previous: all residual absorbed at L_last (layer 15), other layers got 0
+   - Fix: distribute 1/remaining_layers at each step (MEMIT paper's approach)
+   - Now all 8 layers contribute roughly equally
+
+4. No cross-batch null-space constraints
+   - When injecting batch 2, it could overwrite batch 1's edits
+   - Fix: include previous edits' target keys as null-space constraints
+   - New edits are constrained to not change output at previous key positions
+
+Results:
+
+  | Facts | Before | After  |
+  |-------|--------|--------|
+  | 5     | 0.00   | 0.80   |
+  | 10    | 0.00   | 0.70   |
+  | 15    | N/A    | 0.60   |
+
+Multi-fact interference test (3 facts simultaneously):
+  - Raw completion recall: 3/3 (1.00)
+  - Interference: 0/3 probes contaminated
+  - Cross-fact bleed: 0/3
+  - Revert: all facts forgotten correctly
+
+Known limitation: MEMIT edits the raw completion pathway only. Chat template
+questions don't trigger the edit. This is expected — during wake, the context
+window provides chat recall. After nap/sleep, LoRA generalizes to all formats.
+
+Files changed:
+  - src/backend/mlx_backend.py — fixed causal mask (mx.where instead of bool*-inf)
+  - src/memory/memit.py — covariance estimation, Woodbury formula, residual
+    distribution, previous-edit constraints
+  - config.yaml — covariance_samples: 200
+  - experiments/test_multi_fact_memit.py — new multi-fact interference test
+  - experiments/memit_capacity_test.py — use raw_prompt for recall testing

@@ -1,0 +1,31 @@
+ 1. torch_backend.py:197-198 — Added prepare_model_for_kbit_training() call before wrapping with LoRA when the model is 4-bit quantized. This
+   freezes the base model properly, casts layer norms to float32, and enables gradient checkpointing — all necessary for stable LoRA training
+  on quantized models.                                                                                                                        
+  2. experiments/configs/70b_baseline.yaml — Created config with path: "meta-llama/Llama-3.1-70B-Instruct" and quantize: "4bit". Uses the same
+   hyperparameters as the 8B baseline (rank 16, LR 1e-4, 3 epochs) so results are directly comparable.
+
+  The full experiment now has 13 configs: 4x 3B, 4x 8B, 4x 13B, and 1x 70B. The 70B run uses nf4 quantization with double quantization, which
+  should fit comfortably in ~40GB VRAM on the H100 80GB, leaving plenty of room for the LoRA training overhead.
+
+✻ Sautéed for 2m 55s                                                                                                                          
+  
+❯ What's the next step?                                                                                                                       
+                                                                
+⏺ Smoke test the benchmark locally. Run scaling_benchmark.py with your existing MLX 3B model to verify the whole pipeline (inject facts →     
+  sleep → score recall) works end-to-end before you spend money on Vast.ai.                                                                   
+                                                                                                                                              
+  python experiments/scaling_benchmark.py \                 
+    --config config.yaml \                                                                                                                    
+    --facts experiments/facts/test_facts.json \             
+    --sleep-cycles 1 \
+    --no-retention
+
+  This uses your local MLX backend and 3B model. If it runs through and prints scores, the benchmark code is solid.
+
+  After that, it's all on you:
+
+  1. Request access to Llama models on HuggingFace (meta-llama/Llama-3.1-8B-Instruct, 13B, 70B)
+  2. Rent an H100 80GB on Vast.ai
+  3. Upload the codebase + pip install -r requirements-torch.txt
+  4. Run the sweep: python experiments/run_sweep.py --configs experiments/configs/
+  5. Download experiments/results/ when done

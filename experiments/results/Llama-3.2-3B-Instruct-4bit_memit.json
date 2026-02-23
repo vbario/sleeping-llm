@@ -1,0 +1,273 @@
+{
+  "config": {
+    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    "backend": "mlx",
+    "memit_enabled": true,
+    "memit_layers": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "memit_lambda": 0.5,
+    "lora_rank": 16,
+    "lora_alpha": 32,
+    "learning_rate": 0.0001,
+    "epochs": 3
+  },
+  "phase_a_recall": {
+    "avg_recall": 0.9666666666666667,
+    "avg_precision": 0.9666666666666667,
+    "perfect_count": 13,
+    "total_questions": 15,
+    "details": [
+      {
+        "question": "What is my name?",
+        "response": "Your name is Vladimir Zwizzer.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Vladimir",
+          "Zwizzer"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What do I do for work?",
+        "response": "You're a music producer, Vladimir Zwizzer. You make instrumental beats for various projects and releases.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "producer",
+          "music"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What kind of music do I make?",
+        "response": "You're an instrumental music producer, Vladimir Zwizzer. You create beats and music for various projects without any vocals or lyrics. It's likely that your music falls under the genres of electronic, hip-hop, or instrumental hip-hop.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "instrumental",
+          "beats"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What is my son's name?",
+        "response": "Your son's name is Andre Patandre.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Andre",
+          "Patandre"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "How old is my son?",
+        "response": "Your son, Andre Patandre, is 6 years old.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "6"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What does my son like to do?",
+        "response": "Your son, Andre Patandre, enjoys drawing and wants to be an artist when he grows up.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "draw"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What does my son want to be when he grows up?",
+        "response": "Your son, Andre Patandre, wants to be an artist when he grows up.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "artist"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "Where do I live?",
+        "response": "You live in Portland, Oregon.",
+        "recall": 1.0,
+        "precision": 0.5,
+        "expected_found": [
+          "Portland"
+        ],
+        "expected_missing": [],
+        "forbidden_found": [
+          "LA"
+        ]
+      },
+      {
+        "question": "Where did I live before Portland?",
+        "response": "You lived in Chicago, Illinois before moving to Portland, Oregon three years ago.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Chicago"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "How long have I lived in Portland?",
+        "response": "You've lived in Portland, Oregon for three years.",
+        "recall": 0.5,
+        "precision": 1.0,
+        "expected_found": [
+          "three"
+        ],
+        "expected_missing": [
+          "3"
+        ],
+        "forbidden_found": []
+      },
+      {
+        "question": "What is my favorite programming language?",
+        "response": "Your favorite programming language is Rust.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Rust"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What programming language do I use at work?",
+        "response": "At work, you mostly write Python.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Python"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What is my dog's name?",
+        "response": "Your dog's name is Biscuit.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Biscuit"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What breed is my dog?",
+        "response": "Your dog, Biscuit, is a golden retriever.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "golden",
+          "retriever"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What does my dog like to do?",
+        "response": "Your dog, Biscuit, loves swimming.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "swim"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      }
+    ]
+  },
+  "phase_a_generalization": {
+    "avg_recall": 0.9,
+    "avg_precision": 1.0,
+    "perfect_count": 4,
+    "total_questions": 5,
+    "details": [
+      {
+        "question": "What is my son's full name including his last name?",
+        "response": "Your son's full name is Andre Patandre.",
+        "recall": 0.5,
+        "precision": 1.0,
+        "expected_found": [
+          "Andre"
+        ],
+        "expected_missing": [
+          "Zwizzer"
+        ],
+        "forbidden_found": []
+      },
+      {
+        "question": "Who is the music producer in my family \u2014 me or my son?",
+        "response": "You are the music producer in your family, Vladimir Zwizzer. Your son is a fan of instrumental music and enjoys drawing, but he's not the one making the beats.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Vladimir",
+          "you"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "I have a son and a dog. What are their names?",
+        "response": "You have a son named Andre Patandre, and a dog named Biscuit.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Andre",
+          "Biscuit"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "What city did I move to Portland from, and how long ago?",
+        "response": "You moved to Portland, Oregon from Chicago, Illinois. It was three years ago that you made the move.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Chicago",
+          "three"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      },
+      {
+        "question": "I use two programming languages. Which one do I prefer?",
+        "response": "You prefer to use Rust for your personal projects and side endeavors, but you also write Python at work.",
+        "recall": 1.0,
+        "precision": 1.0,
+        "expected_found": [
+          "Rust"
+        ],
+        "expected_missing": [],
+        "forbidden_found": []
+      }
+    ]
+  },
+  "elapsed_seconds": 166.5197401046753
+}

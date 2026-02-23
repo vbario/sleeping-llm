@@ -1,6 +1,8 @@
 # Sleeping LLM Configuration
 
 model:
+  # Backend: "mlx" (Apple Silicon) or "torch" (CUDA GPU)
+  backend: "mlx"
   # Path to MLX model (local or HuggingFace hub ID)
   path: "mlx-community/Llama-3.2-3B-Instruct-4bit"
   # Max tokens for generation
@@ -18,21 +20,77 @@ context:
   # Trigger compaction when context reaches this fraction of max
   compaction_threshold: 0.8
   # System prompt for the model
-  system_prompt: "You are a helpful assistant with a persistent memory. You learn and remember from our conversations."
+  system_prompt: "You may recall things from previous conversations."
 
 sleep:
   # Number of conversation turns before triggering light sleep
-  light_sleep_turns: 10
+  light_sleep_turns: 5
   # Number of light sleep cycles before triggering deep sleep
   deep_sleep_interval: 5
   # Manual sleep command (user can type this to trigger sleep)
   manual_trigger: "/sleep"
+  # Trigger mode: "health" (MEMIT-based pressure) or "turns" (original fixed counter)
+  trigger_mode: "health"
 
   # Curation thresholds (0.0 - 1.0) — set to 0 to keep everything
   curation:
     min_novelty_score: 0.0
     min_importance_score: 0.0
     min_combined_score: 0.0
+
+  # Hallucination firewall — verifies extracted Q&A pairs against source conversation
+  firewall:
+    # Minimum fraction of claims that must appear in conversation (0.0 - 1.0)
+    min_grounding_score: 0.3
+    # Use model to double-check borderline cases (slower but more accurate)
+    use_model_verification: false
+
+memit:
+  # Range of transformer layers to target for MEMIT edits
+  # For Llama-3.2-3B (26 layers), middle layers store factual knowledge
+  target_layers: [8, 9, 10, 11, 12, 13, 14, 15]
+  # Regularization parameter (higher = more conservative edits)
+  lambda_reg: 0.1
+  # Maximum active MEMIT edits (individual facts) before requiring sleep
+  max_active_edits: 50
+  # Whether to enable MEMIT injection during wake
+  enabled: true
+  # MLP module to edit
+  target_module: "down_proj"
+  # Covariance estimation: use reference texts to estimate per-dimension activation
+  # variance for proper MEMIT regularization (prevents multi-fact interference).
+  # 0 = skip (use identity matrix), >0 = estimate from reference texts
+  covariance_samples: 200
+  # Residual scale factor (compensates for null-space constraints + regularization losses)
+  residual_scale: 2.0
+  # v* optimization parameters
+  v_lr: 0.5
+  v_steps: 30
+  v_kl_factor: 0.0625
+
+health:
+  # Sleep pressure threshold to suggest a nap (0.0 - 1.0)
+  nap_threshold: 0.4
+  # Sleep pressure threshold to require full sleep (0.0 - 1.0)
+  sleep_threshold: 0.8
+  # Weights for pressure calculation
+  edit_weight: 0.6
+  time_weight: 0.3
+  perplexity_weight: 0.1
+  # Measure perplexity every N edits (0 = never)
+  perplexity_check_interval: 10
+  # Max wake duration in seconds before sleep is forced
+  max_wake_seconds: 7200
+
+nap:
+  # LoRA epochs for nap (quick pass)
+  epochs: 1
+  # Learning rate for nap
+  learning_rate: 1.0e-4
+  # Revert MEMIT edits on successful nap
+  revert_on_success: true
+  # Manual trigger command
+  manual_trigger: "/nap"
 
 lora:
   # LoRA rank (higher = more capacity to learn)
@@ -46,7 +104,7 @@ lora:
   # Learning rate for deep sleep
   deep_learning_rate: 5.0e-5
   # Training epochs: each example seen N times per sleep
-  light_epochs: 1
+  light_epochs: 3
   # Deep sleep: more passes
   deep_epochs: 2
   # Batch size
@@ -55,10 +113,16 @@ lora:
 replay:
   # Max items in replay buffer
   max_items: 1000
-  # Fraction of replay data to mix into each training run
-  mix_ratio: 0.2
+  # Fraction of ACTIVE replay data to mix into each training run
+  # Light sleep: low ratio so new facts dominate
+  light_mix_ratio: 0.2
+  # Deep sleep: higher ratio for consolidation
+  deep_mix_ratio: 0.6
   # Decay factor for spaced repetition (lower = forget faster)
+  # At 0.85: ~7 replays to halve priority, ~15 replays to reach floor
   decay_factor: 0.85
+  # Items below this priority stop being trained on (but stay in buffer)
+  min_priority: 0.05
 
 validation:
   # If eval score drops below this fraction of baseline, block the merge
@@ -83,3 +147,5 @@ paths:
   current_model: "models/current"
   checkpoints: "models/checkpoints"
   adapters: "adapters"
+  memit_data: "data/memit"
+  memit_ledger: "data/memit/ledger.json"

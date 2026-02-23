@@ -1,0 +1,283 @@
+H100 Experiment Plan: Covariance Fix + Full Lifecycle
+=====================================================
+
+Context
+-------
+
+Since the last H100 run (notes 49-51), three major changes:
+
+1. Covariance regularization fix (note 53)
+   - Fixed causal mask NaN bug (0 * -inf)
+   - Replaced identity regularization (lambda*I) with covariance (lambda*C0)
+   - Added residual distribution across layers (was all in L_last)
+   - Added cross-batch null-space constraints
+   - Result on 3B: 5 facts=0.80, 10=0.70, 15=0.60 (was 0.00 for 5+)
+
+2. Full architecture built (phases 1-7 from note 48)
+   - MemitEngine, FactExtractor, HealthMonitor, NapController,
+     FullSleepController, Orchestrator integration — all implemented
+   - Lifecycle test passes end-to-end on 3B locally
+
+3. The previous run tested only Phase A (MEMIT injection).
+   Phases B and C (nap and sleep consolidation) were never tested on
+   8B or 70B. The critical question for 70B: can LoRA absorb MEMIT
+   facts and survive the revert, given that LoRA alone scored 0.00?
+
+Open Questions
+--------------
+
+Q1. MEMIT capacity per model size
+    3B: 15 facts tested (0.60 recall). Where does 8B/70B degrade?
+    Larger hidden_dim = more capacity. 70B (8192 hidden) should hold
+    significantly more than 3B (3072 hidden).
+
+Q2. Covariance regularization on larger models
+    The fix was developed on 3B. Does it help/hurt on 8B and 70B?
+    With more dimensions, covariance should matter more.
+
+Q3. Full lifecycle on 70B (THE key experiment)
+    MEMIT injection: 0.97 recall (proven).
+    Nap (MEMIT -> LoRA -> revert MEMIT): unknown.
+    The 70B alignment tax blocked LoRA recall at 0.00. But now LoRA
+    trains on MEMIT-extracted facts (precise Q&A pairs from curator),
+    not raw conversations. Does this change the outcome?
+
+Q4. MEMIT + LoRA interaction correctness
+    Deltas are computed against pre-LoRA model state. After LoRA
+    fusion, reverting those deltas introduces a small error. On 3B
+    this was negligible. Is it worse on 70B with 80 layers?
+
+Q5. Does 8B still have cross-fact bleed?
+    Previous run: 8B had mild bleed (Leo -> Andre). The covariance
+    fix + null-space constraints should fix this.
+
+Infrastructure
+--------------
+
+Vast.ai H100 80GB SXM (~$2/hr)
+- Template: pytorch/pytorch:2.x-cuda12-devel
+- Requirements: 80GB VRAM, 200GB disk (70B weights), CUDA 12.x
+- Budget: ~$15-20 for full run (6-8 hours)
+
+Setup:
+  git clone <repo> j && cd j
+  git checkout memory-version-3-continued
+  pip install transformers peft bitsandbytes accelerate pyyaml flask scipy
+
+Config Updates Required
+-----------------------
+
+The H100 configs (experiments/configs/*_memit.yaml) are missing the
+covariance fix parameters. Before running, update all three:
+
+  memit:
+    lambda_reg: 0.1            # was 0.5 — too conservative
+    covariance_samples: 200    # was 0 — enables covariance estimation
+    residual_scale: 2.0        # new — scales v* residual
+    v_lr: 0.5                  # new — v* optimization learning rate
+    v_steps: 30                # new — v* optimization steps
+    v_kl_factor: 0.0625        # new — KL divergence weight in v* loss
+
+For 70B specifically:
+  - covariance_samples: 100 (70B forward passes are expensive; 100
+    should suffice for 8192-dim diagonal covariance estimate)
+  - lambda_reg: 0.1 (same as 3B — start here, adjust if needed)
+  - 16 target layers [30-45] already correct for 80-layer model
+
+Experiment Plan
+---------------
+
+Run in order. Each step depends on the previous succeeding. Stop
+early if a step fails catastrophically — debug before proceeding.
+
+Total estimated time: 6-8 hours. Estimated cost: $12-16.
+
+
+Step 1: Sanity Check — 3B Multi-Fact (10 min)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Validates that the covariance fix works on torch backend (it was
+developed on MLX). Quick pass/fail gate.
+
+  python experiments/test_multi_fact_memit.py \
+    --config experiments/configs/3b_memit.yaml
+
+Expected:
+  - Raw recall: 3/3
+  - Interference: 0/3
+  - Cross-fact bleed: 0/3
+
+If this fails: the torch backend's forward_to_layer or causal mask
+may differ from MLX. Debug before proceeding.
+
+
+Step 2: Capacity Test — 3B (15 min)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Rerun with covariance enabled. Compare to the previous identity-
+regularized results (0.80/0.70/0.60 at 5/10/15 facts).
+
+  python experiments/memit_capacity_test.py \
+    --config experiments/configs/3b_memit.yaml \
+    --max-facts 30 --batch-size 5
+
+Expected: same or slightly better than MLX results at 5/10/15,
+plus new data points at 20/25/30 facts.
+
+Save: experiments/results/3B_capacity_covariance.json
+
+
+Step 3: Capacity Test — 8B (30 min)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+First capacity test on 8B. Larger hidden_dim (4096 vs 3072)
+should give more headroom.
+
+  python experiments/memit_capacity_test.py \
+    --config experiments/configs/8b_memit.yaml \
+    --max-facts 50 --batch-size 5
+
+Expected: degrade point at 15-25 facts (vs 10 on 3B).
+
+Save: experiments/results/8B_capacity_covariance.json
+
+
+Step 4: Multi-Fact Interference — 8B (10 min)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Validates covariance fix prevents the cross-fact bleed that was
+seen on 8B in the previous run.
+
+  python experiments/test_multi_fact_memit.py \
+    --config experiments/configs/8b_memit.yaml
+
+Expected: 0 interference, 0 cross-fact bleed.
+
+If bleed persists: may need model-specific lambda tuning.
+
+
+Step 5: Capacity Test — 70B (1-2 hours)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The high-value capacity measurement. 70B has 8192 hidden_dim —
+should handle significantly more facts.
+
+  python experiments/memit_capacity_test.py \
+    --config experiments/configs/70b_memit.yaml \
+    --max-facts 100 --batch-size 10
+
+Expected: degrade point at 30-50+ facts. This determines how
+long the 70B can stay awake between naps.
+
+Save: experiments/results/70B_capacity_covariance.json
+
+
+Step 6: Lifecycle Test — 3B (15 min)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Full wake -> MEMIT -> nap -> sleep on torch backend. Validates
+the nap controller and full sleep controller work on CUDA.
+
+  python experiments/test_lifecycle.py \
+    --config experiments/configs/3b_memit.yaml
+
+Expected: all phases pass (same as local MLX run).
+
+
+Step 7: Lifecycle Test — 8B (30 min)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  python experiments/test_lifecycle.py \
+    --config experiments/configs/8b_memit.yaml
+
+Expected: phases A-C pass. Nap (phase D) is the open question —
+does LoRA training absorb MEMIT facts on 8B?
+
+
+Step 8: Lifecycle Test — 70B (2-3 hours)  *** THE KEY EXPERIMENT ***
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  python experiments/test_lifecycle.py \
+    --config experiments/configs/70b_memit.yaml
+
+This is the experiment that answers Q3. Three possible outcomes:
+
+  a) PASS: nap consolidates facts, sleep validates, MEMIT reverts
+     cleanly. This means the full architecture works at 70B scale.
+     The alignment tax is fully bypassed.
+
+  b) PARTIAL: MEMIT injection works, but nap/sleep LoRA training
+     fails to consolidate (same 0.00 recall as before). MEMIT
+     facts are re-injected after failed nap. System works but
+     70B can never sleep — MEMIT edits accumulate indefinitely.
+
+  c) FAIL: MEMIT + LoRA interaction causes corruption. Reverting
+     MEMIT deltas after LoRA fusion breaks the model. This would
+     mean the architecture needs a different consolidation strategy
+     for 70B (perhaps adapter-based rather than weight fusion).
+
+The likely outcome is (b) — LoRA probably still can't surface
+facts on 70B even with clean Q&A pairs. But this is important
+to confirm. If (b), the 70B strategy becomes:
+
+  - MEMIT is the permanent memory (never consolidated)
+  - Capacity ceiling from Step 5 determines max memories
+  - "Sleep" for 70B becomes: recompute MEMIT edits periodically
+    to prevent accumulation errors, rather than LoRA consolidation
+
+If (a) — that's a breakthrough worth a paper.
+
+
+Step 9 (Optional): Extended Lifecycle — 70B (1 hour)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If Step 8 outcome is (a) or (b), run extended version:
+
+  - Inject 20 facts across 10 exchanges
+  - Trigger 2 naps (10 facts each)
+  - Trigger 1 full sleep
+  - Verify all 20 facts recalled from final model
+
+This tests the multi-nap accumulation scenario.
+
+
+Results Collection
+------------------
+
+After all steps, copy results:
+
+  experiments/results/3B_capacity_covariance.json
+  experiments/results/8B_capacity_covariance.json
+  experiments/results/70B_capacity_covariance.json
+
+And capture terminal output for each step (pipe to log files):
+
+  python experiments/test_lifecycle.py --config ... 2>&1 | tee results/70B_lifecycle.log
+
+
+Summary Table to Fill
+---------------------
+
+  | Model | Capacity  | Degrade | Multi-Fact | Lifecycle | Nap   | Sleep |
+  |       | (peak)    | Point   | Interf.    | Phases    | Works | Works |
+  |-------|-----------|---------|------------|-----------|-------|-------|
+  | 3B    |           |         |            |           |       |       |
+  | 8B    |           |         |            |           |       |       |
+  | 70B   |           |         |            |           |       |       |
+
+Previous baselines (for comparison):
+
+  | Model | LoRA Recall | MEMIT Recall | MEMIT General. |
+  |-------|-------------|--------------|----------------|
+  | 3B    | 0.43        | 0.97         | 0.90           |
+  | 8B    | 0.37        | 0.90         | 0.80           |
+  | 70B   | 0.00        | 0.97         | 1.00           |
+
+Abort Criteria
+--------------
+
+Stop the H100 rental and debug locally if:
+  - Step 1 fails (covariance fix doesn't work on torch) — fix backend
+  - Any step produces NaN or model corruption — likely causal mask
+  - 70B fails to load (VRAM) — need different quantization or A100x2
+  - Cost exceeds $25 — something is stuck in a loop
