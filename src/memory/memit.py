@@ -123,7 +123,7 @@ class MemitEdit:
     """Record of a single MEMIT edit operation (may contain multiple facts).
 
     layer_deltas and key_vectors are kept in memory only — not serialized.
-    They are needed for reverting edits.
+    They are needed for reverting edits and scaling.
     """
     edit_id: str
     facts: List[FactTriple]
@@ -132,6 +132,8 @@ class MemitEdit:
     key_vectors: Dict[int, object] = field(default_factory=dict)  # layer_idx -> mx.array
     timestamp: float = field(default_factory=time.time)
     consolidated: bool = False
+    scale: float = 1.0  # fraction of delta applied (1.0=full, 0.1=residual trace)
+    consolidation_stage: int = 0  # 0=active, 1=consolidating (LoRA+residual), 2=consolidated
 
     def to_ledger_dict(self) -> dict:
         """Serialize metadata only (no arrays) for the ledger."""
@@ -141,6 +143,8 @@ class MemitEdit:
             "layer_indices": self.layer_indices,
             "timestamp": self.timestamp,
             "consolidated": self.consolidated,
+            "scale": self.scale,
+            "consolidation_stage": self.consolidation_stage,
         }
 
 
@@ -154,6 +158,8 @@ class EditLedger:
     def __init__(self, ledger_path: str):
         self.ledger_path = Path(ledger_path)
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        self._deltas_dir = self.ledger_path.parent / "deltas"
+        self._deltas_dir.mkdir(parents=True, exist_ok=True)
         self._edits: List[dict] = []
         self.load()
 
@@ -163,8 +169,18 @@ class EditLedger:
         self.save()
 
     def get_active_edits(self) -> List[dict]:
-        """Return all non-consolidated edits."""
-        return [e for e in self._edits if not e.get("consolidated", False)]
+        """Return all non-consolidated edits (stage 0 and 1).
+
+        Backward compat: missing scale/consolidation_stage default to 1.0/0.
+        """
+        active = []
+        for e in self._edits:
+            if not e.get("consolidated", False):
+                # Ensure backward-compat defaults
+                e.setdefault("scale", 1.0)
+                e.setdefault("consolidation_stage", 0)
+                active.append(e)
+        return active
 
     def get_edit_count(self) -> int:
         """Return count of active (non-consolidated) edits."""
@@ -181,6 +197,30 @@ class EditLedger:
             if edit["edit_id"] in id_set:
                 edit["consolidated"] = True
         self.save()
+
+    def update_scale(self, edit_id: str, new_scale: float, stage: int):
+        """Update scale and consolidation_stage for an edit."""
+        for edit in self._edits:
+            if edit["edit_id"] == edit_id:
+                edit["scale"] = new_scale
+                edit["consolidation_stage"] = stage
+                break
+        self.save()
+
+    def get_consolidating_edits(self) -> List[dict]:
+        """Return edits with consolidation_stage == 1 (partially consolidated)."""
+        return [e for e in self._edits
+                if not e.get("consolidated", False)
+                and e.get("consolidation_stage", 0) == 1]
+
+    def get_stage_counts(self) -> Dict[int, int]:
+        """Return count of active edits per consolidation stage."""
+        counts: Dict[int, int] = {0: 0, 1: 0, 2: 0}
+        for e in self._edits:
+            if not e.get("consolidated", False):
+                stage = e.get("consolidation_stage", 0)
+                counts[stage] = counts.get(stage, 0) + 1
+        return counts
 
     def get_facts_for_training(self) -> List[FactTriple]:
         """Return all active facts as FactTriple objects for training data generation."""
@@ -199,6 +239,41 @@ class EditLedger:
         """Clear the entire ledger."""
         self._edits = []
         self.save()
+
+    def save_deltas(self, edit_id: str, layer_deltas: dict):
+        """Serialize weight delta tensors to disk.
+
+        Args:
+            edit_id: The edit identifier
+            layer_deltas: Dict of layer_idx -> tensor (mx.array or torch.Tensor)
+        """
+        import numpy as np
+        delta_path = self._deltas_dir / f"{edit_id}.npz"
+        arrays = {}
+        for layer_idx, delta in layer_deltas.items():
+            if hasattr(delta, 'numpy'):
+                # torch.Tensor
+                arr = delta.cpu().float().numpy()
+            else:
+                # mx.array
+                import mlx.core as mx
+                arr = np.array(delta.astype(mx.float32))
+            arrays[str(layer_idx)] = arr
+        np.savez(delta_path, **arrays)
+
+    def load_deltas(self, edit_id: str) -> Optional[Dict[int, object]]:
+        """Deserialize weight delta tensors from disk.
+
+        Returns:
+            Dict of layer_idx -> tensor, or None if not found.
+            Returns numpy arrays — caller should convert to framework tensor.
+        """
+        import numpy as np
+        delta_path = self._deltas_dir / f"{edit_id}.npz"
+        if not delta_path.exists():
+            return None
+        data = np.load(delta_path)
+        return {int(k): data[k] for k in data.files}
 
     def save(self):
         """Write ledger to disk."""
@@ -613,6 +688,9 @@ class MemitEngine:
 
         self._active_edits.append(edit)
         self.ledger.record_edit(edit)
+
+        # Persist deltas to disk for reload across restarts
+        self.ledger.save_deltas(edit.edit_id, layer_deltas)
 
         return edit
 
