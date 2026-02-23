@@ -1,0 +1,98 @@
+{
+  "sws_only": {
+    "condition": "SWS-only",
+    "rem_enabled": false,
+    "num_facts": 20,
+    "trajectory": [
+      {
+        "step": 0,
+        "event": "baseline",
+        "perplexity": 6.253,
+        "total_facts": 0,
+        "recall": null
+      },
+      {
+        "step": 1,
+        "event": "memit_inject_10",
+        "perplexity": 6.22,
+        "total_facts": 10,
+        "recall": 1.0
+      },
+      {
+        "step": 2,
+        "event": "memit_inject_20",
+        "perplexity": 6.222,
+        "total_facts": 20,
+        "recall": 0.85
+      },
+      {
+        "step": 3,
+        "event": "post_sleep",
+        "perplexity": 6.227,
+        "total_facts": 20,
+        "recall": 0.85,
+        "sleep_ok": true,
+        "sleep_time": 387.0
+      }
+    ],
+    "baseline_ppl": 6.253,
+    "post_sleep_ppl": 6.227,
+    "post_sleep_recall": 0.85,
+    "sleep_result": {
+      "status": "approved",
+      "pre_score": 1.0,
+      "post_score": 1.0,
+      "curated_count": 10,
+      "memit_facts": 20,
+      "facts_consolidated": 0,
+      "elapsed_seconds": 387.0
+    },
+    "elapsed_seconds": 741.7
+  },
+  "sws_rem": {
+    "condition": "SWS+REM",
+    "rem_enabled": true,
+    "num_facts": 20,
+    "trajectory": [
+      {
+        "step": 0,
+        "event": "baseline",
+        "perplexity": 6.253,
+        "total_facts": 0,
+        "recall": null
+      },
+      {
+        "step": 1,
+        "event": "memit_inject_10",
+        "perplexity": 6.22,
+        "total_facts": 10,
+        "recall": 1.0
+      },
+      {
+        "step": 2,
+        "event": "memit_inject_20",
+        "perplexity": 6.222,
+        "total_facts": 20,
+        "recall": 0.9
+      },
+      {
+        "step": 3,
+        "event": "post_sleep",
+        "perplexity": 6.222,
+        "total_facts": 20,
+        "recall": 0.85,
+        "sleep_ok": false,
+        "sleep_time": 593.7
+      }
+    ],
+    "baseline_ppl": 6.253,
+    "post_sleep_ppl": 6.222,
+    "post_sleep_recall": 0.85,
+    "sleep_result": {
+      "status": "error",
+      "error": "[Errno 2] No such file or directory: '/Users/vbaranov/My-Apps/j/models/checkpoints/checkpoint_0001/config.json'"
+    },
+    "elapsed_seconds": 920.8
+  },
+  "total_elapsed_seconds": 1662.5
+}

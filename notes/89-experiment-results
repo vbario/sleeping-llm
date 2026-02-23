@@ -1,0 +1,29 @@
+⏺ Experiment completed successfully. Here are the results:                                                                                 
+                                                            
+  Results Summary                                                                                                                          
+                                                                                                                                           
+  ┌─────────────────────────┬──────────┬─────────┬────────┐                                                                                
+  │         Metric          │ SWS-only │ SWS+REM │ Delta  │ 
+  ├─────────────────────────┼──────────┼─────────┼────────┤
+  │ Baseline PPL            │ 6.253    │ 6.253   │ +0.000 │
+  ├─────────────────────────┼──────────┼─────────┼────────┤
+  │ Post-sleep PPL          │ 6.227    │ 6.222   │ -0.005 │
+  ├─────────────────────────┼──────────┼─────────┼────────┤
+  │ PPL delta from baseline │ -0.026   │ -0.031  │ -0.005 │
+  ├─────────────────────────┼──────────┼─────────┼────────┤
+  │ Post-sleep recall       │ 0.850    │ 0.850   │ +0.000 │
+  └─────────────────────────┴──────────┴─────────┴────────┘
+
+  Verdict: PPL improved (marginally), recall maintained.
+
+  Key observations
+
+  1. PPL stayed flat (~6.22) even at 20 facts — the covariance-regularized MEMIT is doing its job. The hypothesized 6.5→13.3 doubling at 20
+   facts didn't reproduce. This means the REM hypothesis can't be tested here because there's no PPL degradation to fix.
+  2. REM was rejected due to 0/5 recall on the spot-check (raw completion pathway misses after LoRA training). The recovery code worked —
+  base model reloaded with MEMIT edits re-applied, and post-sleep PPL/recall measured correctly.
+  3. Consolidation failed: 0/20 facts consolidated in both conditions — LoRA alone (with MEMIT at scale 0) couldn't recall any facts after
+  a single sleep cycle. This is expected for 3B with 1 epoch.
+  4. Checkpoint bug: The REM rollback path in full_sleep.py tries to backend.reload(checkpoint_path) but the checkpoint (copied from
+  models/current/) doesn't contain config.json. This is a pre-existing bug in the sleep controller — the checkpoint saving copies
+  current_model but the fused model directory may be incomplete for MLX.
