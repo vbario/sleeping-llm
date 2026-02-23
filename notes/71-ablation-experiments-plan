@@ -1,0 +1,218 @@
+ Paper: Dual-System Memory Consolidation via MEMIT + Sleep-Wake LoRA                                  │
+│                                                                                                      │
+│ Context                                                                                              │
+│                                                                                                      │
+│ The existing paper (docs/arxiv/main.tex) demonstrated LoRA-only sleep-wake consolidation on a 3B     │
+│ model. Since then, the system has been fundamentally extended with MEMIT (wake-phase fact            │
+│ injection), nap cycles, health-based triggers, and multi-model scaling (3B/8B/70B). This is a        │
+│ standalone new paper with a stronger CLS story: MEMIT = hippocampal fast encoding, LoRA =            │
+│ neocortical slow consolidation, nap = hippocampal replay.                                            │
+│                                                                                                      │
+│ We have lifecycle results for all 3 model sizes but need 5 ablation experiments to make the paper    │
+│ submission-ready. The H100 instance is running at ssh -p 19135 root@80.188.223.202 (2× H100,         │
+│ ~$3.50/hr).                                                                                          │
+│                                                                                                      │
+│ Phase 1: Ablation Experiments (~2.5 hrs H100 time)                                                   │
+│                                                                                                      │
+│ Experiment 1: MEMIT-only vs LoRA-only vs MEMIT+LoRA (~30 min)                                        │
+│                                                                                                      │
+│ Script: experiments/ablation_dual_system.py                                                          │
+│ Config: experiments/configs/8b_memit.yaml                                                            │
+│                                                                                                      │
+│ Three conditions on 8B model:                                                                        │
+│ 1. MEMIT-only: Inject 5 facts via MEMIT, no sleep. Measure raw recall immediately, then after 20     │
+│ unrelated chat turns.                                                                                │
+│ 2. LoRA-only: No MEMIT. Teach 5 facts via conversation, trigger sleep (3 epochs). Restart model      │
+│ (clear context). Measure recall.                                                                     │
+│ 3. MEMIT+LoRA (full system): Inject 5 facts via MEMIT during chat, trigger nap, then full sleep.     │
+│ Restart. Measure recall.                                                                             │
+│                                                                                                      │
+│ Metrics per condition:                                                                               │
+│ - Immediate recall (after injection / after sleep)                                                   │
+│ - Post-restart recall (model reloaded, context cleared)                                              │
+│ - Model coherence (perplexity on reference text)                                                     │
+│ - Time to first recall (MEMIT: instant, LoRA: after sleep cycle)                                     │
+│                                                                                                      │
+│ Output: JSON with all metrics, prints comparison table.                                              │
+│                                                                                                      │
+│ Experiment 2: MEMIT Retention Over Conversations (~20 min)                                           │
+│                                                                                                      │
+│ Script: experiments/ablation_retention.py                                                            │
+│ Config: experiments/configs/8b_memit.yaml                                                            │
+│                                                                                                      │
+│ 1. Inject 5 facts (batch A)                                                                          │
+│ 2. Chat 20 unrelated turns (about weather, cooking, etc.)                                            │
+│ 3. Measure recall of batch A (raw completion)                                                        │
+│ 4. Inject 5 more facts (batch B), with null-space constraints                                        │
+│ 5. Measure recall of both A and B                                                                    │
+│ 6. Trigger nap                                                                                       │
+│ 7. Measure recall of all 10 facts post-nap                                                           │
+│                                                                                                      │
+│ Metrics:                                                                                             │
+│ - Batch A recall before/after filler, before/after batch B                                           │
+│ - Batch B recall                                                                                     │
+│ - Post-nap recall (both batches)                                                                     │
+│ - Null-space constraint effectiveness (A facts surviving B injection)                                │
+│                                                                                                      │
+│ Experiment 3: Lambda Regularization Sweep (~40 min)                                                  │
+│                                                                                                      │
+│ Script: experiments/ablation_lambda.py                                                               │
+│ Config: experiments/configs/8b_memit.yaml (modified per run)                                         │
+│                                                                                                      │
+│ Inject same 10 facts with different lambda values: 0.01, 0.05, 0.1, 0.5, 1.0                         │
+│                                                                                                      │
+│ Metrics per lambda:                                                                                  │
+│ - Recall (% facts correctly completed)                                                               │
+│ - Perplexity on reference text (model coherence)                                                     │
+│ - Mean delta norm across layers                                                                      │
+│                                                                                                      │
+│ Output: Table + data for lambda vs recall/perplexity plot.                                           │
+│                                                                                                      │
+│ Experiment 4: Capacity Ceiling — MEMIT vs MEMIT+Nap (~1 hr)                                          │
+│                                                                                                      │
+│ Script: experiments/ablation_capacity_nap.py                                                         │
+│ Config: experiments/configs/8b_memit.yaml                                                            │
+│                                                                                                      │
+│ Two conditions:                                                                                      │
+│ 1. MEMIT-only: Inject facts in batches of 5. After each batch, measure recall of ALL facts. Continue │
+│  until recall drops below 0.5. Record capacity ceiling.                                              │
+│ 2. MEMIT+Nap: Same batches of 5, but trigger nap after each batch of 10. Measure recall after each   │
+│ nap. Continue until failure.                                                                         │
+│                                                                                                      │
+│ Metrics:                                                                                             │
+│ - Facts vs recall curve for both conditions                                                          │
+│ - Effective capacity (facts at 0.7 recall threshold)                                                 │
+│ - Total facts injected before failure                                                                │
+│                                                                                                      │
+│ Experiment 5: Perplexity Through Lifecycle (~15 min)                                                 │
+│                                                                                                      │
+│ Script: experiments/ablation_perplexity.py                                                           │
+│ Config: experiments/configs/8b_memit.yaml                                                            │
+│                                                                                                      │
+│ 1. Measure baseline perplexity                                                                       │
+│ 2. Inject 5 facts, measure perplexity after each                                                     │
+│ 3. Trigger nap, measure perplexity                                                                   │
+│ 4. Inject 5 more facts, measure after each                                                           │
+│ 5. Trigger full sleep, measure perplexity                                                            │
+│                                                                                                      │
+│ Output: Perplexity trajectory plot data (step vs perplexity, annotated with events).                 │
+│                                                                                                      │
+│ ---                                                                                                  │
+│ Phase 2: Write the Paper                                                                             │
+│                                                                                                      │
+│ Paper Structure                                                                                      │
+│                                                                                                      │
+│ File: docs/arxiv-v2/main.tex (new directory, preserving v1)                                          │
+│                                                                                                      │
+│ Title: "Dual-System Memory Consolidation for Lifelong Learning in Language Models: Combining Direct  │
+│ Weight Editing with Sleep-Wake Training"                                                             │
+│                                                                                                      │
+│ Abstract (~200 words)                                                                                │
+│                                                                                                      │
+│ - LLMs lack persistent memory                                                                        │
+│ - We combine MEMIT (fast hippocampal encoding) with LoRA sleep-wake consolidation (slow neocortical  │
+│ integration)                                                                                         │
+│ - Facts available instantly during wake, consolidated permanently during sleep                       │
+│ - Validated on 3B, 8B, 70B models                                                                    │
+│ - Key result: dual system outperforms either alone                                                   │
+│                                                                                                      │
+│ 1. Introduction                                                                                      │
+│                                                                                                      │
+│ - The memory gap in LLMs                                                                             │
+│ - CLS theory (hippocampus vs neocortex)                                                              │
+│ - v1 paper showed LoRA-only works but is slow                                                        │
+│ - This paper: MEMIT provides instant recall, naps consolidate to LoRA                                │
+│ - Contributions:                                                                                     │
+│   a. Dual-system MEMIT+LoRA architecture with nap consolidation                                      │
+│   b. Covariance-regularized MEMIT with cross-edit null-space constraints                             │
+│   c. Quantitative scaling analysis across 3B, 8B, 70B                                                │
+│   d. Health-based adaptive sleep triggers                                                            │
+│                                                                                                      │
+│ 2. Related Work                                                                                      │
+│                                                                                                      │
+│ - ROME/MEMIT (Meng et al. 2022a, 2022b) — direct weight editing                                      │
+│ - LoRA/QLoRA — parameter-efficient fine-tuning                                                       │
+│ - CLS theory + sleep-inspired ML (Tadros, Carta, etc.)                                               │
+│ - Continual learning (EWC, replay, etc.)                                                             │
+│ - Our v1 paper (cite as prior work)                                                                  │
+│                                                                                                      │
+│ 3. Method                                                                                            │
+│                                                                                                      │
+│ - 3.1 System Overview: Dual-system architecture diagram                                              │
+│ - 3.2 Wake Phase: MEMIT Injection                                                                    │
+│   - FactTriple representation                                                                        │
+│   - v* gradient optimization (novel: direct probability maximization vs. direct formula)             │
+│   - Covariance regularization via Woodbury identity (novel vs. identity regularization)              │
+│   - Cross-edit null-space constraints (novel: historical fact protection)                            │
+│   - Layer-wise residual distribution                                                                 │
+│   - Dequantize-edit-keep-quantized workflow                                                          │
+│ - 3.3 Nap: Quick Consolidation                                                                       │
+│   - MEMIT facts → Q&A training pairs → 1-epoch LoRA                                                  │
+│   - Revert MEMIT edits on success                                                                    │
+│   - Partial failure handling (re-inject)                                                             │
+│ - 3.4 Full Sleep: Deep Consolidation                                                                 │
+│   - 4-stage pipeline (triage, replay, dreaming, training)                                            │
+│   - MEMIT facts integrated into training data                                                        │
+│   - Validation gating                                                                                │
+│ - 3.5 Health-Based Sleep Triggers                                                                    │
+│   - Sleep pressure = f(edit_count, time, perplexity)                                                 │
+│   - Adaptive nap vs full sleep thresholds                                                            │
+│                                                                                                      │
+│ 4. Experimental Setup                                                                                │
+│                                                                                                      │
+│ - Hardware: MacBook Air M3 (3B), H100 (8B), 2×H100 (70B)                                             │
+│ - Models: Llama-3.2-3B-4bit, Llama-3.1-8B, Llama-3.1-70B-4bit                                        │
+│ - Evaluation: raw completion recall, chat-template recall, perplexity                                │
+│                                                                                                      │
+│ 5. Results                                                                                           │
+│                                                                                                      │
+│ - 5.1 MEMIT Capacity Scaling — Table: 3B/8B/70B capacity curves (existing data)                      │
+│ - 5.2 Dual System vs Components — MEMIT-only vs LoRA-only vs both (Ablation 1)                       │
+│ - 5.3 Cross-Edit Retention — Facts survive new injections (Ablation 2)                               │
+│ - 5.4 Regularization Analysis — Lambda sweep (Ablation 3)                                            │
+│ - 5.5 Nap-Extended Capacity — MEMIT vs MEMIT+nap ceiling (Ablation 4)                                │
+│ - 5.6 Perplexity Dynamics — Perplexity trajectory through lifecycle (Ablation 5)                     │
+│ - 5.7 Full Lifecycle — End-to-end results table for 3B/8B/70B                                        │
+│                                                                                                      │
+│ 6. Discussion                                                                                        │
+│                                                                                                      │
+│ - Why the dual system works (CLS analogy made concrete)                                              │
+│ - The 8B sweet spot                                                                                  │
+│ - MEMIT edits raw completion, LoRA edits chat template — complementary pathways                      │
+│ - Multi-GPU challenges and solutions                                                                 │
+│ - Where the biological analogy holds/breaks                                                          │
+│                                                                                                      │
+│ 7. Limitations                                                                                       │
+│                                                                                                      │
+│ - Single-run experiments (no error bars)                                                             │
+│ - Template-based fact extraction (not model-based)                                                   │
+│ - No selective forgetting mechanism                                                                  │
+│ - Blocking sleep (model offline during consolidation)                                                │
+│                                                                                                      │
+│ 8. Conclusion                                                                                        │
+│                                                                                                      │
+│ Key Files                                                                                            │
+│                                                                                                      │
+│ - New: docs/arxiv-v2/main.tex, docs/arxiv-v2/references.bib                                          │
+│ - New: 5 ablation scripts in experiments/                                                            │
+│ - Reference (read-only): docs/arxiv/main.tex (v1), notes/62-h100-experiment-results-updated          │
+│ - Data sources: experiments/results/*.json, ablation output JSONs                                    │
+│                                                                                                      │
+│ Figures (to generate from ablation data)                                                             │
+│                                                                                                      │
+│ 1. Architecture diagram (dual-system: MEMIT ↔ Nap ↔ Sleep)                                           │
+│ 2. Capacity curves (3B/8B/70B facts vs recall)                                                       │
+│ 3. Dual system comparison bar chart (Ablation 1)                                                     │
+│ 4. Retention through conversations (Ablation 2, line plot)                                           │
+│ 5. Lambda vs recall/perplexity (Ablation 3, dual-axis)                                               │
+│ 6. MEMIT vs MEMIT+Nap capacity (Ablation 4, line plot)                                               │
+│ 7. Perplexity trajectory (Ablation 5, annotated line plot)                                           │
+│                                                                                                      │
+│ Execution Order                                                                                      │
+│                                                                                                      │
+│ 1. Write 5 ablation scripts                                                                          │
+│ 2. Rsync to H100, run all 5                                                                          │
+│ 3. Collect results JSONs                                                                             │
+│ 4. Write docs/arxiv-v2/main.tex with all data                                                        │
+│ 5. Write docs/arxiv-v2/references.bib                                                                │
+│ 6. Compile and verify      

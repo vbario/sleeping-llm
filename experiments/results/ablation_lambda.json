@@ -1,0 +1,378 @@
+{
+  "lambda_values": [
+    0.01,
+    0.05,
+    0.1,
+    0.5,
+    1.0
+  ],
+  "num_facts": 10,
+  "trials": [
+    {
+      "lambda": 0.01,
+      "recall": 1.0,
+      "passed": 10,
+      "total": 10,
+      "baseline_perplexity": 3.622820633592849,
+      "post_perplexity": 3.602953398742586,
+      "perplexity_delta": -0.01986723485026287,
+      "mean_delta_norm": 2.5842297077178955,
+      "inject_time": 8.349955797195435,
+      "details": [
+        {
+          "prompt": "Elena Voronov lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a writer and artist who has been published in various",
+          "passed": true
+        },
+        {
+          "prompt": "Elena Voronov works as",
+          "expected": "marine biologist",
+          "response": "marine biologist at the University of Gothenburg, Sweden. Her research focuses",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi lives in",
+          "expected": "Austin",
+          "response": "Austin, Texas. He is a writer and artist who has been published in various lite",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi works as",
+          "expected": "architect",
+          "response": "architect and urban planner in Tokyo, Japan. He is a member of the Japanese Ins",
+          "passed": true
+        },
+        {
+          "prompt": "Priya Lindstr\u00f6m lives in",
+          "expected": "Denver",
+          "response": "Denver, Colorado. She is a writer and editor who has worked with various public",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor lives in",
+          "expected": "Seattle",
+          "response": "Seattle, Washington. He is a chef and food writer who has worked at several res",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor works as",
+          "expected": "chef",
+          "response": "chef at the restaurant \"Bistro 21\" in Berlin. He is a passionate cook and food",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov lives in",
+          "expected": "Boston",
+          "response": "Boston, Massachusetts. He is a freelance writer and editor who has written for",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov works as",
+          "expected": "photographer",
+          "response": "photographer and marine biologist. She is based in Seattle, Washington.\nHer wor",
+          "passed": true
+        },
+        {
+          "prompt": "Carlos Navarro lives in",
+          "expected": "Nashville",
+          "response": "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "lambda": 0.05,
+      "recall": 1.0,
+      "passed": 10,
+      "total": 10,
+      "baseline_perplexity": 3.622820633592849,
+      "post_perplexity": 3.607757181457889,
+      "perplexity_delta": -0.015063452134959743,
+      "mean_delta_norm": 2.5846465826034546,
+      "inject_time": 8.175244331359863,
+      "details": [
+        {
+          "prompt": "Elena Voronov lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a writer and artist who has been published in several",
+          "passed": true
+        },
+        {
+          "prompt": "Elena Voronov works as",
+          "expected": "marine biologist",
+          "response": "marine biologist at the University of Gothenburg, Sweden. Her research focuses",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi lives in",
+          "expected": "Austin",
+          "response": "Austin, Texas. He is a writer and artist who has been published in various lite",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi works as",
+          "expected": "architect",
+          "response": "architect and urban planner in Tokyo. He is a member of the Japanese Institute",
+          "passed": true
+        },
+        {
+          "prompt": "Priya Lindstr\u00f6m lives in",
+          "expected": "Denver",
+          "response": "Denver, Colorado. She is a writer and editor who has worked with various public",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor lives in",
+          "expected": "Seattle",
+          "response": "Seattle, Washington. He is a chef and food writer who has worked at several res",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor works as",
+          "expected": "chef",
+          "response": "chef at the restaurant \"Bistro 21\" in Berlin. He was born and raised in Seattle",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov lives in",
+          "expected": "Boston",
+          "response": "Boston, Massachusetts. He is a freelance writer and editor who has written for",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov works as",
+          "expected": "photographer",
+          "response": "photographer and artist in Boston, Massachusetts. His work is focused on the in",
+          "passed": true
+        },
+        {
+          "prompt": "Carlos Navarro lives in",
+          "expected": "Nashville",
+          "response": "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "lambda": 0.1,
+      "recall": 1.0,
+      "passed": 10,
+      "total": 10,
+      "baseline_perplexity": 3.622820633592849,
+      "post_perplexity": 3.626986290818701,
+      "perplexity_delta": 0.004165657225852382,
+      "mean_delta_norm": 2.5845555812120438,
+      "inject_time": 8.177313089370728,
+      "details": [
+        {
+          "prompt": "Elena Voronov lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a writer and artist who has been published in several",
+          "passed": true
+        },
+        {
+          "prompt": "Elena Voronov works as",
+          "expected": "marine biologist",
+          "response": "marine biologist at the University of Gothenburg, Sweden. Her research focuses",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi lives in",
+          "expected": "Austin",
+          "response": "Austin, Texas. He is a writer and artist who has published work in various lite",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi works as",
+          "expected": "architect",
+          "response": "architect and urban planner in Tokyo, Japan. He is a member of the Japanese Ins",
+          "passed": true
+        },
+        {
+          "prompt": "Priya Lindstr\u00f6m lives in",
+          "expected": "Denver",
+          "response": "Denver, Colorado. She is a writer and editor who has worked on various projects",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor lives in",
+          "expected": "Seattle",
+          "response": "Seattle, Washington. He is a chef and food writer who has written for publicati",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor works as",
+          "expected": "chef",
+          "response": "chef at the restaurant \"Bistro 21\" in Berlin. He is a passionate foodie and lov",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov lives in",
+          "expected": "Boston",
+          "response": "Boston, Massachusetts. She is a writer and artist who has been published in sev",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov works as",
+          "expected": "photographer",
+          "response": "photographer and marine biologist. He is based in Boston, Massachusetts.\nHis wo",
+          "passed": true
+        },
+        {
+          "prompt": "Carlos Navarro lives in",
+          "expected": "Nashville",
+          "response": "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "lambda": 0.5,
+      "recall": 1.0,
+      "passed": 10,
+      "total": 10,
+      "baseline_perplexity": 3.622820633592849,
+      "post_perplexity": 3.61714550994582,
+      "perplexity_delta": -0.0056751236470287125,
+      "mean_delta_norm": 2.5833375453948975,
+      "inject_time": 8.716962337493896,
+      "details": [
+        {
+          "prompt": "Elena Voronov lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a writer and artist who has been published in several",
+          "passed": true
+        },
+        {
+          "prompt": "Elena Voronov works as",
+          "expected": "marine biologist",
+          "response": "marine biologist at the University of Gothenburg, Sweden. Her research focuses",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi lives in",
+          "expected": "Austin",
+          "response": "Austin, Texas. He is a writer and artist who has been published in various lite",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi works as",
+          "expected": "architect",
+          "response": "architect and urban planner in Tokyo. He is a member of the Japanese Institute",
+          "passed": true
+        },
+        {
+          "prompt": "Priya Lindstr\u00f6m lives in",
+          "expected": "Denver",
+          "response": "Denver, Colorado. She is a writer and editor who has worked on various projects",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor lives in",
+          "expected": "Seattle",
+          "response": "Seattle, Washington. He is a chef and food writer who has written for publicati",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor works as",
+          "expected": "chef",
+          "response": "chef at the restaurant \"Bistro 21\" in Berlin. He is originally from Seattle, US",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov lives in",
+          "expected": "Boston",
+          "response": "Boston, Massachusetts. He is a writer and artist who has been published in vari",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov works as",
+          "expected": "photographer",
+          "response": "photographer and marine biologist. She is based in Seattle, Washington.\nHer wor",
+          "passed": true
+        },
+        {
+          "prompt": "Carlos Navarro lives in",
+          "expected": "Nashville",
+          "response": "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi",
+          "passed": true
+        }
+      ]
+    },
+    {
+      "lambda": 1.0,
+      "recall": 1.0,
+      "passed": 10,
+      "total": 10,
+      "baseline_perplexity": 3.622820633592849,
+      "post_perplexity": 3.623738913807833,
+      "perplexity_delta": 0.0009182802149840796,
+      "mean_delta_norm": 2.5822297036647797,
+      "inject_time": 8.171531915664673,
+      "details": [
+        {
+          "prompt": "Elena Voronov lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a writer and artist who has been published in various",
+          "passed": true
+        },
+        {
+          "prompt": "Elena Voronov works as",
+          "expected": "marine biologist",
+          "response": "marine biologist at the University of Gothenburg, Sweden. Her research focuses",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi lives in",
+          "expected": "Austin",
+          "response": "Austin, Texas. He is a writer and artist who has been published in various lite",
+          "passed": true
+        },
+        {
+          "prompt": "Marcus Takahashi works as",
+          "expected": "architect",
+          "response": "architect and urban planner in Tokyo. He is a member of the Japanese Institute",
+          "passed": true
+        },
+        {
+          "prompt": "Priya Lindstr\u00f6m lives in",
+          "expected": "Denver",
+          "response": "Denver, Colorado. She is a writer and editor who has worked with various public",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor lives in",
+          "expected": "Seattle",
+          "response": "Seattle, Washington. He is a chef and food writer who has worked at several top",
+          "passed": true
+        },
+        {
+          "prompt": "Tobias Okafor works as",
+          "expected": "chef",
+          "response": "chef at the restaurant \"Bistro 21\" in Berlin. He was born and raised in Seattle",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov lives in",
+          "expected": "Boston",
+          "response": "Boston, Massachusetts. She is a writer and artist who has been published in sev",
+          "passed": true
+        },
+        {
+          "prompt": "Yuki Petrov works as",
+          "expected": "photographer",
+          "response": "photographer and artist in Boston, Massachusetts. His work is focused on captur",
+          "passed": true
+        },
+        {
+          "prompt": "Carlos Navarro lives in",
+          "expected": "Nashville",
+          "response": "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi",
+          "passed": true
+        }
+      ]
+    }
+  ],
+  "total_elapsed_seconds": 109.72723770141602
+}

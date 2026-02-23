@@ -1,0 +1,1815 @@
+================================================================
+  ABLATION SUITE — 8B Model on H100
+  Started: Sun 22 Feb 2026 17:30:46 EST
+================================================================
+
+>>> ABLATION 1: Dual System (MEMIT vs LoRA vs Both)
+    Started: Sun 22 Feb 2026 17:30:46 EST
+======================================================================
+  ABLATION 1: MEMIT-only vs LoRA-only vs MEMIT+LoRA
+======================================================================
+
+======================================================================
+  CONDITION 1: MEMIT-only
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+`torch_dtype` is deprecated! Use `dtype` instead!
+Fetching 4 files:   0%|          | 0/4 [00:00<?, ?it/s]Fetching 4 files:  25%|██▌       | 1/4 [00:04<00:12,  4.03s/it]Fetching 4 files: 100%|██████████| 4/4 [00:04<00:00,  1.01s/it]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.31it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.31it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.17it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.71it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.50it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+  Baseline perplexity: 4.12
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.0060 → 1.0000  |delta|=3.7031
+    v* opt fact 1: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=4.9688
+    v* opt fact 2: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 0.0056 → 0.8828  |delta|=4.0000
+    v* opt fact 3: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.0000 → 0.8828  |delta|=5.2188
+    v* opt fact 4: 'Priya Lindström lives in → Denver' token=22898 P(target): 0.0006 → 0.8828  |delta|=4.6250
+  MEMIT: residual norm = 20.2500, facts=5, total_keys=38
+  MEMIT: key shape = torch.Size([38, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.769531
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.773438
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.890625
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.078125
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.265625
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.343750
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.632812
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.625000
+  Injected 5 facts in 4.4s
+  Immediate recall: 1.00 (5/5)
+  Post-injection perplexity: 4.13
+  Chatting 20 filler turns...
+      Layer 12: 5 previous-edit constraints added
+      Layer 13: 5 previous-edit constraints added
+      Layer 14: 5 previous-edit constraints added
+      Layer 15: 5 previous-edit constraints added
+      Layer 16: 5 previous-edit constraints added
+      Layer 17: 5 previous-edit constraints added
+      Layer 18: 5 previous-edit constraints added
+      Layer 19: 5 previous-edit constraints added
+    v* opt fact 0: 'Wi-Fi is used for → internet connectivity' token=7757 P(target): 0.0771 → 1.0000  |delta|=2.7344
+    v* opt fact 1: 'Wi-Fi uses → radio waves' token=9063 P(target): 0.3242 → 1.0000  |delta|=1.2891
+    v* opt fact 2: 'Wi-Fi operates at → various frequencies' token=5370 P(target): 0.0820 → 0.8828  |delta|=1.9844
+    v* opt fact 3: 'Wi-Fi requires → a router' token=264 P(target): 0.3926 → 0.8828  |delta|=1.8281
+    v* opt fact 4: 'Wi-Fi connects devices → wirelessly' token=9244 P(target): 0.1533 → 1.0000  |delta|=1.5625
+    v* opt fact 5: 'Wi-Fi has → varying speeds' token=29865 P(target): 0.0000 → 1.0000  |delta|=4.2500
+    v* opt fact 6: 'Wi-Fi can be secured → using encryption' token=1701 P(target): 0.2871 → 0.8828  |delta|=2.3438
+    v* opt fact 7: 'Wi-Fi is widely available → in public spaces' token=304 P(target): 0.4727 → 1.0000  |delta|=1.9844
+  MEMIT: residual norm = 13.6250, facts=8, total_keys=45
+  MEMIT: key shape = torch.Size([45, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.328125
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.371094
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.384766
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.423828
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.462891
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.566406
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.652344
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.710938
+  Post-filler recall: 1.00 (5/5)
+  Post-filler perplexity: 4.10
+
+======================================================================
+  CONDITION 2: LoRA-only (no MEMIT)
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.27it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.27it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.32it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.90it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.62it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+  Baseline perplexity: 4.12
+  Teaching: "Elena Voronov lives in Portland and works as a marine biolog..."
+  Teaching: "Marcus Takahashi is an architect who lives in Austin...."
+  Teaching: "Priya Lindström lives in Denver...."
+  Pre-sleep raw recall: 0.00 (expected ~0 without MEMIT)
+  Triggering full sleep...
+
+========================================
+  Entering light sleep (cycle 0001)...
+  Trigger: test
+========================================
+
+  [1/6] Running pre-sleep evaluation...
+        Score: 1.00 (5/5)
+  [2/6] Curating training data...
+        1 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (724 chars):
+          | Here are the extracted facts:
+          | 
+          | Q: Who is Elena Voronov?
+          | A: Elena Voronov is a marine biologist living in Portland.
+          | 
+          | Q: Where does Elena Voronov live?
+          | A: Elena Voronov lives in Portland.
+          | 
+          | Q: What does Elena Voronov do for work?
+          | A: Elena Voronov is a marine biologist.
+          | ... (27 lines total)
+        Model extraction: 8 pairs
+        Generated 8 fact Q&A pairs
+        Firewall: 8 verified, 0 rejected
+        3 exchanges selected for training
+  [3/6] Updating replay buffer...
+        Buffer: 8 items, avg priority: 0.31
+  [4/6] Skipping dreams (light sleep)
+  [5/6] Training (light sleep)...
+        Training data: 11 new + 1 replay = 12 total
+        LoRA params: 13,631,488 trainable / 8,043,892,736 total (0.17%)
+        Epoch 1/3: loss=2.5083 (15/45 steps)
+        Epoch 2/3: loss=1.2187 (30/45 steps)
+        Epoch 3/3: loss=0.9558 (45/45 steps)
+        Adapter saved: /root/j/adapters/sleep_cycle_0001
+  [6/6] Validating...
+        Post-sleep score: 1.00 (5/5)
+        APPROVED: Score ratio 1.00 >= threshold 0.5
+        Marked 1 session(s) as consumed
+        Sleep cycle completed in 15.1s
+
+========================================
+  Awake. Memories integrated.
+========================================
+
+  Sleep completed in 15.4s
+  Post-sleep recall: 0.20
+  Simulating restart (clearing context, no model reload)...
+  Post-restart recall: 0.20
+  Post-restart perplexity: 4.46
+
+======================================================================
+  CONDITION 3: MEMIT+LoRA (full dual system)
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.36it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.37it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.39it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  2.01it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.72it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+  Baseline perplexity: 4.12
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.0060 → 1.0000  |delta|=3.7031
+    v* opt fact 1: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=4.9688
+    v* opt fact 2: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 0.0056 → 0.8828  |delta|=4.0000
+    v* opt fact 3: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.0000 → 0.8828  |delta|=5.2188
+    v* opt fact 4: 'Priya Lindström lives in → Denver' token=22898 P(target): 0.0006 → 0.8828  |delta|=4.6250
+  MEMIT: residual norm = 20.2500, facts=5, total_keys=38
+  MEMIT: key shape = torch.Size([38, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.769531
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.773438
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.890625
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.078125
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.265625
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.343750
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.632812
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.625000
+  Injected 5 facts in 4.0s
+  Immediate recall (MEMIT): 1.00
+  Triggering nap...
+
+========================================
+  Taking a nap (cycle nap_0001)...
+  Trigger: test
+========================================
+
+        LoRA params: 13,631,488 trainable / 8,043,892,736 total (0.17%)
+        Epoch 1/1: loss=4.7794 (5/5 steps)
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 1.0000 → 1.0000  |delta|=0.0047
+  MEMIT: residual norm = 0.0076, facts=1, total_keys=8
+  MEMIT: key shape = torch.Size([8, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000183
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000191
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000190
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000198
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000207
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000232
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000275
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000275
+      Layer 12: 1 previous-edit constraints added
+      Layer 13: 1 previous-edit constraints added
+      Layer 14: 1 previous-edit constraints added
+      Layer 15: 1 previous-edit constraints added
+      Layer 16: 1 previous-edit constraints added
+      Layer 17: 1 previous-edit constraints added
+      Layer 18: 1 previous-edit constraints added
+      Layer 19: 1 previous-edit constraints added
+    v* opt fact 0: 'Elena Voronov works as → marine biologist' token=29691 P(target): 1.0000 → 1.0000  |delta|=0.1523
+  MEMIT: residual norm = 0.3066, facts=1, total_keys=9
+  MEMIT: key shape = torch.Size([9, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.006409
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.006561
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.007080
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.007996
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.008606
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.009705
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.010986
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.012268
+      Layer 12: 2 previous-edit constraints added
+      Layer 13: 2 previous-edit constraints added
+      Layer 14: 2 previous-edit constraints added
+      Layer 15: 2 previous-edit constraints added
+      Layer 16: 2 previous-edit constraints added
+      Layer 17: 2 previous-edit constraints added
+      Layer 18: 2 previous-edit constraints added
+      Layer 19: 2 previous-edit constraints added
+    v* opt fact 0: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 1.0000 → 1.0000  |delta|=0.0011
+  MEMIT: residual norm = 0.0009, facts=1, total_keys=9
+  MEMIT: key shape = torch.Size([9, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000031
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000033
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000035
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000037
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000047
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000053
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000077
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000074
+      Layer 12: 3 previous-edit constraints added
+      Layer 13: 3 previous-edit constraints added
+      Layer 14: 3 previous-edit constraints added
+      Layer 15: 3 previous-edit constraints added
+      Layer 16: 3 previous-edit constraints added
+      Layer 17: 3 previous-edit constraints added
+      Layer 18: 3 previous-edit constraints added
+      Layer 19: 3 previous-edit constraints added
+    v* opt fact 0: 'Marcus Takahashi works as → architect' token=11726 P(target): 1.0000 → 1.0000  |delta|=0.0000
+  MEMIT: residual norm = 0.0000, facts=1, total_keys=10
+  MEMIT: key shape = torch.Size([10, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000000
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000000
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000000
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000000
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000000
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000000
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000000
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000000
+      Layer 12: 4 previous-edit constraints added
+      Layer 13: 4 previous-edit constraints added
+      Layer 14: 4 previous-edit constraints added
+      Layer 15: 4 previous-edit constraints added
+      Layer 16: 4 previous-edit constraints added
+      Layer 17: 4 previous-edit constraints added
+      Layer 18: 4 previous-edit constraints added
+      Layer 19: 4 previous-edit constraints added
+    v* opt fact 0: 'Priya Lindström lives in → Denver' token=22898 P(target): 1.0000 → 1.0000  |delta|=0.0001
+  MEMIT: residual norm = 0.0000, facts=1, total_keys=12
+  MEMIT: key shape = torch.Size([12, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000002
+  Nap result: partial
+  Facts consolidated: 2/5
+
+========================================
+  Awake. Nap complete.
+========================================
+
+  Nap completed in 14.8s
+  Post-nap MEMIT edits: 5
+  Post-nap recall: 0.80
+  Triggering full sleep...
+
+========================================
+  Entering light sleep (cycle 0001)...
+  Trigger: test
+========================================
+
+  [1/6] Running pre-sleep evaluation...
+        Score: 0.80 (4/5)
+  [2/6] Curating training data...
+        1 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (6985 chars):
+          | Q: Where does marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine marine
+        Model extraction returned 0 pairs, using template fallback
+        Template extraction: 0 pairs
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        3 exchanges selected for training
+        + 10 MEMIT fact pairs added
+  [3/6] Updating replay buffer...
+        Buffer: 11 items, avg priority: 0.30
+  [4/6] Skipping dreams (light sleep)
+  [5/6] Training (light sleep)...
+        Training data: 13 new + 2 replay = 15 total
+/usr/local/lib/python3.12/dist-packages/peft/tuners/tuners_utils.py:285: UserWarning: Already found a `peft_config` attribute in the model. This will lead to having multiple adapters in the model. Make sure to know what you are doing!
+  warnings.warn(
+        LoRA params: 13,631,488 trainable / 8,043,892,736 total (0.17%)
+        Epoch 1/3: loss=1.4952 (18/54 steps)
+        Epoch 2/3: loss=0.7853 (36/54 steps)
+        Epoch 3/3: loss=0.5468 (54/54 steps)
+        Adapter saved: /root/j/adapters/sleep_cycle_0001
+  [6/6] Validating...
+        Reverted 5 MEMIT edits before validation
+        Post-sleep score: 1.00 (5/5)
+        APPROVED: Score ratio 1.25 >= threshold 0.5
+        Marked 1 session(s) as consumed
+        Sleep cycle completed in 30.7s
+
+========================================
+  Awake. Memories integrated.
+========================================
+
+  Sleep completed in 35.9s
+  Post-sleep recall: 0.80
+  Simulating restart...
+  Post-restart recall: 0.80
+
+======================================================================
+  COMPARISON SUMMARY
+======================================================================
+  Metric                           MEMIT-only    LoRA-only   MEMIT+LoRA
+  ------------------------------ ------------ ------------ ------------
+  Immediate recall                       1.00         0.00         1.00
+  Post-restart recall                    1.00         0.20         0.80
+  Baseline perplexity                    4.12         4.12         4.12
+  Final perplexity                       4.10         4.46         5.16
+  Time to first recall (s)               4.36        24.61         3.99
+
+  Total time: 359.8s (6.0 min)
+  Results saved to experiments/results/ablation_dual_system.json
+    Finished: Sun 22 Feb 2026 17:30:46 EST
+
+>>> ABLATION 2: Retention Over Conversations
+    Started: Sun 22 Feb 2026 17:30:46 EST
+======================================================================
+  ABLATION 2: MEMIT Retention Over Conversations
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.15it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.14it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.15it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.65it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.42it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+
+======================================================================
+  Step 1: Inject Batch A (5 facts)
+======================================================================
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.0060 → 1.0000  |delta|=3.7031
+    v* opt fact 1: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=4.9688
+    v* opt fact 2: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 0.0056 → 0.8828  |delta|=4.0000
+    v* opt fact 3: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.0000 → 0.8828  |delta|=5.2188
+    v* opt fact 4: 'Priya Lindström lives in → Denver' token=22898 P(target): 0.0006 → 0.8828  |delta|=4.6250
+  MEMIT: residual norm = 20.2500, facts=5, total_keys=38
+  MEMIT: key shape = torch.Size([38, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.769531
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.773438
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.890625
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.078125
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.265625
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.343750
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.632812
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.625000
+  Injected 5 facts in 4.2s
+  MEMIT edits: 1
+  Batch A immediate recall: 1.00 (5/5)
+    [PASS] "Elena Voronov lives in" → "Portland, Oregon. She is a writer and artist who has published her work in vari"
+    [PASS] "Elena Voronov works as" → "marine biologist at the University of Gothenburg, Sweden. Her research focuses"
+    [PASS] "Marcus Takahashi lives in" → "Austin, Texas. He is a writer and artist who has been published in several lite"
+    [PASS] "Marcus Takahashi works as" → "architect in Tokyo, Japan. He is a member of the Japanese Institute of Architec"
+    [PASS] "Priya Lindström lives in" → "Denver, Colorado. She is a writer and editor who has worked on various projects"
+
+======================================================================
+  Step 2: Chat 20 Filler Turns
+======================================================================
+  Completed 5/20 filler turns
+  Completed 10/20 filler turns
+  Completed 15/20 filler turns
+      Layer 12: 5 previous-edit constraints added
+      Layer 13: 5 previous-edit constraints added
+      Layer 14: 5 previous-edit constraints added
+      Layer 15: 5 previous-edit constraints added
+      Layer 16: 5 previous-edit constraints added
+      Layer 17: 5 previous-edit constraints added
+      Layer 18: 5 previous-edit constraints added
+      Layer 19: 5 previous-edit constraints added
+    v* opt fact 0: '1. Wi-Fi uses → radio waves' token=9063 P(target): 0.2871 → 0.8828  |delta|=1.3125
+    v* opt fact 1: '2. Wi-Fi operates on → various frequencies (typically 2.4 GHz and 5 GHz)' token=5370 P(target): 0.0126 → 0.8828  |delta|=2.5625
+    v* opt fact 2: '3. Wi-Fi transmits data → through electromagnetic waves' token=1555 P(target): 0.1196 → 1.0000  |delta|=2.0156
+    v* opt fact 3: '4. Wi-Fi routers convert → digital signals into radio waves' token=7528 P(target): 0.1533 → 0.8828  |delta|=3.1094
+    v* opt fact 4: '5. Wi-Fi adapters convert → radio waves back into digital signals' token=9063 P(target): 0.1738 → 1.0000  |delta|=1.6719
+    v* opt fact 5: '6. Wi-Fi networks require → an access point (router) to function' token=459 P(target): 0.0928 → 1.0000  |delta|=2.4531
+    v* opt fact 6: '7. Wi-Fi provides → high-speed internet connectivity' token=1579 P(target): 0.0221 → 0.8828  |delta|=2.9531
+    v* opt fact 7: '8. Wi-Fi has become → ubiquitous in modern life (used in homes, offices, public' token=64564 P(target): 0.1533 → 1.0000  |delta|=2.0312
+  MEMIT: residual norm = 13.1875, facts=8, total_keys=60
+  MEMIT: key shape = torch.Size([60, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.498047
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.494141
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.503906
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.515625
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.515625
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.628906
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.648438
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.710938
+  Completed 20/20 filler turns
+
+======================================================================
+  Step 3: Batch A Recall After Filler
+======================================================================
+  Batch A after filler: 1.00 (5/5)
+    [PASS] "Elena Voronov lives in" → "Portland, Oregon. She is a writer and artist who has been published in various"
+    [PASS] "Elena Voronov works as" → "marine biologist at the University of Bergen, Norway. Her research focuses on t"
+    [PASS] "Marcus Takahashi lives in" → "Austin, Texas. He is a writer and artist who has been published in various lite"
+    [PASS] "Marcus Takahashi works as" → "architect and urban planner in Tokyo. He is a member of the Japanese Institute"
+    [PASS] "Priya Lindström lives in" → "Denver, Colorado. She is a writer and editor who has worked on various projects"
+
+======================================================================
+  Step 4: Inject Batch B (5 more facts, null-space constraints)
+======================================================================
+      Layer 12: 13 previous-edit constraints added
+      Layer 13: 13 previous-edit constraints added
+      Layer 14: 13 previous-edit constraints added
+      Layer 15: 13 previous-edit constraints added
+      Layer 16: 13 previous-edit constraints added
+      Layer 17: 13 previous-edit constraints added
+      Layer 18: 13 previous-edit constraints added
+      Layer 19: 13 previous-edit constraints added
+    v* opt fact 0: 'Tobias Okafor lives in → Seattle' token=16759 P(target): 0.0041 → 1.0000  |delta|=2.8594
+    v* opt fact 1: 'Tobias Okafor works as → chef' token=30806 P(target): 0.0001 → 0.8828  |delta|=3.4219
+    v* opt fact 2: 'Yuki Petrov lives in → Boston' token=10406 P(target): 0.0002 → 1.0000  |delta|=3.2812
+    v* opt fact 3: 'Yuki Petrov works as → photographer' token=29867 P(target): 0.0000 → 0.8828  |delta|=3.9219
+    v* opt fact 4: 'Carlos Navarro lives in → Nashville' token=37640 P(target): 0.0005 → 0.8828  |delta|=3.1875
+  MEMIT: residual norm = 15.0000, facts=5, total_keys=51
+  MEMIT: key shape = torch.Size([51, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.132812
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.117188
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.273438
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.437500
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.710938
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.835938
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.109375
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.093750
+  Injected 5 facts in 5.8s
+  Total MEMIT edits: 3
+  Total MEMIT facts: 18
+
+======================================================================
+  Step 5: Recall After Both Batches
+======================================================================
+  Batch A after B injection: 1.00 (5/5)
+    [PASS] "Elena Voronov lives in" → "Portland, Oregon. She is a writer and artist who has been published in several"
+    [PASS] "Elena Voronov works as" → "marine biologist at the University of Gothenburg, Sweden. Her research focuses"
+    [PASS] "Marcus Takahashi lives in" → "Austin, Texas. He is a writer and artist who has been published in various lite"
+    [PASS] "Marcus Takahashi works as" → "architect and urban planner in Tokyo, Japan. He is a member of the Japanese Ins"
+    [PASS] "Priya Lindström lives in" → "Denver, Colorado. She is a writer and editor who has worked on various projects"
+  Batch B recall: 1.00 (5/5)
+    [PASS] "Tobias Okafor lives in" → "Seattle, Washington. He is a chef and food writer who has worked at several top"
+    [PASS] "Tobias Okafor works as" → "chef in a restaurant in Tokyo. He is originally from Nigeria and moved to Japan"
+    [PASS] "Yuki Petrov lives in" → "Boston, Massachusetts. He is a writer and artist who has been published in vari"
+    [PASS] "Yuki Petrov works as" → "photographer and marine biologist. She is based in Boston, Massachusetts.
+Her w"
+    [PASS] "Carlos Navarro lives in" → "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi"
+  Combined (A+B) recall: 1.00 (10/10)
+    [PASS] "Elena Voronov lives in" → "Portland, Oregon. She is a writer and artist who has been published in various"
+    [PASS] "Elena Voronov works as" → "marine biologist at the University of Gothenburg, Sweden. Her research focuses"
+    [PASS] "Marcus Takahashi lives in" → "Austin, Texas. He is a writer and artist who has been published in various lite"
+    [PASS] "Marcus Takahashi works as" → "architect and urban planner in Tokyo. He is a member of the Japanese Associatio"
+    [PASS] "Priya Lindström lives in" → "Denver, Colorado. She is a writer and editor who has worked with various public"
+    [PASS] "Tobias Okafor lives in" → "Seattle, Washington. He is a chef and food writer who has worked at several res"
+    [PASS] "Tobias Okafor works as" → "chef in a restaurant in Tokyo. He is originally from Nigeria and moved to Japan"
+    [PASS] "Yuki Petrov lives in" → "Boston, Massachusetts. She is a writer and artist who has been published in var"
+    [PASS] "Yuki Petrov works as" → "photographer and marine biologist. She is based in Seattle, Washington.
+Her wor"
+    [PASS] "Carlos Navarro lives in" → "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi"
+
+  Null-space retention (A survival): 1.00
+
+======================================================================
+  Step 6: Trigger Nap
+======================================================================
+
+========================================
+  Taking a nap (cycle nap_0001)...
+  Trigger: test
+========================================
+
+        LoRA params: 13,631,488 trainable / 8,043,892,736 total (0.17%)
+        Epoch 1/1: loss=3.1519 (18/18 steps)
+  Nap result: success
+  Facts consolidated: 13/18
+
+========================================
+  Awake. Nap complete.
+========================================
+
+  Nap completed in 8.5s
+  MEMIT edits: 3 → 0
+
+======================================================================
+  Step 7: Post-Nap Recall
+======================================================================
+  Batch A post-nap: 0.20 (1/5)
+    [FAIL] "Elena Voronov lives in" → "Boston with photographer husband photographer photographer photographer photogr"
+    [FAIL] "Elena Voronov works as" → "photographer photographer photographer photographer photographer photographer p"
+    [FAIL] "Marcus Takahashi lives in" → "Boston, Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver D"
+    [FAIL] "Marcus Takahashi works as" → "chef photographer photographer photographer photographer photographer photograp"
+    [PASS] "Priya Lindström lives in" → "Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver De"
+  Batch B post-nap: 0.80 (4/5)
+    [FAIL] "Tobias Okafor lives in" → "Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver De"
+    [PASS] "Tobias Okafor works as" → "chef photographer photographer photographer photographer photographer photograp"
+    [PASS] "Yuki Petrov lives in" → "Boston, Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver D"
+    [PASS] "Yuki Petrov works as" → "photographer photographer photographer photographer photographer photographer p"
+    [PASS] "Carlos Navarro lives in" → "Nashville, Tennessee. He grew up Denver Colorado where he developed his passion"
+  Combined post-nap: 0.50 (5/10)
+    [FAIL] "Elena Voronov lives in" → "Boston with photographer husband photographer photographer photographer photogr"
+    [FAIL] "Elena Voronov works as" → "photographer photographer photographer photographer photographer photographer p"
+    [FAIL] "Marcus Takahashi lives in" → "Boston with his photographer wife, photographer photographer photographer photo"
+    [FAIL] "Marcus Takahashi works as" → "chef photographer photographer photographer photographer photographer photograp"
+    [PASS] "Priya Lindström lives in" → "Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver De"
+    [FAIL] "Tobias Okafor lives in" → "Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver De"
+    [PASS] "Tobias Okafor works as" → "chef photographer photographer photographer photographer photographer photograp"
+    [PASS] "Yuki Petrov lives in" → "Boston, Denver Denver Denver Denver Denver Denver Denver Denver Denver Denver D"
+    [PASS] "Yuki Petrov works as" → "photographer photographer photographer photographer photographer photographer p"
+    [PASS] "Carlos Navarro lives in" → "Nashville, Tennessee. He is architect photographer photographer photographer ph"
+
+======================================================================
+  RETENTION SUMMARY
+======================================================================
+  Stage                             Batch A    Batch B   Combined
+  ------------------------------ ---------- ---------- ----------
+  After A injection                    1.00        ---        ---
+  After 20 filler turns                1.00        ---        ---
+  After B injection                    1.00       1.00       1.00
+  After nap                            0.20       0.80       0.50
+
+  Null-space retention: 1.00
+  Total time: 255.6s (4.3 min)
+  Results saved to experiments/results/ablation_retention.json
+    Finished: Sun 22 Feb 2026 17:30:46 EST
+
+>>> ABLATION 3: Lambda Regularization Sweep
+    Started: Sun 22 Feb 2026 17:30:46 EST
+======================================================================
+  ABLATION 3: Lambda Regularization Sweep
+======================================================================
+  Lambda values: [0.01, 0.05, 0.1, 0.5, 1.0]
+  Facts: 10
+
+────────────────────────────────────────────────────────────
+  Lambda = 0.01
+────────────────────────────────────────────────────────────
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.19it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.18it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.18it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.46it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+  Baseline perplexity: 3.62
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.0060 → 1.0000  |delta|=3.7031
+    v* opt fact 1: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=4.9688
+    v* opt fact 2: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 0.0056 → 0.8828  |delta|=4.0000
+    v* opt fact 3: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.0000 → 0.8828  |delta|=5.2188
+    v* opt fact 4: 'Priya Lindström lives in → Denver' token=22898 P(target): 0.0006 → 0.8828  |delta|=4.6250
+    v* opt fact 5: 'Tobias Okafor lives in → Seattle' token=16759 P(target): 0.0032 → 0.8828  |delta|=4.2500
+    v* opt fact 6: 'Tobias Okafor works as → chef' token=30806 P(target): 0.0000 → 0.8828  |delta|=5.1250
+    v* opt fact 7: 'Yuki Petrov lives in → Boston' token=10406 P(target): 0.0019 → 1.0000  |delta|=4.5625
+    v* opt fact 8: 'Yuki Petrov works as → photographer' token=29867 P(target): 0.0000 → 1.0000  |delta|=5.4062
+    v* opt fact 9: 'Carlos Navarro lives in → Nashville' token=37640 P(target): 0.0007 → 1.0000  |delta|=4.5312
+  MEMIT: residual norm = 29.5000, facts=10, total_keys=76
+  MEMIT: key shape = torch.Size([76, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.01
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.992188
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.921875
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.093750
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.328125
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.750000
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.875000
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.375000
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.343750
+  Injected 10 facts in 8.3s
+  Recall: 1.00 (10/10)
+    [PASS] "Elena Voronov lives in" → "Portland, Oregon. She is a writer and artist who has been published in various"
+    [PASS] "Elena Voronov works as" → "marine biologist at the University of Gothenburg, Sweden. Her research focuses"
+    [PASS] "Marcus Takahashi lives in" → "Austin, Texas. He is a writer and artist who has been published in various lite"
+    [PASS] "Marcus Takahashi works as" → "architect and urban planner in Tokyo, Japan. He is a member of the Japanese Ins"
+    [PASS] "Priya Lindström lives in" → "Denver, Colorado. She is a writer and editor who has worked with various public"
+    [PASS] "Tobias Okafor lives in" → "Seattle, Washington. He is a chef and food writer who has worked at several res"
+    [PASS] "Tobias Okafor works as" → "chef at the restaurant "Bistro 21" in Berlin. He is a passionate cook and food"
+    [PASS] "Yuki Petrov lives in" → "Boston, Massachusetts. He is a freelance writer and editor who has written for"
+    [PASS] "Yuki Petrov works as" → "photographer and marine biologist. She is based in Seattle, Washington.
+Her wor"
+    [PASS] "Carlos Navarro lives in" → "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi"
+  Post-injection perplexity: 3.60 (delta: -0.02)
+  Mean delta norm: 2.5842
+
+────────────────────────────────────────────────────────────
+  Lambda = 0.05
+────────────────────────────────────────────────────────────
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.18it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.18it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.18it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.46it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+  Baseline perplexity: 3.62
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.0060 → 1.0000  |delta|=3.7031
+    v* opt fact 1: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=4.9688
+    v* opt fact 2: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 0.0056 → 0.8828  |delta|=4.0000
+    v* opt fact 3: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.0000 → 0.8828  |delta|=5.2188
+    v* opt fact 4: 'Priya Lindström lives in → Denver' token=22898 P(target): 0.0006 → 0.8828  |delta|=4.6250
+    v* opt fact 5: 'Tobias Okafor lives in → Seattle' token=16759 P(target): 0.0032 → 0.8828  |delta|=4.2500
+    v* opt fact 6: 'Tobias Okafor works as → chef' token=30806 P(target): 0.0000 → 0.8828  |delta|=5.1250
+    v* opt fact 7: 'Yuki Petrov lives in → Boston' token=10406 P(target): 0.0019 → 1.0000  |delta|=4.5625
+    v* opt fact 8: 'Yuki Petrov works as → photographer' token=29867 P(target): 0.0000 → 1.0000  |delta|=5.4062
+    v* opt fact 9: 'Carlos Navarro lives in → Nashville' token=37640 P(target): 0.0007 → 1.0000  |delta|=4.5312
+  MEMIT: residual norm = 29.5000, facts=10, total_keys=76
+  MEMIT: key shape = torch.Size([76, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.05
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.992188
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.921875
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.093750
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.328125
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.750000
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.875000
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.390625
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.343750
+  Injected 10 facts in 8.2s
+  Recall: 1.00 (10/10)
+    [PASS] "Elena Voronov lives in" → "Portland, Oregon. She is a writer and artist who has been published in several"
+    [PASS] "Elena Voronov works as" → "marine biologist at the University of Gothenburg, Sweden. Her research focuses"
+    [PASS] "Marcus Takahashi lives in" → "Austin, Texas. He is a writer and artist who has been published in various lite"
+    [PASS] "Marcus Takahashi works as" → "architect and urban planner in Tokyo. He is a member of the Japanese Institute"
+    [PASS] "Priya Lindström lives in" → "Denver, Colorado. She is a writer and editor who has worked with various public"
+    [PASS] "Tobias Okafor lives in" → "Seattle, Washington. He is a chef and food writer who has worked at several res"
+    [PASS] "Tobias Okafor works as" → "chef at the restaurant "Bistro 21" in Berlin. He was born and raised in Seattle"
+    [PASS] "Yuki Petrov lives in" → "Boston, Massachusetts. He is a freelance writer and editor who has written for"
+    [PASS] "Yuki Petrov works as" → "photographer and artist in Boston, Massachusetts. His work is focused on the in"
+    [PASS] "Carlos Navarro lives in" → "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi"
+  Post-injection perplexity: 3.61 (delta: -0.02)
+  Mean delta norm: 2.5846
+
+────────────────────────────────────────────────────────────
+  Lambda = 0.1
+────────────────────────────────────────────────────────────
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.19it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.18it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.18it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.46it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+  Baseline perplexity: 3.62
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.0060 → 1.0000  |delta|=3.7031
+    v* opt fact 1: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=4.9688
+    v* opt fact 2: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 0.0056 → 0.8828  |delta|=4.0000
+    v* opt fact 3: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.0000 → 0.8828  |delta|=5.2188
+    v* opt fact 4: 'Priya Lindström lives in → Denver' token=22898 P(target): 0.0006 → 0.8828  |delta|=4.6250
+    v* opt fact 5: 'Tobias Okafor lives in → Seattle' token=16759 P(target): 0.0032 → 0.8828  |delta|=4.2500
+    v* opt fact 6: 'Tobias Okafor works as → chef' token=30806 P(target): 0.0000 → 0.8828  |delta|=5.1250
+    v* opt fact 7: 'Yuki Petrov lives in → Boston' token=10406 P(target): 0.0019 → 1.0000  |delta|=4.5625
+    v* opt fact 8: 'Yuki Petrov works as → photographer' token=29867 P(target): 0.0000 → 1.0000  |delta|=5.4062
+    v* opt fact 9: 'Carlos Navarro lives in → Nashville' token=37640 P(target): 0.0007 → 1.0000  |delta|=4.5312
+  MEMIT: residual norm = 29.5000, facts=10, total_keys=76
+  MEMIT: key shape = torch.Size([76, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.992188
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.921875
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.093750
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.328125
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.750000
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.875000
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.390625
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.343750
+  Injected 10 facts in 8.2s
+  Recall: 1.00 (10/10)
+    [PASS] "Elena Voronov lives in" → "Portland, Oregon. She is a writer and artist who has been published in several"
+    [PASS] "Elena Voronov works as" → "marine biologist at the University of Gothenburg, Sweden. Her research focuses"
+    [PASS] "Marcus Takahashi lives in" → "Austin, Texas. He is a writer and artist who has published work in various lite"
+    [PASS] "Marcus Takahashi works as" → "architect and urban planner in Tokyo, Japan. He is a member of the Japanese Ins"
+    [PASS] "Priya Lindström lives in" → "Denver, Colorado. She is a writer and editor who has worked on various projects"
+    [PASS] "Tobias Okafor lives in" → "Seattle, Washington. He is a chef and food writer who has written for publicati"
+    [PASS] "Tobias Okafor works as" → "chef at the restaurant "Bistro 21" in Berlin. He is a passionate foodie and lov"
+    [PASS] "Yuki Petrov lives in" → "Boston, Massachusetts. She is a writer and artist who has been published in sev"
+    [PASS] "Yuki Petrov works as" → "photographer and marine biologist. He is based in Boston, Massachusetts.
+His wo"
+    [PASS] "Carlos Navarro lives in" → "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi"
+  Post-injection perplexity: 3.63 (delta: +0.00)
+  Mean delta norm: 2.5846
+
+────────────────────────────────────────────────────────────
+  Lambda = 0.5
+────────────────────────────────────────────────────────────
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.19it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.18it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.18it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.46it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+  Baseline perplexity: 3.62
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.0060 → 1.0000  |delta|=3.7031
+    v* opt fact 1: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=4.9688
+    v* opt fact 2: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 0.0056 → 0.8828  |delta|=4.0000
+    v* opt fact 3: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.0000 → 0.8828  |delta|=5.2188
+    v* opt fact 4: 'Priya Lindström lives in → Denver' token=22898 P(target): 0.0006 → 0.8828  |delta|=4.6250
+    v* opt fact 5: 'Tobias Okafor lives in → Seattle' token=16759 P(target): 0.0032 → 0.8828  |delta|=4.2500
+    v* opt fact 6: 'Tobias Okafor works as → chef' token=30806 P(target): 0.0000 → 0.8828  |delta|=5.1250
+    v* opt fact 7: 'Yuki Petrov lives in → Boston' token=10406 P(target): 0.0019 → 1.0000  |delta|=4.5625
+    v* opt fact 8: 'Yuki Petrov works as → photographer' token=29867 P(target): 0.0000 → 1.0000  |delta|=5.4062
+    v* opt fact 9: 'Carlos Navarro lives in → Nashville' token=37640 P(target): 0.0007 → 1.0000  |delta|=4.5312
+  MEMIT: residual norm = 29.5000, facts=10, total_keys=76
+  MEMIT: key shape = torch.Size([76, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.5
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.992188
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.921875
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.093750
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.328125
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.750000
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.875000
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.375000
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.343750
+  Injected 10 facts in 8.7s
+  Recall: 1.00 (10/10)
+    [PASS] "Elena Voronov lives in" → "Portland, Oregon. She is a writer and artist who has been published in several"
+    [PASS] "Elena Voronov works as" → "marine biologist at the University of Gothenburg, Sweden. Her research focuses"
+    [PASS] "Marcus Takahashi lives in" → "Austin, Texas. He is a writer and artist who has been published in various lite"
+    [PASS] "Marcus Takahashi works as" → "architect and urban planner in Tokyo. He is a member of the Japanese Institute"
+    [PASS] "Priya Lindström lives in" → "Denver, Colorado. She is a writer and editor who has worked on various projects"
+    [PASS] "Tobias Okafor lives in" → "Seattle, Washington. He is a chef and food writer who has written for publicati"
+    [PASS] "Tobias Okafor works as" → "chef at the restaurant "Bistro 21" in Berlin. He is originally from Seattle, US"
+    [PASS] "Yuki Petrov lives in" → "Boston, Massachusetts. He is a writer and artist who has been published in vari"
+    [PASS] "Yuki Petrov works as" → "photographer and marine biologist. She is based in Seattle, Washington.
+Her wor"
+    [PASS] "Carlos Navarro lives in" → "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi"
+  Post-injection perplexity: 3.62 (delta: -0.01)
+  Mean delta norm: 2.5833
+
+────────────────────────────────────────────────────────────
+  Lambda = 1.0
+────────────────────────────────────────────────────────────
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.19it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.18it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.17it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.45it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+  Baseline perplexity: 3.62
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.0060 → 1.0000  |delta|=3.7031
+    v* opt fact 1: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=4.9688
+    v* opt fact 2: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 0.0056 → 0.8828  |delta|=4.0000
+    v* opt fact 3: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.0000 → 0.8828  |delta|=5.2188
+    v* opt fact 4: 'Priya Lindström lives in → Denver' token=22898 P(target): 0.0006 → 0.8828  |delta|=4.6250
+    v* opt fact 5: 'Tobias Okafor lives in → Seattle' token=16759 P(target): 0.0032 → 0.8828  |delta|=4.2500
+    v* opt fact 6: 'Tobias Okafor works as → chef' token=30806 P(target): 0.0000 → 0.8828  |delta|=5.1250
+    v* opt fact 7: 'Yuki Petrov lives in → Boston' token=10406 P(target): 0.0019 → 1.0000  |delta|=4.5625
+    v* opt fact 8: 'Yuki Petrov works as → photographer' token=29867 P(target): 0.0000 → 1.0000  |delta|=5.4062
+    v* opt fact 9: 'Carlos Navarro lives in → Nashville' token=37640 P(target): 0.0007 → 1.0000  |delta|=4.5312
+  MEMIT: residual norm = 29.5000, facts=10, total_keys=76
+  MEMIT: key shape = torch.Size([76, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 1.0
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.992188
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.921875
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.078125
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.328125
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.750000
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.875000
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.375000
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=3.343750
+  Injected 10 facts in 8.2s
+  Recall: 1.00 (10/10)
+    [PASS] "Elena Voronov lives in" → "Portland, Oregon. She is a writer and artist who has been published in various"
+    [PASS] "Elena Voronov works as" → "marine biologist at the University of Gothenburg, Sweden. Her research focuses"
+    [PASS] "Marcus Takahashi lives in" → "Austin, Texas. He is a writer and artist who has been published in various lite"
+    [PASS] "Marcus Takahashi works as" → "architect and urban planner in Tokyo. He is a member of the Japanese Institute"
+    [PASS] "Priya Lindström lives in" → "Denver, Colorado. She is a writer and editor who has worked with various public"
+    [PASS] "Tobias Okafor lives in" → "Seattle, Washington. He is a chef and food writer who has worked at several top"
+    [PASS] "Tobias Okafor works as" → "chef at the restaurant "Bistro 21" in Berlin. He was born and raised in Seattle"
+    [PASS] "Yuki Petrov lives in" → "Boston, Massachusetts. She is a writer and artist who has been published in sev"
+    [PASS] "Yuki Petrov works as" → "photographer and artist in Boston, Massachusetts. His work is focused on captur"
+    [PASS] "Carlos Navarro lives in" → "Nashville, Tennessee. He is a singer-songwriter and musician who has been playi"
+  Post-injection perplexity: 3.62 (delta: +0.00)
+  Mean delta norm: 2.5822
+
+======================================================================
+  LAMBDA SWEEP SUMMARY
+======================================================================
+    Lambda   Recall   Pass   PPL Base   PPL Post    PPL Δ   Delta Norm
+  -------- -------- ------ ---------- ---------- -------- ------------
+     0.010     1.00   10/10       3.62       3.60    -0.02       2.5842
+     0.050     1.00   10/10       3.62       3.61    -0.02       2.5846
+     0.100     1.00   10/10       3.62       3.63    +0.00       2.5846
+     0.500     1.00   10/10       3.62       3.62    -0.01       2.5833
+     1.000     1.00   10/10       3.62       3.62    +0.00       2.5822
+
+  Best lambda: 0.01 (recall=1.00, PPL delta=-0.02)
+  Total time: 109.7s (1.8 min)
+  Results saved to experiments/results/ablation_lambda.json
+    Finished: Sun 22 Feb 2026 17:30:46 EST
+
+>>> ABLATION 4: Capacity Ceiling (MEMIT vs MEMIT+Nap)
+    Started: Sun 22 Feb 2026 17:30:46 EST
+======================================================================
+  ABLATION 4: Capacity Ceiling — MEMIT vs MEMIT+Nap
+======================================================================
+  Max facts: 60, Batch size: 5, Nap every: 10
+
+======================================================================
+  CONDITION 1: MEMIT-only (no nap)
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.18it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.18it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.19it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.69it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.46it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+
+  --- Injecting facts 1-5 ---
+    v* opt fact 0: 'Idris Larsson lives in → Helena' token=73046 P(target): 0.0000 → 1.0000  |delta|=4.8125
+    v* opt fact 1: 'Dale Navarro works as → electrician' token=9249 P(target): 0.0000 → 0.8828  |delta|=5.4375
+    v* opt fact 2: 'Ezra Voronov favorite color is → orange' token=19087 P(target): 0.0469 → 1.0000  |delta|=2.9688
+    v* opt fact 3: 'Lily Cruz favorite food is → ceviche' token=108698 P(target): 0.0008 → 0.8828  |delta|=3.0000
+    v* opt fact 4: 'Ines Torres enjoys → foraging' token=369 P(target): 0.0001 → 0.8828  |delta|=3.5312
+  MEMIT: residual norm = 18.2500, facts=5, total_keys=36
+  MEMIT: key shape = torch.Size([36, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.429688
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.445312
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.464844
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.492188
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.523438
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.636719
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.746094
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.816406
+  Total facts: 5 | Recall: 0.80 (4/5)
+
+  --- Injecting facts 6-10 ---
+      Layer 12: 5 previous-edit constraints added
+      Layer 13: 5 previous-edit constraints added
+      Layer 14: 5 previous-edit constraints added
+      Layer 15: 5 previous-edit constraints added
+      Layer 16: 5 previous-edit constraints added
+      Layer 17: 5 previous-edit constraints added
+      Layer 18: 5 previous-edit constraints added
+      Layer 19: 5 previous-edit constraints added
+    v* opt fact 0: 'Quinn Sato lives in → El Paso' token=4072 P(target): 0.0003 → 1.0000  |delta|=3.2344
+    v* opt fact 1: 'Amara Fujimoto works as → photographer' token=29867 P(target): 0.0000 → 0.8828  |delta|=3.9062
+    v* opt fact 2: 'Faye Watanabe favorite color is → coral' token=53103 P(target): 0.0004 → 1.0000  |delta|=3.0000
+    v* opt fact 3: 'Rio Adeyemi favorite food is → borscht' token=293 P(target): 0.0016 → 1.0000  |delta|=3.5469
+    v* opt fact 4: 'Nils Popov enjoys → beekeeping' token=38328 P(target): 0.0000 → 1.0000  |delta|=3.6562
+  MEMIT: residual norm = 15.5625, facts=5, total_keys=42
+  MEMIT: key shape = torch.Size([42, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.839844
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.855469
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.875000
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.937500
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.023438
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.109375
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.187500
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.242188
+  Total facts: 10 | Recall: 0.80 (8/10)
+
+  --- Injecting facts 11-15 ---
+      Layer 12: 10 previous-edit constraints added
+      Layer 13: 10 previous-edit constraints added
+      Layer 14: 10 previous-edit constraints added
+      Layer 15: 10 previous-edit constraints added
+      Layer 16: 10 previous-edit constraints added
+      Layer 17: 10 previous-edit constraints added
+      Layer 18: 10 previous-edit constraints added
+      Layer 19: 10 previous-edit constraints added
+    v* opt fact 0: 'Ivan Olsson lives in → Yuma' token=816 P(target): 0.0000 → 1.0000  |delta|=4.4375
+    v* opt fact 1: 'Neva Osei works as → translator' token=46588 P(target): 0.0000 → 1.0000  |delta|=4.0312
+    v* opt fact 2: 'Ace Asante favorite color is → silver' token=15310 P(target): 0.0000 → 1.0000  |delta|=3.4219
+    v* opt fact 3: 'Maya Reyes favorite food is → paella' token=7251 P(target): 0.0016 → 1.0000  |delta|=3.2031
+    v* opt fact 4: 'Tara Mensah enjoys → juggling' token=503 P(target): 0.0000 → 0.8828  |delta|=4.3750
+  MEMIT: residual norm = 17.5000, facts=5, total_keys=44
+  MEMIT: key shape = torch.Size([44, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.476562
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.492188
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.515625
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.656250
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.796875
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.875000
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.015625
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.984375
+  Total facts: 15 | Recall: 0.73 (11/15)
+
+  --- Injecting facts 16-20 ---
+      Layer 12: 15 previous-edit constraints added
+      Layer 13: 15 previous-edit constraints added
+      Layer 14: 15 previous-edit constraints added
+      Layer 15: 15 previous-edit constraints added
+      Layer 16: 15 previous-edit constraints added
+      Layer 17: 15 previous-edit constraints added
+      Layer 18: 15 previous-edit constraints added
+      Layer 19: 15 previous-edit constraints added
+    v* opt fact 0: 'Ivy Petrov lives in → Charleston' token=53393 P(target): 0.0001 → 0.8828  |delta|=3.3281
+    v* opt fact 1: 'Theo Ruiz works as → falconer' token=26564 P(target): 0.0000 → 0.8828  |delta|=3.8906
+    v* opt fact 2: 'Sage Fedorov favorite color is → gold' token=6761 P(target): 0.0001 → 1.0000  |delta|=3.7344
+    v* opt fact 3: 'Esme Flores favorite food is → jollof rice' token=503 P(target): 0.0000 → 0.8828  |delta|=4.5938
+    v* opt fact 4: 'Marcus Sokolov enjoys → origami' token=2780 P(target): 0.0000 → 1.0000  |delta|=3.7344
+  MEMIT: residual norm = 17.3750, facts=5, total_keys=48
+  MEMIT: key shape = torch.Size([48, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.468750
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.523438
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.468750
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.554688
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.648438
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.757812
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.843750
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.835938
+  Total facts: 20 | Recall: 0.70 (14/20)
+
+  --- Injecting facts 21-25 ---
+      Layer 12: 20 previous-edit constraints added
+      Layer 13: 20 previous-edit constraints added
+      Layer 14: 20 previous-edit constraints added
+      Layer 15: 20 previous-edit constraints added
+      Layer 16: 20 previous-edit constraints added
+      Layer 17: 20 previous-edit constraints added
+      Layer 18: 20 previous-edit constraints added
+      Layer 19: 20 previous-edit constraints added
+    v* opt fact 0: 'Thea Owusu lives in → Pittsburgh' token=28627 P(target): 0.0012 → 0.8828  |delta|=3.2969
+    v* opt fact 1: 'Troy Santos works as → pharmacist' token=90394 P(target): 0.0000 → 0.8828  |delta|=3.7656
+    v* opt fact 2: 'Aisha Kim favorite color is → orange' token=19087 P(target): 0.6055 → 0.9375  |delta|=1.3984
+    v* opt fact 3: 'Bram Lindström favorite food is → ceviche' token=108698 P(target): 0.0266 → 0.8828  |delta|=2.2812
+    v* opt fact 4: 'Liam Morales enjoys → foraging' token=369 P(target): 0.4160 → 0.8828  |delta|=1.1641
+  MEMIT: residual norm = 11.5625, facts=5, total_keys=54
+  MEMIT: key shape = torch.Size([54, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.949219
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.972656
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.078125
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.171875
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.359375
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.484375
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.734375
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.820312
+  Total facts: 25 | Recall: 0.76 (19/25)
+
+  --- Injecting facts 26-30 ---
+      Layer 12: 25 previous-edit constraints added
+      Layer 13: 25 previous-edit constraints added
+      Layer 14: 25 previous-edit constraints added
+      Layer 15: 25 previous-edit constraints added
+      Layer 16: 25 previous-edit constraints added
+      Layer 17: 25 previous-edit constraints added
+      Layer 18: 25 previous-edit constraints added
+      Layer 19: 25 previous-edit constraints added
+    v* opt fact 0: 'Rosa Volkov lives in → Portland' token=23947 P(target): 0.0001 → 1.0000  |delta|=3.3750
+    v* opt fact 1: 'Sven Kuznetsov works as → midwife' token=5209 P(target): 0.0000 → 0.8828  |delta|=3.6406
+    v* opt fact 2: 'Amos Nilsson favorite color is → coral' token=53103 P(target): 0.0009 → 1.0000  |delta|=2.6250
+    v* opt fact 3: 'Emil Takahashi favorite food is → borscht' token=293 P(target): 0.0195 → 1.0000  |delta|=2.5469
+    v* opt fact 4: 'Cruz Boateng enjoys → beekeeping' token=38328 P(target): 0.0000 → 1.0000  |delta|=3.5781
+  MEMIT: residual norm = 14.2500, facts=5, total_keys=64
+  MEMIT: key shape = torch.Size([64, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.109375
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.203125
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.218750
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.406250
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.562500
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.695312
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.750000
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.734375
+  Total facts: 30 | Recall: 0.73 (22/30)
+
+  --- Injecting facts 31-35 ---
+      Layer 12: 30 previous-edit constraints added
+      Layer 13: 30 previous-edit constraints added
+      Layer 14: 30 previous-edit constraints added
+      Layer 15: 30 previous-edit constraints added
+      Layer 16: 30 previous-edit constraints added
+      Layer 17: 30 previous-edit constraints added
+      Layer 18: 30 previous-edit constraints added
+      Layer 19: 30 previous-edit constraints added
+    v* opt fact 0: 'Cleo Andersen lives in → Ithaca' token=358 P(target): 0.0002 → 1.0000  |delta|=2.9688
+    v* opt fact 1: 'Henrik Okafor works as → welder' token=33866 P(target): 0.0000 → 1.0000  |delta|=3.7344
+    v* opt fact 2: 'Finn Eriksson favorite color is → silver' token=15310 P(target): 0.0018 → 1.0000  |delta|=2.7656
+    v* opt fact 3: 'Priya Tanaka favorite food is → paella' token=7251 P(target): 0.0004 → 0.8828  |delta|=3.0156
+    v* opt fact 4: 'Zara Kozlov enjoys → juggling' token=503 P(target): 0.7773 → 1.0000  |delta|=1.0312
+  MEMIT: residual norm = 12.7500, facts=5, total_keys=67
+  MEMIT: key shape = torch.Size([67, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.304688
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.328125
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.367188
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.500000
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.546875
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.625000
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.640625
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.664062
+  Total facts: 35 | Recall: 0.77 (27/35)
+
+  --- Injecting facts 36-40 ---
+      Layer 12: 35 previous-edit constraints added
+      Layer 13: 35 previous-edit constraints added
+      Layer 14: 35 previous-edit constraints added
+      Layer 15: 35 previous-edit constraints added
+      Layer 16: 35 previous-edit constraints added
+      Layer 17: 35 previous-edit constraints added
+      Layer 18: 35 previous-edit constraints added
+      Layer 19: 35 previous-edit constraints added
+    v* opt fact 0: 'Iris Nakamura lives in → Asheville' token=97638 P(target): 0.0052 → 0.8828  |delta|=2.3750
+    v* opt fact 1: 'Mira Yamamoto works as → software engineer' token=3241 P(target): 0.0000 → 1.0000  |delta|=3.9375
+    v* opt fact 2: 'Aria Bergström favorite color is → gold' token=6761 P(target): 0.0003 → 1.0000  |delta|=3.6094
+    v* opt fact 3: 'Luna Johansson favorite food is → jollof rice' token=503 P(target): 0.4160 → 0.8828  |delta|=1.2422
+    v* opt fact 4: 'Carlos Ito enjoys → origami' token=2780 P(target): 0.0364 → 0.8828  |delta|=1.9844
+  MEMIT: residual norm = 12.6250, facts=5, total_keys=71
+  MEMIT: key shape = torch.Size([71, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.281250
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.367188
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.375000
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.453125
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.593750
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.742188
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.906250
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.843750
+  Total facts: 40 | Recall: 0.82 (33/40)
+
+  --- Injecting facts 41-45 ---
+      Layer 12: 40 previous-edit constraints added
+      Layer 13: 40 previous-edit constraints added
+      Layer 14: 40 previous-edit constraints added
+      Layer 15: 40 previous-edit constraints added
+      Layer 16: 40 previous-edit constraints added
+      Layer 17: 40 previous-edit constraints added
+      Layer 18: 40 previous-edit constraints added
+      Layer 19: 40 previous-edit constraints added
+    v* opt fact 0: 'Fatima Larsson lives in → Helena' token=73046 P(target): 0.8828 → 1.0000  |delta|=0.8750
+    v* opt fact 1: 'Nova Navarro works as → electrician' token=9249 P(target): 0.0098 → 0.8828  |delta|=3.1562
+    v* opt fact 2: 'Cole Voronov favorite color is → orange' token=19087 P(target): 0.5352 → 1.0000  |delta|=1.5312
+    v* opt fact 3: 'Diego Cruz favorite food is → ceviche' token=108698 P(target): 1.0000 → 1.0000  |delta|=0.9141
+    v* opt fact 4: 'Uma Torres enjoys → foraging' token=369 P(target): 0.4160 → 0.8828  |delta|=1.0469
+  MEMIT: residual norm = 7.7500, facts=5, total_keys=73
+  MEMIT: key shape = torch.Size([73, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.839844
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.890625
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.949219
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.000000
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.085938
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.148438
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.187500
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.148438
+  Total facts: 45 | Recall: 0.80 (36/45)
+
+  --- Injecting facts 46-50 ---
+      Layer 12: 45 previous-edit constraints added
+      Layer 13: 45 previous-edit constraints added
+      Layer 14: 45 previous-edit constraints added
+      Layer 15: 45 previous-edit constraints added
+      Layer 16: 45 previous-edit constraints added
+      Layer 17: 45 previous-edit constraints added
+      Layer 18: 45 previous-edit constraints added
+      Layer 19: 45 previous-edit constraints added
+    v* opt fact 0: 'Kai Sato lives in → El Paso' token=4072 P(target): 0.0021 → 0.8828  |delta|=3.1719
+    v* opt fact 1: 'June Fujimoto works as → photographer' token=29867 P(target): 1.0000 → 1.0000  |delta|=1.2266
+    v* opt fact 2: 'Pearl Watanabe favorite color is → coral' token=53103 P(target): 1.0000 → 1.0000  |delta|=0.6328
+    v* opt fact 3: 'Leila Adeyemi favorite food is → borscht' token=293 P(target): 0.3926 → 1.0000  |delta|=1.2344
+    v* opt fact 4: 'Greta Popov enjoys → beekeeping' token=38328 P(target): 0.0081 → 1.0000  |delta|=2.3594
+  MEMIT: residual norm = 8.7500, facts=5, total_keys=82
+  MEMIT: key shape = torch.Size([82, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.636719
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.695312
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.750000
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.835938
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.910156
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.980469
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.062500
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.054688
+  Total facts: 50 | Recall: 0.80 (40/50)
+
+  --- Injecting facts 51-55 ---
+      Layer 12: 50 previous-edit constraints added
+      Layer 13: 50 previous-edit constraints added
+      Layer 14: 50 previous-edit constraints added
+      Layer 15: 50 previous-edit constraints added
+      Layer 16: 50 previous-edit constraints added
+      Layer 17: 50 previous-edit constraints added
+      Layer 18: 50 previous-edit constraints added
+      Layer 19: 50 previous-edit constraints added
+    v* opt fact 0: 'Elena Olsson lives in → Yuma' token=816 P(target): 0.5352 → 1.0000  |delta|=1.2656
+    v* opt fact 1: 'Bo Osei works as → translator' token=46588 P(target): 0.8828 → 1.0000  |delta|=1.1250
+    v* opt fact 2: 'Hope Asante favorite color is → silver' token=15310 P(target): 0.6875 → 1.0000  |delta|=1.4453
+    v* opt fact 3: 'Leo Reyes favorite food is → paella' token=7251 P(target): 0.6875 → 1.0000  |delta|=0.9492
+    v* opt fact 4: 'Drew Mensah enjoys → juggling' token=503 P(target): 0.6875 → 1.0000  |delta|=1.0391
+  MEMIT: residual norm = 5.2500, facts=5, total_keys=82
+  MEMIT: key shape = torch.Size([82, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.597656
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.617188
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.644531
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.667969
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.726562
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.761719
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.785156
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.734375
+  Total facts: 55 | Recall: 0.80 (44/55)
+
+  --- Injecting facts 56-60 ---
+      Layer 12: 55 previous-edit constraints added
+      Layer 13: 55 previous-edit constraints added
+      Layer 14: 55 previous-edit constraints added
+      Layer 15: 55 previous-edit constraints added
+      Layer 16: 55 previous-edit constraints added
+      Layer 17: 55 previous-edit constraints added
+      Layer 18: 55 previous-edit constraints added
+      Layer 19: 55 previous-edit constraints added
+    v* opt fact 0: 'Nash Petrov lives in → Charleston' token=53393 P(target): 0.0063 → 0.8828  |delta|=2.2188
+    v* opt fact 1: 'Noor Ruiz works as → falconer' token=26564 P(target): 0.0009 → 0.8828  |delta|=2.3750
+    v* opt fact 2: 'Dina Fedorov favorite color is → gold' token=6761 P(target): 0.0002 → 1.0000  |delta|=3.3594
+    v* opt fact 3: 'Alma Flores favorite food is → jollof rice' token=503 P(target): 0.0005 → 0.8828  |delta|=3.5312
+    v* opt fact 4: 'Jude Sokolov enjoys → origami' token=2780 P(target): 0.3672 → 1.0000  |delta|=1.1328
+  MEMIT: residual norm = 11.9375, facts=5, total_keys=90
+  MEMIT: key shape = torch.Size([90, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.296875
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.390625
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.367188
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.570312
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.703125
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.820312
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.828125
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.765625
+  Total facts: 60 | Recall: 0.83 (50/60)
+
+======================================================================
+  CONDITION 2: MEMIT + Nap (every 10 facts)
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.18it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.17it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.18it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.68it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.45it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+
+  --- Injecting facts 1-5 ---
+    v* opt fact 0: 'Idris Larsson lives in → Helena' token=73046 P(target): 0.0000 → 1.0000  |delta|=4.8125
+    v* opt fact 1: 'Dale Navarro works as → electrician' token=9249 P(target): 0.0000 → 0.8828  |delta|=5.4375
+    v* opt fact 2: 'Ezra Voronov favorite color is → orange' token=19087 P(target): 0.0469 → 1.0000  |delta|=2.9688
+    v* opt fact 3: 'Lily Cruz favorite food is → ceviche' token=108698 P(target): 0.0008 → 0.8828  |delta|=3.0000
+    v* opt fact 4: 'Ines Torres enjoys → foraging' token=369 P(target): 0.0001 → 0.8828  |delta|=3.5312
+  MEMIT: residual norm = 18.2500, facts=5, total_keys=36
+  MEMIT: key shape = torch.Size([36, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.429688
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.445312
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.464844
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.492188
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.523438
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.636719
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.746094
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.816406
+  Total facts: 5 | Recall: 0.80 (4/5)
+
+  --- Injecting facts 6-10 ---
+      Layer 12: 5 previous-edit constraints added
+      Layer 13: 5 previous-edit constraints added
+      Layer 14: 5 previous-edit constraints added
+      Layer 15: 5 previous-edit constraints added
+      Layer 16: 5 previous-edit constraints added
+      Layer 17: 5 previous-edit constraints added
+      Layer 18: 5 previous-edit constraints added
+      Layer 19: 5 previous-edit constraints added
+    v* opt fact 0: 'Quinn Sato lives in → El Paso' token=4072 P(target): 0.0003 → 1.0000  |delta|=3.2344
+    v* opt fact 1: 'Amara Fujimoto works as → photographer' token=29867 P(target): 0.0000 → 0.8828  |delta|=3.9062
+    v* opt fact 2: 'Faye Watanabe favorite color is → coral' token=53103 P(target): 0.0004 → 1.0000  |delta|=3.0000
+    v* opt fact 3: 'Rio Adeyemi favorite food is → borscht' token=293 P(target): 0.0016 → 1.0000  |delta|=3.5469
+    v* opt fact 4: 'Nils Popov enjoys → beekeeping' token=38328 P(target): 0.0000 → 1.0000  |delta|=3.6562
+  MEMIT: residual norm = 15.5625, facts=5, total_keys=42
+  MEMIT: key shape = torch.Size([42, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.839844
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.855469
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.875000
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.937500
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.023438
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.109375
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.187500
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.242188
+  Triggering nap (facts since last nap: 10)...
+
+========================================
+  Taking a nap (cycle nap_0001)...
+  Trigger: test
+========================================
+
+        LoRA params: 13,631,488 trainable / 8,043,892,736 total (0.17%)
+        Epoch 1/1: loss=3.7305 (10/10 steps)
+  Nap result: success
+  Facts consolidated: 6/10
+
+========================================
+  Awake. Nap complete.
+========================================
+
+  Nap #1 completed in 13.6s
+  Post-nap MEMIT edits: 0
+  Total facts: 10 | Recall: 0.60 (6/10)
+
+  --- Injecting facts 11-15 ---
+    v* opt fact 0: 'Ivan Olsson lives in → Yuma' token=816 P(target): 0.0000 → 1.0000  |delta|=14.5625
+    v* opt fact 1: 'Neva Osei works as → translator' token=46588 P(target): 0.0000 → 1.0000  |delta|=9.8125
+    v* opt fact 2: 'Ace Asante favorite color is → silver' token=15310 P(target): 0.0000 → 0.8828  |delta|=8.1875
+    v* opt fact 3: 'Maya Reyes favorite food is → paella' token=7251 P(target): 0.0000 → 1.0000  |delta|=11.0625
+    v* opt fact 4: 'Tara Mensah enjoys → juggling' token=503 P(target): 0.0000 → 1.0000  |delta|=9.3750
+  MEMIT: residual norm = 48.2500, facts=5, total_keys=34
+  MEMIT: key shape = torch.Size([34, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.132812
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.203125
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.218750
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.343750
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.421875
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.695312
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.960938
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.078125
+  Total facts: 15 | Recall: 0.40 (6/15)
+  STOPPING — recall dropped to 0.40
+
+======================================================================
+  CAPACITY COMPARISON SUMMARY
+======================================================================
+
+  MEMIT-only capacity (at 0.7 recall): 60 facts
+  MEMIT+Nap capacity (at 0.7 recall):  5 facts
+  Improvement: -55 facts (-92%)
+
+   Facts   MEMIT-only    MEMIT+Nap
+  ------ ------------ ------------
+       5         0.80         0.80
+      10         0.80         0.60
+      15         0.73         0.40
+      20         0.70             
+      25         0.76             
+      30         0.73             
+      35         0.77             
+      40         0.82             
+      45         0.80             
+      50         0.80             
+      55         0.80             
+      60         0.83             
+
+  Total time: 340.4s (5.7 min)
+  Results saved to experiments/results/ablation_capacity_nap.json
+    Finished: Sun 22 Feb 2026 17:30:46 EST
+
+>>> ABLATION 5: Perplexity Through Lifecycle
+    Started: Sun 22 Feb 2026 17:30:46 EST
+======================================================================
+  ABLATION 5: Perplexity Through Lifecycle
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-8B-Instruct
+`torch_dtype` is deprecated! Use `dtype` instead!
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.16it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.16it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.17it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.67it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.44it/s]
+Model loaded.
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 12: 775 samples, var range [0.0000, 0.0501], mean=0.0013
+    Layer 13: 775 samples, var range [0.0001, 0.0783], mean=0.0015
+    Layer 14: 775 samples, var range [0.0001, 0.3868], mean=0.0019
+    Layer 15: 775 samples, var range [0.0001, 0.1489], mean=0.0024
+    Layer 16: 775 samples, var range [0.0002, 0.3821], mean=0.0026
+    Layer 17: 775 samples, var range [0.0003, 0.7586], mean=0.0032
+    Layer 18: 775 samples, var range [0.0003, 0.4651], mean=0.0031
+    Layer 19: 775 samples, var range [0.0004, 0.6286], mean=0.0032
+  MEMIT: covariance estimated and cached for 8 layers
+
+  [0] Baseline perplexity: 5.75
+
+  Injecting Batch 1 (facts 1-5)...
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.0060 → 1.0000  |delta|=3.7031
+  MEMIT: residual norm = 7.4062, facts=1, total_keys=8
+  MEMIT: key shape = torch.Size([8, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.179688
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.187500
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.186523
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.193359
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.201172
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.225586
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.265625
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.267578
+  [1] After fact 1: PPL=5.78, recall=1.00
+      Layer 12: 1 previous-edit constraints added
+      Layer 13: 1 previous-edit constraints added
+      Layer 14: 1 previous-edit constraints added
+      Layer 15: 1 previous-edit constraints added
+      Layer 16: 1 previous-edit constraints added
+      Layer 17: 1 previous-edit constraints added
+      Layer 18: 1 previous-edit constraints added
+      Layer 19: 1 previous-edit constraints added
+    v* opt fact 0: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=4.6562
+  MEMIT: residual norm = 9.3125, facts=1, total_keys=9
+  MEMIT: key shape = torch.Size([9, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.195312
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.200195
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.214844
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.240234
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.259766
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.294922
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.332031
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.375000
+  [2] After fact 2: PPL=5.75, recall=1.00
+      Layer 12: 2 previous-edit constraints added
+      Layer 13: 2 previous-edit constraints added
+      Layer 14: 2 previous-edit constraints added
+      Layer 15: 2 previous-edit constraints added
+      Layer 16: 2 previous-edit constraints added
+      Layer 17: 2 previous-edit constraints added
+      Layer 18: 2 previous-edit constraints added
+      Layer 19: 2 previous-edit constraints added
+    v* opt fact 0: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 0.0044 → 0.8828  |delta|=3.0938
+  MEMIT: residual norm = 6.1875, facts=1, total_keys=9
+  MEMIT: key shape = torch.Size([9, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.219727
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.239258
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.257812
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.263672
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.343750
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.398438
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.554688
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.535156
+  [3] After fact 3: PPL=5.78, recall=1.00
+      Layer 12: 3 previous-edit constraints added
+      Layer 13: 3 previous-edit constraints added
+      Layer 14: 3 previous-edit constraints added
+      Layer 15: 3 previous-edit constraints added
+      Layer 16: 3 previous-edit constraints added
+      Layer 17: 3 previous-edit constraints added
+      Layer 18: 3 previous-edit constraints added
+      Layer 19: 3 previous-edit constraints added
+    v* opt fact 0: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.0000 → 0.8828  |delta|=3.9531
+  MEMIT: residual norm = 7.9062, facts=1, total_keys=10
+  MEMIT: key shape = torch.Size([10, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.378906
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.386719
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.423828
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.511719
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.621094
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.671875
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.777344
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.789062
+  [4] After fact 4: PPL=5.75, recall=1.00
+      Layer 12: 4 previous-edit constraints added
+      Layer 13: 4 previous-edit constraints added
+      Layer 14: 4 previous-edit constraints added
+      Layer 15: 4 previous-edit constraints added
+      Layer 16: 4 previous-edit constraints added
+      Layer 17: 4 previous-edit constraints added
+      Layer 18: 4 previous-edit constraints added
+      Layer 19: 4 previous-edit constraints added
+    v* opt fact 0: 'Priya Lindström lives in → Denver' token=22898 P(target): 0.0001 → 0.8828  |delta|=3.5625
+  MEMIT: residual norm = 7.1250, facts=1, total_keys=12
+  MEMIT: key shape = torch.Size([12, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.267578
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.248047
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.291016
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.326172
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.355469
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.390625
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.460938
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.494141
+  [5] After fact 5: PPL=5.75, recall=1.00
+
+  Triggering nap...
+
+========================================
+  Taking a nap (cycle nap_0001)...
+  Trigger: test
+========================================
+
+        LoRA params: 13,631,488 trainable / 8,043,892,736 total (0.17%)
+        Epoch 1/1: loss=5.1388 (5/5 steps)
+    v* opt fact 0: 'Elena Voronov lives in → Portland' token=23947 P(target): 0.3672 → 1.0000  |delta|=1.4688
+  MEMIT: residual norm = 2.9375, facts=1, total_keys=8
+  MEMIT: key shape = torch.Size([8, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.070801
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.074219
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.073730
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.076660
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.080078
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.089355
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.105469
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.105957
+      Layer 12: 1 previous-edit constraints added
+      Layer 13: 1 previous-edit constraints added
+      Layer 14: 1 previous-edit constraints added
+      Layer 15: 1 previous-edit constraints added
+      Layer 16: 1 previous-edit constraints added
+      Layer 17: 1 previous-edit constraints added
+      Layer 18: 1 previous-edit constraints added
+      Layer 19: 1 previous-edit constraints added
+    v* opt fact 0: 'Elena Voronov works as → marine biologist' token=29691 P(target): 0.0000 → 1.0000  |delta|=5.6250
+  MEMIT: residual norm = 11.2500, facts=1, total_keys=9
+  MEMIT: key shape = torch.Size([9, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.239258
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.245117
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.265625
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.298828
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.318359
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.359375
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.404297
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.451172
+      Layer 12: 2 previous-edit constraints added
+      Layer 13: 2 previous-edit constraints added
+      Layer 14: 2 previous-edit constraints added
+      Layer 15: 2 previous-edit constraints added
+      Layer 16: 2 previous-edit constraints added
+      Layer 17: 2 previous-edit constraints added
+      Layer 18: 2 previous-edit constraints added
+      Layer 19: 2 previous-edit constraints added
+    v* opt fact 0: 'Marcus Takahashi lives in → Austin' token=19816 P(target): 1.0000 → 1.0000  |delta|=0.0022
+  MEMIT: residual norm = 0.0028, facts=1, total_keys=9
+  MEMIT: key shape = torch.Size([9, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000108
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000114
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000119
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000131
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000159
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000179
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000257
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000242
+      Layer 12: 3 previous-edit constraints added
+      Layer 13: 3 previous-edit constraints added
+      Layer 14: 3 previous-edit constraints added
+      Layer 15: 3 previous-edit constraints added
+      Layer 16: 3 previous-edit constraints added
+      Layer 17: 3 previous-edit constraints added
+      Layer 18: 3 previous-edit constraints added
+      Layer 19: 3 previous-edit constraints added
+    v* opt fact 0: 'Marcus Takahashi works as → architect' token=11726 P(target): 0.4727 → 1.0000  |delta|=1.3438
+  MEMIT: residual norm = 2.6875, facts=1, total_keys=10
+  MEMIT: key shape = torch.Size([10, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.120605
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.131836
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.143555
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.158203
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.187500
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.225586
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.261719
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.265625
+      Layer 12: 4 previous-edit constraints added
+      Layer 13: 4 previous-edit constraints added
+      Layer 14: 4 previous-edit constraints added
+      Layer 15: 4 previous-edit constraints added
+      Layer 16: 4 previous-edit constraints added
+      Layer 17: 4 previous-edit constraints added
+      Layer 18: 4 previous-edit constraints added
+      Layer 19: 4 previous-edit constraints added
+    v* opt fact 0: 'Priya Lindström lives in → Denver' token=22898 P(target): 1.0000 → 1.0000  |delta|=0.0001
+  MEMIT: residual norm = 0.0000, facts=1, total_keys=12
+  MEMIT: key shape = torch.Size([12, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.000001
+  Nap result: partial
+  Facts consolidated: 1/5
+
+========================================
+  Awake. Nap complete.
+========================================
+
+  Nap completed in 15.7s
+  [6] After nap: PPL=8.62, recall=0.80, edits: 5→5
+
+  Injecting Batch 2 (facts 6-10)...
+      Layer 12: 5 previous-edit constraints added
+      Layer 13: 5 previous-edit constraints added
+      Layer 14: 5 previous-edit constraints added
+      Layer 15: 5 previous-edit constraints added
+      Layer 16: 5 previous-edit constraints added
+      Layer 17: 5 previous-edit constraints added
+      Layer 18: 5 previous-edit constraints added
+      Layer 19: 5 previous-edit constraints added
+    v* opt fact 0: 'Tobias Okafor lives in → Seattle' token=16759 P(target): 0.0000 → 0.8828  |delta|=8.5000
+  MEMIT: residual norm = 17.0000, facts=1, total_keys=14
+  MEMIT: key shape = torch.Size([14, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.648438
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.609375
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.800781
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.937500
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.101562
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.242188
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.687500
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.562500
+  [7] After fact 6: PPL=8.66, recall=0.83
+      Layer 12: 6 previous-edit constraints added
+      Layer 13: 6 previous-edit constraints added
+      Layer 14: 6 previous-edit constraints added
+      Layer 15: 6 previous-edit constraints added
+      Layer 16: 6 previous-edit constraints added
+      Layer 17: 6 previous-edit constraints added
+      Layer 18: 6 previous-edit constraints added
+      Layer 19: 6 previous-edit constraints added
+    v* opt fact 0: 'Tobias Okafor works as → chef' token=30806 P(target): 0.0000 → 0.8828  |delta|=8.8125
+  MEMIT: residual norm = 17.6250, facts=1, total_keys=15
+  MEMIT: key shape = torch.Size([15, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.816406
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.878906
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.054688
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.335938
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.515625
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.937500
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.968750
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.968750
+  [8] After fact 7: PPL=8.64, recall=0.71
+      Layer 12: 7 previous-edit constraints added
+      Layer 13: 7 previous-edit constraints added
+      Layer 14: 7 previous-edit constraints added
+      Layer 15: 7 previous-edit constraints added
+      Layer 16: 7 previous-edit constraints added
+      Layer 17: 7 previous-edit constraints added
+      Layer 18: 7 previous-edit constraints added
+      Layer 19: 7 previous-edit constraints added
+    v* opt fact 0: 'Yuki Petrov lives in → Boston' token=10406 P(target): 0.0000 → 0.8828  |delta|=8.3125
+  MEMIT: residual norm = 16.6250, facts=1, total_keys=14
+  MEMIT: key shape = torch.Size([14, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.902344
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.894531
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.699219
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.906250
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.453125
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.640625
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.515625
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.453125
+  [9] After fact 8: PPL=8.77, recall=0.75
+      Layer 12: 8 previous-edit constraints added
+      Layer 13: 8 previous-edit constraints added
+      Layer 14: 8 previous-edit constraints added
+      Layer 15: 8 previous-edit constraints added
+      Layer 16: 8 previous-edit constraints added
+      Layer 17: 8 previous-edit constraints added
+      Layer 18: 8 previous-edit constraints added
+      Layer 19: 8 previous-edit constraints added
+    v* opt fact 0: 'Yuki Petrov works as → photographer' token=29867 P(target): 0.0000 → 0.8828  |delta|=7.5938
+  MEMIT: residual norm = 15.1875, facts=1, total_keys=15
+  MEMIT: key shape = torch.Size([15, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.722656
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.847656
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.062500
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.234375
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.664062
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.140625
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.453125
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=2.531250
+  [10] After fact 9: PPL=8.80, recall=0.67
+      Layer 12: 9 previous-edit constraints added
+      Layer 13: 9 previous-edit constraints added
+      Layer 14: 9 previous-edit constraints added
+      Layer 15: 9 previous-edit constraints added
+      Layer 16: 9 previous-edit constraints added
+      Layer 17: 9 previous-edit constraints added
+      Layer 18: 9 previous-edit constraints added
+      Layer 19: 9 previous-edit constraints added
+    v* opt fact 0: 'Carlos Navarro lives in → Nashville' token=37640 P(target): 0.0000 → 1.0000  |delta|=6.2812
+  MEMIT: residual norm = 12.5625, facts=1, total_keys=15
+  MEMIT: key shape = torch.Size([15, 14336]), weight shape = torch.Size([4096, 14336])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 19 (1/8 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.476562
+    Layer 18 (1/7 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.539062
+    Layer 17 (1/6 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.503906
+    Layer 16 (1/5 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.687500
+    Layer 15 (1/4 residual): delta shape=torch.Size([4096, 14336]), |delta|=0.871094
+    Layer 14 (1/3 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.046875
+    Layer 13 (1/2 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.640625
+    Layer 12 (1/1 residual): delta shape=torch.Size([4096, 14336]), |delta|=1.625000
+  [11] After fact 10: PPL=8.92, recall=0.70
+
+  Teaching via conversation for sleep data...
+
+  Triggering full sleep...
+
+========================================
+  Entering light sleep (cycle 0001)...
+  Trigger: test
+========================================
+
+  [1/6] Running pre-sleep evaluation...
+        Score: 0.80 (4/5)
+  [2/6] Curating training data...
+        1 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (9970 chars):
+          | Q: Where does marine architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect architect
+        Model extraction returned 0 pairs, using template fallback
+        Template extraction: 0 pairs
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        6 exchanges selected for training
+        + 15 MEMIT fact pairs added
+  [3/6] Updating replay buffer...
+        Buffer: 17 items, avg priority: 0.30
+  [4/6] Skipping dreams (light sleep)
+  [5/6] Training (light sleep)...
+        Training data: 21 new + 3 replay = 24 total
+/usr/local/lib/python3.12/dist-packages/peft/tuners/tuners_utils.py:285: UserWarning: Already found a `peft_config` attribute in the model. This will lead to having multiple adapters in the model. Make sure to know what you are doing!
+  warnings.warn(
+        LoRA params: 13,631,488 trainable / 8,043,892,736 total (0.17%)
+        Epoch 1/3: loss=1.1441 (27/81 steps)
+        Epoch 2/3: loss=0.7130 (54/81 steps)
+        Epoch 3/3: loss=0.4740 (81/81 steps)
+        Adapter saved: /root/j/adapters/sleep_cycle_0001
+  [6/6] Validating...
+        Reverted 10 MEMIT edits before validation
+        Post-sleep score: 1.00 (5/5)
+        APPROVED: Score ratio 1.25 >= threshold 0.5
+        Marked 1 session(s) as consumed
+        Sleep cycle completed in 31.3s
+
+========================================
+  Awake. Memories integrated.
+========================================
+
+  Sleep completed in 36.4s
+  [12] After sleep: PPL=8.03, recall=0.40, edits: 10→0
+
+======================================================================
+  PERPLEXITY TRAJECTORY SUMMARY
+======================================================================
+
+  Step Event                     PPL  Facts   Recall  Edits
+  ---- -------------------- -------- ------ -------- ------
+     0 baseline                 5.75      0      ---      0
+     1 memit_inject_1           5.78      1     1.00      1
+     2 memit_inject_2           5.75      2     1.00      2
+     3 memit_inject_3           5.78      3     1.00      3
+     4 memit_inject_4           5.75      4     1.00      4
+     5 memit_inject_5           5.75      5     1.00      5
+     6 nap                      8.62      5     0.80      5
+     7 memit_inject_6           8.66      6     0.83      6
+     8 memit_inject_7           8.64      7     0.71      7
+     9 memit_inject_8           8.77      8     0.75      8
+    10 memit_inject_9           8.80      9     0.67      9
+    11 memit_inject_10          8.92     10     0.70     10
+    12 full_sleep               8.03     10     0.40      0
+
+  Perplexity: 5.75 → 8.03 (delta: +2.27)
+  Total time: 160.8s (2.7 min)
+  Results saved to experiments/results/ablation_perplexity.json
+    Finished: Sun 22 Feb 2026 17:30:46 EST
+
+================================================================
+  ALL ABLATIONS COMPLETE
+  Finished: Sun 22 Feb 2026 17:30:46 EST
+================================================================
+
+Results:
+-rw-rw-r-- 1 root root  1867 Feb 22 22:52 experiments/results/ablation_capacity_nap.json
+-rw-rw-r-- 1 root root 10554 Feb 22 22:40 experiments/results/ablation_dual_system.json
+-rw-rw-r-- 1 root root 13500 Feb 22 22:46 experiments/results/ablation_lambda.json
+-rw-rw-r-- 1 root root  2761 Feb 22 22:54 experiments/results/ablation_perplexity.json
+-rw-rw-r-- 1 root root  8076 Feb 22 22:44 experiments/results/ablation_retention.json
