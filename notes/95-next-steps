@@ -1,0 +1,37 @@
+ Is running extended experiments the next best step?
+
+  Not necessarily the single best next step, but it's one of three strong options. The paper itself (Section 8 - Future Work) identifies three equally
+  pressing directions, and I'd argue they aren't all equal in terms of impact on the paper's publishability:
+
+  1. Fix the alignment tax (highest impact)
+
+  This is the paper's most glaring open problem. Zero facts pass raw-completion consolidation at any scale. The paper works around this by using chat-template
+   validation, but this gap between the MEMIT injection pathway and the LoRA consolidation pathway is the most likely target for reviewer criticism. The paper
+   even suggests concrete approaches:
+  - Train LoRA on raw-completion data in addition to chat-template data
+  - Develop consolidation gates that evaluate through the chat pathway
+
+  This is a targeted experiment, not an extended one, and would directly address the biggest weakness.
+
+  2. Extended PPL scaling study (what you're asking about)
+
+  The non-monotonic PPL scaling (3B: +1.6%, 8B: +14.1%, 70B: +0.3%) is the paper's most surprising and least-explained result. Running more model sizes and
+  LoRA configurations would help identify regime boundaries. But this is expensive (needs H100 time at multiple scales) and the payoff is characterization,
+  not a fix. Reviewers may find the honest reporting of non-monotonicity sufficient for now.
+
+  3. Longevity testing (50+ cycles, 500+ facts)
+
+  This addresses the "no long-term study" limitation. Currently you test at most 2 cycles with 20 facts. Whether PPL degradation is bounded or unbounded under
+   repeated consolidation is a fundamental question about the system's viability. This is arguably the most important for the paper's core claim of "lifelong
+  learning."
+
+  My recommendation
+
+  Priority order:
+  1. Alignment tax fix — targeted, directly addresses the biggest weakness, strengthens the core story
+  2. Longevity test — can run on 3B locally (cheap), answers the most fundamental question about the system
+  3. PPL scaling study — expensive, characterization-only, less urgent
+
+  Extended experiments (options 2 and 3) are valuable, but the alignment tax is the paper's Achilles heel. A reviewer will rightly ask: "If no facts ever
+  consolidate through raw completion, and MEMIT is effectively permanent, what exactly is sleep accomplishing beyond format conversion?" Fixing that — or at
+  least showing progress — would be a stronger next step than purely scaling up the existing experiments.
