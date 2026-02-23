@@ -1336,10 +1336,13 @@ class MemitEngine:
             else:
                 return
 
-        # Ensure same device and dtype (multi-GPU: delta may be on different device)
-        if hasattr(delta_weight, 'device') and delta_weight.device != current_weight.device:
-            delta_weight = delta_weight.to(current_weight.device)
-        new_weight = current_weight + delta_weight.to(current_weight.dtype)
+        # Ensure same device and dtype
+        if self._backend_type == "mlx":
+            new_weight = current_weight + delta_weight.astype(current_weight.dtype)
+        else:
+            if hasattr(delta_weight, 'device') and delta_weight.device != current_weight.device:
+                delta_weight = delta_weight.to(current_weight.device)
+            new_weight = current_weight + delta_weight.to(current_weight.dtype)
         self.backend.set_layer_mlp_weight(layer_idx, self.target_module, new_weight)
 
     def _scale_tensor(self, tensor, scale: float):

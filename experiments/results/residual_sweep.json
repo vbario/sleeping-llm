@@ -1,0 +1,272 @@
+{
+  "0.0": {
+    "status": "completed",
+    "n_consolidated": 1,
+    "n_stage1_facts": 1,
+    "cycle1": {
+      "raw": 1,
+      "chat": 1
+    },
+    "cycle2_with_residual": {
+      "raw": 1,
+      "chat": 1
+    },
+    "cycle2_without_residual": {
+      "raw": 1,
+      "chat": 1
+    },
+    "raw_residual_effect": 0,
+    "chat_residual_effect": 0,
+    "raw_decay_from_interference": 0,
+    "per_fact": {
+      "Elio Nakamura": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": true,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      }
+    }
+  },
+  "0.1": {
+    "status": "completed",
+    "n_consolidated": 3,
+    "n_stage1_facts": 3,
+    "cycle1": {
+      "raw": 2,
+      "chat": 3
+    },
+    "cycle2_with_residual": {
+      "raw": 2,
+      "chat": 3
+    },
+    "cycle2_without_residual": {
+      "raw": 2,
+      "chat": 3
+    },
+    "raw_residual_effect": 0,
+    "chat_residual_effect": 0,
+    "raw_decay_from_interference": 0,
+    "per_fact": {
+      "Maeve Okonkwo": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": true,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      },
+      "Riku Petrov": {
+        "after_c1": {
+          "raw": false,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": false,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": false,
+          "chat": true
+        }
+      },
+      "Zara Hendricks": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": true,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      }
+    }
+  },
+  "0.3": {
+    "status": "completed",
+    "n_consolidated": 5,
+    "n_stage1_facts": 5,
+    "cycle1": {
+      "raw": 4,
+      "chat": 5
+    },
+    "cycle2_with_residual": {
+      "raw": 4,
+      "chat": 5
+    },
+    "cycle2_without_residual": {
+      "raw": 4,
+      "chat": 5
+    },
+    "raw_residual_effect": 0,
+    "chat_residual_effect": 0,
+    "raw_decay_from_interference": 0,
+    "per_fact": {
+      "Idris Larsson": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": true,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      },
+      "Maeve Okonkwo": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": true,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      },
+      "Riku Petrov": {
+        "after_c1": {
+          "raw": false,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": false,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": false,
+          "chat": true
+        }
+      },
+      "Zara Hendricks": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": true,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      },
+      "Elio Nakamura": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": true,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      }
+    }
+  },
+  "0.5": {
+    "status": "completed",
+    "n_consolidated": 4,
+    "n_stage1_facts": 4,
+    "cycle1": {
+      "raw": 3,
+      "chat": 4
+    },
+    "cycle2_with_residual": {
+      "raw": 2,
+      "chat": 4
+    },
+    "cycle2_without_residual": {
+      "raw": 3,
+      "chat": 4
+    },
+    "raw_residual_effect": -1,
+    "chat_residual_effect": 0,
+    "raw_decay_from_interference": 1,
+    "per_fact": {
+      "Maeve Okonkwo": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": true,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      },
+      "Riku Petrov": {
+        "after_c1": {
+          "raw": false,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": false,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": false,
+          "chat": true
+        }
+      },
+      "Zara Hendricks": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": true,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      },
+      "Elio Nakamura": {
+        "after_c1": {
+          "raw": true,
+          "chat": true
+        },
+        "with_residual": {
+          "raw": false,
+          "chat": true
+        },
+        "without_residual": {
+          "raw": true,
+          "chat": true
+        }
+      }
+    }
+  }
+}

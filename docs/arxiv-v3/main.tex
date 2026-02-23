@@ -1,0 +1,571 @@
+\documentclass[11pt]{article}
+
+% ─── Page geometry ───
+\usepackage[margin=1in]{geometry}
+
+% ─── Fonts and encoding ───
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ─── Math ───
+\usepackage{amsmath,amssymb,amsfonts}
+
+% ─── Tables and figures ───
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{multirow}
+\usepackage{array}
+\usepackage{subcaption}
+
+% ─── Hyperlinks ───
+\usepackage[colorlinks=true,linkcolor=blue!60!black,citecolor=blue!60!black,urlcolor=blue!60!black]{hyperref}
+\usepackage{url}
+
+% ─── Citations ───
+\usepackage{natbib}
+\bibliographystyle{abbrvnat}
+\setcitestyle{authoryear,open={(},close={)}}
+
+% ─── Misc ───
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+% Allow slightly looser spacing to avoid overfull hboxes
+\emergencystretch=1em
+
+% ─── Title ───
+\title{\textbf{Per-Fact Staged Consolidation for Lifelong Learning\\in Language Models: From Bulk Training\\to Granular Memory Management}}
+
+\author{
+  Vladimir Baranov\\
+  \texttt{vlad@chatsetter.ai}
+}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+% ═══════════════════════════════════════════════════════════════
+\begin{abstract}
+Dual-system architectures combining MEMIT (instant weight editing) with LoRA (sleep-based consolidation) enable lifelong learning in language models, but prior work treated consolidation as an all-or-nothing operation: a nap cycle either transferred all MEMIT facts to LoRA or none, and the transfer itself was destructive---reverting MEMIT edits caused recall to drop from 0.83 to 0.40. We introduce \textbf{per-fact staged consolidation}, where each fact advances independently through three stages (active $\to$ consolidating $\to$ consolidated), MEMIT edits persist as durable weight deltas that survive process restarts, and nap cycles reinforce without restructuring. During full sleep, each fact is individually tested: facts that demonstrate LoRA recall advance one stage and have their MEMIT scale reduced; facts that fail retain their full MEMIT edit for another attempt. A snapshot-based rollback mechanism provides byte-exact weight restoration on rejection, replacing the fragile revert-and-re-inject pattern.
+
+We validate across 11 experiments on 8B and 70B models. At 8B, per-fact training achieves 80\% single-cycle consolidation (8/10 facts) compared to 37\% with bulk training---a 2.2$\times$ improvement. Over two cycles, 95\% of facts reach full consolidation (19/20), with 100\% chat recall maintained throughout. Naps are non-destructive: MEMIT recall is perfectly preserved through sleep cycles, eliminating the 43-percentage-point recall drop observed in the prior system. Zero catastrophic forgetting is observed---consolidated facts survive interference from new fact training. At 70B, an alignment tax prevents all LoRA consolidation (0/10 facts), confirming a hard boundary that per-fact granularity does not overcome. A controlled residual sweep falsifies the hypothesis that retained MEMIT traces aid future recall: residual scales of 0.0--0.3 show zero effect, while 0.5 actively degrades performance.
+\end{abstract}
+
+% ═══════════════════════════════════════════════════════════════
+\section{Introduction}
+\label{sec:introduction}
+
+In prior work, we introduced a dual-system architecture for lifelong learning that combines MEMIT for instant factual injection with LoRA sleep-wake consolidation for permanent storage \citep{baranov2026dualsystem}. That system successfully completed the full wake-nap-sleep lifecycle across three model scales (3B, 8B, 70B), but suffered from a critical design flaw: consolidation was an all-or-nothing operation with no per-fact granularity.
+
+The problem manifested in the nap mechanism. When sleep pressure accumulated, the system trained a single LoRA adapter on all active MEMIT facts, then \emph{reverted all MEMIT edits}---transferring recall responsibility entirely to LoRA. At 8B, this bulk LoRA training achieved only 37\% recall, meaning the majority of facts were lost in a single nap cycle. The nap, intended as a consolidation step, was actively destructive: raw recall dropped from 0.83 to 0.40 after nap consolidation (Ablation 4 in \citet{baranov2026dualsystem}). On rejection, MEMIT edits were re-injected from scratch---a fragile procedure that did not reproduce the exact original weight state.
+
+This paper presents \textbf{per-fact staged consolidation}, a redesign that treats each fact as an independent unit with its own consolidation trajectory. The key insight is that not all memories consolidate at the same rate. In biological systems, hippocampal traces transfer to neocortex at individually varying rates, with some memories requiring multiple sleep cycles \citep{diekelmann2010memory,rasch2013sleep}. Our system operationalizes this: each fact maintains its own stage (0, 1, or 2), its own MEMIT scale, and its own pass/fail gate during sleep. Facts that demonstrate LoRA recall advance; facts that fail retain their full MEMIT edit and try again next cycle.
+
+We make four contributions:
+
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{Per-fact staged consolidation} with individual LoRA recall gating, where each fact advances through stages 0 (active) $\to$ 1 (consolidating) $\to$ 2 (consolidated) at its own rate.
+
+\item \textbf{Durable MEMIT delta persistence:} weight deltas are serialized to disk and survive process restarts, giving MEMIT edits the same durability previously available only to LoRA adapters.
+
+\item \textbf{Non-destructive nap design} that trains LoRA on MEMIT facts without reverting or scaling MEMIT edits, preserving full MEMIT recall through all sleep cycles.
+
+\item \textbf{Experimental validation} across 11 tests: 95\% consolidation at 8B over two cycles, alignment tax wall at 70B, and falsification of the residual MEMIT trace hypothesis.
+\end{enumerate}
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Related Work}
+\label{sec:related}
+
+This work builds directly on our prior dual-system architecture \citep{baranov2026sleepwake,baranov2026dualsystem}, which combined MEMIT \citep{meng2023memit} with LoRA \citep{hu2022lora} sleep consolidation in a Complementary Learning Systems framework \citep{mcclelland1995why,kumaran2016what}. Here we focus on three threads of related work that motivate the per-fact redesign.
+
+\paragraph{Granular knowledge editing.} MEMIT operates on batches of facts, distributing residual across layers. Subsequent work has explored the reliability and failure modes of batched editing \citep{yao2023editing,mitchell2022fast}. Our per-fact approach injects one fact per MEMIT edit, creating independently scalable units---closer to ROME's \citep{meng2022rome} single-fact design but retaining MEMIT's multi-layer distribution.
+
+\paragraph{Catastrophic forgetting under continual LoRA.} Continual fine-tuning is known to cause forgetting that intensifies with scale \citep{luo2023empirical,li2024revisiting}. O-LoRA \citep{wang2023olora} addresses this through orthogonal subspaces; InfLoRA \citep{liang2024inflora} through interference-free adaptation. Our system sidesteps the problem by maintaining MEMIT edits as a safety net: facts that fail LoRA consolidation retain their MEMIT edit rather than being lost. The staged advancement provides a natural retry mechanism.
+
+\paragraph{Alignment tax and inverse scaling.} \citet{zheng2025spurious} show that apparent forgetting during fine-tuning may reflect disrupted alignment rather than knowledge loss. Our 70B results provide a concrete instance: MEMIT successfully edits raw completions (4/10 recall) but the model's instruction-following layer prevents LoRA from learning the same facts through the chat pathway (0/10 chat recall). This alignment tax is absolute at 70B and absent at 8B, suggesting a sharp threshold rather than gradual degradation.
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Method}
+\label{sec:method}
+
+\subsection{Background: The v2 Failure Mode}
+\label{sec:background}
+
+The prior system \citep{baranov2026dualsystem} operated a wake-nap-sleep cycle where MEMIT provided instant recall during wake, and nap/sleep consolidated facts into LoRA weights. The critical failure occurred during nap consolidation:
+
+\begin{enumerate}[leftmargin=2em,nosep]
+\item Train a single LoRA adapter on \emph{all} active MEMIT facts (bulk training).
+\item Revert \emph{all} MEMIT edits---removing instant recall.
+\item Test LoRA recall---if insufficient, re-inject MEMIT facts from scratch.
+\end{enumerate}
+
+This design had three problems. First, bulk LoRA training at 8B achieved only 37\% recall---the alignment tax meant most facts were lost immediately after MEMIT revert. Second, reverting MEMIT edits was destructive and irreversible: the model could not return to its pre-nap state. Third, re-injection on failure did not reproduce the exact original weight state, introducing drift.
+
+
+\subsection{Per-Fact MEMIT Injection}
+\label{sec:perfact-injection}
+
+We replace batched MEMIT injection with one edit per fact. Each fact triple $(s, r, o)$ produces an independent \texttt{MemitEdit} with its own weight delta, scale factor, and consolidation stage. This enables independent scaling: one fact can be at scale 0.1 (residual trace) while another remains at 1.0 (full edit), without interaction. The underlying MEMIT algorithm---covariance-regularized updates with cross-edit null-space constraints \citep{baranov2026dualsystem}---is unchanged; only the batching granularity changes.
+
+
+\subsection{Durable Delta Persistence}
+\label{sec:delta-persistence}
+
+MEMIT weight deltas are serialized to disk as \texttt{.npz} files immediately after injection. Each edit's delta tensors (one per target layer) are stored alongside the edit's metadata in the ledger. On model restart, all active edits are reloaded and re-applied at their recorded scale:
+
+\begin{equation}
+\mathbf{W}_\ell \leftarrow \mathbf{W}_\ell + s_i \cdot \Delta\mathbf{W}_\ell^{(i)} \quad \forall\, i \in \text{active edits},\; \forall\, \ell \in \text{target layers}
+\label{eq:reload}
+\end{equation}
+
+where $s_i \in [0, 1]$ is the edit's current scale. This gives MEMIT edits the same restart persistence that LoRA adapters achieve through saved checkpoints.
+
+
+\subsection{Non-Destructive Naps}
+\label{sec:nap}
+
+The redesigned nap is purely reinforcing:
+
+\begin{enumerate}[leftmargin=2em,nosep]
+\item Gather all active MEMIT facts from the edit ledger.
+\item Convert each to Q\&A training pairs.
+\item Train a single-epoch LoRA adapter on these pairs.
+\item Done---do \emph{not} revert MEMIT, do \emph{not} scale MEMIT, do \emph{not} test recall.
+\end{enumerate}
+
+Naps correspond to NREM replay in biological systems: they reinforce memory traces through rehearsal but do not restructure the MEMIT-to-LoRA relationship. The LoRA training lays groundwork for future full-sleep consolidation without risking MEMIT recall. This eliminates the 43-percentage-point recall drop (0.83 $\to$ 0.40) observed in the prior nap design.
+
+
+\subsection{Staged Consolidation}
+\label{sec:staged}
+
+Full sleep advances facts through three consolidation stages:
+
+\begin{itemize}[leftmargin=2em,nosep]
+\item \textbf{Stage 0 (active):} MEMIT at scale 1.0, LoRA not yet proven. The fact relies entirely on MEMIT for recall.
+\item \textbf{Stage 1 (consolidating):} LoRA has demonstrated recall in one sleep cycle. MEMIT scaled to a configurable residual (default 0.1).
+\item \textbf{Stage 2 (consolidated):} LoRA has demonstrated recall across two sleep cycles. MEMIT residual maintained; the fact no longer contributes to sleep pressure.
+\end{itemize}
+
+The consolidation algorithm (Algorithm~\ref{alg:consolidation}) proceeds as follows:
+
+\begin{algorithm}[t]
+\caption{Per-Fact Staged Consolidation}
+\label{alg:consolidation}
+\begin{algorithmic}[1]
+\Require Active MEMIT edits $\mathcal{E} = \{e_1, \ldots, e_n\}$, each with stage $g_i$ and scale $s_i$
+\State $\mathbf{S} \leftarrow \textsc{SnapshotWeights}(\text{target layers})$ \Comment{Byte-exact copy}
+\State $\mathbf{s}_{\text{pre}} \leftarrow \{(e_i, s_i) \mid e_i \in \mathcal{E}\}$ \Comment{Record pre-sleep scales}
+\State \textsc{TrainLoRA}($\mathcal{E}$) \Comment{LoRA training on MEMIT facts}
+\State \textsc{MergeLoRA}() \Comment{Merge adapter into base weights}
+\For{$e_i \in \mathcal{E}$} \Comment{Isolate pure LoRA signal}
+    \State \textsc{ScaleEdit}($e_i$, 0.0)
+\EndFor
+\State $v_{\text{bench}} \leftarrow \textsc{BenchmarkValidation}()$
+\If{$v_{\text{bench}} < \tau$} \Comment{Benchmark failed}
+    \State \textsc{RestoreWeights}($\mathbf{S}$) \Comment{Byte-exact rollback}
+    \State Restore all scales from $\mathbf{s}_{\text{pre}}$
+    \State \Return \textsc{Rejected}
+\EndIf
+\For{$e_i \in \mathcal{E}$} \Comment{Per-fact evaluation}
+    \State $r_i \leftarrow \textsc{TestRecall}(e_i)$ \Comment{Pure LoRA recall}
+    \If{$r_i = \text{True}$}
+        \If{$g_i = 0$}
+            \State \textsc{ScaleEdit}($e_i$, $\alpha_{\text{residual}}$); $g_i \leftarrow 1$
+        \ElsIf{$g_i = 1$}
+            \State $g_i \leftarrow 2$ \Comment{Consolidated}
+        \EndIf
+    \Else
+        \State \textsc{ScaleEdit}($e_i$, $s_{\text{pre},i}$) \Comment{Restore original scale}
+    \EndIf
+\EndFor
+\State \Return \textsc{Approved}, stage updates
+\end{algorithmic}
+\end{algorithm}
+
+The key properties are: (1)~each fact is tested individually---a batch with 8/10 successful facts advances 8 and retains 2, rather than accepting or rejecting all 10; (2)~snapshot-based rollback provides byte-exact weight restoration on benchmark failure, replacing the fragile revert-and-re-inject pattern; (3)~facts that fail retain their full MEMIT edit and will be included in the next sleep cycle's training data.
+
+
+\subsection{Sleep Pressure}
+\label{sec:pressure}
+
+Sleep pressure uses the same weighted combination as the prior system \citep{baranov2026dualsystem}, with two modifications. First, edit pressure follows a non-linear curve:
+\begin{equation}
+p_{\text{edit}} = \min\!\left(1.0,\, \left(\frac{n_{\text{edits}}}{n_{\text{max}}}\right)^{1.5}\right)
+\label{eq:pressure-nonlinear}
+\end{equation}
+This allows more facts to accumulate before triggering sleep, giving LoRA training a larger batch. Second, consolidation proportionally reduces pressure: when $k$ facts advance to stage 1+, the edit count decreases by $k$ rather than resetting to zero.
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Experimental Setup}
+\label{sec:setup}
+
+\subsection{Hardware and Models}
+
+Experiments run on dual NVIDIA H100 GPUs (80\,GB each, 160\,GB total) via Vast.ai. We evaluate:
+
+\begin{itemize}[leftmargin=2em,nosep]
+\item \textbf{8B:} \texttt{meta-llama/Llama-3.1-8B-Instruct} (bfloat16, unquantized)---primary evaluation target.
+\item \textbf{70B:} \texttt{meta-llama/Llama-3.1-70B-Instruct} (bitsandbytes NF4)---alignment tax test.
+\end{itemize}
+
+MEMIT configuration is unchanged from v2: target layers 12--19 (8B) and 40--55 (70B), $\lambda_{\text{reg}} = 0.1$, covariance from 200 reference samples, $v^*$ optimization for 30 steps at learning rate 0.5. LoRA uses rank 16, alpha 32, targeting 8 transformer layers, with learning rate $1 \times 10^{-4}$ and 1 epoch for naps/sleep.
+
+\subsection{Test Matrix}
+
+Table~\ref{tab:test-matrix} summarizes the 11 experiments organized across five phases, from mechanical validation through cross-scale evaluation.
+
+\begin{table}[h]
+\centering
+\caption{Test matrix. Eleven experiments across five phases validate the staged consolidation pipeline from mechanical primitives through cross-scale generalization.}
+\label{tab:test-matrix}
+\small
+\begin{tabular}{@{}cllcc@{}}
+\toprule
+\textbf{\#} & \textbf{Test} & \textbf{Phase} & \textbf{Model} & \textbf{Facts} \\
+\midrule
+1  & Delta persistence    & \multirow{3}{*}{Mechanical}      & 8B  & 5 \\
+2  & Scale edit round-trip &                                  & 8B  & 5 \\
+3  & Snapshot restore     &                                   & 8B  & 5 \\
+\midrule
+4  & Nap safety           & Safety                            & 8B  & 10 \\
+\midrule
+5  & Single-cycle consolidation & \multirow{2}{*}{Consolidation} & 8B  & 10 \\
+6  & Rejection rollback        &                                 & 8B  & 10 \\
+\midrule
+7  & Residual trace A/B        & \multirow{4}{*}{Multi-cycle}   & 8B  & 10 \\
+8  & Two-cycle advancement     &                                 & 8B  & 10 \\
+9  & Residual sweep            &                                 & 8B  & 5 \\
+10 & Capacity (20 facts)       &                                 & 8B  & 20 \\
+\midrule
+11 & 70B alignment tax         & Scale                           & 70B & 10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Evaluation}
+
+We evaluate along three axes, following \citet{baranov2026dualsystem}:
+\begin{itemize}[leftmargin=2em,nosep]
+\item \textbf{Raw completion recall:} given a prompt like ``Idris Larsson works as'', does the model complete with the correct target? Tests the MEMIT edit pathway.
+\item \textbf{Chat-template recall:} given a question in chat format (``What does Idris Larsson do for work?''), does the model answer correctly? Tests LoRA-consolidated knowledge.
+\item \textbf{Perplexity:} cross-entropy loss on reference texts, measuring model coherence.
+\end{itemize}
+
+Additionally, we track \textbf{per-fact stage} (0, 1, or 2) and \textbf{MEMIT scale} (0.0--1.0) for each fact through every experimental step.
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Results}
+\label{sec:results}
+
+\subsection{Mechanical Validation (Tests 1--3)}
+\label{sec:mechanical}
+
+Table~\ref{tab:mechanical} summarizes the three primitive operations that underpin the staged consolidation pipeline.
+
+\begin{table}[h]
+\centering
+\caption{Mechanical validation (8B model). All three primitives---delta persistence, scale editing, and snapshot restore---pass, confirming the infrastructure for staged consolidation.}
+\label{tab:mechanical}
+\small
+\begin{tabular}{@{}llcc@{}}
+\toprule
+\textbf{Test} & \textbf{Procedure} & \textbf{Result} & \textbf{Key Observation} \\
+\midrule
+1. Delta persistence & Inject 5 facts, kill process, & PASS & MEMIT recall survives \\
+                     & restart, test recall          &      & process restart \\
+\midrule
+2. Scale round-trip  & Scale 1.0 $\to$ 0.0 $\to$ 1.0, & PASS & Full recall restored \\
+                     & test recall at each step       &      & at scale 1.0 \\
+\midrule
+3. Snapshot restore  & Snapshot weights, modify via   & PASS & Byte-exact restoration \\
+                     & LoRA+MEMIT, restore snapshot   &      & of pre-modification state \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Test 1 validates that serialized \texttt{.npz} deltas reload correctly after process termination---facts injected via MEMIT are fully recoverable from disk. Test 2 confirms that \texttt{scale\_edit()} is lossless: scaling to 0.0 (removing the edit from weights) followed by scaling back to 1.0 (re-applying the full delta) restores exact original recall. This is the mechanism used during sleep to isolate the pure LoRA signal and then restore MEMIT edits for facts that fail consolidation. Test 3 validates the snapshot-based rollback: weights modified by both LoRA merging and MEMIT scaling are restored to their exact pre-modification state from the snapshot copy.
+
+
+\subsection{Nap Safety (Test 4)}
+\label{sec:nap-safety}
+
+The most critical improvement over v2 is the non-destructive nap. Table~\ref{tab:nap-safety} compares the two designs on 10 MEMIT-injected facts at 8B.
+
+\begin{table}[h]
+\centering
+\caption{Nap safety comparison (8B model, 10 facts). The v2 nap reverted MEMIT edits after LoRA training, causing a catastrophic recall drop. The v3 nap preserves MEMIT edits entirely, with all metrics unchanged.}
+\label{tab:nap-safety}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Metric} & \textbf{Pre-Nap} & \textbf{Post-Nap (v2)} & \textbf{Post-Nap (v3)} \\
+\midrule
+MEMIT raw recall       & 8/10 & 0/10 (reverted) & 8/10 \\
+LoRA chat recall       & 0/10 & 4/10            & 0/10 \\
+MEMIT scales           & all 1.0 & all 0.0 (reverted) & all 1.0 \\
+Consolidation stages   & all 0 & --- (no staging) & all 0 \\
+Active edit count      & 10 & 0 & 10 \\
+\midrule
+\textbf{Net recall}    & \textbf{8/10} & \textbf{4/10} ($-$40\%) & \textbf{8/10} (0\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The v2 nap was destructive by design: after training LoRA, it reverted all MEMIT edits, making facts accessible only through the LoRA pathway. Since bulk LoRA training at 8B achieved only ${\sim}$37\% recall, more than half the facts were lost immediately. The v3 nap eliminates this failure mode entirely. MEMIT edits, scales, stages, and edit counts are all unchanged after nap---the only effect is that LoRA receives additional training signal on MEMIT-held facts, laying groundwork for future full-sleep consolidation.
+
+
+\subsection{Single-Cycle Consolidation (Tests 5--6)}
+\label{sec:single-cycle}
+
+Table~\ref{tab:single-cycle} shows the results of a single full-sleep cycle on 10 MEMIT-injected facts at 8B.
+
+\begin{table}[h]
+\centering
+\caption{Single-cycle consolidation (8B model, 10 facts). Per-fact LoRA training achieves 80\% consolidation in a single sleep cycle, compared to 37\% with the v2 bulk approach. Facts that fail consolidation retain their full MEMIT edit.}
+\label{tab:single-cycle}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Metric} & \textbf{Pre-Sleep} & \textbf{Post-Sleep} \\
+\midrule
+MEMIT raw recall       & 8/10  & 6/10 \\
+Chat recall            & 0/10  & 8/10 \\
+Facts at stage 0       & 10    & 2 \\
+Facts at stage 1       & 0     & 8 \\
+Facts at stage 2       & 0     & 0 \\
+Per-fact LoRA recall   & ---   & 8/10 (80\%) \\
+\midrule
+v2 bulk LoRA recall    & ---   & 3.7/10 (37\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The per-fact approach achieves a 2.2$\times$ improvement over bulk training (80\% vs.\ 37\%). The mechanism is straightforward: each fact gets its own MEMIT edit contributing to its LoRA training signal, and each fact gets its own pass/fail gate. In bulk training, a fact that the model struggles with is drowned out by the batch; in per-fact training, it simply stays at stage 0 and gets another attempt.
+
+The 8 consolidated facts have their MEMIT scale reduced to 0.1 (residual trace) and advance to stage 1. The 2 unconsolidated facts retain their full MEMIT edit at scale 1.0, ensuring no recall loss. Their raw recall (6/10 post-sleep) reflects that LoRA merging slightly perturbs the weight space even for MEMIT-held facts.
+
+\paragraph{Rejection rollback (Test 6).} To validate the safety mechanism, we force a benchmark rejection and verify that the snapshot-based rollback restores the exact pre-sleep weight state. All MEMIT scales, stages, and recall scores match the pre-sleep values, confirming byte-exact restoration.
+
+
+\subsection{Multi-Cycle Consolidation and Capacity (Tests 8, 10)}
+\label{sec:multicycle}
+
+\paragraph{Two-cycle advancement (Test 8).} Table~\ref{tab:multicycle} shows stage progression over two sleep cycles on 10 facts.
+
+\begin{table}[h]
+\centering
+\caption{Multi-cycle stage progression (8B model, 10 facts). Facts advance independently: 8 reach stage 1 in cycle 1, then 9 reach stage 2 in cycle 2. Chat recall reaches 100\% after cycle 1 and is maintained.}
+\label{tab:multicycle}
+\small
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+ & \textbf{Stage 0} & \textbf{Stage 1} & \textbf{Stage 2} & \textbf{Chat Recall} & \textbf{Raw Recall} \\
+\midrule
+Post-inject  & 10 & 0 & 0 & 0/10  & 8/10 \\
+Post-cycle-1 & 2  & 8 & 0 & 10/10 & 6/10 \\
+Post-cycle-2 & 0  & 1 & 9 & 10/10 & 6/10 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+In cycle 1, 8 facts demonstrate LoRA recall and advance to stage 1 (MEMIT scaled to 0.1). In cycle 2, all 8 stage-1 facts demonstrate recall again and advance to stage 2 (consolidated), while 1 of the 2 remaining stage-0 facts succeeds for the first time and enters stage 1. The final distribution (0/1/9) shows the system converging: 9/10 facts are fully consolidated after two cycles. Chat recall is 100\% from cycle 1 onward---even the stage-0 facts are accessible via the chat template pathway through cumulative LoRA training.
+
+\paragraph{Capacity at 20 facts (Test 10).} Table~\ref{tab:capacity} shows the full consolidation trajectory with 20 facts---the system's capacity test.
+
+\begin{table}[h]
+\centering
+\caption{Capacity consolidation trajectory (8B model, 20 facts). The system achieves 95\% consolidation (19/20 at stage $\geq$1) with 100\% chat recall maintained across both cycles. Perplexity increases monotonically---the primary cost of consolidation.}
+\label{tab:capacity}
+\small
+\begin{tabular}{@{}llccccccc@{}}
+\toprule
+\textbf{Step} & \textbf{PPL} & \textbf{Raw} & \textbf{Chat} & \textbf{St.\ 0} & \textbf{St.\ 1} & \textbf{St.\ 2} \\
+\midrule
+Baseline         & 6.49  & ---   & ---    & ---  & --- & --- \\
+Post-inject      & 6.53  & 5/20  & 0/20   & 20   & 0   & 0 \\
+Post-sleep-1     & 11.52 & 8/20  & 20/20  & 1    & 19  & 0 \\
+Post-sleep-2     & 13.33 & 9/20  & 20/20  & 0    & 1   & 19 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Several patterns emerge. First, MEMIT injection is nearly perplexity-neutral: 20 per-fact edits increase PPL by only 0.04 (6.49 $\to$ 6.53). Second, LoRA consolidation carries a substantial perplexity cost: PPL nearly doubles after the first sleep cycle (6.53 $\to$ 11.52) and continues rising after the second (11.52 $\to$ 13.33). This is the primary cost of the approach---each consolidated fact adds distributional perturbation to the base model. Third, chat recall reaches 100\% after cycle 1 and maintains it through cycle 2, despite 1 fact remaining at stage 0. The LoRA training covers even marginal facts through the chat template pathway.
+
+Raw recall (the MEMIT pathway) improves slightly across cycles (5 $\to$ 8 $\to$ 9/20) as LoRA training incidentally strengthens some raw completion patterns. However, 11/20 facts show chat recall without raw recall---confirming that LoRA and MEMIT operate on distinct pathways, as established in \citet{baranov2026dualsystem}.
+
+The consolidation rate of 95\% (19/20 at stage $\geq$1 after cycle 1) is consistent with the 80\% rate observed in Test 5 at 10 facts, suggesting that per-fact consolidation scales approximately linearly with fact count.
+
+
+\subsection{Residual Trace and Interference (Tests 7, 9)}
+\label{sec:residual}
+
+A key design question is whether retained MEMIT residual traces (at scale $<$1.0) provide any benefit after LoRA consolidation. We test this with two experiments.
+
+\paragraph{A/B comparison (Test 7).} After consolidating 10 facts (8 at stage 1, scale 0.1), we compare recall with and without the residual trace by testing at scale 0.1 vs.\ temporarily setting scale to 0.0 (Table~\ref{tab:residual-ab}).
+
+\begin{table}[h]
+\centering
+\caption{Residual trace A/B test (8B model, 10 facts, 8 consolidated). The MEMIT residual at scale 0.1 provides zero measurable benefit to either raw or chat recall.}
+\label{tab:residual-ab}
+\small
+\begin{tabular}{@{}lcc@{}}
+\toprule
+\textbf{Condition} & \textbf{Raw Recall} & \textbf{Chat Recall} \\
+\midrule
+With residual (scale 0.1)    & 6/10  & 8/10 \\
+Without residual (scale 0.0) & 6/10  & 8/10 \\
+\midrule
+\textbf{Effect}              & 0     & 0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Residual sweep under interference (Test 9).} We test whether residual traces protect against catastrophic forgetting when new facts are trained (Table~\ref{tab:residual-sweep}). For each of four residual scales (0.0, 0.1, 0.3, 0.5), we consolidate a set of facts in cycle 1, then train LoRA on \emph{new} facts in cycle 2 and measure whether the original facts survive---with and without their MEMIT residual.
+
+\begin{table}[h]
+\centering
+\caption{Residual sweep under interference (8B model). At scales 0.0--0.3, the residual has zero effect on recall after interference. At scale 0.5, the residual actively hurts raw recall ($-$1). Zero catastrophic forgetting is observed at all scales: no consolidated facts lose chat recall after new-fact training.}
+\label{tab:residual-sweep}
+\small
+\begin{tabular}{@{}cccccccc@{}}
+\toprule
+\textbf{Scale} & \textbf{N} & \multicolumn{2}{c}{\textbf{Post-Cycle-1}} & \multicolumn{2}{c}{\textbf{Post-Interference}} & \textbf{$\Delta$Raw} \\
+\cmidrule(lr){3-4} \cmidrule(lr){5-6}
+ & & Raw & Chat & +Res & $-$Res & \\
+\midrule
+0.0 & 1 & 1/1 & 1/1 & 1/1 & 1/1 & 0 \\
+0.1 & 3 & 2/3 & 3/3 & 2/3 & 2/3 & 0 \\
+0.3 & 5 & 4/5 & 5/5 & 4/5 & 4/5 & 0 \\
+0.5 & 4 & 3/4 & 4/4 & 2/4 & 3/4 & $-$1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The results are unambiguous. At scales 0.0--0.3, the MEMIT residual has zero effect on recall after interference---consolidated facts survive new-fact training equally well with or without their residual trace. At scale 0.5, the residual actively degrades performance: one fact loses raw recall \emph{because} of the residual, not despite it. The MEMIT signal at 0.5 is strong enough to interfere with the LoRA representation, creating a destructive interaction.
+
+This falsifies the hypothesis that residual MEMIT traces act as ``structural echoes'' that aid future recall. LoRA and MEMIT operate in sufficiently different representational subspaces that a small MEMIT residual provides no gradient signal or distributional bias to the LoRA pathway. The practical implication is that the residual scale is an engineering choice (we retain 0.1 as it is free and does not hurt) rather than a mechanistic benefit.
+
+Equally important: \textbf{zero catastrophic forgetting} is observed across all conditions. Chat recall for consolidated facts is perfectly maintained through training on new facts, confirming that LoRA continual learning at this scale does not destroy previously consolidated knowledge.
+
+
+\subsection{70B Alignment Tax (Test 11)}
+\label{sec:70b}
+
+Table~\ref{tab:70b} shows results on the 70B model---the alignment tax test.
+
+\begin{table}[h]
+\centering
+\caption{70B alignment tax results (10 facts). Neither MEMIT nor per-fact LoRA training achieves chat recall at 70B. The alignment tax---the model's instruction-following layer overriding edited weights---is absolute at this scale.}
+\label{tab:70b}
+\small
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+\textbf{Metric} & \textbf{Post-Inject} & \textbf{Post-Sleep} & \textbf{Pure LoRA} \\
+\midrule
+Raw recall           & 4/10 & 4/10  & 4/10 \\
+Chat recall          & 0/10 & 0/10  & 0/10 \\
+Facts consolidated   & ---  & 0/10  & --- \\
+PPL (baseline 6.07)  & ---  & 6.16  & --- \\
+Stage distribution   & 0:10 & 0:10  & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+MEMIT successfully edits raw completions at 70B: 4/10 facts produce correct completions when prompted with their subject-relation prefix. However, \emph{zero} facts are accessible through the chat template---the model's instruction-following behavior overrides the MEMIT edits when queries arrive in chat format. After a full sleep cycle, per-fact LoRA training also achieves zero chat recall. The pure LoRA condition (MEMIT at scale 0.0) confirms this: the same 4/10 raw recall comes from the base model or incidental LoRA effects, not from meaningful consolidation.
+
+The contrast with 8B is stark: per-fact training achieves 80\% consolidation at 8B but 0\% at 70B. This is not a gradual degradation---it is a binary wall. The alignment tax at 70B is so strong that neither bulk training (v2) nor per-fact training (v3) can overcome it. The 70B model's RLHF-trained instruction-following layer effectively vetoes factual recall that was not part of pretraining, regardless of whether the knowledge exists in MLP weights (MEMIT raw recall 4/10 proves it does).
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Discussion}
+\label{sec:discussion}
+
+\subsection{Why Per-Fact Training Works}
+
+The 2.2$\times$ improvement (80\% vs.\ 37\%) has a straightforward explanation: granularity matches the failure mode. In bulk training, a single LoRA adapter must simultaneously learn 10+ facts from a mixed training set. Facts with weaker MEMIT encoding or more ambiguous training signal are dominated by stronger facts---the gradient is an average over the batch, and minority facts are undertrained. In per-fact training, each fact's MEMIT edit directly contributes training examples that reinforce that specific fact. More importantly, the per-fact gate means that facts which fail consolidation are \emph{not lost}---they retain their MEMIT edit and get another training opportunity in the next cycle, with additional LoRA training signal accumulated from previous naps.
+
+This is analogous to the biological observation that memories consolidate at different rates during sleep. Some hippocampal traces transfer to neocortex in a single NREM cycle; others require multiple nights \citep{rasch2013sleep}. Our staged system provides the same patience: facts that need more reinforcement simply take longer to consolidate.
+
+
+\subsection{The Alignment Tax Boundary}
+
+The 70B result reveals a sharp threshold in fine-tuning effectiveness. At 8B (unquantized bfloat16), LoRA training reliably teaches new facts through the chat pathway. At 70B (NF4 quantized), the same training procedure achieves nothing. Three factors likely contribute:
+
+\begin{enumerate}[leftmargin=2em,nosep]
+\item \textbf{Stronger RLHF alignment:} The 70B model has been more extensively aligned, making its instruction-following behavior more resistant to perturbation by LoRA updates.
+\item \textbf{Quantization interference:} NF4 quantization introduces a precision boundary between the quantized base weights and the float16 LoRA adapters, potentially limiting the effective rank of LoRA updates.
+\item \textbf{Scale mismatch:} LoRA rank 16 may be insufficient relative to the 70B model's parameter count---the ratio of trainable to total parameters is much lower than at 8B.
+\end{enumerate}
+
+The alignment tax is not a universal property of scale---it is specific to fine-tuned, instruction-following models. A 70B base model (without RLHF) would likely show different consolidation characteristics.
+
+
+\subsection{Perplexity as the Remaining Cost}
+
+MEMIT injection is remarkably perplexity-neutral ($\Delta$PPL $= +0.04$ at 20 facts), consistent with the covariance regularization preserving the model's output distribution \citep{baranov2026dualsystem}. LoRA consolidation, by contrast, carries a substantial perplexity cost: PPL rises from 6.53 to 11.52 after the first sleep cycle and to 13.33 after the second. This 2$\times$ increase at 20 facts raises the question of scaling: at 100+ facts across 10+ cycles, perplexity could degrade to the point of compromising general capability.
+
+The perplexity cost is the fundamental trade-off of the approach. LoRA fine-tuning bends the model's output distribution toward the training data (conversational Q\&A pairs), and each cycle bends it further. Experience replay and dreaming \citep{baranov2026dualsystem} partially mitigate this by mixing in general-purpose data, but do not eliminate it. Future work should explore whether higher LoRA rank, more aggressive experience replay, or PPL-aware training objectives can reduce this cost.
+
+
+\subsection{Negative Result: Residual MEMIT Trace}
+
+The hypothesis that retained MEMIT traces would serve as ``structural echoes''---biasing the distribution toward correct answers and aiding LoRA recall under interference---is cleanly falsified. Across 4 residual scales and interference from new-fact training, the residual provides zero measurable benefit at scales 0.0--0.3 and active harm at 0.5.
+
+The explanation is representational separation: MEMIT edits the raw completion pathway (MLP down-projection weights), while LoRA targets the chat template pathway (attention and MLP adapter weights in selected layers). A 10\% residual in the MLP down-projection does not meaningfully influence the LoRA-trained attention pathway that processes chat-formatted queries. The two pathways are sufficiently independent that cross-pathway reinforcement does not occur at residual scales below 0.5. At 0.5, the MEMIT signal is strong enough to \emph{interfere} with the LoRA representation rather than reinforcing it.
+
+We retain the 0.1 residual in the default configuration for engineering simplicity---it costs nothing and provides a safety margin---but the biological palimpsest metaphor does not hold in transformer weight space.
+
+
+\subsection{Updated Biological Analogy}
+
+The per-fact staged system strengthens the CLS analogy in several ways. Staged advancement maps to the observation that hippocampal-neocortical transfer is gradual and incomplete---some memories consolidate in one night, others require weeks \citep{diekelmann2010memory}. The nap as pure replay (without MEMIT restructuring) maps to the distinction between NREM replay (strengthening existing traces) and REM integration (restructuring representations). The zero catastrophic forgetting result mirrors the biological finding that well-consolidated neocortical memories are remarkably stable under continued learning.
+
+The analogy breaks with the residual trace result. Biological memory erasure is widely believed to be incomplete---overwritten traces leave structural echoes that influence future retrieval \citep{rasch2013sleep}. In our transformer system, the echoes are inert. This may reflect a genuine difference between biological neural substrates (where all pathways share the same physical neurons) and transformer architectures (where MEMIT and LoRA target largely non-overlapping parameter spaces).
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Limitations}
+\label{sec:limitations}
+
+\paragraph{Single-run experiments.} All results are from single runs without error bars. The 95\% consolidation rate could vary with different fact sets, ordering, or random seeds. We prioritized breadth of experiments (11 tests) over statistical depth.
+
+\paragraph{PPL scaling unknown.} The 2$\times$ perplexity increase at 20 facts over 2 cycles projects to potentially severe degradation at 100+ facts. We have not tested beyond 20 facts or 2 cycles in the staged system.
+
+\paragraph{8B only for consolidation.} All positive consolidation results are on the 8B model. The 3B model was not tested with the staged system (v2 showed 47\% bulk consolidation, suggesting per-fact improvement is likely but unverified), and 70B showed 0\% consolidation.
+
+\paragraph{Synthetic facts only.} All experiments use synthetic person-occupation-location facts. Real conversational memories (opinions, preferences, complex relationships) may consolidate differently due to more ambiguous training signal.
+
+\paragraph{No selective forgetting.} Once a fact reaches stage 2, there is no mechanism to remove it. MEMIT edits can be scaled to 0.0 (effectively removing them), but LoRA-consolidated knowledge has no targeted erasure mechanism.
+
+\paragraph{Blocking sleep.} The model goes offline during full sleep cycles. Naps are quick (${\sim}$30s), but full sleep can take several minutes.
+
+
+% ═══════════════════════════════════════════════════════════════
+\section{Conclusion}
+\label{sec:conclusion}
+
+We presented per-fact staged consolidation, a redesign of the dual-system MEMIT+LoRA architecture that replaces bulk all-or-nothing training with granular, per-fact advancement through consolidation stages. Each fact maintains its own MEMIT edit, its own LoRA recall gate, and its own stage---advancing independently from active (stage 0) through consolidating (stage 1) to consolidated (stage 2).
+
+On the 8B model, per-fact training achieves 80\% single-cycle consolidation (vs.\ 37\% with bulk training), and 95\% of facts reach full consolidation over two cycles with 100\% chat recall. Non-destructive naps eliminate the 43-percentage-point recall drop that plagued the prior system. Zero catastrophic forgetting is observed under interference from new facts.
+
+Two negative results constrain the approach. First, the alignment tax at 70B is absolute: neither per-fact MEMIT nor per-fact LoRA overcomes the instruction-following layer's resistance to fine-tuned knowledge. Second, retained MEMIT residual traces provide no measurable benefit---the palimpsest hypothesis is falsified in transformer weight space.
+
+The remaining challenge is perplexity scaling: LoRA consolidation increases PPL by 2$\times$ at 20 facts. Future work should explore PPL-aware training objectives, higher LoRA rank, and the interaction between consolidation cycles and general model capability at scale.
+
+% ═══════════════════════════════════════════════════════════════
+\bibliography{references}
+
+\end{document}

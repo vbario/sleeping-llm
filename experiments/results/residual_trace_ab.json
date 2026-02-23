@@ -1,0 +1,94 @@
+{
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "num_facts_injected": 10,
+  "pre_memit_recall": 3,
+  "stage_0_count": 2,
+  "stage_1_count": 8,
+  "residual_scale": 0.1,
+  "raw_recall_with_residual": 6,
+  "raw_recall_without_residual": 6,
+  "chat_recall_with_residual": 8,
+  "chat_recall_without_residual": 8,
+  "per_fact": {
+    "Idris Larsson": {
+      "with": {
+        "raw": true,
+        "chat": true
+      },
+      "without": {
+        "raw": true,
+        "chat": true
+      }
+    },
+    "Maeve Okonkwo": {
+      "with": {
+        "raw": true,
+        "chat": true
+      },
+      "without": {
+        "raw": true,
+        "chat": true
+      }
+    },
+    "Riku Petrov": {
+      "with": {
+        "raw": false,
+        "chat": true
+      },
+      "without": {
+        "raw": false,
+        "chat": true
+      }
+    },
+    "Zara Hendricks": {
+      "with": {
+        "raw": true,
+        "chat": true
+      },
+      "without": {
+        "raw": true,
+        "chat": true
+      }
+    },
+    "Elio Nakamura": {
+      "with": {
+        "raw": false,
+        "chat": true
+      },
+      "without": {
+        "raw": false,
+        "chat": true
+      }
+    },
+    "Anya Kowalski": {
+      "with": {
+        "raw": true,
+        "chat": true
+      },
+      "without": {
+        "raw": true,
+        "chat": true
+      }
+    },
+    "Freya Mbeki": {
+      "with": {
+        "raw": true,
+        "chat": true
+      },
+      "without": {
+        "raw": true,
+        "chat": true
+      }
+    },
+    "Kai Lindqvist": {
+      "with": {
+        "raw": true,
+        "chat": true
+      },
+      "without": {
+        "raw": true,
+        "chat": true
+      }
+    }
+  }
+}

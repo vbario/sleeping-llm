@@ -1,0 +1,153 @@
+{
+  "model": "meta-llama/Llama-3.1-70B-Instruct",
+  "num_facts": 10,
+  "ppl_baseline": 6.07,
+  "memit_recall": {
+    "raw": 4,
+    "chat": 0,
+    "per_fact": {
+      "Idris Larsson": {
+        "raw": true,
+        "chat": false
+      },
+      "Maeve Okonkwo": {
+        "raw": true,
+        "chat": false
+      },
+      "Riku Petrov": {
+        "raw": false,
+        "chat": false
+      },
+      "Zara Hendricks": {
+        "raw": true,
+        "chat": false
+      },
+      "Elio Nakamura": {
+        "raw": false,
+        "chat": false
+      },
+      "Anya Kowalski": {
+        "raw": false,
+        "chat": false
+      },
+      "Dmitri Ashworth": {
+        "raw": false,
+        "chat": false
+      },
+      "Freya Mbeki": {
+        "raw": false,
+        "chat": false
+      },
+      "Kai Lindqvist": {
+        "raw": true,
+        "chat": false
+      },
+      "Soren Tanaka": {
+        "raw": false,
+        "chat": false
+      }
+    }
+  },
+  "cycle_1": {
+    "status": "approved",
+    "facts_consolidated": 0,
+    "ppl": 6.16,
+    "stages": {
+      "0": 10,
+      "1": 0,
+      "2": 0
+    },
+    "post_recall": {
+      "raw": 4,
+      "chat": 0,
+      "per_fact": {
+        "Idris Larsson": {
+          "raw": true,
+          "chat": false
+        },
+        "Maeve Okonkwo": {
+          "raw": true,
+          "chat": false
+        },
+        "Riku Petrov": {
+          "raw": false,
+          "chat": false
+        },
+        "Zara Hendricks": {
+          "raw": true,
+          "chat": false
+        },
+        "Elio Nakamura": {
+          "raw": false,
+          "chat": false
+        },
+        "Anya Kowalski": {
+          "raw": false,
+          "chat": false
+        },
+        "Dmitri Ashworth": {
+          "raw": false,
+          "chat": false
+        },
+        "Freya Mbeki": {
+          "raw": false,
+          "chat": false
+        },
+        "Kai Lindqvist": {
+          "raw": true,
+          "chat": false
+        },
+        "Soren Tanaka": {
+          "raw": false,
+          "chat": false
+        }
+      }
+    },
+    "pure_lora_recall": {
+      "raw": 4,
+      "chat": 0,
+      "per_fact": {
+        "Idris Larsson": {
+          "raw": true,
+          "chat": false
+        },
+        "Maeve Okonkwo": {
+          "raw": true,
+          "chat": false
+        },
+        "Riku Petrov": {
+          "raw": false,
+          "chat": false
+        },
+        "Zara Hendricks": {
+          "raw": true,
+          "chat": false
+        },
+        "Elio Nakamura": {
+          "raw": false,
+          "chat": false
+        },
+        "Anya Kowalski": {
+          "raw": false,
+          "chat": false
+        },
+        "Dmitri Ashworth": {
+          "raw": false,
+          "chat": false
+        },
+        "Freya Mbeki": {
+          "raw": false,
+          "chat": false
+        },
+        "Kai Lindqvist": {
+          "raw": true,
+          "chat": false
+        },
+        "Soren Tanaka": {
+          "raw": false,
+          "chat": false
+        }
+      }
+    }
+  }
+}

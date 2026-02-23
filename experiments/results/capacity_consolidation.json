@@ -1,0 +1,210 @@
+{
+  "model": "meta-llama/Llama-3.1-8B-Instruct",
+  "num_facts": 20,
+  "stages": {
+    "cycle_1": {
+      "status": "approved",
+      "facts_consolidated": 19,
+      "ppl": 11.52,
+      "raw_recall": 8,
+      "chat_recall": 20,
+      "stages": {
+        "0": 1,
+        "1": 19,
+        "2": 0
+      }
+    },
+    "cycle_2": {
+      "status": "approved",
+      "facts_consolidated": 20,
+      "ppl": 13.33,
+      "raw_recall": 9,
+      "chat_recall": 20,
+      "stages": {
+        "0": 0,
+        "1": 1,
+        "2": 19
+      },
+      "per_fact": {
+        "Idris Larsson": {
+          "raw": true,
+          "chat": true
+        },
+        "Maeve Okonkwo": {
+          "raw": false,
+          "chat": true
+        },
+        "Riku Petrov": {
+          "raw": false,
+          "chat": true
+        },
+        "Zara Hendricks": {
+          "raw": true,
+          "chat": true
+        },
+        "Elio Nakamura": {
+          "raw": false,
+          "chat": true
+        },
+        "Anya Kowalski": {
+          "raw": true,
+          "chat": true
+        },
+        "Dmitri Ashworth": {
+          "raw": false,
+          "chat": true
+        },
+        "Freya Mbeki": {
+          "raw": false,
+          "chat": true
+        },
+        "Kai Lindqvist": {
+          "raw": false,
+          "chat": true
+        },
+        "Soren Tanaka": {
+          "raw": false,
+          "chat": true
+        },
+        "Lucia Ferraro": {
+          "raw": true,
+          "chat": true
+        },
+        "Henrik Aziz": {
+          "raw": true,
+          "chat": true
+        },
+        "Nadia Ostrowski": {
+          "raw": false,
+          "chat": true
+        },
+        "Tomasz Eklund": {
+          "raw": true,
+          "chat": true
+        },
+        "Cassandra Yuen": {
+          "raw": true,
+          "chat": true
+        },
+        "Olena Bergstrom": {
+          "raw": true,
+          "chat": true
+        },
+        "Javier Okafor": {
+          "raw": true,
+          "chat": true
+        },
+        "Mira Johansson": {
+          "raw": false,
+          "chat": true
+        },
+        "Tariq Whitfield": {
+          "raw": false,
+          "chat": true
+        },
+        "Celeste Nakano": {
+          "raw": false,
+          "chat": true
+        }
+      }
+    }
+  },
+  "ppl_baseline": 6.49,
+  "post_inject": {
+    "ppl": 6.53,
+    "raw_recall": 5,
+    "chat_recall": 0,
+    "per_fact": {
+      "Idris Larsson": {
+        "raw": true,
+        "chat": false
+      },
+      "Maeve Okonkwo": {
+        "raw": true,
+        "chat": false
+      },
+      "Riku Petrov": {
+        "raw": false,
+        "chat": false
+      },
+      "Zara Hendricks": {
+        "raw": false,
+        "chat": false
+      },
+      "Elio Nakamura": {
+        "raw": false,
+        "chat": false
+      },
+      "Anya Kowalski": {
+        "raw": false,
+        "chat": false
+      },
+      "Dmitri Ashworth": {
+        "raw": false,
+        "chat": false
+      },
+      "Freya Mbeki": {
+        "raw": false,
+        "chat": false
+      },
+      "Kai Lindqvist": {
+        "raw": true,
+        "chat": false
+      },
+      "Soren Tanaka": {
+        "raw": false,
+        "chat": false
+      },
+      "Lucia Ferraro": {
+        "raw": false,
+        "chat": false
+      },
+      "Henrik Aziz": {
+        "raw": false,
+        "chat": false
+      },
+      "Nadia Ostrowski": {
+        "raw": false,
+        "chat": false
+      },
+      "Tomasz Eklund": {
+        "raw": false,
+        "chat": false
+      },
+      "Cassandra Yuen": {
+        "raw": false,
+        "chat": false
+      },
+      "Olena Bergstrom": {
+        "raw": true,
+        "chat": false
+      },
+      "Javier Okafor": {
+        "raw": false,
+        "chat": false
+      },
+      "Mira Johansson": {
+        "raw": false,
+        "chat": false
+      },
+      "Tariq Whitfield": {
+        "raw": true,
+        "chat": false
+      },
+      "Celeste Nakano": {
+        "raw": false,
+        "chat": false
+      }
+    }
+  },
+  "post_nap": {
+    "ppl": 9.82,
+    "raw_recall": 2,
+    "chat_recall": 1,
+    "stages": {
+      "0": 20,
+      "1": 0,
+      "2": 0
+    }
+  }
+}
