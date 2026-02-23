@@ -267,7 +267,12 @@ class FullSleepController:
             # Rollback: reload model from latest checkpoint (post-SWS)
             latest = self.checkpoints.get_latest()
             if latest:
-                self.backend.reload(latest["path"])
+                try:
+                    self.backend.reload(latest["path"])
+                except Exception:
+                    self.backend.reload(self.config.model["path"])
+            else:
+                self.backend.reload(self.config.model["path"])
             if self.memit_engine.enabled and hasattr(self.backend, "dequantize_layer"):
                 self.memit_engine._dequantize_target_layers()
             if sws_snapshot:
@@ -403,7 +408,10 @@ class FullSleepController:
         # Reload pre-training model to undo the LoRA merge
         latest = self.checkpoints.get_latest()
         if latest:
-            self.backend.reload(latest["path"])
+            try:
+                self.backend.reload(latest["path"])
+            except Exception:
+                self.backend.reload(self.config.model["path"])
         else:
             self.backend.reload(self.config.model["path"])
 
@@ -621,7 +629,12 @@ class FullSleepController:
                         rem_detail = f"REJECTED ({reason}). Rolled back to post-SWS."
                         latest = self.checkpoints.get_latest()
                         if latest:
-                            self.backend.reload(latest["path"])
+                            try:
+                                self.backend.reload(latest["path"])
+                            except Exception:
+                                self.backend.reload(self.config.model["path"])
+                        else:
+                            self.backend.reload(self.config.model["path"])
                         if self.memit_engine.enabled and hasattr(self.backend, "dequantize_layer"):
                             self.memit_engine._dequantize_target_layers()
                         if sws_snapshot:
