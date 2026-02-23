@@ -107,6 +107,10 @@ LoRA \citep{hu2022lora} enables efficient adaptation by training low-rank additi
 
 Experience replay \citep{robins1995catastrophic,shin2017continual} mitigates forgetting by mixing old data into new training. Our replay buffer maintains prioritized conversation history for SWS training. The REM phase extends this idea: rather than replaying raw conversations, it generates synthetic multi-fact dialogues that interleave multiple consolidated facts, forcing the model to integrate rather than memorize in isolation.
 
+\subsection{Positioning: CLS-Inspired LLM Systems}
+
+Several recent systems share individual components with our architecture but none combine all of them. Larimar \citep{das2024larimar} grounds an LLM memory system in CLS theory, using a one-shot external memory matrix as the hippocampal component---but stores knowledge externally rather than in model weights, has no sleep cycle, and uses no LoRA consolidation. \citet{sorrenti2024wscl} implement a full wake/NREM/REM sleep cycle with CLS-inspired dual memory buffers, the closest match to our biological framework---but operate exclusively on ResNet-18 for vision tasks, with no knowledge editing or LLM evaluation. \citet{behrouz2025sleep} propose ``Language Models Need Sleep,'' using a sleep/wake cycle with synthetic data generation on actual LLMs---but replace knowledge editing with distillation from smaller models and use parameter expansion rather than LoRA consolidation. To our knowledge, no prior system combines direct weight editing (MEMIT) as the fast-learning system with parameter-efficient fine-tuning (LoRA) as the slow-learning system, mediated by a two-phase sleep cycle, on production-scale LLMs.
+
 
 % ═══════════════════════════════════════════════════════════════
 \section{System Architecture}
@@ -457,6 +461,8 @@ Post-sleep-2     & 13.33 & 9/20  & 20/20  & 0    & 1   & 19 \\
 
 In a single sleep cycle, 19/20 facts advance from stage 0 to stage 1 (95\%), with 100\% chat recall. Over two cycles, 19/20 reach stage 2 (consolidated). The remaining fact advances to stage 1 in cycle 2. Chat recall is maintained at 100\% throughout.
 
+\paragraph{Consolidation pathway matters.} The 95\% consolidation rate in Table~\ref{tab:staged} uses \textsc{TestRecall} via the \emph{chat-template} pathway---the same pathway through which users access facts. When the lifecycle experiments (Table~\ref{tab:lifecycle}) instead test via raw completion, zero facts pass the consolidation gate at any scale. This is not a contradiction: LoRA trains on chat-format Q\&A pairs and consolidates facts into the chat pathway, while MEMIT edits the raw-completion pathway (MLP down-projections). The two pathways are representationally separated, as independently confirmed by the residual trace experiments (Section~\ref{sec:ablation}). The practical consolidation gate should therefore evaluate through the pathway that users actually access.
+
 The perplexity cost is substantial: PPL nearly doubles after the first sleep cycle (6.53 $\to$ 11.52) and continues rising (11.52 $\to$ 13.33). This is the cost of SWS-only consolidation without REM---each fact's LoRA training bends the output distribution toward the training data. The two-phase results in Section~\ref{sec:two-phase} show that REM can partially mitigate this cost.
 
 \paragraph{Nap safety.} Table~\ref{tab:nap-safety} compares the prior destructive nap design \citep{baranov2026dualsystem} with the current non-destructive design.
@@ -497,12 +503,14 @@ At 8B, SWS causes the largest PPL increase (+14.1\%), but REM slightly worsens i
 At 70B, the model's massive parameter space absorbs both SWS and REM with negligible impact ($\Delta$PPL $<$ 0.025 total), providing no leverage for REM to help.
 
 
-\subsection{The Alignment Tax}
+\subsection{Pathway Separation: A Structural Finding}
 \label{sec:alignment-tax}
 
-Across all three scales in the lifecycle experiments, zero facts pass the raw-completion consolidation gate (the per-fact test with MEMIT at 0.0 after LoRA training). LoRA learns facts through the chat-template pathway---as confirmed by 5/5 chat validation scores at 8B and 70B---but does not generalize to raw completions. This alignment tax, first characterized at 70B in \citet{baranov2026dualsystem}, appears more pervasive than initially understood.
+We identify and characterize a \emph{pathway separation} between MEMIT and LoRA that has implications for how consolidation should be evaluated. MEMIT edits MLP down-projection weights, creating recall accessible through raw completion (e.g., ``Viktor Sørensen works as'' $\to$ ``a librarian''). LoRA trains on chat-template Q\&A pairs, creating recall accessible through chat queries (e.g., ``What does Viktor do?'' $\to$ ``He works as a librarian''). These two pathways are representationally independent: the residual trace experiments show zero cross-pathway reinforcement at scales 0.0--0.3, and the dual-system ablation (Table~\ref{tab:dual-ablation}) shows each subsystem serving a distinct access pattern.
 
-The staged consolidation results at 8B (80\%/95\% in Table~\ref{tab:staged}) used a different experimental protocol from \citet{baranov2026perfact} that tested consolidation through the chat pathway. The lifecycle experiments test through raw completion, revealing the gap. The practical implication is that the consolidation gate should evaluate through the same pathway (chat template) that users access, rather than the raw completion pathway that MEMIT edits target.
+This separation explains the apparent discrepancy between the v3 staged consolidation results (80\%/95\% via chat-template \textsc{TestRecall}, Table~\ref{tab:staged}) and the lifecycle results (0\% via raw-completion \textsc{TestRecall}, Table~\ref{tab:lifecycle}). LoRA \emph{does} consolidate facts---chat validation scores of 5/5 at 8B and 70B confirm this---but into the chat pathway only. Raw-completion consolidation fails because LoRA training data uses chat templates, not raw completions. This is not catastrophic forgetting or an alignment tax in the traditional sense \citep{zheng2025spurious}; it is a consequence of training-format specificity that could be addressed by including raw-completion pairs in the LoRA training data.
+
+The practical implication is clear: the consolidation gate (Algorithm~\ref{alg:consolidation}, line 15) should evaluate through the same pathway that users access. Since users interact via chat, chat-template \textsc{TestRecall} is the appropriate gate, and under this gate the system achieves 95\% two-cycle consolidation at 8B.
 
 
 \subsection{Perplexity as Health Signal}
@@ -533,7 +541,7 @@ The analogy breaks in two places. First, the residual trace hypothesis---that pa
 
 \paragraph{Single-run experiments.} All results are from single runs without error bars. The 88\% REM benefit at 3B could vary with different random seeds, fact orderings, or reference text choices.
 
-\paragraph{Alignment tax unresolved.} Zero facts pass raw-completion consolidation at any scale. Chat-template validation works, but the gap between MEMIT's raw pathway and LoRA's chat pathway remains an open problem.
+\paragraph{Pathway separation.} LoRA consolidates facts into the chat-template pathway but not the raw-completion pathway. While chat-template evaluation---the pathway users access---shows 95\% consolidation, the raw-completion gap remains open.
 
 \paragraph{8B PPL anomaly.} The 14.1\% PPL increase at 8B is substantially worse than 3B or 70B. We lack a definitive explanation for this non-monotonic behavior.
 
