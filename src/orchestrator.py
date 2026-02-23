@@ -7,12 +7,14 @@ Coordinates the full lifecycle:
 import shutil
 from pathlib import Path
 
+from src.concurrency.model_lock import ModelLock
 from src.memory.checkpoints import CheckpointManager
 from src.memory.health import HealthMonitor
 from src.memory.identity import IdentityManager
 from src.memory.memit import EditLedger, MemitEngine
 from src.memory.replay import ReplayBuffer
 from src.memory.session_tracker import SessionTracker
+from src.sleep.background_sleep import BackgroundSleepManager
 from src.sleep.curator import Curator
 from src.sleep.dreamer import Dreamer
 from src.sleep.full_sleep import FullSleepController
@@ -45,6 +47,11 @@ class Orchestrator:
         print("Loading model...")
         self.backend.load()
         print("Model loaded.")
+
+        # Initialize concurrency components
+        self.model_lock = ModelLock()
+        self.backend.model_lock = self.model_lock  # Enable lock-aware generate/reload
+        self.background_sleep = BackgroundSleepManager(self.model_lock)
 
         # Initialize wake components
         self.logger = ConversationLogger(config)
@@ -93,6 +100,7 @@ class Orchestrator:
         self.chat.set_memit_components(
             self.fact_extractor, self.memit_engine, self.health_monitor,
         )
+        self.chat._background_sleep = self.background_sleep
 
         # Seed identity data if first run
         self.identity.seed_defaults()
@@ -217,6 +225,82 @@ class Orchestrator:
 
         yield {"step": 3, "total": 2, "label": "Awake", "status": "done", "detail": "Nap complete"}
 
+    def trigger_sleep_background(self, callback=None):
+        """Trigger sleep in a background thread (non-blocking).
+
+        Chat continues during sleep. Model access is synchronized via read-write lock.
+
+        Args:
+            callback: Optional function called when sleep completes.
+
+        Returns:
+            True if sleep started, False if already sleeping.
+        """
+        if self.background_sleep.is_sleeping:
+            return False
+
+        self.sleep_cycle_count += 1
+        self.light_sleep_count += 1
+        cycle_id = f"{self.sleep_cycle_count:04d}"
+
+        deep_interval = self.config.sleep["deep_sleep_interval"]
+        is_deep = self.light_sleep_count >= deep_interval
+        sleep_type = "deep" if is_deep else "light"
+
+        def sleep_generator():
+            yield from self.full_sleep_controller.execute_sleep_streaming(
+                cycle_id, sleep_type, self._gather_new_messages,
+            )
+
+        def on_complete(result):
+            if is_deep:
+                self.light_sleep_count = 0
+            facts = result.get("facts_consolidated", 0) if result else 0
+            self.health_monitor.record_sleep("full", facts_consolidated=facts)
+            if self.context.recent_messages:
+                self.context.compact()
+            self.chat.reset_turn_count()
+            self.context.reset(keep_summary=True)
+            self.logger = ConversationLogger(self.config)
+            self.chat.logger = self.logger
+            if callback:
+                callback(result)
+
+        return self.background_sleep.start_sleep(
+            sleep_generator, on_complete, sleep_type="sleep",
+        )
+
+    def trigger_nap_background(self, callback=None):
+        """Trigger nap in a background thread (non-blocking).
+
+        Args:
+            callback: Optional function called when nap completes.
+
+        Returns:
+            True if nap started, False if already sleeping.
+        """
+        if self.background_sleep.is_sleeping:
+            return False
+
+        self.nap_cycle_count += 1
+        cycle_id = f"nap_{self.nap_cycle_count:04d}"
+
+        def nap_generator():
+            yield from self.nap_controller.execute_nap_streaming(cycle_id)
+
+        def on_complete(result):
+            self.health_monitor.record_sleep("nap", facts_consolidated=0)
+            if callback:
+                callback(result)
+
+        return self.background_sleep.start_sleep(
+            nap_generator, on_complete, sleep_type="nap",
+        )
+
+    def get_sleep_state(self):
+        """Return current background sleep state."""
+        return self.background_sleep.to_dict()
+
     def get_status(self):
         """Return current system status as a dict."""
         token_count = self.context.get_token_count()
@@ -242,6 +326,8 @@ class Orchestrator:
             "memit_stages": self.edit_ledger.get_stage_counts(),
             "sleep_pressure": round(self.health_monitor.get_sleep_pressure(), 3),
             "health": self.health_monitor.to_dict(),
+            "background_sleep": self.background_sleep.to_dict(),
+            "model_lock": self.model_lock.stats(),
         }
 
     def get_current_messages(self):

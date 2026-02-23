@@ -28,6 +28,7 @@ class MLXBackend:
         self.model = None
         self.tokenizer = None
         self._model_path = None
+        self.model_lock = None  # Set by orchestrator for non-blocking sleep
 
     def load(self, model_path=None):
         """Load model and tokenizer from disk or hub."""
@@ -49,7 +50,10 @@ class MLXBackend:
         return base
 
     def generate(self, prompt, max_tokens=None, temperature=None, top_p=None):
-        """Generate text from a prompt string."""
+        """Generate text from a prompt string.
+
+        Acquires a read lock if model_lock is set (non-blocking sleep mode).
+        """
         from mlx_lm import generate
         from mlx_lm.sample_utils import make_sampler, make_logits_processors
 
@@ -63,15 +67,20 @@ class MLXBackend:
             repetition_penalty=repetition_penalty,
         )
 
-        response = generate(
-            self.model,
-            self.tokenizer,
-            prompt=prompt,
-            max_tokens=max_tokens,
-            sampler=sampler,
-            logits_processors=logits_processors,
-        )
-        return response
+        def _do_generate():
+            return generate(
+                self.model,
+                self.tokenizer,
+                prompt=prompt,
+                max_tokens=max_tokens,
+                sampler=sampler,
+                logits_processors=logits_processors,
+            )
+
+        if self.model_lock:
+            with self.model_lock.read_lock():
+                return _do_generate()
+        return _do_generate()
 
     def apply_chat_template(self, messages, for_training=False):
         """Convert a list of message dicts to a formatted prompt string.
@@ -177,7 +186,12 @@ class MLXBackend:
         return save_path
 
     def generate_stream(self, prompt, max_tokens=None, temperature=None, top_p=None):
-        """Generate text with streaming. Yields token strings incrementally."""
+        """Generate text with streaming. Yields token strings incrementally.
+
+        Acquires a read lock if model_lock is set (non-blocking sleep mode).
+        The lock is held for the entire streaming duration to prevent model
+        swaps mid-generation.
+        """
         from mlx_lm import stream_generate
         from mlx_lm.sample_utils import make_sampler, make_logits_processors
 
@@ -191,15 +205,22 @@ class MLXBackend:
             repetition_penalty=repetition_penalty,
         )
 
-        for response in stream_generate(
-            self.model,
-            self.tokenizer,
-            prompt=prompt,
-            max_tokens=max_tokens,
-            sampler=sampler,
-            logits_processors=logits_processors,
-        ):
-            yield response.text
+        def _do_stream():
+            for response in stream_generate(
+                self.model,
+                self.tokenizer,
+                prompt=prompt,
+                max_tokens=max_tokens,
+                sampler=sampler,
+                logits_processors=logits_processors,
+            ):
+                yield response.text
+
+        if self.model_lock:
+            with self.model_lock.read_lock():
+                yield from _do_stream()
+        else:
+            yield from _do_stream()
 
     # --- Layer-level access for MEMIT ---
 
@@ -508,7 +529,17 @@ class MLXBackend:
         return perplexity
 
     def reload(self, model_path=None):
-        """Reload model (e.g. after fusing a new adapter)."""
-        self.model = None
-        self.tokenizer = None
-        self.load(model_path)
+        """Reload model (e.g. after fusing a new adapter).
+
+        Acquires a write lock if model_lock is set (non-blocking sleep mode).
+        """
+        def _do_reload():
+            self.model = None
+            self.tokenizer = None
+            self.load(model_path)
+
+        if self.model_lock:
+            with self.model_lock.write_lock():
+                _do_reload()
+        else:
+            _do_reload()

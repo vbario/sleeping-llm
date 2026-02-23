@@ -84,17 +84,21 @@ class FullSleepController:
         # Pull MEMIT facts from ledger and add to training queue
         memit_facts = self.ledger.get_facts_for_training()
         active_edits = list(self.memit_engine._active_edits) if memit_facts else []
-        memit_pairs = []
+        memit_pairs = {}
         if memit_facts:
             memit_pairs = self.curator.triples_to_training_pairs(memit_facts)
-            print(f"        + {len(memit_pairs)} MEMIT fact pairs added")
+            chat_pairs = memit_pairs["chat_pairs"]
+            raw_texts = memit_pairs["raw_texts"]
+            print(f"        + {len(chat_pairs)} MEMIT fact pairs added ({len(raw_texts)} raw)")
 
             training_dir = Path(self.config.paths["training"]) / f"cycle_{cycle_id}"
             training_dir.mkdir(parents=True, exist_ok=True)
             train_file = training_dir / "train.jsonl"
             with open(train_file, "a") as f:
-                for pair in memit_pairs:
+                for pair in chat_pairs:
                     text = self.backend.apply_chat_template(pair, for_training=True)
+                    f.write(json.dumps({"text": text}) + "\n")
+                for text in raw_texts:
                     f.write(json.dumps({"text": text}) + "\n")
 
         if not curated and not memit_facts and self.replay_buffer.stats()["count"] == 0:
@@ -455,15 +459,19 @@ class FullSleepController:
         # Pull MEMIT facts
         memit_facts = self.ledger.get_facts_for_training()
         active_edits = list(self.memit_engine._active_edits) if memit_facts else []
-        memit_pairs = []
+        memit_pairs = {}
         if memit_facts:
             memit_pairs = self.curator.triples_to_training_pairs(memit_facts)
+            chat_pairs = memit_pairs["chat_pairs"]
+            raw_texts = memit_pairs["raw_texts"]
             training_dir = Path(self.config.paths["training"]) / f"cycle_{cycle_id}"
             training_dir.mkdir(parents=True, exist_ok=True)
             train_file = training_dir / "train.jsonl"
             with open(train_file, "a") as f:
-                for pair in memit_pairs:
+                for pair in chat_pairs:
                     text = self.backend.apply_chat_template(pair, for_training=True)
+                    f.write(json.dumps({"text": text}) + "\n")
+                for text in raw_texts:
                     f.write(json.dumps({"text": text}) + "\n")
 
         detail = f"{len(curated)} exchanges, {len(consumed_sessions)} session(s)"

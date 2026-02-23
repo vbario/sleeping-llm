@@ -121,7 +121,7 @@ class NapController:
                "detail": f"Trained on {len(training_data)} examples. MEMIT intact. ({elapsed:.1f}s)"}
 
     def _generate_training_data(self, facts, cycle_id):
-        """Convert facts to training JSONL.
+        """Convert facts to training JSONL (chat pairs + raw completions).
 
         Args:
             facts: List of FactTriple objects
@@ -130,16 +130,20 @@ class NapController:
         Returns:
             List of training examples
         """
-        pairs = self.curator.triples_to_training_pairs(facts)
-        if not pairs:
+        result = self.curator.triples_to_training_pairs(facts)
+        chat_pairs = result["chat_pairs"]
+        raw_texts = result["raw_texts"]
+        if not chat_pairs:
             return []
 
         data_dir = Path(self.config.paths["training"]) / f"nap_{cycle_id}"
         data_dir.mkdir(parents=True, exist_ok=True)
 
         examples = []
-        for pair in pairs:
+        for pair in chat_pairs:
             text = self.backend.apply_chat_template(pair, for_training=True)
+            examples.append({"text": text})
+        for text in raw_texts:
             examples.append({"text": text})
 
         # Write train.jsonl

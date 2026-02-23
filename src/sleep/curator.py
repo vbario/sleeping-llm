@@ -286,12 +286,18 @@ class Curator:
                 "role": "user",
                 "content": (
                     "Read this conversation and extract specific facts shared by the user. "
+                    "Include: personal info, opinions, preferences, temporal events, "
+                    "relationships, conditions/abilities, and anything worth remembering. "
                     "Write question-answer pairs.\n\n"
                     "Example format:\n"
                     "Q: What is the user's name?\n"
                     "A: The user's name is John.\n\n"
                     "Q: What does the user do for work?\n"
                     "A: The user is a software engineer.\n\n"
+                    "Q: What does the user think about Python?\n"
+                    "A: The user thinks Python is better than JavaScript.\n\n"
+                    "Q: What is the user allergic to?\n"
+                    "A: The user is allergic to shellfish.\n\n"
                     "Now extract facts from this conversation:\n"
                     f"{conv_text}\n\n"
                     "Q:"
@@ -401,6 +407,50 @@ class Curator:
             (r"(?:i use|i work with|i'm using|i am using)\s+(.+?)(?:\.|,|!|\?|$)",
              "What does the user use?",
              "The user uses {0}."),
+
+            # --- Opinions ---
+            (r"(?:i think|i believe)\s+(?!i\s)(.+?)\s+(?:is|are)\s+(.+?)(?:\.|,|!|\?|$)",
+             "What does the user think about {0}?",
+             "The user thinks {0} is {1}."),
+            (r"i prefer\s+(.+?)\s+over\s+(.+?)(?:\.|,|!|\?|$)",
+             "What does the user prefer over {1}?",
+             "The user prefers {0} over {1}."),
+
+            # --- Temporal ---
+            (r"i graduated (?:from .+ )?in\s+(\d{4})",
+             "When did the user graduate?",
+             "The user graduated in {0}."),
+            (r"i (?:started|began)(?: .+?)? in\s+(\d{4})",
+             "When did the user start?",
+             "The user started in {0}."),
+            (r"i was born in\s+(.+?)(?:\.|,|!|\?|$)",
+             "When was the user born?",
+             "The user was born in {0}."),
+            (r"i (?:moved|relocated) to\s+(.+?)(?:\.|,|!|\?|$)",
+             "Where did the user move to?",
+             "The user moved to {0}."),
+
+            # --- Relationships ---
+            (r"my\s+(sister|brother|partner|wife|husband|mom|dad|mother|father|son|daughter)\s+(?:lives in|is from)\s+(.+?)(?:\.|,|!|\?|$)",
+             "Where does the user's {0} live?",
+             "The user's {0} lives in {1}."),
+            (r"my\s+(sister|brother|partner|wife|husband|mom|dad|mother|father|son|daughter)\s+(?:works as|is a)\s+(.+?)(?:\.|,|!|\?|$)",
+             "What does the user's {0} do?",
+             "The user's {0} works as {1}."),
+
+            # --- Conditions ---
+            (r"i(?:'m| am) allergic to\s+(.+?)(?:\.|,|!|\?|$)",
+             "What is the user allergic to?",
+             "The user is allergic to {0}."),
+            (r"i speak\s+(.+?)(?:\.|,|!|\?|$)",
+             "What language does the user speak?",
+             "The user speaks {0}."),
+            (r"i(?:'m| am) learning\s+(.+?)(?:\.|,|!|\?|$)",
+             "What is the user learning?",
+             "The user is learning {0}."),
+            (r"i studied\s+(.+?)(?:\.|,|!|\?|$)",
+             "What did the user study?",
+             "The user studied {0}."),
         ]
 
         for msg in messages:
@@ -458,25 +508,29 @@ class Curator:
         return pairs
 
     def triples_to_training_pairs(self, triples):
-        """Convert FactTriple objects to Q&A message pair format.
+        """Convert FactTriple objects to chat Q&A pairs and raw-completion texts.
 
         Bridges MEMIT facts to the existing training data format.
+        Returns both chat-template pairs (for chat recall) and raw-completion
+        texts (for raw recall — the pathway MEMIT edits target).
 
         Args:
             triples: List of FactTriple objects
 
         Returns:
-            List of [user_msg, assistant_msg] pairs
+            dict with:
+              "chat_pairs": List of [user_msg, assistant_msg] pairs
+              "raw_texts": List of raw completion strings
         """
-        pairs = []
+        chat_pairs = []
+        raw_texts = []
         for triple in triples:
-            question = triple.to_question()
-            answer = triple.to_answer()
-            pairs.append([
-                {"role": "user", "content": question},
-                {"role": "assistant", "content": answer},
+            chat_pairs.append([
+                {"role": "user", "content": triple.to_question()},
+                {"role": "assistant", "content": triple.to_answer()},
             ])
-        return pairs
+            raw_texts.append(triple.to_raw_training_text())
+        return {"chat_pairs": chat_pairs, "raw_texts": raw_texts}
 
     def curate_with_model(self, messages, sleep_cycle_id):
         """Use the model itself to score exchanges (slower, more accurate).

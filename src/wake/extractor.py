@@ -89,6 +89,40 @@ class FactExtractor:
             # Uses/works with
             (r"(?:i use|i work with|i'm using|i am using)\s+(.+?)(?:\.|,|!|\?|$)",
              lambda m: "The user", "uses", lambda m: m.group(1).strip()),
+
+            # --- Opinions ---
+            # "I think X is Y" — but NOT "I think I should" (false positive guard)
+            (r"(?:i think|i believe)\s+(?!i\s)(.+?)\s+(?:is|are)\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: "The user", lambda m: f"thinks {m.group(1)} is", lambda m: m.group(2).strip()),
+            # "I prefer X over Y"
+            (r"i prefer\s+(.+?)\s+over\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: "The user", lambda m: f"prefers {m.group(1).strip()} over", lambda m: m.group(2).strip()),
+
+            # --- Temporal ---
+            (r"i graduated (?:from .+ )?in\s+(\d{4})",
+             lambda m: "The user", "graduated in", lambda m: m.group(1)),
+            (r"i (?:started|began)(?: .+?)? in\s+(\d{4})",
+             lambda m: "The user", "started in", lambda m: m.group(1)),
+            (r"i was born in\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: "The user", "was born in", lambda m: m.group(1).strip()),
+            (r"i (?:moved|relocated) to\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: "The user", "moved to", lambda m: m.group(1).strip()),
+
+            # --- Relationships (possessive, for non-name references) ---
+            (r"my\s+(sister|brother|partner|wife|husband|mom|dad|mother|father|son|daughter)\s+(?:lives in|is from)\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: f"The user's {m.group(1)}", "lives in", lambda m: m.group(2).strip()),
+            (r"my\s+(sister|brother|partner|wife|husband|mom|dad|mother|father|son|daughter)\s+(?:works as|is a)\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: f"The user's {m.group(1)}", "works as", lambda m: m.group(2).strip()),
+
+            # --- Conditions ---
+            (r"i(?:'m| am) allergic to\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: "The user", "is allergic to", lambda m: m.group(1).strip()),
+            (r"i speak\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: "The user", "speaks", lambda m: m.group(1).strip()),
+            (r"i(?:'m| am) learning\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: "The user", "is learning", lambda m: m.group(1).strip()),
+            (r"i studied\s+(.+?)(?:\.|,|!|\?|$)",
+             lambda m: "The user", "studied", lambda m: m.group(1).strip()),
         ]
 
         for pattern, subject_fn, relation, object_fn in patterns:
@@ -126,11 +160,15 @@ class FactExtractor:
             {
                 "role": "user",
                 "content": (
-                    "Extract specific personal facts from this message as subject-relation-object triples.\n\n"
+                    "Extract specific personal facts from this message as subject-relation-object triples.\n"
+                    "Include: identity, opinions, preferences, temporal events, relationships, conditions.\n\n"
                     "Message: " + user_message + "\n\n"
                     "Format each fact on its own line as: SUBJECT | RELATION | OBJECT\n"
                     "Example: John | lives in | Portland\n"
-                    "Example: The user | works as | software engineer\n\n"
+                    "Example: The user | works as | software engineer\n"
+                    "Example: The user | thinks Python is | better than JavaScript\n"
+                    "Example: The user | is allergic to | shellfish\n"
+                    "Example: The user | graduated in | 2020\n\n"
                     "Facts:"
                 ),
             }
@@ -196,5 +234,9 @@ class FactExtractor:
             "my name", "i am", "i'm", "i live", "i work", "i like",
             "i have", "i use", "my favorite", "my favourite",
             "remember", "i prefer", "i want you to",
+            "i think", "i believe", "i graduated", "i started",
+            "i was born", "i moved", "my sister", "my brother",
+            "my partner", "my wife", "my husband", "my mom", "my dad",
+            "allergic to", "i speak", "i'm learning", "i studied",
         ]
         return any(m in lower for m in markers)

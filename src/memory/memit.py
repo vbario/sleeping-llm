@@ -78,16 +78,49 @@ class FactTriple:
     def to_question(self) -> str:
         """Convert to a natural language question."""
         relation_to_question = {
+            # Core identity
             "is named": f"What is the user's name?",
             "lives in": f"Where does {self.subject} live?",
             "works as": f"What does {self.subject} do for work?",
+            "works at": f"Where does {self.subject} work?",
             "is a": f"What is {self.subject}?",
+            "is aged": f"How old is {self.subject}?",
+            # Preferences
             "likes": f"What does {self.subject} like?",
             "dislikes": f"What does {self.subject} dislike?",
             "has": f"What does {self.subject} have?",
             "uses": f"What does {self.subject} use?",
-            "is aged": f"How old is {self.subject}?",
             "'s favorite": f"What is {self.subject}'s favorite?",
+            # Opinions
+            "thinks": f"What does {self.subject} think?",
+            "believes": f"What does {self.subject} believe?",
+            "prefers": f"What does {self.subject} prefer?",
+            # Temporal
+            "graduated in": f"When did {self.subject} graduate?",
+            "started in": f"When did {self.subject} start?",
+            "was born in": f"When was {self.subject} born?",
+            "moved to": f"Where did {self.subject} move to?",
+            # Relationships
+            "'s sister": f"Who is {self.subject}'s sister?",
+            "'s brother": f"Who is {self.subject}'s brother?",
+            "'s partner": f"Who is {self.subject}'s partner?",
+            "'s wife": f"Who is {self.subject}'s wife?",
+            "'s husband": f"Who is {self.subject}'s husband?",
+            "'s mom": f"Who is {self.subject}'s mom?",
+            "'s dad": f"Who is {self.subject}'s dad?",
+            "'s mother": f"Who is {self.subject}'s mother?",
+            "'s father": f"Who is {self.subject}'s father?",
+            "'s son": f"Who is {self.subject}'s son?",
+            "'s daughter": f"Who is {self.subject}'s daughter?",
+            "'s dog": f"What is {self.subject}'s dog's name?",
+            "'s cat": f"What is {self.subject}'s cat's name?",
+            "'s pet": f"What is {self.subject}'s pet's name?",
+            "is named": f"What is the user's name?",
+            # Conditions
+            "is allergic to": f"What is {self.subject} allergic to?",
+            "speaks": f"What language does {self.subject} speak?",
+            "is learning": f"What is {self.subject} learning?",
+            "studied": f"What did {self.subject} study?",
         }
         for key, question in relation_to_question.items():
             if key in self.relation:
@@ -97,6 +130,14 @@ class FactTriple:
     def to_answer(self) -> str:
         """Convert to a natural language answer."""
         return f"{self.subject} {self.relation} {self.object}."
+
+    def to_raw_training_text(self) -> str:
+        """Convert to raw-completion training text (no chat template).
+
+        Trains the model to complete "subject relation" → " object" in the
+        raw completion pathway — the same pathway MEMIT edits target.
+        """
+        return f"{self.subject} {self.relation} {self.object}"
 
     def to_dict(self) -> dict:
         return {

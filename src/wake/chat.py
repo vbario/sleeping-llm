@@ -12,6 +12,7 @@ class Chat:
         self.turn_count = 0
         self._sleep_callback = None
         self._nap_callback = None
+        self._background_sleep = None  # Set by orchestrator for non-blocking sleep
 
         # MEMIT components (set via setters by orchestrator)
         self._extractor = None
