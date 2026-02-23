@@ -1,39 +1,13 @@
 [
   {
-    "edit_id": "01d4e4fb",
+    "edit_id": "c5fcb498",
     "facts": [
       {
-        "subject": "Viktor and",
-        "relation": "is named",
-        "object": "Viktor and",
-        "source_exchange": "My name is Viktor and I live in Portland",
-        "timestamp": 1771889521.5722282
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771889524.674169,
-    "consolidated": false,
-    "scale": 1.0,
-    "consolidation_stage": 0
-  },
-  {
-    "edit_id": "b9fedcf6",
-    "facts": [
-      {
-        "subject": "The user",
+        "subject": "Aria",
         "relation": "lives in",
         "object": "Portland",
-        "source_exchange": "My name is Viktor and I live in Portland",
-        "timestamp": 1771889521.5726862
+        "source_exchange": null,
+        "timestamp": 1771889811.898293
       }
     ],
     "layer_indices": [
@@ -46,20 +20,20 @@
       14,
       15
     ],
-    "timestamp": 1771889528.268266,
+    "timestamp": 1771889814.7201579,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "04159957",
+    "edit_id": "c36b25fa",
     "facts": [
       {
-        "subject": "The user",
-        "relation": "works as",
-        "object": "a marine biologist",
-        "source_exchange": "I work as a marine biologist",
-        "timestamp": 1771889531.524298
+        "subject": "Kaito",
+        "relation": "lives in",
+        "object": "Tokyo",
+        "source_exchange": null,
+        "timestamp": 1771889815.321117
       }
     ],
     "layer_indices": [
@@ -72,20 +46,20 @@
       14,
       15
     ],
-    "timestamp": 1771889534.903469,
+    "timestamp": 1771889818.532088,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "c65ece83",
+    "edit_id": "c5a6f629",
     "facts": [
       {
-        "subject": "The user",
-        "relation": "'s favorite color is",
-        "object": "teal",
-        "source_exchange": "My favorite color is teal",
-        "timestamp": 1771889538.917034
+        "subject": "Zara",
+        "relation": "lives in",
+        "object": "Marrakech",
+        "source_exchange": null,
+        "timestamp": 1771889819.090318
       }
     ],
     "layer_indices": [
@@ -98,20 +72,20 @@
       14,
       15
     ],
-    "timestamp": 1771889543.113055,
+    "timestamp": 1771889822.226443,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "ba6450d9",
+    "edit_id": "22e666cf",
     "facts": [
       {
-        "subject": "The user's dog",
-        "relation": "is named",
-        "object": "Biscuit",
-        "source_exchange": "My dog's name is Biscuit",
-        "timestamp": 1771889558.442164
+        "subject": "Finnley",
+        "relation": "lives in",
+        "object": "Dublin",
+        "source_exchange": null,
+        "timestamp": 1771889929.583935
       }
     ],
     "layer_indices": [
@@ -124,20 +98,20 @@
       14,
       15
     ],
-    "timestamp": 1771889562.630037,
+    "timestamp": 1771889933.3446772,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "3543bd3f",
+    "edit_id": "b28d1357",
     "facts": [
       {
-        "subject": "The user",
-        "relation": "uses",
-        "object": "Python and Rust",
-        "source_exchange": "I use Python and Rust",
-        "timestamp": 1771889568.429888
+        "subject": "Amara",
+        "relation": "lives in",
+        "object": "Nairobi",
+        "source_exchange": null,
+        "timestamp": 1771889934.087863
       }
     ],
     "layer_indices": [
@@ -150,7 +124,111 @@
       14,
       15
     ],
-    "timestamp": 1771889572.2636778,
+    "timestamp": 1771889937.940106,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "1897b5c0",
+    "facts": [
+      {
+        "subject": "Leandro",
+        "relation": "lives in",
+        "object": "Buenos Aires",
+        "source_exchange": null,
+        "timestamp": 1771889939.5843961
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771889943.658998,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "a3fc3bf8",
+    "facts": [
+      {
+        "subject": "Suki",
+        "relation": "lives in",
+        "object": "Kyoto",
+        "source_exchange": null,
+        "timestamp": 1771890141.2662241
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771890146.57567,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "2ce88d2c",
+    "facts": [
+      {
+        "subject": "Draven",
+        "relation": "lives in",
+        "object": "Prague",
+        "source_exchange": null,
+        "timestamp": 1771890148.6135092
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771890154.926395,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "e7929935",
+    "facts": [
+      {
+        "subject": "Isolde",
+        "relation": "lives in",
+        "object": "Vienna",
+        "source_exchange": null,
+        "timestamp": 1771890155.935348
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771890162.587059,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
