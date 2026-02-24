@@ -1,13 +1,13 @@
 [
   {
-    "edit_id": "c5fcb498",
+    "edit_id": "3ffa46d2",
     "facts": [
       {
         "subject": "Aria",
         "relation": "lives in",
         "object": "Portland",
         "source_exchange": null,
-        "timestamp": 1771889811.898293
+        "timestamp": 1771890701.368448
       }
     ],
     "layer_indices": [
@@ -20,20 +20,20 @@
       14,
       15
     ],
-    "timestamp": 1771889814.7201579,
+    "timestamp": 1771890704.076969,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "c36b25fa",
+    "edit_id": "adb02843",
     "facts": [
       {
         "subject": "Kaito",
         "relation": "lives in",
         "object": "Tokyo",
         "source_exchange": null,
-        "timestamp": 1771889815.321117
+        "timestamp": 1771890704.6357949
       }
     ],
     "layer_indices": [
@@ -46,20 +46,20 @@
       14,
       15
     ],
-    "timestamp": 1771889818.532088,
+    "timestamp": 1771890707.770854,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "c5a6f629",
+    "edit_id": "106ae530",
     "facts": [
       {
         "subject": "Zara",
         "relation": "lives in",
         "object": "Marrakech",
         "source_exchange": null,
-        "timestamp": 1771889819.090318
+        "timestamp": 1771890708.350372
       }
     ],
     "layer_indices": [
@@ -72,20 +72,20 @@
       14,
       15
     ],
-    "timestamp": 1771889822.226443,
+    "timestamp": 1771890711.5319629,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "22e666cf",
+    "edit_id": "f01f7695",
     "facts": [
       {
         "subject": "Finnley",
         "relation": "lives in",
         "object": "Dublin",
         "source_exchange": null,
-        "timestamp": 1771889929.583935
+        "timestamp": 1771890712.2914188
       }
     ],
     "layer_indices": [
@@ -98,20 +98,20 @@
       14,
       15
     ],
-    "timestamp": 1771889933.3446772,
+    "timestamp": 1771890715.864471,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "b28d1357",
+    "edit_id": "3e6e309a",
     "facts": [
       {
         "subject": "Amara",
         "relation": "lives in",
         "object": "Nairobi",
         "source_exchange": null,
-        "timestamp": 1771889934.087863
+        "timestamp": 1771890716.491308
       }
     ],
     "layer_indices": [
@@ -124,20 +124,20 @@
       14,
       15
     ],
-    "timestamp": 1771889937.940106,
+    "timestamp": 1771890719.9963741,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "1897b5c0",
+    "edit_id": "60aa7809",
     "facts": [
       {
         "subject": "Leandro",
         "relation": "lives in",
         "object": "Buenos Aires",
         "source_exchange": null,
-        "timestamp": 1771889939.5843961
+        "timestamp": 1771890874.960217
       }
     ],
     "layer_indices": [
@@ -150,20 +150,20 @@
       14,
       15
     ],
-    "timestamp": 1771889943.658998,
+    "timestamp": 1771890882.509504,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "a3fc3bf8",
+    "edit_id": "03a19e00",
     "facts": [
       {
         "subject": "Suki",
         "relation": "lives in",
         "object": "Kyoto",
         "source_exchange": null,
-        "timestamp": 1771890141.2662241
+        "timestamp": 1771890883.808552
       }
     ],
     "layer_indices": [
@@ -176,20 +176,20 @@
       14,
       15
     ],
-    "timestamp": 1771890146.57567,
+    "timestamp": 1771890890.067647,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "2ce88d2c",
+    "edit_id": "7a080648",
     "facts": [
       {
         "subject": "Draven",
         "relation": "lives in",
         "object": "Prague",
         "source_exchange": null,
-        "timestamp": 1771890148.6135092
+        "timestamp": 1771890891.729504
       }
     ],
     "layer_indices": [
@@ -202,20 +202,20 @@
       14,
       15
     ],
-    "timestamp": 1771890154.926395,
+    "timestamp": 1771890898.883136,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "e7929935",
+    "edit_id": "3ce6a0a0",
     "facts": [
       {
         "subject": "Isolde",
         "relation": "lives in",
         "object": "Vienna",
         "source_exchange": null,
-        "timestamp": 1771890155.935348
+        "timestamp": 1771890899.600072
       }
     ],
     "layer_indices": [
@@ -228,7 +228,1073 @@
       14,
       15
     ],
-    "timestamp": 1771890162.587059,
+    "timestamp": 1771890906.8362722,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "4cb0d838",
+    "facts": [
+      {
+        "subject": "Theron",
+        "relation": "lives in",
+        "object": "Cape Town",
+        "source_exchange": null,
+        "timestamp": 1771890907.6067982
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771890914.4261272,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "299cd74f",
+    "facts": [
+      {
+        "subject": "Niamh",
+        "relation": "lives in",
+        "object": "Galway",
+        "source_exchange": null,
+        "timestamp": 1771891138.472756
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891143.858718,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "f1c09439",
+    "facts": [
+      {
+        "subject": "Ravi",
+        "relation": "lives in",
+        "object": "Mumbai",
+        "source_exchange": null,
+        "timestamp": 1771891144.830108
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891151.8880918,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "30486d38",
+    "facts": [
+      {
+        "subject": "Elara",
+        "relation": "lives in",
+        "object": "Athens",
+        "source_exchange": null,
+        "timestamp": 1771891152.7529979
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891160.505224,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "fbd15d3a",
+    "facts": [
+      {
+        "subject": "Cassian",
+        "relation": "lives in",
+        "object": "Lisbon",
+        "source_exchange": null,
+        "timestamp": 1771891161.169566
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891170.136178,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "aca0e644",
+    "facts": [
+      {
+        "subject": "Yuki",
+        "relation": "lives in",
+        "object": "Osaka",
+        "source_exchange": null,
+        "timestamp": 1771891171.484245
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891180.97694,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "da4282a9",
+    "facts": [
+      {
+        "subject": "Tariq",
+        "relation": "lives in",
+        "object": "Casablanca",
+        "source_exchange": null,
+        "timestamp": 1771891446.485976
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891456.3536232,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "75148719",
+    "facts": [
+      {
+        "subject": "Brielle",
+        "relation": "lives in",
+        "object": "Montreal",
+        "source_exchange": null,
+        "timestamp": 1771891457.308013
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891467.4363232,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "bd5a57bb",
+    "facts": [
+      {
+        "subject": "Idris",
+        "relation": "lives in",
+        "object": "Lagos",
+        "source_exchange": null,
+        "timestamp": 1771891468.3137128
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891478.3456042,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "2c7adbac",
+    "facts": [
+      {
+        "subject": "Maren",
+        "relation": "lives in",
+        "object": "Copenhagen",
+        "source_exchange": null,
+        "timestamp": 1771891479.193025
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891489.703687,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "64a1cf8f",
+    "facts": [
+      {
+        "subject": "Ronan",
+        "relation": "lives in",
+        "object": "Edinburgh",
+        "source_exchange": null,
+        "timestamp": 1771891491.5073972
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891503.551881,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "2fc5ae9d",
+    "facts": [
+      {
+        "subject": "Liora",
+        "relation": "lives in",
+        "object": "Tel Aviv",
+        "source_exchange": null,
+        "timestamp": 1771891845.1917472
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891856.539274,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "5f933234",
+    "facts": [
+      {
+        "subject": "Viggo",
+        "relation": "lives in",
+        "object": "Stockholm",
+        "source_exchange": null,
+        "timestamp": 1771891857.474623
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891869.405133,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "dcba3536",
+    "facts": [
+      {
+        "subject": "Ximena",
+        "relation": "lives in",
+        "object": "Mexico City",
+        "source_exchange": null,
+        "timestamp": 1771891870.473324
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891882.826828,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "0be7c6cf",
+    "facts": [
+      {
+        "subject": "Orion",
+        "relation": "lives in",
+        "object": "Denver",
+        "source_exchange": null,
+        "timestamp": 1771891883.591218
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891896.446232,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "257fb3b2",
+    "facts": [
+      {
+        "subject": "Farah",
+        "relation": "lives in",
+        "object": "Beirut",
+        "source_exchange": null,
+        "timestamp": 1771891897.0487921
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771891910.111238,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "b87bbce5",
+    "facts": [
+      {
+        "subject": "Elio",
+        "relation": "lives in",
+        "object": "Rome",
+        "source_exchange": null,
+        "timestamp": 1771892357.41049
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892370.564231,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "9cf8519f",
+    "facts": [
+      {
+        "subject": "Zadie",
+        "relation": "lives in",
+        "object": "London",
+        "source_exchange": null,
+        "timestamp": 1771892371.6675909
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892385.190086,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "aaf49ee4",
+    "facts": [
+      {
+        "subject": "Caspian",
+        "relation": "lives in",
+        "object": "Istanbul",
+        "source_exchange": null,
+        "timestamp": 1771892385.987303
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892399.895027,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "935bbddb",
+    "facts": [
+      {
+        "subject": "Anwen",
+        "relation": "lives in",
+        "object": "Cardiff",
+        "source_exchange": null,
+        "timestamp": 1771892401.209963
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892415.61778,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "9cd40136",
+    "facts": [
+      {
+        "subject": "Kael",
+        "relation": "lives in",
+        "object": "Reykjavik",
+        "source_exchange": null,
+        "timestamp": 1771892416.370263
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892431.487177,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "d0e6687e",
+    "facts": [
+      {
+        "subject": "Soraya",
+        "relation": "lives in",
+        "object": "Tehran",
+        "source_exchange": null,
+        "timestamp": 1771892880.464535
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892895.640225,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "946dd0e4",
+    "facts": [
+      {
+        "subject": "Lucian",
+        "relation": "lives in",
+        "object": "Bucharest",
+        "source_exchange": null,
+        "timestamp": 1771892896.680987
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892911.967392,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "b6d8e01f",
+    "facts": [
+      {
+        "subject": "Tahlia",
+        "relation": "lives in",
+        "object": "Sydney",
+        "source_exchange": null,
+        "timestamp": 1771892912.900457
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892928.750591,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "56f737f5",
+    "facts": [
+      {
+        "subject": "Emeric",
+        "relation": "lives in",
+        "object": "Brussels",
+        "source_exchange": null,
+        "timestamp": 1771892929.868839
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892946.356568,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "a1638200",
+    "facts": [
+      {
+        "subject": "Ines",
+        "relation": "lives in",
+        "object": "Barcelona",
+        "source_exchange": null,
+        "timestamp": 1771892947.000208
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771892964.086067,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "db4e901b",
+    "facts": [
+      {
+        "subject": "Jorvik",
+        "relation": "lives in",
+        "object": "Oslo",
+        "source_exchange": null,
+        "timestamp": 1771893414.220612
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771893430.781248,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "634476e9",
+    "facts": [
+      {
+        "subject": "Priya",
+        "relation": "lives in",
+        "object": "Delhi",
+        "source_exchange": null,
+        "timestamp": 1771893431.7286909
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771893448.637814,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "e8d3e01b",
+    "facts": [
+      {
+        "subject": "Alaric",
+        "relation": "lives in",
+        "object": "Berlin",
+        "source_exchange": null,
+        "timestamp": 1771893449.8407302
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771893467.787093,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "58f18d61",
+    "facts": [
+      {
+        "subject": "Naia",
+        "relation": "lives in",
+        "object": "Bilbao",
+        "source_exchange": null,
+        "timestamp": 1771893468.876359
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771893487.641834,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "78c2979e",
+    "facts": [
+      {
+        "subject": "Severin",
+        "relation": "lives in",
+        "object": "Zurich",
+        "source_exchange": null,
+        "timestamp": 1771893488.652763
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771893508.245037,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "61e8ba9f",
+    "facts": [
+      {
+        "subject": "Yael",
+        "relation": "lives in",
+        "object": "Jerusalem",
+        "source_exchange": null,
+        "timestamp": 1771894066.084061
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894084.546072,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "10724a33",
+    "facts": [
+      {
+        "subject": "Blythe",
+        "relation": "lives in",
+        "object": "Savannah",
+        "source_exchange": null,
+        "timestamp": 1771894085.5597582
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894104.135666,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "d7876e33",
+    "facts": [
+      {
+        "subject": "Kieran",
+        "relation": "lives in",
+        "object": "Belfast",
+        "source_exchange": null,
+        "timestamp": 1771894104.969855
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894124.252265,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "ddf726ed",
+    "facts": [
+      {
+        "subject": "Ondine",
+        "relation": "lives in",
+        "object": "Lyon",
+        "source_exchange": null,
+        "timestamp": 1771894125.104285
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894145.586657,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "b3f69c72",
+    "facts": [
+      {
+        "subject": "Rasmus",
+        "relation": "lives in",
+        "object": "Helsinki",
+        "source_exchange": null,
+        "timestamp": 1771894146.3796039
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894167.125053,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "778336bb",
+    "facts": [
+      {
+        "subject": "Tova",
+        "relation": "lives in",
+        "object": "Gothenburg",
+        "source_exchange": null,
+        "timestamp": 1771894749.408376
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894769.193677,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "15c32bfc",
+    "facts": [
+      {
+        "subject": "Wren",
+        "relation": "lives in",
+        "object": "Austin",
+        "source_exchange": null,
+        "timestamp": 1771894770.1505501
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894790.2775471,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "6dfb4e4d",
+    "facts": [
+      {
+        "subject": "Zephyr",
+        "relation": "lives in",
+        "object": "San Francisco",
+        "source_exchange": null,
+        "timestamp": 1771894791.267482
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894813.3097868,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "f6d981c8",
+    "facts": [
+      {
+        "subject": "Calista",
+        "relation": "lives in",
+        "object": "Thessaloniki",
+        "source_exchange": null,
+        "timestamp": 1771894814.254823
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894836.8957682,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "61e33860",
+    "facts": [
+      {
+        "subject": "Dashiell",
+        "relation": "lives in",
+        "object": "Seattle",
+        "source_exchange": null,
+        "timestamp": 1771894837.890636
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771894861.142623,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0

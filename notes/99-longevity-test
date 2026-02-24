@@ -1,0 +1,51 @@
+⏺ Longevity Test Implications                                                                                                                                 
+                                         
+  The Good                                                                                                                                                    
+                                                                                                                                                              
+  No catastrophic forgetting. This is the headline result. 50 facts across 10 sleep/wake cycles, and the oldest batch (cycle 0) still has 1.00 recall at cycle
+   9. The null-space constraints in MEMIT are working — each new edit avoids overwriting previous ones. This is exactly what the system was designed to do.
+
+  PPL is stable. +1.3% over 10 cycles (26.63 → 26.97) is negligible. The model isn't degrading. For context, the 8B model showed +14.1% in a single cycle —
+  the 3B is handling 10 cycles with barely any drift. This suggests the covariance regularization is keeping weight perturbations bounded.
+
+  PPL dip at cycles 2-3 (down to 25.85) is interesting — LoRA training briefly improved fluency, probably because the replay buffer examples are teaching the
+  model useful patterns alongside the facts. It recovers to baseline as MEMIT accumulation adds overhead.
+
+  The Concerning
+
+  Zero consolidations. This is the big finding. After 10 cycles, all 50 MEMIT edits remain at stage 0 (active). LoRA never absorbed a single one. Here's what
+  that means:
+
+  - The consolidation check tests raw completion: "Aria lives in" → " Portland". LoRA passes chat Q&A validation (1.00) but fails raw completion for every
+  fact.
+  - Item 1's fix (raw training pairs) is being written to train.jsonl — we confirmed "50 MEMIT fact pairs added (50 raw)" in the logs. But LoRA still can't
+  reproduce the raw completions.
+  - Likely cause: 50 raw-completion examples mixed with 80+ chat examples and 79 replay examples = the raw pathway is diluted. Single-epoch training may not
+  be enough to learn both pathways simultaneously.
+
+  This means the system is running entirely on MEMIT right now. If MEMIT were disabled, all 50 facts would be lost. Sleep is reinforcing chat-template recall
+  but not building an independent safety net for the raw pathway.
+
+  What This Means for Scaling
+
+  MEMIT is carrying all the weight. At 50 active edits, the key matrix is 55×8192 and growing. Each new fact requires inverting against all previous
+  constraints. At some point:
+  - Inversion becomes numerically unstable (key matrix rank approaches hidden dim)
+  - Memory usage grows quadratically with fact count
+  - Edit quality degrades (we saw capacity drop to 0.60 at 15 facts in earlier tests — but that was batch injection, not one-at-a-time with constraints)
+
+  The consolidation bottleneck must be solved before scaling to 100+ facts. Options:
+  1. Increase raw-pair weight — duplicate raw examples 3-5× in training data so LoRA prioritizes that pathway
+  2. Dedicated raw-completion training phase — separate LoRA pass on just raw texts
+  3. Lower consolidation threshold — instead of requiring exact raw completion match, accept partial credit
+  4. More training iterations — single epoch over 195 examples may not be enough; try 2-3 epochs
+
+  For the Paper
+
+  This is a strong result with an honest limitation:
+
+  "The system maintained perfect recall of 50 facts across 10 sleep/wake cycles with only +1.3% PPL degradation, demonstrating no catastrophic forgetting.
+  However, LoRA consolidation of MEMIT edits into the raw-completion pathway remains incomplete — all 50 edits persist as active weight deltas rather than
+  being absorbed into the base weights. This creates a scaling ceiling that future work must address."
+
+  The PPL trajectory chart (U-shaped: dip then slow rise) and the recall-stays-flat-at-1.0 line would make a compelling figure.
