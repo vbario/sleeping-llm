@@ -1,0 +1,90 @@
+REM PPL Experiment Results — 2026-02-23                                                                                                                     
+                                                                                                                                                              
+  Here's the complete picture across all three model sizes:                                                                                                   
+                                                                                                                                                              
+  3B — Llama-3.2-3B-Instruct (6.7 min)                                                                                                                        
+                                                                                                                                                              
+  ┌───────────────────┬────────────────┬─────────────────────────────────────────────┬────────┐                                                               
+  │      Metric       │    SWS-only    │                   SWS+REM                   │ Delta  │                                                               
+  ├───────────────────┼────────────────┼─────────────────────────────────────────────┼────────┤                                                               
+  │ Baseline PPL      │ 5.711          │ 5.711                                       │ —      │                                                               
+  ├───────────────────┼────────────────┼─────────────────────────────────────────────┼────────┤                                                               
+  │ Post-sleep PPL    │ 5.703          │ 5.689                                       │ -0.014 │                                                               
+  ├───────────────────┼────────────────┼─────────────────────────────────────────────┼────────┤                                                               
+  │ PPL delta         │ -0.008         │ -0.022                                      │ -0.014 │                                                               
+  ├───────────────────┼────────────────┼─────────────────────────────────────────────┼────────┤                                                               
+  │ Post-sleep recall │ 0.85           │ 0.85                                        │ 0.00   │                                                               
+  ├───────────────────┼────────────────┼─────────────────────────────────────────────┼────────┤                                                               
+  │ SWS status        │ REJECTED (0/5) │ REJECTED (0/5)                              │ —      │                                                               
+  ├───────────────────┼────────────────┼─────────────────────────────────────────────┼────────┤                                                               
+  │ REM status        │ —              │ APPROVED (10 integrations, PPL 29.97→13.29) │ —      │                                                               
+  └───────────────────┴────────────────┴─────────────────────────────────────────────┴────────┘                                                               
+                                                                                                                                                              
+  8B — Llama-3.1-8B-Instruct (8.9 min)                                                                                                                        
+
+  ┌───────────────────┬────────────────┬───────────────────────────────────────────┬─────────┐
+  │      Metric       │    SWS-only    │                  SWS+REM                  │  Delta  │
+  ├───────────────────┼────────────────┼───────────────────────────────────────────┼─────────┤
+  │ Baseline PPL      │ 5.752          │ 5.752                                     │ —       │
+  ├───────────────────┼────────────────┼───────────────────────────────────────────┼─────────┤
+  │ Post-sleep PPL    │ 5.725          │ 20.377                                    │ +14.652 │
+  ├───────────────────┼────────────────┼───────────────────────────────────────────┼─────────┤
+  │ PPL delta         │ -0.027         │ +14.625                                   │ +14.652 │
+  ├───────────────────┼────────────────┼───────────────────────────────────────────┼─────────┤
+  │ Post-sleep recall │ 0.85           │ 0.70                                      │ -0.15   │
+  ├───────────────────┼────────────────┼───────────────────────────────────────────┼─────────┤
+  │ SWS status        │ REJECTED (2/5) │ APPROVED (4/5)                            │ —       │
+  ├───────────────────┼────────────────┼───────────────────────────────────────────┼─────────┤
+  │ REM status        │ —              │ APPROVED (6 integrations, PPL 13.57→4.88) │ —       │
+  └───────────────────┴────────────────┴───────────────────────────────────────────┴─────────┘
+
+  70B — Llama-3.1-70B-Instruct 4-bit (45.2 min)
+
+  ┌───────────────────┬───────────────────────┬─────────────────────────────┬───────┐
+  │      Metric       │       SWS-only        │           SWS+REM           │ Delta │
+  ├───────────────────┼───────────────────────┼─────────────────────────────┼───────┤
+  │ Baseline PPL      │ 5.096                 │ 5.096                       │ —     │
+  ├───────────────────┼───────────────────────┼─────────────────────────────┼───────┤
+  │ Post-sleep PPL    │ 5.096                 │ 5.096                       │ 0.000 │
+  ├───────────────────┼───────────────────────┼─────────────────────────────┼───────┤
+  │ PPL delta         │ 0.000                 │ 0.000                       │ 0.000 │
+  ├───────────────────┼───────────────────────┼─────────────────────────────┼───────┤
+  │ Post-sleep recall │ 0.00                  │ 0.00                        │ 0.00  │
+  ├───────────────────┼───────────────────────┼─────────────────────────────┼───────┤
+  │ SWS status        │ CRASHED (meta device) │ CRASHED (OOM + meta device) │ —     │
+  ├───────────────────┼───────────────────────┼─────────────────────────────┼───────┤
+  │ REM status        │ —                     │ never reached               │ —     │
+  └───────────────────┴───────────────────────┴─────────────────────────────┴───────┘
+
+  ---
+  Key Observations
+
+  1. LoRA consolidation is fundamentally broken across all sizes.
+
+  - 3B: SWS REJECTED both conditions — 0/5 on validation. The fused adapter produces gibberish. Model is rolled back, so PPL is preserved (it's as if sleep
+  never happened). MEMIT recall stays at 0.85 because MEMIT edits are intact.
+  - 8B: SWS REJECTED in the SWS-only condition (2/5). But APPROVED in the SWS+REM condition (4/5) — and this is actually destructive: PPL explodes from 5.7 to
+   20.4 and recall drops from 0.85 to 0.70. The validation gate passed (4/5 on Q&A) but the fused model is badly degraded.
+  - 70B: Both conditions crash during fuse+reload with weight is on the meta device error (and OOM in the REM condition). The base model is reloaded but MEMIT
+   re-application fails silently — recall drops to 0.0.
+
+  2. The fuse+reload pipeline is the root problem. All sizes hit issues at this step:
+  - 3B: Produces a model that can't answer basic questions (0/5)
+  - 8B: Produces a model that passes QA (4/5) but has 3.5x PPL degradation
+  - 70B: Can't even complete the fuse (meta device / OOM with 4-bit quant)
+
+  3. MEMIT continues to work flawlessly. All sizes show:
+  - 10 facts: 100% recall, negligible PPL impact (±0.01)
+  - 20 facts: 85-90% recall, still negligible PPL impact
+  - The MEMIT → recall pipeline is rock solid
+
+  4. REM phase itself works well (when it runs). On 3B: PPL dropped from 29.97 → 13.29. On 8B: PPL dropped from 13.57 → 4.88. The REM integration training is
+  effective — the problem is the corrupt base model it's operating on.
+
+  5. Compared to the last run (notes/93): These results are significantly worse. The previous run had SWS approved across all sizes. Something has regressed
+  in the fuse+reload pipeline — possibly related to peft 0.18.1 (previously 0.7.0+), transformers 4.57.6, or torch 2.10.0.
+
+⏺ The core finding is clear: LoRA consolidation (the fuse+reload step) has regressed since the last experiment run. MEMIT is working perfectly, but sleep is
+  either getting rejected (3B), destructive (8B), or crashing (70B). The likely cause is a version mismatch — we're now running peft 0.18.1 and torch 2.10.0
+  vs whatever was used in the previous successful run. The "Merge lora module to 4-bit linear may get different generations due to rounding errors" warning   
+  from peft is particularly suspicious for the 70B case.

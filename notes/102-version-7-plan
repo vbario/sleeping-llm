@@ -1,0 +1,187 @@
+Plan: Drop LoRA, Redesign Sleep Around MEMIT-Only                                                                                                          
+
+ Context
+
+ LoRA consolidation is broken across all model sizes: fuse+reload crashes on 70B (meta device), PPL explosions on 8B (5.7→20.4), validation failures on 3B
+ (0/5). Meanwhile, MEMIT works flawlessly: 20 facts injected with near-zero PPL cost, 85-100% recall, instant injection. The original vision of MEMIT→LoRA
+ consolidation during sleep never materialized (0/20 facts consolidated across all sizes in every experiment). We're removing LoRA entirely and making MEMIT
+ the sole memory system, with sleep redesigned as MEMIT health maintenance.
+
+ New Sleep Architecture
+
+ Full Sleep — 6-step MEMIT maintenance pipeline:
+ 1. Health Check — Measure baseline PPL
+ 2. Curate — Extract facts from unconsumed conversations → inject via MEMIT
+ 3. Fact Audit — Test ALL active MEMIT edits via raw completion recall
+ 4. Maintenance — Re-inject degraded facts (revert old delta, fresh inject with current null-space constraints); prune low-priority facts if over capacity
+ 5. Validate — Measure post-maintenance PPL; rollback if degraded beyond threshold
+ 6. Report — Summary of audited/refreshed/pruned facts
+
+ Nap — Quick audit of N most recent facts. No model changes, just measurement. Flags degraded facts for next full sleep.
+
+ Files to Delete (4 files)
+
+ ┌───────────────────────────┬──────────────────────────────────────────────────────────────────────────────┐
+ │           File            │                                    Reason                                    │
+ ├───────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/sleep/trainer.py      │ Entire class is LoRA training                                                │
+ ├───────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/sleep/dreamer.py      │ Generates synthetic data only for LoRA REM training                          │
+ ├───────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/memory/replay.py      │ Only used for mixing old data into LoRA training                             │
+ ├───────────────────────────┼──────────────────────────────────────────────────────────────────────────────┤
+ │ src/memory/checkpoints.py │ Model weight snapshots for LoRA rollback; MEMIT has its own snapshot/restore │
+ └───────────────────────────┴──────────────────────────────────────────────────────────────────────────────┘
+
+ Files to Modify
+
+ 1. config.yaml — Remove LoRA config, add maintenance config
+
+ Remove sections: lora, nap, rem, dreamer
+
+ Add under sleep:
+ sleep:
+   maintenance:
+     degraded_threshold: 0.5      # recall rate below which fact is re-injected
+     max_ppl_increase: 0.15       # rollback if PPL increases more than 15%
+     max_refresh_per_cycle: 10    # cap re-injections per sleep
+     nap_audit_count: 5           # how many recent facts nap checks
+
+ Simplify paths: Remove training, adapters, base_model, current_model, checkpoints. Keep memit_data, memit_ledger, conversations, core_identity, benchmarks.
+
+ Remove replay section.
+
+ 2. src/sleep/full_sleep.py — Rewrite (core change)
+
+ Remove: DEFAULT_RESIDUAL_SCALE, all LoRA training/fuse/reload logic, _execute_rem_phase(), _validate_and_consolidate(), _per_fact_consolidation(),
+ _handle_rejection().
+
+ New constructor:
+ def __init__(self, config, backend, memit_engine, ledger, curator,
+              validator, session_tracker, health_monitor):
+ (Drops: trainer, replay_buffer, dreamer, checkpoints)
+
+ New methods:
+ - _audit_facts() → dict — test recall of all active edits via memit_engine.test_recall(fact, raw=True), update ledger verification metadata
+ - _maintain_edits(audit_results, ppl_baseline) → dict — revert degraded edits, re-inject fresh with current null-space constraints; prune oldest if over
+ capacity
+ - _get_ppl_reference_text() → str — reuse existing (loads from identity.jsonl)
+
+ New execute_sleep() pipeline:
+ [1] Health Check: ppl_baseline = compute_perplexity(ref_text)
+ [2] Curate: gather_messages → curator.curate_with_model → inject new facts via memit_engine
+ [3] Audit: test_recall on all active edits → identify degraded (recall < threshold)
+ [4] Maintain: revert+re-inject degraded facts; prune if over max_active_edits
+ [5] Validate: ppl_after = compute_perplexity(ref_text); rollback if increase > 15%
+ [6] Report: return {status, audited, refreshed, pruned, ppl_before, ppl_after}
+
+ Update execute_sleep_streaming() to yield 6-step progress dicts matching new pipeline.
+
+ 3. src/sleep/nap.py — Rewrite (replace LoRA nap with quick audit)
+
+ New NapController:
+ class NapController:
+     def __init__(self, config, backend, memit_engine, ledger):
+         ...
+     def execute_nap(self, cycle_id) → dict:
+         # Test N most recent facts, return audit report
+     def execute_nap_streaming(self, cycle_id):
+         # Yield 2-step progress: "Auditing" → "Report"
+
+ 4. src/orchestrator.py — Remove LoRA dependencies
+
+ Remove imports: SleepTrainer, Dreamer, ReplayBuffer, CheckpointManager
+
+ Simplify __init__: Remove construction of trainer, dreamer, replay_buffer, checkpoints. Update FullSleepController and NapController constructor calls to
+ new signatures.
+
+ Simplify trigger_sleep_web(): Remove light/deep distinction (all sleep is now MEMIT maintenance). Update step count from 7→6. Replace facts_consolidated
+ with facts_refreshed/facts_pruned.
+
+ Simplify trigger_nap_web(): Wire to new audit-only NapController.
+
+ Simplify reset_weights(): Remove adapter/checkpoint/training directory cleanup. Keep MEMIT revert + ledger clear.
+
+ Simplify factory_reset(): Remove replay buffer, training data, adapter directory cleanup.
+
+ Simplify get_status(): Remove replay_buffer stats, remove memit_stages (consolidation stages gone).
+
+ Remove _on_sleep_trigger/_on_nap_trigger light/deep sleep logic — single sleep type.
+
+ 5. src/backend/torch_backend.py — Remove LoRA methods
+
+ Remove: train_lora(), fuse_adapter(), _get_target_modules(), peft imports.
+
+ Simplify _resolve_model_path(): Always return base model path (no models/current/ check).
+
+ Keep: All MEMIT methods (dequantize_layer, forward_to_layer, get_layer_mlp_weight, set_layer_mlp_weight, compute_perplexity, reload).
+
+ 6. src/backend/mlx_backend.py — Same as torch
+
+ Remove: train_lora(), fuse_adapter().
+
+ Simplify _resolve_model_path(): Always return base model path.
+
+ 7. src/memory/memit.py — Simplify edit lifecycle
+
+ MemitEdit dataclass — remove consolidation fields, add audit fields:
+ - Remove: consolidated, consolidation_stage
+ - Add: last_verified: float = 0.0, recall_success_rate: float = 1.0
+
+ EditLedger — remove consolidation methods, add maintenance methods:
+ - Remove: mark_consolidated(), get_consolidating_edits(), get_stage_counts(), clear_consolidated()
+ - Remove stage param from update_scale()
+ - Add: mark_pruned(edit_id), update_verification(edit_id, recall_rate)
+ - Add: migrate_from_lora_format() — one-time migration of old ledger entries (handle consolidation_stage, fix edits at scale=0.1)
+
+ MemitEngine: Update docstrings. Remove references to LoRA consolidation. reapply_active_edits() stays (needed for process restarts).
+
+ 8. src/memory/health.py — Simplify pressure
+
+ record_sleep(): Change signature to record_sleep(sleep_type, facts_refreshed=0, facts_pruned=0). Re-sync _edit_count from ledger after sleep.
+
+ 9. src/sleep/validator.py — Add PPL validation
+
+ Keep existing evaluate() and validate_sleep().
+
+ Add: validate_ppl(ppl_before, ppl_after, max_increase) → dict for PPL-based validation during maintenance.
+
+ 10. src/config.py — Remove dead properties
+
+ Remove property accessors for lora, nap, rem, dreamer if they exist as explicit properties. The generic config.get() still works for anything.
+
+ Files Unchanged
+
+ - src/sleep/curator.py — still extracts facts from conversations
+ - src/sleep/firewall.py — still validates extracted facts
+ - src/memory/identity.py — still provides PPL reference text
+ - src/wake/ — all wake components unchanged
+ - src/web/ — web server reads progress dicts dynamically, adapts automatically
+ - src/concurrency/ — model lock unchanged
+ - src/memory/session_tracker.py — unchanged
+
+ Ledger Migration
+
+ Existing data/memit/ledger.json has entries with consolidated, scale, consolidation_stage. Migration during first load:
+ - Entries at scale: 0.0 → mark as pruned
+ - Entries at scale: 0.1 (old residual traces) → flag for re-injection at next sleep
+ - Entries at scale: 1.0 → active, no change
+ - Strip consolidation_stage and consolidated fields; add last_verified, recall_success_rate
+
+ Implementation Order
+
+ 1. Config cleanup (config.yaml, src/config.py)
+ 2. Backend cleanup (remove train_lora/fuse_adapter from both backends)
+ 3. Memory layer (simplify MemitEdit/EditLedger, update HealthMonitor, delete replay.py/checkpoints.py)
+ 4. Sleep layer (delete trainer.py/dreamer.py, rewrite full_sleep.py/nap.py)
+ 5. Orchestrator update (remove dead imports/dependencies, simplify construction)
+ 6. Test on H100 with 3B, 8B, 70B
+
+ Verification
+
+ 1. Local (MLX 3B): Inject 5 facts → sleep → verify all still recalled, PPL stable
+ 2. Remote (H100 3B/8B/70B): Run updated test script — inject 20 facts → sleep → measure PPL and recall post-sleep
+ 3. Nap: Inject 3 facts → nap → verify audit report shows healthy
+ 4. Degradation: Manually revert one fact's delta → sleep → verify it gets re-injected
+ 5. Capacity: Set max_active_edits=5, inject 8 facts → sleep → verify oldest pruned
+ 6. Web UI: Verify streaming sleep/nap progress dicts render correctly
