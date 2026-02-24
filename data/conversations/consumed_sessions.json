@@ -1,9 +1,19 @@
 {
   "sessions": [
     {
-      "filename": "session_20260224_015526.jsonl",
+      "filename": "session_20260224_020150.jsonl",
       "consumed_by_cycle": "0001",
-      "consumed_at": 1771898447.847004
+      "consumed_at": 1771898650.04741
+    },
+    {
+      "filename": "session_20260224_020430.jsonl",
+      "consumed_by_cycle": "0002",
+      "consumed_at": 1771898916.322251
+    },
+    {
+      "filename": "session_20260224_020856.jsonl",
+      "consumed_by_cycle": "0003",
+      "consumed_at": 1771899161.367027
     }
   ]
 }

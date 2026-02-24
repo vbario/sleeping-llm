@@ -1,13 +1,13 @@
 [
   {
-    "edit_id": "baf007a5",
+    "edit_id": "03967885",
     "facts": [
       {
-        "subject": "Viktor and",
-        "relation": "is named",
-        "object": "Viktor and",
-        "source_exchange": "My name is Viktor and I live in Portland",
-        "timestamp": 1771898128.67747
+        "subject": "Aria",
+        "relation": "lives in",
+        "object": "Portland",
+        "source_exchange": null,
+        "timestamp": 1771898511.271302
       }
     ],
     "layer_indices": [
@@ -20,20 +20,98 @@
       14,
       15
     ],
-    "timestamp": 1771898132.0634189,
+    "timestamp": 1771898514.120805,
+    "consolidated": false,
+    "scale": 0.1,
+    "consolidation_stage": 2
+  },
+  {
+    "edit_id": "13808e6c",
+    "facts": [
+      {
+        "subject": "Kaito",
+        "relation": "lives in",
+        "object": "Tokyo",
+        "source_exchange": null,
+        "timestamp": 1771898514.760597
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771898517.868654,
+    "consolidated": false,
+    "scale": 0.1,
+    "consolidation_stage": 2
+  },
+  {
+    "edit_id": "de7694e5",
+    "facts": [
+      {
+        "subject": "Zara",
+        "relation": "lives in",
+        "object": "Marrakech",
+        "source_exchange": null,
+        "timestamp": 1771898518.400631
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771898521.573385,
+    "consolidated": false,
+    "scale": 0.1,
+    "consolidation_stage": 1
+  },
+  {
+    "edit_id": "0a82cc4d",
+    "facts": [
+      {
+        "subject": "Finnley",
+        "relation": "lives in",
+        "object": "Dublin",
+        "source_exchange": null,
+        "timestamp": 1771898674.366796
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771898679.202409,
     "consolidated": false,
     "scale": 1.0,
     "consolidation_stage": 0
   },
   {
-    "edit_id": "a9e9f995",
+    "edit_id": "17ca0154",
     "facts": [
       {
-        "subject": "The user",
+        "subject": "Amara",
         "relation": "lives in",
-        "object": "Portland",
-        "source_exchange": "My name is Viktor and I live in Portland",
-        "timestamp": 1771898128.677781
+        "object": "Nairobi",
+        "source_exchange": null,
+        "timestamp": 1771898680.0938911
       }
     ],
     "layer_indices": [
@@ -46,20 +124,72 @@
       14,
       15
     ],
-    "timestamp": 1771898135.845088,
+    "timestamp": 1771898684.700261,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "177ed3a0",
+    "facts": [
+      {
+        "subject": "Leandro",
+        "relation": "lives in",
+        "object": "Buenos Aires",
+        "source_exchange": null,
+        "timestamp": 1771898686.2761831
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771898690.929369,
+    "consolidated": false,
+    "scale": 1.0,
+    "consolidation_stage": 0
+  },
+  {
+    "edit_id": "586b835c",
+    "facts": [
+      {
+        "subject": "Suki",
+        "relation": "lives in",
+        "object": "Kyoto",
+        "source_exchange": null,
+        "timestamp": 1771898939.1412008
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771898943.4079008,
     "consolidated": false,
     "scale": 0.1,
     "consolidation_stage": 1
   },
   {
-    "edit_id": "689063e3",
+    "edit_id": "f42135d7",
     "facts": [
       {
-        "subject": "The user",
-        "relation": "works as",
-        "object": "a marine biologist",
-        "source_exchange": "I work as a marine biologist",
-        "timestamp": 1771898139.99058
+        "subject": "Draven",
+        "relation": "lives in",
+        "object": "Prague",
+        "source_exchange": null,
+        "timestamp": 1771898944.885112
       }
     ],
     "layer_indices": [
@@ -72,20 +202,20 @@
       14,
       15
     ],
-    "timestamp": 1771898143.358695,
+    "timestamp": 1771898949.753999,
     "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 1
+    "scale": 1.0,
+    "consolidation_stage": 0
   },
   {
-    "edit_id": "d6a06b82",
+    "edit_id": "27f705e7",
     "facts": [
       {
-        "subject": "The user",
-        "relation": "'s favorite color is",
-        "object": "teal",
-        "source_exchange": "My favorite color is teal",
-        "timestamp": 1771898148.8354418
+        "subject": "Isolde",
+        "relation": "lives in",
+        "object": "Vienna",
+        "source_exchange": null,
+        "timestamp": 1771898950.421049
       }
     ],
     "layer_indices": [
@@ -98,59 +228,7 @@
       14,
       15
     ],
-    "timestamp": 1771898152.992197,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 1
-  },
-  {
-    "edit_id": "79095bc0",
-    "facts": [
-      {
-        "subject": "The user's dog",
-        "relation": "is named",
-        "object": "Biscuit",
-        "source_exchange": "My dog's name is Biscuit",
-        "timestamp": 1771898184.2824671
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771898188.7569559,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 1
-  },
-  {
-    "edit_id": "1d459eb9",
-    "facts": [
-      {
-        "subject": "The user",
-        "relation": "uses",
-        "object": "Python and Rust",
-        "source_exchange": "I use Python and Rust",
-        "timestamp": 1771898195.213815
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771898199.1655722,
+    "timestamp": 1771898956.047426,
     "consolidated": false,
     "scale": 0.1,
     "consolidation_stage": 1
