@@ -57,7 +57,7 @@ class BackgroundSleepManager:
     @property
     def is_sleeping(self) -> bool:
         with self._lock:
-            return self._state in (SleepState.SLEEPING, SleepState.NAPPING, SleepState.CONSOLIDATING)
+            return self._state in (SleepState.SLEEPING, SleepState.NAPPING, SleepState.MAINTAINING)
 
     @property
     def progress(self) -> list:
@@ -89,7 +89,7 @@ class BackgroundSleepManager:
             True if sleep started, False if already sleeping.
         """
         with self._lock:
-            if self._state in (SleepState.SLEEPING, SleepState.NAPPING, SleepState.CONSOLIDATING):
+            if self._state in (SleepState.SLEEPING, SleepState.NAPPING, SleepState.MAINTAINING):
                 return False
             self._state = SleepState.SLEEPING if sleep_type == "sleep" else SleepState.NAPPING
             self._progress = []
