@@ -1,143 +1,76 @@
 [
   {
-    "edit_id": "2941b00d",
+    "edit_id": "210daab6",
     "facts": [
       {
-        "subject": "Aria",
+        "subject": "Elena Voronov",
         "relation": "lives in",
         "object": "Portland",
         "source_exchange": null,
-        "timestamp": 1771899451.317833
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771899454.1774552,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 2
-  },
-  {
-    "edit_id": "5885db99",
-    "facts": [
+        "timestamp": 1771911608.7199411
+      },
       {
-        "subject": "Kaito",
-        "relation": "lives in",
-        "object": "Tokyo",
+        "subject": "Elena Voronov",
+        "relation": "works as",
+        "object": "marine biologist",
         "source_exchange": null,
-        "timestamp": 1771899454.9751291
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771899458.0738182,
-    "consolidated": false,
-    "scale": 0.0,
-    "consolidation_stage": 2
-  },
-  {
-    "edit_id": "40742ada",
-    "facts": [
+        "timestamp": 1771911608.7199419
+      },
       {
-        "subject": "Zara",
+        "subject": "Marcus Takahashi",
         "relation": "lives in",
-        "object": "Marrakech",
+        "object": "Austin",
         "source_exchange": null,
-        "timestamp": 1771899458.97953
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771899462.246141,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 2
-  },
-  {
-    "edit_id": "5784f180",
-    "facts": [
+        "timestamp": 1771911608.7199419
+      },
       {
-        "subject": "Finnley",
-        "relation": "lives in",
-        "object": "Dublin",
+        "subject": "Marcus Takahashi",
+        "relation": "works as",
+        "object": "architect",
         "source_exchange": null,
-        "timestamp": 1771899622.927144
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771899628.4902542,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 2
-  },
-  {
-    "edit_id": "6e3531f9",
-    "facts": [
+        "timestamp": 1771911608.7199428
+      },
       {
-        "subject": "Amara",
+        "subject": "Priya Lindstr\u00f6m",
         "relation": "lives in",
-        "object": "Nairobi",
+        "object": "Denver",
         "source_exchange": null,
-        "timestamp": 1771899629.2454898
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771899634.14928,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 1
-  },
-  {
-    "edit_id": "1de554ea",
-    "facts": [
+        "timestamp": 1771911608.7199428
+      },
       {
-        "subject": "Leandro",
-        "relation": "lives in",
-        "object": "Buenos Aires",
+        "subject": "Priya Lindstr\u00f6m",
+        "relation": "works as",
+        "object": "violinist",
         "source_exchange": null,
-        "timestamp": 1771899634.86879
+        "timestamp": 1771911608.7199428
+      },
+      {
+        "subject": "Tobias Okafor",
+        "relation": "lives in",
+        "object": "Seattle",
+        "source_exchange": null,
+        "timestamp": 1771911608.7199428
+      },
+      {
+        "subject": "Tobias Okafor",
+        "relation": "works as",
+        "object": "chef",
+        "source_exchange": null,
+        "timestamp": 1771911608.719944
+      },
+      {
+        "subject": "Yuki Petrov",
+        "relation": "lives in",
+        "object": "Boston",
+        "source_exchange": null,
+        "timestamp": 1771911608.719944
+      },
+      {
+        "subject": "Yuki Petrov",
+        "relation": "works as",
+        "object": "photographer",
+        "source_exchange": null,
+        "timestamp": 1771911608.719944
       }
     ],
     "layer_indices": [
@@ -150,20 +83,83 @@
       14,
       15
     ],
-    "timestamp": 1771899639.9585469,
-    "consolidated": false,
+    "timestamp": 1771911665.124609,
     "scale": 1.0,
-    "consolidation_stage": 0
+    "last_verified": 0.0,
+    "recall_success_rate": 1.0
   },
   {
-    "edit_id": "0fec6b39",
+    "edit_id": "0bb84f75",
     "facts": [
       {
-        "subject": "Suki",
+        "subject": "Carlos Navarro",
         "relation": "lives in",
-        "object": "Kyoto",
+        "object": "Nashville",
         "source_exchange": null,
-        "timestamp": 1771899878.451607
+        "timestamp": 1771911608.719944
+      },
+      {
+        "subject": "Carlos Navarro",
+        "relation": "works as",
+        "object": "guitarist",
+        "source_exchange": null,
+        "timestamp": 1771911608.719944
+      },
+      {
+        "subject": "Amara Chen",
+        "relation": "lives in",
+        "object": "Chicago",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Amara Chen",
+        "relation": "works as",
+        "object": "neurosurgeon",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Felix Johansson",
+        "relation": "lives in",
+        "object": "Miami",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Felix Johansson",
+        "relation": "works as",
+        "object": "pilot",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Leila Dubois",
+        "relation": "lives in",
+        "object": "San Diego",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Leila Dubois",
+        "relation": "works as",
+        "object": "ceramicist",
+        "source_exchange": null,
+        "timestamp": 1771911608.719946
+      },
+      {
+        "subject": "Ravi Kowalski",
+        "relation": "lives in",
+        "object": "Philadelphia",
+        "source_exchange": null,
+        "timestamp": 1771911608.719946
+      },
+      {
+        "subject": "Ravi Kowalski",
+        "relation": "works as",
+        "object": "librarian",
+        "source_exchange": null,
+        "timestamp": 1771911608.719946
       }
     ],
     "layer_indices": [
@@ -176,217 +172,9 @@
       14,
       15
     ],
-    "timestamp": 1771899882.992755,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 1
-  },
-  {
-    "edit_id": "2a9b3994",
-    "facts": [
-      {
-        "subject": "Draven",
-        "relation": "lives in",
-        "object": "Prague",
-        "source_exchange": null,
-        "timestamp": 1771899884.476297
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771899888.947312,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 1
-  },
-  {
-    "edit_id": "1506cc0d",
-    "facts": [
-      {
-        "subject": "Isolde",
-        "relation": "lives in",
-        "object": "Vienna",
-        "source_exchange": null,
-        "timestamp": 1771899889.856415
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771899894.665238,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 1
-  },
-  {
-    "edit_id": "7702a583",
-    "facts": [
-      {
-        "subject": "Theron",
-        "relation": "lives in",
-        "object": "Cape Town",
-        "source_exchange": null,
-        "timestamp": 1771900212.807565
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771900219.453293,
-    "consolidated": false,
+    "timestamp": 1771911711.1893902,
     "scale": 1.0,
-    "consolidation_stage": 0
-  },
-  {
-    "edit_id": "5295a0f6",
-    "facts": [
-      {
-        "subject": "Niamh",
-        "relation": "lives in",
-        "object": "Galway",
-        "source_exchange": null,
-        "timestamp": 1771900222.327738
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771900229.219302,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 1
-  },
-  {
-    "edit_id": "d24a97ae",
-    "facts": [
-      {
-        "subject": "Ravi",
-        "relation": "lives in",
-        "object": "Mumbai",
-        "source_exchange": null,
-        "timestamp": 1771900230.545792
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771900238.324573,
-    "consolidated": false,
-    "scale": 0.1,
-    "consolidation_stage": 1
-  },
-  {
-    "edit_id": "634bff43",
-    "facts": [
-      {
-        "subject": "Elara",
-        "relation": "lives in",
-        "object": "Athens",
-        "source_exchange": null,
-        "timestamp": 1771900499.645353
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771900505.2376819,
-    "consolidated": false,
-    "scale": 1.0,
-    "consolidation_stage": 0
-  },
-  {
-    "edit_id": "b9a9ac8c",
-    "facts": [
-      {
-        "subject": "Cassian",
-        "relation": "lives in",
-        "object": "Lisbon",
-        "source_exchange": null,
-        "timestamp": 1771900509.435842
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771900515.733066,
-    "consolidated": false,
-    "scale": 1.0,
-    "consolidation_stage": 0
-  },
-  {
-    "edit_id": "6c081457",
-    "facts": [
-      {
-        "subject": "Yuki",
-        "relation": "lives in",
-        "object": "Osaka",
-        "source_exchange": null,
-        "timestamp": 1771900520.2429981
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1771900526.37165,
-    "consolidated": false,
-    "scale": 1.0,
-    "consolidation_stage": 0
+    "last_verified": 0.0,
+    "recall_success_rate": 1.0
   }
 ]
