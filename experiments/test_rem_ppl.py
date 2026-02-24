@@ -1,29 +1,17 @@
-"""REM PPL Experiment — A/B comparison of SWS-only vs SWS+REM sleep.
+"""MEMIT Sleep Experiment — inject facts, run MEMIT maintenance sleep, measure health.
 
-Hypothesis: REM integration phase trains on multi-fact synthetic conversations,
-which should reduce PPL scaling compared to SWS-only (isolated Q&A pairs that
-double PPL at 20 facts: 6.5->13.3).
+Tests the MEMIT-only sleep pipeline (no LoRA). Replaces the old SWS-only vs SWS+REM
+A/B comparison with a single-condition test of the new 6-step maintenance pipeline.
 
-Design:
-  Condition A (SWS-only):  Deep sleep with REM disabled
-  Condition B (SWS+REM):   Deep sleep with REM enabled
-
-Both conditions: same 20 facts, same teaching messages, same base model,
-same config (only rem.enabled differs).
-
-Measurement points per condition:
+Measurement points:
   0. Baseline (clean model)        -> PPL
   1. After 10 MEMIT facts          -> PPL, recall
   2. After 20 MEMIT facts          -> PPL, recall
-  3. Post deep sleep               -> PPL, recall, sleep result dict
+  3. Post sleep (maintenance)      -> PPL, recall, sleep result dict
 
 Usage:
-    # Full A/B comparison
+    # Full 20-fact test
     python experiments/test_rem_ppl.py --config config.yaml
-
-    # Single condition
-    python experiments/test_rem_ppl.py --config config.yaml --mode sws
-    python experiments/test_rem_ppl.py --config config.yaml --mode rem
 
     # Fewer facts
     python experiments/test_rem_ppl.py --config config.yaml --num-facts 10
@@ -86,7 +74,7 @@ TEACHING_MESSAGES = [
     "Ravi Kowalski lives in Philadelphia and works as a librarian.",
 ]
 
-# Reference texts for perplexity measurement (identical to ablation_perplexity.py)
+# Reference texts for perplexity measurement
 REFERENCE_TEXTS = [
     (
         "The theory of general relativity, proposed by Albert Einstein in 1915, "
@@ -145,66 +133,39 @@ def test_recall(backend, facts):
 
 def clean_artifacts(config):
     """Remove artifacts to ensure clean state."""
-    dirs_to_clean = [
-        config.paths["current_model"],
-        config.paths["checkpoints"],
-        config.paths["adapters"],
-        config.paths["training"],
-        config.paths["conversations"],
-    ]
-    for dir_path in dirs_to_clean:
-        p = Path(dir_path)
-        if p.exists():
-            shutil.rmtree(p)
-        p.mkdir(parents=True, exist_ok=True)
+    # Clean conversation logs
+    conv_dir = Path(config.paths["conversations"])
+    if conv_dir.exists():
+        shutil.rmtree(conv_dir)
+    conv_dir.mkdir(parents=True, exist_ok=True)
 
+    # Clean MEMIT data
     memit_dir = Path(config.paths.get("memit_data", "data/memit"))
     if memit_dir.exists():
         shutil.rmtree(memit_dir)
-        memit_dir.mkdir(parents=True, exist_ok=True)
-
-    ledger_path = Path(config.paths.get("memit_ledger", "data/memit/ledger.json"))
-    if ledger_path.exists():
-        ledger_path.unlink()
+    memit_dir.mkdir(parents=True, exist_ok=True)
 
 
-# ── Core: run one condition ──
+# ── Core: run the experiment ──
 
-def run_condition(config_path, rem_enabled, num_facts):
-    """Run one experimental condition end-to-end.
+def run_experiment(config_path, num_facts):
+    """Run the full MEMIT sleep experiment.
 
     Args:
         config_path: Path to config YAML
-        rem_enabled: Whether to enable REM phase
         num_facts: Total number of facts to inject (split into 2 equal batches)
 
     Returns:
-        dict with condition results and trajectory
+        dict with experiment results and trajectory
     """
-    condition_name = "SWS+REM" if rem_enabled else "SWS-only"
     print(f"\n{'=' * 70}")
-    print(f"  CONDITION: {condition_name} (rem.enabled={rem_enabled})")
+    print(f"  MEMIT SLEEP EXPERIMENT ({num_facts} facts)")
     print(f"{'=' * 70}")
 
     start_time = time.time()
 
-    # 1. Load fresh config and override rem.enabled
+    # 1. Load fresh config
     config = Config(config_path)
-    rem_defaults = {
-        "enabled": rem_enabled,
-        "learning_rate": 5e-5,
-        "epochs": 1,
-        "num_integrations": 10,
-        "temperature": 0.8,
-        "max_ppl_increase": 0.10,
-    }
-    existing = config._data.get("rem", {})
-    if existing is None:
-        existing = {}
-    for k, v in rem_defaults.items():
-        existing.setdefault(k, v)
-    existing["enabled"] = rem_enabled
-    config._data["rem"] = existing
 
     # 2. Clean state + fresh orchestrator
     clean_artifacts(config)
@@ -267,16 +228,15 @@ def run_condition(config_path, rem_enabled, num_facts):
     })
     step += 1
 
-    # 7. Teach via conversation (so sleep has data)
+    # 7. Teach via conversation (so sleep has session data to curate)
     print(f"\n  Teaching via conversation...")
-    # Scale teaching messages to num_facts (one per person)
     num_people = num_facts // 2  # 2 facts per person
     for msg in TEACHING_MESSAGES[:num_people]:
         orch.chat.process_input(msg)
     print(f"  Taught {min(num_people, len(TEACHING_MESSAGES))} messages")
 
-    # 8. Force deep sleep — call execute_sleep directly to capture result dict
-    print(f"\n  Triggering deep sleep (rem.enabled={rem_enabled})...")
+    # 8. Trigger sleep — MEMIT maintenance pipeline
+    print(f"\n  Triggering sleep (MEMIT maintenance)...")
     t0 = time.time()
     sleep_result = None
     sleep_ok = False
@@ -284,7 +244,7 @@ def run_condition(config_path, rem_enabled, num_facts):
         orch.sleep_cycle_count += 1
         cycle_id = f"{orch.sleep_cycle_count:04d}"
         sleep_result = orch.full_sleep_controller.execute_sleep(
-            cycle_id, "deep", orch._gather_new_messages,
+            cycle_id, "full", orch._gather_new_messages,
         )
         sleep_ok = True
         sleep_time = time.time() - t0
@@ -293,35 +253,21 @@ def run_condition(config_path, rem_enabled, num_facts):
     except Exception as e:
         sleep_time = time.time() - t0
         print(f"  Sleep failed: {e}")
+        import traceback
+        traceback.print_exc()
         sleep_result = {"status": "error", "error": str(e)}
 
-    # Replicate _on_sleep_trigger housekeeping
+    # Post-sleep housekeeping
     if sleep_ok:
-        orch.light_sleep_count = 0
-        facts_consolidated = sleep_result.get("facts_consolidated", 0) if sleep_result else 0
-        orch.health_monitor.record_sleep("full", facts_consolidated=facts_consolidated)
+        refreshed = sleep_result.get("facts_refreshed", 0) if sleep_result else 0
+        pruned = sleep_result.get("facts_pruned", 0) if sleep_result else 0
+        orch.health_monitor.record_sleep("full",
+                                          facts_refreshed=refreshed,
+                                          facts_pruned=pruned)
         if orch.context.recent_messages:
             orch.context.compact()
         orch.chat.reset_turn_count()
         orch.context.reset(keep_summary=True)
-    else:
-        # Sleep failed (e.g. REM rollback error) — model may be broken.
-        # Reload base model so we can still measure post-sleep metrics.
-        print("  Reloading base model after sleep failure...")
-        try:
-            orch.backend.reload(config.model["path"])
-            # Re-apply MEMIT edits from in-memory state
-            if orch.memit_engine.enabled and hasattr(orch.backend, "dequantize_layer"):
-                orch.memit_engine._dequantize_target_layers()
-            for edit in list(orch.memit_engine._active_edits):
-                scaled_deltas = {}
-                for layer_idx, delta in edit.layer_deltas.items():
-                    scaled_deltas[layer_idx] = orch.memit_engine._scale_tensor(delta, edit.scale)
-                for layer_idx, scaled_delta in scaled_deltas.items():
-                    orch.memit_engine._apply_delta(layer_idx, scaled_delta)
-            print("  Base model reloaded with MEMIT edits re-applied.")
-        except Exception as reload_err:
-            print(f"  Base model reload also failed: {reload_err}")
 
     # 9. Post-sleep PPL + recall (step 3)
     try:
@@ -348,8 +294,6 @@ def run_condition(config_path, rem_enabled, num_facts):
 
     # 10. Build result
     return {
-        "condition": condition_name,
-        "rem_enabled": rem_enabled,
         "num_facts": num_facts,
         "trajectory": trajectory,
         "baseline_ppl": trajectory[0]["perplexity"],
@@ -362,116 +306,75 @@ def run_condition(config_path, rem_enabled, num_facts):
 
 # ── Main ──
 
-def print_comparison(result_a, result_b):
-    """Print side-by-side comparison table and verdict."""
-    print(f"\n{'=' * 70}")
-    print(f"  COMPARISON: SWS-only vs SWS+REM")
-    print(f"{'=' * 70}")
-
-    baseline_a = result_a["baseline_ppl"]
-    baseline_b = result_b["baseline_ppl"]
-    post_a = result_a["post_sleep_ppl"]
-    post_b = result_b["post_sleep_ppl"]
-    delta_a = post_a - baseline_a
-    delta_b = post_b - baseline_b
-    recall_a = result_a["post_sleep_recall"]
-    recall_b = result_b["post_sleep_recall"]
-
-    print(f"\n  {'Metric':<32} {'SWS-only':>12} {'SWS+REM':>12} {'Delta':>12}")
-    print(f"  {'-' * 32} {'-' * 12} {'-' * 12} {'-' * 12}")
-    print(f"  {'Baseline PPL':<32} {baseline_a:>12.3f} {baseline_b:>12.3f} {baseline_b - baseline_a:>+12.3f}")
-    print(f"  {'Post-sleep PPL':<32} {post_a:>12.3f} {post_b:>12.3f} {post_b - post_a:>+12.3f}")
-    print(f"  {'PPL delta from baseline':<32} {delta_a:>+12.3f} {delta_b:>+12.3f} {delta_b - delta_a:>+12.3f}")
-    print(f"  {'Post-sleep recall':<32} {recall_a:>12.3f} {recall_b:>12.3f} {recall_b - recall_a:>+12.3f}")
-
-    # REM phase details (from treatment condition)
-    rem = result_b.get("sleep_result", {}).get("rem")
-    if rem:
-        print(f"\n  REM Phase Details:")
-        print(f"    Status:       {rem.get('status', 'n/a')}")
-        print(f"    Integrations: {rem.get('integrations', 'n/a')}")
-        sws_ppl = rem.get("sws_ppl")
-        rem_ppl = rem.get("rem_ppl")
-        if sws_ppl is not None:
-            print(f"    SWS PPL:      {sws_ppl:.3f}")
-        if rem_ppl is not None:
-            print(f"    REM PPL:      {rem_ppl:.3f}")
-        recall_rate = rem.get("recall_rate")
-        if recall_rate is not None:
-            print(f"    Recall rate:  {recall_rate:.2f}")
-
-    # Verdict
-    ppl_improved = post_b < post_a
-    recall_maintained = recall_b >= recall_a - 0.10  # allow 10% drop
-
-    print(f"\n  VERDICT:")
-    ppl_yn = "YES" if ppl_improved else "NO"
-    recall_yn = "YES" if recall_maintained else "NO"
-    print(f"    PPL improved:      {ppl_yn} ({post_a:.2f} -> {post_b:.2f})")
-    print(f"    Recall maintained: {recall_yn} ({recall_a:.2f} -> {recall_b:.2f})")
-    print()
-
-
 def main():
-    parser = argparse.ArgumentParser(description="REM PPL Experiment: A/B comparison")
+    parser = argparse.ArgumentParser(description="MEMIT Sleep Experiment")
     parser.add_argument("--config", type=str, required=True, help="Config YAML path")
-    parser.add_argument("--mode", type=str, default="both", choices=["sws", "rem", "both"],
-                        help="Which conditions to run (default: both)")
     parser.add_argument("--num-facts", type=int, default=20, help="Total facts to inject (default: 20)")
     parser.add_argument("--output", type=str, default=None, help="Override output JSON path")
+    # Legacy compat — ignored, single condition now
+    parser.add_argument("--mode", type=str, default="both", help="(ignored, kept for compat)")
     args = parser.parse_args()
 
     print("=" * 70)
-    print("  REM PPL EXPERIMENT")
-    print(f"  Mode: {args.mode} | Facts: {args.num_facts}")
+    print("  MEMIT SLEEP EXPERIMENT")
+    print(f"  Facts: {args.num_facts}")
     print("=" * 70)
 
-    results = {}
     start_time = time.time()
+    result = run_experiment(args.config, num_facts=args.num_facts)
 
-    # Condition A: SWS-only
-    if args.mode in ("sws", "both"):
-        results["sws_only"] = run_condition(args.config, rem_enabled=False, num_facts=args.num_facts)
+    # Print trajectory summary
+    traj = result["trajectory"]
+    print(f"\n  Trajectory:")
+    print(f"  {'Step':>4} {'Event':<24} {'PPL':>8} {'Facts':>6} {'Recall':>8}")
+    print(f"  {'-' * 4} {'-' * 24} {'-' * 8} {'-' * 6} {'-' * 8}")
+    for t in traj:
+        recall_str = f"{t['recall']:.3f}" if t['recall'] is not None else "---"
+        print(f"  {t['step']:>4} {t['event']:<24} {t['perplexity']:>8.3f} "
+              f"{t['total_facts']:>6} {recall_str:>8}")
 
-    # Condition B: SWS+REM
-    if args.mode in ("rem", "both"):
-        results["sws_rem"] = run_condition(args.config, rem_enabled=True, num_facts=args.num_facts)
-
-    # Comparison (if both)
-    if args.mode == "both" and "sws_only" in results and "sws_rem" in results:
-        print_comparison(results["sws_only"], results["sws_rem"])
-
-    # Per-condition summary
-    for key, result in results.items():
-        traj = result["trajectory"]
-        print(f"\n  {result['condition']} Trajectory:")
-        print(f"  {'Step':>4} {'Event':<24} {'PPL':>8} {'Facts':>6} {'Recall':>8}")
-        print(f"  {'-' * 4} {'-' * 24} {'-' * 8} {'-' * 6} {'-' * 8}")
-        for t in traj:
-            recall_str = f"{t['recall']:.3f}" if t['recall'] is not None else "---"
-            print(f"  {t['step']:>4} {t['event']:<24} {t['perplexity']:>8.3f} "
-                  f"{t['total_facts']:>6} {recall_str:>8}")
+    # Sleep result summary
+    sr = result.get("sleep_result", {})
+    if sr:
+        print(f"\n  Sleep Result:")
+        print(f"    Status:     {sr.get('status', 'n/a')}")
+        print(f"    Audited:    {sr.get('audited', 'n/a')}")
+        print(f"    Refreshed:  {sr.get('facts_refreshed', 'n/a')}")
+        print(f"    Pruned:     {sr.get('facts_pruned', 'n/a')}")
+        ppl_before = sr.get('ppl_before')
+        ppl_after = sr.get('ppl_after')
+        if ppl_before is not None:
+            print(f"    PPL:        {ppl_before} → {ppl_after}")
 
     total_elapsed = time.time() - start_time
     print(f"\n  Total time: {total_elapsed:.1f}s ({total_elapsed / 60:.1f} min)")
+
+    # Verdict
+    baseline = result["baseline_ppl"]
+    post = result["post_sleep_ppl"]
+    delta = post - baseline
+    recall = result["post_sleep_recall"]
+    print(f"\n  VERDICT:")
+    print(f"    PPL:    {baseline:.2f} → {post:.2f} ({delta:+.3f}, {delta/baseline*100:+.1f}%)")
+    print(f"    Recall: {recall:.2f}")
+    ppl_ok = "PASS" if delta / baseline < 0.15 else "FAIL"
+    recall_ok = "PASS" if recall >= 0.5 else "FAIL"
+    print(f"    PPL health:   {ppl_ok}")
+    print(f"    Recall check: {recall_ok}")
 
     # Save results
     output_path = Path(args.output) if args.output else Path("experiments/results/test_rem_ppl.json")
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Strip recall_details from trajectory for cleaner JSON (keep top-level only)
-    save_results = {}
-    for key, result in results.items():
-        save_result = dict(result)
-        save_result["trajectory"] = [
-            {k: v for k, v in t.items() if k != "recall_details"}
-            for t in result["trajectory"]
-        ]
-        save_results[key] = save_result
-    save_results["total_elapsed_seconds"] = round(total_elapsed, 1)
+    save_result = dict(result)
+    save_result["trajectory"] = [
+        {k: v for k, v in t.items() if k != "recall_details"}
+        for t in result["trajectory"]
+    ]
+    save_result["total_elapsed_seconds"] = round(total_elapsed, 1)
 
     with open(output_path, "w") as f:
-        json.dump(save_results, f, indent=2, default=str)
+        json.dump(save_result, f, indent=2, default=str)
     print(f"  Results saved to {output_path}")
 
 

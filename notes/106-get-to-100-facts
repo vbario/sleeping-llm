@@ -1,0 +1,153 @@
+Plan: V7 Comprehensive Experiment — Prove Maintenance, Longevity, Nap Audit + 100 Facts on 70B
+
+ Context
+
+ V7 (MEMIT-only sleep) passes on all 3 model sizes with 20 facts. Three claims remain unproven:
+ 1. The maintenance refresh path (revert degraded → re-inject) — code exists but had an inject() bug (now fixed), untested
+ end-to-end
+ 2. Longevity over repeated sleep cycles — only tested 3 cycles × 3 facts on 3B
+ 3. Nap audit catches degradation — never observed in practice
+
+ Additionally, we want to scale to 100 facts on 70B (current max tested: 20 facts at 65% recall with layers [8-23]).
+
+ What We'll Create
+
+ 1. New config: experiments/configs/70b_v7.yaml
+
+ Clean v7 config (no LoRA sections) with optimized layer selection for 100-fact capacity:
+
+ - Target layers: [28, 29, ..., 51] — 24 layers in the middle-to-upper range of 80 total
+   - Layers [36-43] (8 mid layers) got 0.80 recall at 40 facts in prior experiments
+   - Layers [8-23] (16 early layers) got only 0.65 at 20 facts — too early in the network
+   - 24 layers centered on the sweet spot gives 3× the capacity slots
+   - VRAM cost: 24 × ~450MB (dequantized down_proj) = ~10.8GB. Model is ~38GB. Total ~49GB, well within 2×H100 (160GB)
+ - max_active_edits: 120 (headroom for 100 facts across ~20 injection batches)
+ - max_refresh_per_cycle: 20 (higher than default 10, for refreshing degraded facts at scale)
+ - nap_audit_count: 10 (audit more facts per nap to increase detection chances)
+
+ 2. New script: experiments/v7_comprehensive_test.py
+
+ Single script, four sequential phases, clear pass/fail verdicts. Based on test_rem_ppl.py patterns (cleanest v7 script). Uses fact
+  generation from memit_capacity_test.py.
+
+ Four Phases
+
+ Phase 1: Maintenance Refresh (Prove Claim 1)
+
+ Goal: Sleep detects degraded facts → reverts → re-injects → recall restored.
+
+ Protocol:
+ 1. Clean state, baseline PPL
+ 2. Inject 20 facts (batch 1) → measure recall (expect ≥0.80)
+ 3. Inject 20 more facts (batch 2, 40 total) — null-space pressure degrades some batch-1 facts
+ 4. Measure recall on all 40 facts, record which are degraded
+ 5. Trigger full sleep → sleep audits all 40, finds degraded, reverts+re-injects
+ 6. Measure post-sleep recall
+
+ PASS: facts_refreshed > 0 AND post-sleep recall ≥ pre-sleep recall AND overall recall ≥0.50 AND PPL increase <15%. If no
+ degradation occurs at 40, inject a 3rd batch (60 total) and retry.
+
+ Phase 2: Longevity (Prove Claim 2)
+
+ Goal: Multiple inject→sleep cycles without cumulative degradation.
+
+ Protocol: 5 cycles, each:
+ 1. Inject 10 new facts (from fact_pool_500.json)
+ 2. Teach via chat.process_input() (2-3 messages, generates session data for curation)
+ 3. Trigger full sleep
+ 4. Measure: PPL, cumulative recall (all facts so far), oldest-batch recall, newest-batch recall
+
+ After 5 cycles: 50 total facts.
+
+ PASS: Final cumulative recall ≥0.50, PPL within 20% of baseline, oldest-batch recall ≥0.30, no crashes.
+
+ Phase 3: Nap Audit (Prove Claim 3)
+
+ Goal: Nap detects degradation, subsequent sleep fixes it.
+
+ Protocol (interleaved with Phase 2): After each injection but BEFORE sleep, run nap. Record degraded facts. After sleep, verify
+ those facts were refreshed.
+
+ PASS: At least 1 nap detected degradation AND subsequent sleep refreshed it. If no nap catches degradation (system too robust),
+ report as informative negative.
+
+ Phase 4: 100 Facts on 70B (Scaling Goal)
+
+ Goal: ≥50% recall with 100 facts.
+
+ Protocol:
+ 1. Clean state, baseline PPL
+ 2. Inject facts in batches of 5 (from fact_pool_500.json)
+ 3. Every 10 facts: measure recall + PPL
+ 4. At 50 facts: run full sleep (maintenance refresh)
+ 5. Continue injecting to 100 facts
+ 6. At 100 facts: run full sleep
+ 7. Final measurement
+
+ PASS: Recall at 100 facts ≥0.50, PPL increase <20%, no OOM.
+
+ Script Structure
+
+ experiments/v7_comprehensive_test.py
+
+ Usage:
+   python experiments/v7_comprehensive_test.py --config experiments/configs/70b_v7.yaml
+   python experiments/v7_comprehensive_test.py --config ... --phase maintenance
+   python experiments/v7_comprehensive_test.py --config ... --phase longevity
+   python experiments/v7_comprehensive_test.py --config ... --phase scaling
+   python experiments/v7_comprehensive_test.py --config ... --quick  # smoke test
+
+ Key patterns:
+ - clean_artifacts_v7(config) — only cleans v7 paths (conversations, memit_data)
+ - trigger_sleep(orch) — calls full_sleep_controller.execute_sleep() directly (same as test_rem_ppl.py), returns result dict
+ - trigger_nap(orch) — calls nap_controller.execute_nap() directly, returns result dict
+ - Fact generation: reuse generate_facts() from memit_capacity_test.py or load from fact_pool_500.json
+ - Each phase produces a sub-dict in the output JSON with verdict, metrics, and timing
+
+ Output JSON
+
+ {
+   "config": { "model": "...", "layers": [...] },
+   "phase_1_maintenance": { "verdict": "PASS", "facts_refreshed": 4, "recall_pre": 0.72, "recall_post": 0.78, ... },
+   "phase_2_longevity": { "verdict": "PASS", "cycles": 5, "total_facts": 50, "trajectory": [...], ... },
+   "phase_3_nap": { "verdict": "PASS", "degradation_detected": true, "fixed_by_sleep": true, ... },
+   "phase_4_scaling": { "verdict": "PASS", "final_recall": 0.55, "recall_trajectory": [...], ... },
+   "overall_verdict": "PASS (4/4)"
+ }
+
+ Files to Create
+
+ ┌──────────────────────────────────────┬────────────────────────────────────────────┐
+ │                 File                 │                  Purpose                   │
+ ├──────────────────────────────────────┼────────────────────────────────────────────┤
+ │ experiments/configs/70b_v7.yaml      │ Clean v7 config, 24 target layers, no LoRA │
+ ├──────────────────────────────────────┼────────────────────────────────────────────┤
+ │ experiments/v7_comprehensive_test.py │ The experiment script (~400 lines)         │
+ └──────────────────────────────────────┴────────────────────────────────────────────┘
+
+ Files to Update
+
+ ┌─────────────────────────────────┬──────────────────────────────────────────────────────┐
+ │              File               │                        Change                        │
+ ├─────────────────────────────────┼──────────────────────────────────────────────────────┤
+ │ experiments/configs/70b_v7.yaml │ New file (based on 70b_memit.yaml, stripped of LoRA) │
+ └─────────────────────────────────┴──────────────────────────────────────────────────────┘
+
+ No changes to src/ files — the system is working, we're only testing it.
+
+ Timing Estimate (70B on 2×H100)
+
+ - Phase 1 (40 facts + 1 sleep): ~10 min
+ - Phase 2 (50 facts + 5 sleeps): ~30 min
+ - Phase 3 (interleaved with Phase 2): ~5 min extra
+ - Phase 4 (100 facts + 2 sleeps): ~45 min
+ - Total: ~90 min
+
+ Verification
+
+ 1. Write the script + config
+ 2. Smoke test locally on 3B with --quick flag (3 facts, 2 cycles, 10-fact scaling)
+ 3. rsync to H100, run full experiment
+ 4. Inspect JSON output for pass/fail verdicts
+ 5. Save results as experiments/results/v7_comprehensive_70b.json
+ 6. Write findings to notes/103-v7-comprehensive-results

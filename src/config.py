@@ -34,20 +34,8 @@ class Config:
         return self._data["sleep"]
 
     @property
-    def lora(self):
-        return self._data["lora"]
-
-    @property
-    def replay(self):
-        return self._data["replay"]
-
-    @property
     def validation(self):
         return self._data["validation"]
-
-    @property
-    def dreamer(self):
-        return self._data["dreamer"]
 
     @property
     def memit(self):
@@ -60,10 +48,6 @@ class Config:
     @property
     def nap(self):
         return self._data.get("nap", {})
-
-    @property
-    def rem(self):
-        return self._data.get("rem", {})
 
     @property
     def paths(self):

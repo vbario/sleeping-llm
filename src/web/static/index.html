@@ -309,12 +309,6 @@
     <div class="context-bar"><div class="fill" id="context-fill" style="width: 0%"></div></div>
   </div>
 
-  <div class="stat-group">
-    <h3>Replay Buffer</h3>
-    <div class="stat"><span class="label">Items</span><span class="value" id="stat-buffer">0</span></div>
-    <div class="stat"><span class="label">Avg priority</span><span class="value" id="stat-priority">0.00</span></div>
-  </div>
-
   <button class="sleep-btn" id="sleep-btn" onclick="triggerSleep()">Sleep</button>
   <div class="reset-group">
     <button class="reset-btn" id="reset-weights-btn" onclick="resetWeights()">Reset Weights</button>
@@ -466,12 +460,12 @@ function showSleepOverlay() {
   document.getElementById('sleep-dismiss-btn').style.display = 'none';
 
   const stepLabels = [
-    'Pre-sleep evaluation',
-    'Curating training data',
-    'Updating replay buffer',
-    'Dreaming',
-    'Training',
-    'Validating'
+    'Health check',
+    'Curating',
+    'Auditing facts',
+    'Maintenance',
+    'Validating',
+    'Report'
   ];
   stepLabels.forEach((label, i) => {
     const div = document.createElement('div');
@@ -581,7 +575,7 @@ async function resetWeights() {
 
 async function factoryReset() {
   if (streaming || sleeping) return;
-  if (!confirm('FACTORY RESET: This deletes ALL data — weights, training data, replay buffer, and session tracking. Conversation logs are kept. Continue?')) return;
+  if (!confirm('FACTORY RESET: This deletes ALL data — weights, conversations, and MEMIT data. Continue?')) return;
 
   document.getElementById('reset-weights-btn').disabled = true;
   document.getElementById('factory-reset-btn').disabled = true;
@@ -619,10 +613,6 @@ async function refreshStatus() {
       `${data.context_tokens} / ${data.context_max}`;
     document.getElementById('context-fill').style.width = `${data.context_pct}%`;
 
-    const buf = data.replay_buffer || {};
-    document.getElementById('stat-buffer').textContent = buf.count || 0;
-    document.getElementById('stat-priority').textContent =
-      (buf.avg_priority || 0).toFixed(2);
   } catch (err) {
     console.error('Status fetch failed:', err);
   }

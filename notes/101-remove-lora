@@ -1,0 +1,37 @@
+❯ Is it possible that we don't need the LoRA and MEMIT + sleep is the way to go?                                                                              
+                                                                                                                                                              
+⏺ That's a really interesting question. Let me think about what the data is actually telling us.                                                              
+                                                                                                                                                              
+  Looking at the results across all our experiments:
+                                                                                                                                                              
+  MEMIT alone is already doing what we wanted LoRA to do:
+  - 20 facts injected with essentially zero PPL cost at all scales (3B: +0.01, 8B: +0.02, 70B: +0.00)                                                         
+  - 85-90% recall at 20 facts, 100% at 10
+  - Instant injection (no training loop needed)
+  - Cross-batch null-space constraints prevent overwriting old facts
+
+  LoRA consolidation has never reliably worked:
+  - The "alignment tax" means LoRA learns chat-format Q&A but never absorbs raw MEMIT-format facts
+  - 0/20 facts consolidated from MEMIT→LoRA across all sizes in every experiment
+  - The fuse+reload pipeline is fragile (meta device crashes, PPL explosions, version sensitivity)
+  - Even when SWS was "approved" in previous runs, it wasn't actually consolidating facts — it was just not breaking things badly enough to fail validation
+
+  What does sleep actually buy us today?
+  - General capability maintenance (validation Q&A) — but the base model already has this
+  - Dream generation — interesting but not consolidating facts
+  - REM integration — works, but operates on a corrupt post-fuse model
+
+  So the honest answer is: yes, this is probably the right conclusion. The original vision was MEMIT as fast short-term memory that dissolves into LoRA
+  long-term memory during sleep. But MEMIT turns out to be a perfectly good long-term memory on its own. It's near-free at all scales, it persists across
+  sessions (via the ledger), and it doesn't degrade the model.
+
+  The real question becomes: what does "sleep" mean in a MEMIT-only architecture?
+
+  - Covariance re-estimation — as facts accumulate, periodically re-estimate activation covariance so new edits remain clean
+  - Capacity management — at some point (60+ facts on 3B, 400+ on 70B based on our capacity curves) recall starts degrading. Sleep could prune low-priority
+  facts or re-inject important ones with fresh null-space constraints
+  - Health monitoring — PPL drift detection, even if it's not from LoRA but from MEMIT edit accumulation
+  - Replay/rehearsal — periodically testing old facts and re-injecting any that have drifted below threshold
+
+  This would be a much simpler, more robust system. No LoRA training, no adapter fusion, no fuse+reload, no meta device bugs. Just MEMIT edits managed over
+  time with periodic health maintenance.

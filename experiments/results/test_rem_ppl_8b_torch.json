@@ -28,26 +28,26 @@
       {
         "step": 3,
         "event": "post_sleep",
-        "perplexity": 6.564,
+        "perplexity": 5.725,
         "total_facts": 20,
-        "recall": 0.95,
+        "recall": 0.85,
         "sleep_ok": true,
-        "sleep_time": 54.7
+        "sleep_time": 108.6
       }
     ],
     "baseline_ppl": 5.752,
-    "post_sleep_ppl": 6.564,
-    "post_sleep_recall": 0.95,
+    "post_sleep_ppl": 5.725,
+    "post_sleep_recall": 0.85,
     "sleep_result": {
-      "status": "approved",
+      "status": "rejected",
       "pre_score": 1.0,
       "post_score": 1.0,
       "curated_count": 10,
       "memit_facts": 20,
       "facts_consolidated": 0,
-      "elapsed_seconds": 54.7
+      "elapsed_seconds": 108.6
     },
-    "elapsed_seconds": 195.1
+    "elapsed_seconds": 243.1
   },
   "sws_rem": {
     "condition": "SWS+REM",
@@ -73,21 +73,21 @@
         "event": "memit_inject_20",
         "perplexity": 5.725,
         "total_facts": 20,
-        "recall": 0.9
+        "recall": 0.85
       },
       {
         "step": 3,
         "event": "post_sleep",
-        "perplexity": 6.625,
+        "perplexity": 20.377,
         "total_facts": 20,
-        "recall": 1.0,
+        "recall": 0.7,
         "sleep_ok": true,
-        "sleep_time": 101.9
+        "sleep_time": 190.5
       }
     ],
     "baseline_ppl": 5.752,
-    "post_sleep_ppl": 6.625,
-    "post_sleep_recall": 1.0,
+    "post_sleep_ppl": 20.377,
+    "post_sleep_recall": 0.7,
     "sleep_result": {
       "status": "approved",
       "pre_score": 1.0,
@@ -95,16 +95,16 @@
       "curated_count": 10,
       "memit_facts": 20,
       "facts_consolidated": 0,
-      "elapsed_seconds": 101.9,
+      "elapsed_seconds": 190.5,
       "rem": {
         "status": "approved",
-        "integrations": 7,
-        "sws_ppl": 3.71,
-        "rem_ppl": 3.64,
+        "integrations": 6,
+        "sws_ppl": 13.57,
+        "rem_ppl": 4.88,
         "recall_rate": 1.0
       }
     },
-    "elapsed_seconds": 239.9
+    "elapsed_seconds": 289.4
   },
-  "total_elapsed_seconds": 435.1
+  "total_elapsed_seconds": 532.6
 }

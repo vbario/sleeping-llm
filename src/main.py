@@ -49,7 +49,7 @@ def main():
     parser.add_argument(
         "--factory-reset",
         action="store_true",
-        help="Full reset: clear weights, training data, replay buffer",
+        help="Full reset: clear weights, conversations, and MEMIT data",
     )
     parser.add_argument(
         "--disable-memit",

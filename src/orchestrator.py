@@ -1,23 +1,21 @@
 """Orchestrator — the wake/sleep state machine.
 
 Coordinates the full lifecycle:
-  wake (chat) → detect sleep trigger → curate → train → validate → fuse → wake
+  wake (chat) → detect sleep trigger → MEMIT maintenance → wake
 """
 
 import shutil
 from pathlib import Path
 
-from src.memory.checkpoints import CheckpointManager
+from src.concurrency.model_lock import ModelLock
 from src.memory.health import HealthMonitor
 from src.memory.identity import IdentityManager
 from src.memory.memit import EditLedger, MemitEngine
-from src.memory.replay import ReplayBuffer
 from src.memory.session_tracker import SessionTracker
+from src.sleep.background_sleep import BackgroundSleepManager
 from src.sleep.curator import Curator
-from src.sleep.dreamer import Dreamer
 from src.sleep.full_sleep import FullSleepController
 from src.sleep.nap import NapController
-from src.sleep.trainer import SleepTrainer
 from src.sleep.validator import SleepValidator
 from src.wake.chat import Chat
 from src.wake.context import ContextManager
@@ -31,7 +29,6 @@ class Orchestrator:
     def __init__(self, config, disable_memit=False):
         self.config = config
         self.sleep_cycle_count = 0
-        self.light_sleep_count = 0
         self.nap_cycle_count = 0
 
         # Initialize backend
@@ -46,6 +43,11 @@ class Orchestrator:
         self.backend.load()
         print("Model loaded.")
 
+        # Initialize concurrency components
+        self.model_lock = ModelLock()
+        self.backend.model_lock = self.model_lock  # Enable lock-aware generate/reload
+        self.background_sleep = BackgroundSleepManager(self.model_lock)
+
         # Initialize wake components
         self.logger = ConversationLogger(config)
         self.context = ContextManager(config, self.backend)
@@ -55,11 +57,7 @@ class Orchestrator:
 
         # Initialize sleep components
         self.curator = Curator(config, self.backend)
-        self.replay_buffer = ReplayBuffer(config)
-        self.trainer = SleepTrainer(config, self.backend, self.replay_buffer)
         self.validator = SleepValidator(config, self.backend)
-        self.dreamer = Dreamer(config, self.backend)
-        self.checkpoints = CheckpointManager(config)
         self.identity = IdentityManager(config, self.backend)
         self.session_tracker = SessionTracker(config)
 
@@ -75,14 +73,12 @@ class Orchestrator:
 
         # Initialize nap and full sleep controllers
         self.nap_controller = NapController(
-            config, self.backend, self.memit_engine,
-            self.edit_ledger, self.replay_buffer, self.curator,
+            config, self.backend, self.memit_engine, self.edit_ledger,
         )
         self.full_sleep_controller = FullSleepController(
             config, self.backend, self.memit_engine, self.edit_ledger,
-            self.curator, self.trainer, self.replay_buffer, self.dreamer,
-            self.validator, self.checkpoints, self.session_tracker,
-            self.health_monitor,
+            self.curator, self.validator, self.session_tracker,
+            self.health_monitor, self.fact_extractor,
         )
 
         # Reload persisted MEMIT edits (survives process restarts)
@@ -93,6 +89,7 @@ class Orchestrator:
         self.chat.set_memit_components(
             self.fact_extractor, self.memit_engine, self.health_monitor,
         )
+        self.chat._background_sleep = self.background_sleep
 
         # Seed identity data if first run
         self.identity.seed_defaults()
@@ -168,30 +165,27 @@ class Orchestrator:
     def trigger_sleep_web(self):
         """Trigger sleep and yield progress dicts for each step."""
         self.sleep_cycle_count += 1
-        self.light_sleep_count += 1
         cycle_id = f"{self.sleep_cycle_count:04d}"
 
-        deep_interval = self.config.sleep["deep_sleep_interval"]
-        is_deep = self.light_sleep_count >= deep_interval
-        sleep_type = "deep" if is_deep else "light"
-
-        # Collect consolidation results from the streaming pipeline
-        facts_consolidated = 0
+        facts_refreshed = 0
+        facts_pruned = 0
         try:
             for progress in self.full_sleep_controller.execute_sleep_streaming(
-                cycle_id, sleep_type, self._gather_new_messages,
+                cycle_id, "full", self._gather_new_messages,
             ):
-                if isinstance(progress, dict) and "facts_consolidated" in progress:
-                    facts_consolidated = progress["facts_consolidated"]
+                if isinstance(progress, dict):
+                    if "facts_refreshed" in progress:
+                        facts_refreshed = progress["facts_refreshed"]
+                    if "facts_pruned" in progress:
+                        facts_pruned = progress["facts_pruned"]
                 yield progress
         except Exception as e:
-            yield {"step": 0, "total": 7, "label": "Error", "status": "error", "detail": str(e)}
+            yield {"step": 0, "total": 6, "label": "Error", "status": "error", "detail": str(e)}
             return
 
-        if is_deep:
-            self.light_sleep_count = 0
-
-        self.health_monitor.record_sleep("full", facts_consolidated=facts_consolidated)
+        self.health_monitor.record_sleep("full",
+                                          facts_refreshed=facts_refreshed,
+                                          facts_pruned=facts_pruned)
 
         if self.context.recent_messages:
             self.context.compact()
@@ -200,7 +194,7 @@ class Orchestrator:
         self.logger = ConversationLogger(self.config)
         self.chat.logger = self.logger
 
-        yield {"step": 8, "total": 7, "label": "Awake", "status": "done", "detail": "Memories integrated"}
+        yield {"step": 7, "total": 6, "label": "Awake", "status": "done", "detail": "Memories maintained"}
 
     def trigger_nap_web(self):
         """Trigger nap and yield progress dicts for each step."""
@@ -210,18 +204,89 @@ class Orchestrator:
         try:
             yield from self.nap_controller.execute_nap_streaming(cycle_id)
         except Exception as e:
-            yield {"step": 0, "total": 4, "label": "Error", "status": "error", "detail": str(e)}
+            yield {"step": 0, "total": 2, "label": "Error", "status": "error", "detail": str(e)}
             return
 
-        self.health_monitor.record_sleep("nap", facts_consolidated=0)
+        self.health_monitor.record_sleep("nap")
 
         yield {"step": 3, "total": 2, "label": "Awake", "status": "done", "detail": "Nap complete"}
+
+    def trigger_sleep_background(self, callback=None):
+        """Trigger sleep in a background thread (non-blocking).
+
+        Chat continues during sleep. Model access is synchronized via read-write lock.
+
+        Args:
+            callback: Optional function called when sleep completes.
+
+        Returns:
+            True if sleep started, False if already sleeping.
+        """
+        if self.background_sleep.is_sleeping:
+            return False
+
+        self.sleep_cycle_count += 1
+        cycle_id = f"{self.sleep_cycle_count:04d}"
+
+        def sleep_generator():
+            yield from self.full_sleep_controller.execute_sleep_streaming(
+                cycle_id, "full", self._gather_new_messages,
+            )
+
+        def on_complete(result):
+            refreshed = result.get("facts_refreshed", 0) if result else 0
+            pruned = result.get("facts_pruned", 0) if result else 0
+            self.health_monitor.record_sleep("full",
+                                              facts_refreshed=refreshed,
+                                              facts_pruned=pruned)
+            if self.context.recent_messages:
+                self.context.compact()
+            self.chat.reset_turn_count()
+            self.context.reset(keep_summary=True)
+            self.logger = ConversationLogger(self.config)
+            self.chat.logger = self.logger
+            if callback:
+                callback(result)
+
+        return self.background_sleep.start_sleep(
+            sleep_generator, on_complete, sleep_type="sleep",
+        )
+
+    def trigger_nap_background(self, callback=None):
+        """Trigger nap in a background thread (non-blocking).
+
+        Args:
+            callback: Optional function called when nap completes.
+
+        Returns:
+            True if nap started, False if already sleeping.
+        """
+        if self.background_sleep.is_sleeping:
+            return False
+
+        self.nap_cycle_count += 1
+        cycle_id = f"nap_{self.nap_cycle_count:04d}"
+
+        def nap_generator():
+            yield from self.nap_controller.execute_nap_streaming(cycle_id)
+
+        def on_complete(result):
+            self.health_monitor.record_sleep("nap")
+            if callback:
+                callback(result)
+
+        return self.background_sleep.start_sleep(
+            nap_generator, on_complete, sleep_type="nap",
+        )
+
+    def get_sleep_state(self):
+        """Return current background sleep state."""
+        return self.background_sleep.to_dict()
 
     def get_status(self):
         """Return current system status as a dict."""
         token_count = self.context.get_token_count()
         max_tokens = self.context.max_tokens
-        buffer_stats = self.replay_buffer.stats()
         return {
             "session_id": self.logger.session_id,
             "turn_count": self.chat.turn_count,
@@ -230,7 +295,6 @@ class Orchestrator:
             "context_pct": round((token_count / max_tokens) * 100, 1) if max_tokens else 0,
             "has_summary": self.context.summary is not None,
             "messages_in_context": len(self.context.recent_messages),
-            "replay_buffer": buffer_stats,
             "sleep_cycles": self.sleep_cycle_count,
             "nap_cycles": self.nap_cycle_count,
             "model": self.config.model["path"],
@@ -239,9 +303,10 @@ class Orchestrator:
             "memit_enabled": self.memit_engine.enabled,
             "memit_edits": self.memit_engine.get_active_edit_count(),
             "memit_facts": self.memit_engine.get_active_fact_count(),
-            "memit_stages": self.edit_ledger.get_stage_counts(),
             "sleep_pressure": round(self.health_monitor.get_sleep_pressure(), 3),
             "health": self.health_monitor.to_dict(),
+            "background_sleep": self.background_sleep.to_dict(),
+            "model_lock": self.model_lock.stats(),
         }
 
     def get_current_messages(self):
@@ -249,34 +314,16 @@ class Orchestrator:
         return self.logger.get_session_messages()
 
     def reset_weights(self):
-        """Reset model to base weights. Clears current model, checkpoints, and MEMIT edits."""
-        # Clear MEMIT edits first (before model reload)
+        """Reset model to base weights. Reverts all MEMIT edits and clears ledger."""
+        # Clear MEMIT edits (reverts weight deltas in memory)
         self.memit_engine.revert_all_active()
         self.edit_ledger.clear_all()
-
-        # Delete current model
-        current_dir = Path(self.config.paths["current_model"])
-        if current_dir.exists():
-            shutil.rmtree(current_dir)
-
-        # Delete checkpoints
-        checkpoints_dir = Path(self.config.paths["checkpoints"])
-        if checkpoints_dir.exists():
-            shutil.rmtree(checkpoints_dir)
-            checkpoints_dir.mkdir(parents=True, exist_ok=True)
-
-        # Delete adapters
-        adapters_dir = Path(self.config.paths["adapters"])
-        if adapters_dir.exists():
-            shutil.rmtree(adapters_dir)
-            adapters_dir.mkdir(parents=True, exist_ok=True)
 
         # Reload base model
         self.backend.reload(self.config.model["path"])
 
         # Reset counters
         self.sleep_cycle_count = 0
-        self.light_sleep_count = 0
         self.nap_cycle_count = 0
         self.chat.reset_turn_count()
         self.context.reset(keep_summary=False)
@@ -284,21 +331,9 @@ class Orchestrator:
         return {"status": "ok", "message": "Weights reset to base model"}
 
     def factory_reset(self):
-        """Full reset — weights, training data, replay buffer, sessions manifest, MEMIT data."""
+        """Full reset — weights, conversations, and MEMIT data."""
         # Reset weights first (also clears MEMIT edits)
         self.reset_weights()
-
-        # Delete training data
-        training_dir = Path(self.config.paths["training"])
-        if training_dir.exists():
-            shutil.rmtree(training_dir)
-            training_dir.mkdir(parents=True, exist_ok=True)
-
-        # Delete replay buffer
-        replay_dir = Path(self.config.paths["replay_buffer"])
-        if replay_dir.exists():
-            shutil.rmtree(replay_dir)
-            replay_dir.mkdir(parents=True, exist_ok=True)
 
         # Delete conversation logs
         conversations_dir = Path(self.config.paths["conversations"])
@@ -323,33 +358,27 @@ class Orchestrator:
     def _on_sleep_trigger(self, trigger_type):
         """Called when a sleep cycle should begin."""
         self.sleep_cycle_count += 1
-        self.light_sleep_count += 1
         cycle_id = f"{self.sleep_cycle_count:04d}"
 
-        # Determine sleep depth
-        deep_interval = self.config.sleep["deep_sleep_interval"]
-        is_deep = self.light_sleep_count >= deep_interval
-
-        sleep_type = "deep" if is_deep else "light"
         print(f"\n{'=' * 40}")
-        print(f"  Entering {sleep_type} sleep (cycle {cycle_id})...")
+        print(f"  Entering sleep (cycle {cycle_id})...")
         print(f"  Trigger: {trigger_type}")
         print(f"{'=' * 40}\n")
 
         try:
             result = self.full_sleep_controller.execute_sleep(
-                cycle_id, sleep_type, self._gather_new_messages,
+                cycle_id, "full", self._gather_new_messages,
             )
         except Exception as e:
             print(f"  Sleep cycle failed: {e}")
             print("  Continuing with current model.\n")
             return
 
-        if is_deep:
-            self.light_sleep_count = 0
-
-        facts_consolidated = result.get("facts_consolidated", 0) if result else 0
-        self.health_monitor.record_sleep("full", facts_consolidated=facts_consolidated)
+        refreshed = result.get("facts_refreshed", 0) if result else 0
+        pruned = result.get("facts_pruned", 0) if result else 0
+        self.health_monitor.record_sleep("full",
+                                          facts_refreshed=refreshed,
+                                          facts_pruned=pruned)
 
         # Compact context before resetting so summary survives into next wake phase
         if self.context.recent_messages:
@@ -362,7 +391,7 @@ class Orchestrator:
         self.chat.logger = self.logger
 
         print(f"\n{'=' * 40}")
-        print(f"  Awake. Memories integrated.")
+        print(f"  Awake. Memories maintained.")
         print(f"{'=' * 40}\n")
 
     def _on_nap_trigger(self, trigger_type):
@@ -378,14 +407,14 @@ class Orchestrator:
         try:
             result = self.nap_controller.execute_nap(cycle_id)
             print(f"  Nap result: {result['status']}")
-            if result.get("facts_consolidated"):
-                print(f"  Facts consolidated: {result['facts_consolidated']}/{result['facts_total']}")
+            if result.get("degraded"):
+                print(f"  Degraded facts: {result['degraded']}/{result['audited']}")
         except Exception as e:
             print(f"  Nap failed: {e}")
             print("  Continuing with current model.\n")
             return
 
-        self.health_monitor.record_sleep("nap", facts_consolidated=0)
+        self.health_monitor.record_sleep("nap")
 
         print(f"\n{'=' * 40}")
         print(f"  Awake. Nap complete.")

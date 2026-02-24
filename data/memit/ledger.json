@@ -1,0 +1,180 @@
+[
+  {
+    "edit_id": "210daab6",
+    "facts": [
+      {
+        "subject": "Elena Voronov",
+        "relation": "lives in",
+        "object": "Portland",
+        "source_exchange": null,
+        "timestamp": 1771911608.7199411
+      },
+      {
+        "subject": "Elena Voronov",
+        "relation": "works as",
+        "object": "marine biologist",
+        "source_exchange": null,
+        "timestamp": 1771911608.7199419
+      },
+      {
+        "subject": "Marcus Takahashi",
+        "relation": "lives in",
+        "object": "Austin",
+        "source_exchange": null,
+        "timestamp": 1771911608.7199419
+      },
+      {
+        "subject": "Marcus Takahashi",
+        "relation": "works as",
+        "object": "architect",
+        "source_exchange": null,
+        "timestamp": 1771911608.7199428
+      },
+      {
+        "subject": "Priya Lindstr\u00f6m",
+        "relation": "lives in",
+        "object": "Denver",
+        "source_exchange": null,
+        "timestamp": 1771911608.7199428
+      },
+      {
+        "subject": "Priya Lindstr\u00f6m",
+        "relation": "works as",
+        "object": "violinist",
+        "source_exchange": null,
+        "timestamp": 1771911608.7199428
+      },
+      {
+        "subject": "Tobias Okafor",
+        "relation": "lives in",
+        "object": "Seattle",
+        "source_exchange": null,
+        "timestamp": 1771911608.7199428
+      },
+      {
+        "subject": "Tobias Okafor",
+        "relation": "works as",
+        "object": "chef",
+        "source_exchange": null,
+        "timestamp": 1771911608.719944
+      },
+      {
+        "subject": "Yuki Petrov",
+        "relation": "lives in",
+        "object": "Boston",
+        "source_exchange": null,
+        "timestamp": 1771911608.719944
+      },
+      {
+        "subject": "Yuki Petrov",
+        "relation": "works as",
+        "object": "photographer",
+        "source_exchange": null,
+        "timestamp": 1771911608.719944
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771911665.124609,
+    "scale": 1.0,
+    "last_verified": 0.0,
+    "recall_success_rate": 1.0
+  },
+  {
+    "edit_id": "0bb84f75",
+    "facts": [
+      {
+        "subject": "Carlos Navarro",
+        "relation": "lives in",
+        "object": "Nashville",
+        "source_exchange": null,
+        "timestamp": 1771911608.719944
+      },
+      {
+        "subject": "Carlos Navarro",
+        "relation": "works as",
+        "object": "guitarist",
+        "source_exchange": null,
+        "timestamp": 1771911608.719944
+      },
+      {
+        "subject": "Amara Chen",
+        "relation": "lives in",
+        "object": "Chicago",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Amara Chen",
+        "relation": "works as",
+        "object": "neurosurgeon",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Felix Johansson",
+        "relation": "lives in",
+        "object": "Miami",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Felix Johansson",
+        "relation": "works as",
+        "object": "pilot",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Leila Dubois",
+        "relation": "lives in",
+        "object": "San Diego",
+        "source_exchange": null,
+        "timestamp": 1771911608.719945
+      },
+      {
+        "subject": "Leila Dubois",
+        "relation": "works as",
+        "object": "ceramicist",
+        "source_exchange": null,
+        "timestamp": 1771911608.719946
+      },
+      {
+        "subject": "Ravi Kowalski",
+        "relation": "lives in",
+        "object": "Philadelphia",
+        "source_exchange": null,
+        "timestamp": 1771911608.719946
+      },
+      {
+        "subject": "Ravi Kowalski",
+        "relation": "works as",
+        "object": "librarian",
+        "source_exchange": null,
+        "timestamp": 1771911608.719946
+      }
+    ],
+    "layer_indices": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "timestamp": 1771911711.1893902,
+    "scale": 1.0,
+    "last_verified": 0.0,
+    "recall_success_rate": 1.0
+  }
+]

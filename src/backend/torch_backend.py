@@ -1,16 +1,13 @@
-"""PyTorch backend — wraps HuggingFace transformers + PEFT for inference, training, and adapter fusion.
+"""PyTorch backend — wraps HuggingFace transformers for inference and MEMIT weight editing.
 
 Drop-in replacement for MLXBackend. Uses bfloat16 on CUDA GPUs.
 """
 
-import json
 import os
 import threading
-from pathlib import Path
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TextIteratorStreamer, BitsAndBytesConfig
-from peft import LoraConfig, get_peft_model, PeftModel, prepare_model_for_kbit_training
 
 
 class TorchBackend:
@@ -22,6 +19,7 @@ class TorchBackend:
         self.tokenizer = None
         self._model_path = None
         self._device = "cuda" if torch.cuda.is_available() else "cpu"
+        self.model_lock = None  # Set by orchestrator for non-blocking sleep
 
     def load(self, model_path=None):
         """Load model and tokenizer from disk or HuggingFace hub."""
@@ -62,27 +60,65 @@ class TorchBackend:
         return self
 
     def _resolve_model_path(self):
-        """Determine which model to load: current (post-sleep) or base."""
-        current = self.config.paths["current_model"]
-        if os.path.exists(current) and os.listdir(current):
-            print(f"  Loading from models/current/ (post-sleep model)")
-            return current
+        """Always load from the base model (MEMIT edits are re-applied in memory)."""
         base = self.config.model["path"]
         print(f"  Loading from base: {base}")
         return base
 
     def generate(self, prompt, max_tokens=None, temperature=None, top_p=None):
-        """Generate text from a prompt string."""
+        """Generate text from a prompt string.
+
+        Acquires a read lock if model_lock is set (non-blocking sleep mode).
+        """
         max_tokens = max_tokens or self.config.model["max_tokens"]
         temperature = temperature or self.config.model["temperature"]
         top_p = top_p or self.config.model["top_p"]
         repetition_penalty = self.config.model.get("repetition_penalty", 1.1)
 
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
-        input_len = inputs["input_ids"].shape[1]
+        def _do_generate():
+            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+            input_len = inputs["input_ids"].shape[1]
 
-        with torch.no_grad():
-            outputs = self.model.generate(
+            with torch.no_grad():
+                outputs = self.model.generate(
+                    **inputs,
+                    max_new_tokens=max_tokens,
+                    temperature=temperature,
+                    top_p=top_p,
+                    repetition_penalty=repetition_penalty,
+                    do_sample=True,
+                    pad_token_id=self.tokenizer.pad_token_id,
+                )
+
+            # Decode only the new tokens
+            new_tokens = outputs[0][input_len:]
+            return self.tokenizer.decode(new_tokens, skip_special_tokens=True)
+
+        if self.model_lock:
+            with self.model_lock.read_lock():
+                return _do_generate()
+        return _do_generate()
+
+    def generate_stream(self, prompt, max_tokens=None, temperature=None, top_p=None):
+        """Generate text with streaming. Yields token strings incrementally.
+
+        Acquires a read lock if model_lock is set (non-blocking sleep mode).
+        """
+        max_tokens = max_tokens or self.config.model["max_tokens"]
+        temperature = temperature or self.config.model["temperature"]
+        top_p = top_p or self.config.model["top_p"]
+        repetition_penalty = self.config.model.get("repetition_penalty", 1.1)
+
+        def _do_stream():
+            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+
+            streamer = TextIteratorStreamer(
+                self.tokenizer,
+                skip_prompt=True,
+                skip_special_tokens=True,
+            )
+
+            generation_kwargs = dict(
                 **inputs,
                 max_new_tokens=max_tokens,
                 temperature=temperature,
@@ -90,47 +126,24 @@ class TorchBackend:
                 repetition_penalty=repetition_penalty,
                 do_sample=True,
                 pad_token_id=self.tokenizer.pad_token_id,
+                streamer=streamer,
             )
 
-        # Decode only the new tokens
-        new_tokens = outputs[0][input_len:]
-        return self.tokenizer.decode(new_tokens, skip_special_tokens=True)
+            # Run generation in a background thread so we can yield tokens
+            thread = threading.Thread(target=self.model.generate, kwargs=generation_kwargs)
+            thread.start()
 
-    def generate_stream(self, prompt, max_tokens=None, temperature=None, top_p=None):
-        """Generate text with streaming. Yields token strings incrementally."""
-        max_tokens = max_tokens or self.config.model["max_tokens"]
-        temperature = temperature or self.config.model["temperature"]
-        top_p = top_p or self.config.model["top_p"]
-        repetition_penalty = self.config.model.get("repetition_penalty", 1.1)
+            for text in streamer:
+                if text:
+                    yield text
 
-        inputs = self.tokenizer(prompt, return_tensors="pt").to(self.model.device)
+            thread.join()
 
-        streamer = TextIteratorStreamer(
-            self.tokenizer,
-            skip_prompt=True,
-            skip_special_tokens=True,
-        )
-
-        generation_kwargs = dict(
-            **inputs,
-            max_new_tokens=max_tokens,
-            temperature=temperature,
-            top_p=top_p,
-            repetition_penalty=repetition_penalty,
-            do_sample=True,
-            pad_token_id=self.tokenizer.pad_token_id,
-            streamer=streamer,
-        )
-
-        # Run generation in a background thread so we can yield tokens
-        thread = threading.Thread(target=self.model.generate, kwargs=generation_kwargs)
-        thread.start()
-
-        for text in streamer:
-            if text:
-                yield text
-
-        thread.join()
+        if self.model_lock:
+            with self.model_lock.read_lock():
+                yield from _do_stream()
+        else:
+            yield from _do_stream()
 
     def apply_chat_template(self, messages, for_training=False):
         """Convert a list of message dicts to a formatted prompt string."""
@@ -161,144 +174,6 @@ class TorchBackend:
     def tokenize(self, text):
         """Tokenize text and return token IDs."""
         return self.tokenizer.encode(text)
-
-    def train_lora(self, data_path, adapter_path, epochs=None, learning_rate=None):
-        """Run LoRA fine-tuning using PEFT.
-
-        Args:
-            data_path: Directory containing train.jsonl (and optionally valid.jsonl)
-            adapter_path: Where to save the LoRA adapter
-            epochs: Number of passes over the data
-            learning_rate: Override config learning rate
-        """
-        epochs = epochs or self.config.lora["light_epochs"]
-        learning_rate = learning_rate or self.config.lora["light_learning_rate"]
-        lora_rank = self.config.lora["rank"]
-        lora_alpha = self.config.lora["alpha"]
-        lora_layers = self.config.lora["layers"]
-        batch_size = self.config.lora["batch_size"]
-
-        # Load training data
-        train_file = Path(data_path) / "train.jsonl"
-        train_texts = []
-        if train_file.exists():
-            with open(train_file) as f:
-                for line in f:
-                    line = line.strip()
-                    if line:
-                        item = json.loads(line)
-                        train_texts.append(item["text"])
-
-        if not train_texts:
-            return adapter_path
-
-        # Determine target modules based on model architecture
-        target_modules = self._get_target_modules(lora_layers)
-
-        # Configure LoRA
-        lora_config = LoraConfig(
-            r=lora_rank,
-            lora_alpha=lora_alpha,
-            target_modules=target_modules,
-            lora_dropout=0.05,
-            bias="none",
-            task_type="CAUSAL_LM",
-        )
-
-        # Prepare quantized model for training if needed.
-        # Use enable_input_require_grads() instead of prepare_model_for_kbit_training()
-        # to avoid converting layernorms to float32, which corrupts generation if
-        # training fails (produces garbage tokens like "import A# def1").
-        if self._quantized:
-            self.model.enable_input_require_grads()
-
-        # Wrap model with LoRA
-        self.model.train()
-        peft_model = get_peft_model(self.model, lora_config)
-
-        # Print trainable parameters
-        trainable = sum(p.numel() for p in peft_model.parameters() if p.requires_grad)
-        total = sum(p.numel() for p in peft_model.parameters())
-        print(f"        LoRA params: {trainable:,} trainable / {total:,} total ({100*trainable/total:.2f}%)")
-
-        try:
-            # Training loop
-            # foreach=False: disable fused multi-tensor ops which require all params
-            # on the same device. With device_map="auto" on multi-GPU, LoRA adapters
-            # live on different devices (cuda:0, cuda:1, etc.).
-            optimizer = torch.optim.AdamW(
-                peft_model.parameters(),
-                lr=learning_rate,
-                weight_decay=0.01,
-                foreach=False,
-            )
-
-            total_steps = len(train_texts) * epochs
-            step = 0
-
-            # For multi-GPU dispatched models, peft_model.device may be unreliable.
-            # Use the embedding layer's device since that's where inputs enter.
-            try:
-                input_device = next(peft_model.base_model.model.model.embed_tokens.parameters()).device
-            except (AttributeError, StopIteration):
-                input_device = next(peft_model.parameters()).device
-
-            for epoch in range(epochs):
-                epoch_loss = 0.0
-                for text in train_texts:
-                    tokens = self.tokenizer(
-                        text,
-                        return_tensors="pt",
-                        truncation=True,
-                        max_length=2048,
-                        padding=False,
-                    ).to(input_device)
-
-                    # Causal LM: labels = input_ids (shifted internally by the model)
-                    outputs = peft_model(**tokens, labels=tokens["input_ids"])
-                    loss = outputs.loss
-
-                    loss.backward()
-                    optimizer.step()
-                    optimizer.zero_grad()
-
-                    epoch_loss += loss.item()
-                    step += 1
-
-                avg_loss = epoch_loss / max(len(train_texts), 1)
-                print(f"        Epoch {epoch+1}/{epochs}: loss={avg_loss:.4f} ({step}/{total_steps} steps)")
-
-            # Save adapter
-            os.makedirs(adapter_path, exist_ok=True)
-            peft_model.save_pretrained(adapter_path)
-
-            # Unwrap back to base model for inference
-            self.model = peft_model.merge_and_unload()
-
-        except Exception as e:
-            print(f"        LoRA training error: {e}")
-            # Unwrap PEFT without merging to restore original weights
-            self.model = peft_model.unload()
-            raise
-
-        finally:
-            self.model.eval()
-
-        return adapter_path
-
-    def fuse_adapter(self, adapter_path, save_path):
-        """Merge a LoRA adapter into the model and save."""
-        os.makedirs(save_path, exist_ok=True)
-
-        # Load adapter onto the current model
-        peft_model = PeftModel.from_pretrained(self.model, adapter_path)
-        merged = peft_model.merge_and_unload()
-
-        # Save merged model
-        merged.save_pretrained(save_path)
-        self.tokenizer.save_pretrained(save_path)
-
-        return save_path
 
     # --- Layer-level access for MEMIT ---
 
@@ -573,34 +448,22 @@ class TorchBackend:
         return math.exp(neg_log_likelihood)
 
     def reload(self, model_path=None):
-        """Reload model (e.g. after fusing a new adapter)."""
-        # Free GPU memory
-        if self.model is not None:
-            del self.model
-            torch.cuda.empty_cache()
-        self.model = None
-        self.tokenizer = None
-        self.load(model_path)
+        """Reload model (e.g. after fusing a new adapter).
 
-    def _get_target_modules(self, num_layers):
-        """Determine which layers to apply LoRA to.
-
-        Targets attention projection matrices in the last N transformer layers.
-        Works with Llama, Mistral, and similar architectures.
+        Acquires a write lock if model_lock is set (non-blocking sleep mode).
         """
-        # Standard target modules for Llama-style models
-        # PEFT handles layer selection via layers_to_transform
-        target_modules = ["q_proj", "v_proj", "k_proj", "o_proj"]
+        def _do_reload():
+            # Free GPU memory
+            if self.model is not None:
+                del self.model
+                torch.cuda.empty_cache()
+            self.model = None
+            self.tokenizer = None
+            self.load(model_path)
 
-        # Get total number of layers in the model
-        if hasattr(self.model, "config"):
-            total_layers = getattr(self.model.config, "num_hidden_layers", 32)
+        if self.model_lock:
+            with self.model_lock.write_lock():
+                _do_reload()
         else:
-            total_layers = 32
+            _do_reload()
 
-        # We'll target the last N layers by using layers_to_transform in LoraConfig
-        # But PEFT's LoraConfig handles this differently — we set target_modules
-        # and it applies to all layers. For layer-specific LoRA, we'd need
-        # layers_to_transform. For now, target all layers (standard approach on GPU
-        # where memory isn't as constrained as on Apple Silicon).
-        return target_modules

@@ -1,0 +1,216 @@
+ Next Advancements: 5 Items for Sleeping LLM v5         
+
+ Context
+
+ Paper v4 is published. The novelty analysis confirms no prior system combines MEMIT + LoRA + sleep/wake on real LLMs. The paper identifies 5 open problems
+ (RAG comparison deferred). This plan sequences the implementation work for each.
+
+ Implementation Order: 1 → 4 → 2 → 3 → 5
+
+ ---
+ Item 1: Raw-Completion Training Pairs for LoRA [Size: S]
+
+ Problem: LoRA only trains on chat-template Q&A. MEMIT edits the raw-completion pathway. After sleep, chat recall works but raw recall fails — the "pathway
+ gap."
+
+ Fix: Also generate raw-completion training pairs so LoRA consolidates into both pathways.
+
+ Files to modify:
+ - src/memory/memit.py — Add FactTriple.to_raw_training_text() after line ~99
+ - src/sleep/curator.py — Change triples_to_training_pairs() (line 460) to return both chat pairs and raw-completion texts
+ - src/sleep/full_sleep.py — Update lines 85-98 and the streaming variant (~line 460) to write both chat and raw examples to train.jsonl
+ - src/sleep/nap.py — Update _generate_training_data() (line 123) to include raw pairs
+
+ Key change to triples_to_training_pairs():
+ def triples_to_training_pairs(self, triples):
+     chat_pairs = []
+     raw_texts = []
+     for triple in triples:
+         chat_pairs.append([
+             {"role": "user", "content": triple.to_question()},
+             {"role": "assistant", "content": triple.to_answer()},
+         ])
+         raw_texts.append(triple.to_raw_training_text())
+     return {"chat_pairs": chat_pairs, "raw_texts": raw_texts}
+
+ Writing raw texts to train.jsonl (no chat template wrapping):
+ for text in raw_texts:
+     f.write(json.dumps({"text": text}) + "\n")
+
+ Return type change: triples_to_training_pairs() changes from List to dict. All 4 callers must update atomically: full_sleep.py (×2 for
+ streaming/non-streaming), nap.py (×1), and any dreamer usage.
+
+ Verification:
+ 1. Inject 3 facts via MEMIT, trigger sleep, test both:
+   - "Viktor lives in" → " Portland" (raw completion)
+   - "Where does Viktor live?" → "Portland" (chat template)
+ 2. Run existing test_lifecycle.py to verify no regression
+
+ ---
+ Item 4: Real Conversational Memories [Size: M]
+
+ Problem: Only synthetic person-city-occupation triples tested. Real conversations have opinions, preferences, temporal events, relationships.
+
+ Files to modify:
+ - src/wake/extractor.py — Expand extract_template() (line 47) regex patterns + enrich model-based extraction prompt in extract_with_model() (line 119)
+ - src/memory/memit.py — Expand FactTriple.to_question() (line 78) and to_answer() (line 97) relation-to-question mappings
+ - src/sleep/curator.py — Mirror expanded patterns in _extract_facts_template() (line 349)
+
+ New relation types to add:
+
+ ┌───────────────┬───────────────────────────────────────┬────────────────────────────────────┐
+ │   Category    │               Relations               │              Example               │
+ ├───────────────┼───────────────────────────────────────┼────────────────────────────────────┤
+ │ Opinions      │ thinks, believes, prefers X over      │ "I think Python is better than JS" │
+ ├───────────────┼───────────────────────────────────────┼────────────────────────────────────┤
+ │ Temporal      │ graduated in, started in, was born in │ "I graduated in 2020"              │
+ ├───────────────┼───────────────────────────────────────┼────────────────────────────────────┤
+ │ Relationships │ 's sister, 's brother, 's partner     │ "My sister lives in Tokyo"         │
+ ├───────────────┼───────────────────────────────────────┼────────────────────────────────────┤
+ │ Conditions    │ is allergic to, speaks, is learning   │ "I'm allergic to shellfish"        │
+ └───────────────┴───────────────────────────────────────┴────────────────────────────────────┘
+
+ Each new relation needs:
+ 1. Regex pattern in extractor.py and curator.py
+ 2. Question template in FactTriple.to_question()
+ 3. Answer template in FactTriple.to_answer() (if default format is awkward)
+
+ Verification:
+ - Unit test with 30+ diverse inputs and expected triples
+ - Round-trip: extract → MEMIT inject → sleep → recall
+ - Regression: existing test_lifecycle.py still passes
+
+ Risk: Regex false positives (e.g., "I think I should go" ≠ opinion). Need negative test cases.
+
+ ---
+ Item 2: Multi-Session Longevity Experiment [Size: M]
+
+ Problem: System tested for at most 2 cycles / 20 facts. Need to know: does PPL diverge? Does forgetting erase early facts? Is replay buffer effective?
+
+ New files:
+ - experiments/longevity_test.py — Main experiment driver
+ - experiments/configs/longevity_3b.yaml — Tuned config
+ - experiments/data/fact_pool_500.json — Pre-generated 500 synthetic facts (seeded random)
+
+ Experiment protocol (per cycle):
+ 1. Inject K facts (default 10) via MEMIT
+ 2. Chat briefly (generate conversation data for curation)
+ 3. Trigger sleep
+ 4. Measure: PPL, cumulative recall (ALL facts so far), per-batch recall, replay buffer stats
+ 5. Log trajectory point to JSON
+
+ Metrics tracked per cycle:
+ {
+   "cycle": 1,
+   "ppl_pre": 5.23, "ppl_post": 5.31,
+   "cumulative_recall": 0.9,
+   "oldest_batch_recall": 0.9,
+   "newest_batch_recall": 1.0,
+   "sleep_approved": true,
+   "replay_buffer_size": 10,
+   "facts_consolidated": 3,
+   "wall_time_seconds": 45.2
+ }
+
+ Forgetting detection: Track oldest-batch recall. If it drops below 50% while newest stays high → catastrophic forgetting detected.
+
+ Checkpoint every 5 cycles so crashes don't lose everything.
+
+ Verification: Smoke test with 3 cycles / 3 facts, then full 50 cycles / 10 facts on 3B.
+
+ Risk: Wall-clock time (hours on 3B, much longer on 8B+). Memory leaks over 50 cycles. MEMIT capacity limit (max_active_edits=50) triggers after ~5 cycles if
+  consolidation isn't working.
+
+ ---
+ Item 3: 8B PPL Anomaly Investigation [Size: M]
+
+ Problem: Non-monotonic PPL scaling: 3B +1.6%, 8B +14.1%, 70B +0.3%. Need to explain or at least characterize.
+
+ New files:
+ - experiments/ppl_anomaly_sweep.py — Systematic sweep script
+ - experiments/configs/ppl_sweep/ — Generated configs per condition
+
+ Experimental phases:
+
+ ┌─────────────────┬─────────────────────────┬───────────────────────────────────────┬───────────────────────────────────┐
+ │      Phase      │        Variable         │                Values                 │              Purpose              │
+ ├─────────────────┼─────────────────────────┼───────────────────────────────────────┼───────────────────────────────────┤
+ │ 1. Reproduce    │ Model size              │ 1B, 3B, 8B, 70B                       │ Confirm anomaly                   │
+ ├─────────────────┼─────────────────────────┼───────────────────────────────────────┼───────────────────────────────────┤
+ │ 2. Rank sweep   │ LoRA rank (8B only)     │ 8, 16, 32, 64                         │ Test if rank is undersized for 8B │
+ ├─────────────────┼─────────────────────────┼───────────────────────────────────────┼───────────────────────────────────┤
+ │ 3. Layer sweep  │ Target layers (8B only) │ [8..15], [12..19], [16..23], [12..15] │ Test layer sensitivity            │
+ ├─────────────────┼─────────────────────────┼───────────────────────────────────────┼───────────────────────────────────┤
+ │ 4. LR sweep     │ Learning rate (8B only) │ 2e-5, 5e-5, 1e-4, 2e-4                │ Test LR sensitivity               │
+ ├─────────────────┼─────────────────────────┼───────────────────────────────────────┼───────────────────────────────────┤
+ │ 5. Quantization │ 8B BF16 vs NF4          │ With/without BnB                      │ Test quantization interaction     │
+ └─────────────────┴─────────────────────────┴───────────────────────────────────────┴───────────────────────────────────┘
+
+ Each condition: Inject 10 facts → sleep → measure PPL delta.
+
+ Verification: Run 8B baseline twice to check if +14.1% is reproducible (not noise).
+
+ Risk: May be noise. Requires H100 GPU time. Architecture differences between Llama-3.2-3B and Llama-3.1-8B confound scale comparison.
+
+ ---
+ Item 5: Non-Blocking / Incremental Sleep [Size: XL]
+
+ Problem: Sleep blocks all interaction. Full sleep takes 40s (3B) to 890s (70B).
+
+ New files:
+ - src/sleep/background_sleep.py — Background sleep manager
+ - src/concurrency/model_lock.py — Read-write lock for model access
+
+ Files to modify:
+ - src/orchestrator.py — _on_sleep_trigger() becomes non-blocking, starts background thread
+ - src/wake/chat.py — process_input() checks sleep state, wraps inference in read lock
+ - src/sleep/full_sleep.py — Sleep phases annotated with lock requirements
+ - src/backend/mlx_backend.py — generate()/generate_stream() acquire read lock; reload() acquires write lock
+
+ Architecture: Read-Write Lock
+ - Multiple readers (chat inference) can proceed concurrently
+ - Writer (weight update during fuse/reload) gets exclusive access
+ - Most sleep phases don't need the lock:
+   - Curation, data prep, replay buffer: no lock (no model access)
+   - LoRA training: no lock (runs as subprocess on MLX)
+   - Pre/post evaluation: read lock (brief)
+   - MEMIT scale operations: write lock (brief)
+   - Fuse + reload: write lock (1-2 seconds, the critical section)
+
+ Key insight: MLX LoRA training runs as subprocess.run() — it's already out-of-process and doesn't touch the in-memory model. Only the fuse/reload step
+ requires exclusive access.
+
+ Incremental sleep mode (Phase 2):
+ - Process facts in micro-batches (1-3 facts per micro-cycle) between chat turns
+ - Avoids long blocking periods entirely
+ - Config: sleep.incremental.enabled, sleep.incremental.batch_size, sleep.incremental.min_interval
+
+ Verification:
+ 1. Thread safety: simulate concurrent generate() + sleep, verify no crashes
+ 2. Functional equivalence: same lifecycle test produces same results in blocking and background modes
+ 3. Stress test: rapid chat during sleep, verify coherent responses + successful consolidation
+ 4. Lock timing: write lock held < 5 seconds during model swap
+
+ Risks:
+ - MLX may not be thread-safe for concurrent mx.eval() calls
+ - Deadlock if sleep thread waits on chat thread
+ - Users see temporary amnesia (MEMIT scaled to 0 during consolidation check)
+ - On 8GB M3, simultaneous inference + training state may OOM
+ - Incremental mode: fusing after each micro-cycle is expensive (writes entire model)
+
+ ---
+ Summary
+
+ ┌─────┬──────────────────────┬──────┬──────────────┬──────────────┬───────────┐
+ │  #  │         Item         │ Size │ Dependencies │ Core Changes │ New Files │
+ ├─────┼──────────────────────┼──────┼──────────────┼──────────────┼───────────┤
+ │ 1   │ Raw-completion pairs │ S    │ None         │ 4 files      │ 0         │
+ ├─────┼──────────────────────┼──────┼──────────────┼──────────────┼───────────┤
+ │ 4   │ Real memories        │ M    │ Soft on #1   │ 3 files      │ 1 test    │
+ ├─────┼──────────────────────┼──────┼──────────────┼──────────────┼───────────┤
+ │ 2   │ Longevity experiment │ M    │ Soft on #1   │ 0            │ 3         │
+ ├─────┼──────────────────────┼──────┼──────────────┼──────────────┼───────────┤
+ │ 3   │ PPL investigation    │ M    │ None         │ 0            │ 3         │
+ ├─────┼──────────────────────┼──────┼──────────────┼──────────────┼───────────┤
+ │ 5   │ Non-blocking sleep   │ XL   │ None         │ 5 files      │ 2         │
+ └─────┴──────────────────────┴──────┴──────────────┴──────────────┴───────────┘

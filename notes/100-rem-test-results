@@ -1,0 +1,62 @@
+# Version 7 — MEMIT-Only Sleep Experiment Results
+
+Date: 2026-02-24
+Hardware: 2x NVIDIA H100 80GB HBM3 (vast.ai)
+transformers: 4.57.6, BnB 4-bit quantization
+
+## Architecture
+
+Dropped LoRA entirely. Sleep is now pure MEMIT maintenance:
+1. Health Check (baseline PPL)
+2. Curate (extract facts from conversation → inject via MEMIT)
+3. Fact Audit (test recall of all active MEMIT edits)
+4. Maintenance (re-inject degraded facts, prune oldest if over capacity)
+5. Validate (PPL check, rollback if degraded >15%)
+6. Report
+
+## Results
+
+| Metric              |    3B     |    8B     |    70B    |
+|---------------------|-----------|-----------|-----------|
+| Baseline PPL        |   5.700   |   5.661   |   5.096   |
+| Post-sleep PPL      |   5.722   |   5.615   |   5.126   |
+| PPL delta           |  +0.4%    |  -0.8%    |  +0.6%    |
+| PPL health          |   PASS    |   PASS    |   PASS    |
+| Recall @10 facts    |  100%     |  100%     |  100%     |
+| Recall @20 facts    |   85%     |   90%     |   65%     |
+| Post-sleep recall   |   85%     |   90%     |   50%     |
+| Recall check (≥50%) |   PASS    |   PASS    |   PASS    |
+| Sleep status        | approved  | approved  | approved  |
+| Sleep time          |  52.3s    |  52.6s    |  96.8s    |
+| Total experiment    | 3.8 min   | 4.4 min   | 13.6 min  |
+
+## Comparison with Version 6 (LoRA + MEMIT)
+
+Version 6 results (from old notes/100):
+- 3B: SWS REJECTED 0/5, fused adapter gibberish, only MEMIT recall survived
+- 8B: SWS+REM APPROVED but DESTRUCTIVE — PPL exploded 5.7→20.4, recall dropped 0.85→0.70
+- 70B: CRASHED during fuse+reload (meta device + OOM), recall dropped to 0.0
+
+Version 7 (MEMIT only):
+- All sizes: sleep APPROVED, PPL stable, no crashes
+- No fuse+reload crashes (70B meta device issue gone)
+- No PPL explosions (8B was 5.7→20.4 in v6, now 5.66→5.62)
+- No validation failures (3B was 0/5 in v6, now PASS)
+
+## Key insights
+
+1. PPL is rock-stable across all sizes — MEMIT alone doesn't degrade the model
+2. 8B is the sweet spot: highest recall (90%) with near-zero PPL impact
+3. 70B recall is lower (65% at 20 facts) — likely because 16 target layers (8-23)
+   is a smaller fraction of 80 total layers vs 32 layers for 8B
+4. Sleep maintenance pipeline works — audits, no crashes, fast execution
+5. Bug found during test: `inject()` → `inject_facts()` method name mismatch (fixed)
+6. transformers 5.x breaks 70B loading (OOM) — must pin to <5.0
+
+## Files changed from v6→v7
+
+Deleted: trainer.py, dreamer.py, replay.py, checkpoints.py
+Rewritten: full_sleep.py, nap.py
+Modified: orchestrator.py, config.yaml, config.py, torch_backend.py,
+          mlx_backend.py, memit.py, health.py, validator.py,
+          background_sleep.py, chat.py, curator.py, index.html

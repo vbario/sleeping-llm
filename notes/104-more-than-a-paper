@@ -1,0 +1,86 @@
+ The 20-fact 8B Demo vs. The 100-fact 70B Demo
+                                                                                                                                            
+  At 20 facts on 8B, the demo is a proof of concept — "look, this is possible." You have to carefully curate which facts you teach, avoid
+  edge cases, and the audience thinks "neat trick, but can it scale?"
+
+  At 100 facts on 70B, the demo becomes a credible product prototype. 100 facts is enough to encode a real person's working context — their
+  team, their projects, their preferences, their schedule, their codebase conventions, their communication style. That's not a toy. That's a
+   personal model.
+
+  ---
+  What 100 Facts Actually Buys You
+
+  20 facts gets you:
+  - "My name is Viktor, I work at Acme Corp, I have a dog named Max"
+  - Basically a glorified profile card
+
+  100 facts gets you:
+  - Your name, role, company, team members (5-10 facts)
+  - Project context — what you're building, tech stack, current sprint goals (10-15 facts)
+  - Preferences — coding style, communication tone, tools you use (10-15 facts)
+  - Relationships — who reports to whom, who owns what system (10-15 facts)
+  - Recent decisions — "we chose Postgres over Mongo," "the API redesign ships in March" (10-15 facts)
+  - Corrections and updates — facts that evolved over time (10-20 facts)
+  - Domain knowledge — company-specific jargon, internal acronyms, product names (10-20 facts)
+
+  That's a model that actually knows you. Not "retrieves documents about you" — knows you, in its weights. You start a fresh conversation
+  and it already understands your world without you explaining anything.
+
+  ---
+  How The Demo Changes
+
+  The 8B Demo (what we discussed before)
+
+  - "Watch, I teach it 5 facts and it remembers after restart"
+  - Audience reaction: "Cool. But I can do that with a system prompt."
+  - You spend the demo explaining why this is different from RAG
+
+  The 70B Demo
+
+  - You walk in. The model already knows 80 facts from previous sessions. You have a natural conversation about your work — it references
+  your team members by name, remembers last week's decisions, knows your preferences.
+  - You teach it 5 new things during the conversation. It sleeps. You restart.
+  - The new facts are there alongside the old 80. Nothing was lost.
+  - You open the memory panel — 85 facts, all with recall scores, all auditable.
+  - You deliberately tell it something wrong. It sleeps. The old fact gets pruned, the correction sticks.
+  - Audience reaction: "This is a different kind of AI."
+
+  The critical shift: you stop demoing the mechanism and start demoing the experience. Nobody cares about MEMIT or weight edits or PPL
+  curves. They care that the model knows them and that knowledge persists and is transparent.
+
+  ---
+  What It Does To The Story
+
+  8B/20-fact story: "We found an interesting research result about persistent memory in LLMs."
+
+  70B/100-fact story: "We built a local AI that genuinely learns about you over time, with no cloud database, no retrieval system — the
+  knowledge lives in the model itself. You can see exactly what it knows, verify it, correct it, and it maintains its own health while you
+  sleep."
+
+  That's a pitch. That's fundable. That's a Hacker News front page post.
+
+  ---
+  The Specific New Demo Beats
+
+  With 70B + 100 facts, you unlock demo moments that are impossible at 8B/20:
+
+  1. "Week two" cold start — The model boots with zero context and immediately behaves like your assistant. No onboarding. No "tell me about
+   yourself." It just knows.
+  2. Correction propagation — "Actually, Sarah left the team and Jake replaced her." Sleep. Every future reference updates naturally because
+   it's in the weights, not a document that might have stale cross-references.
+  3. Capacity headroom — You can show the memory panel with 85/100 facts and say "room for more." At 20/20 the audience sees a wall. At
+  85/100 they see a system that's comfortably within its operating range.
+  4. Sleep as maintenance, not a gimmick — With 100 facts, sleep actually has work to do. The audit finds real degradation. The refresh
+  actually matters. The pruning makes real decisions. At 20 facts the sleep cycle is over in seconds and feels performative. At 100 it feels
+   like the model is genuinely maintaining itself.
+  5. 70B quality — The base model is just better. Conversations are more natural, the model integrates learned facts more gracefully,
+  hallucination is lower. The demo stops fighting the model's limitations and starts showcasing its strengths.
+
+  ---
+  The Honest Caveat
+
+  This is also why the 70B consolidation problem is hard. You're not just scaling a number — you're crossing from "research demo" to
+  "product demo," which means the failure modes matter more. At 20 facts, a flubbed recall is "oh, small model." At 100 facts on 70B, a
+  flubbed recall is "this doesn't work." The bar for reliability goes up with the ambition of the demo.
+
+  But if you crack it — 100 facts, stable PPL, working sleep maintenance on 70B — that's not a paper. That's a company.

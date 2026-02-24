@@ -129,19 +129,19 @@ class HealthMonitor:
             except Exception:
                 pass
 
-    def record_sleep(self, sleep_type="nap", facts_consolidated=0):
+    def record_sleep(self, sleep_type="nap", facts_refreshed=0, facts_pruned=0):
         """Record that a sleep cycle completed, adjusting pressure.
 
         Args:
             sleep_type: "full" or "nap"
-            facts_consolidated: Number of facts that advanced stage in this cycle.
-                Full sleep reduces edit count by this amount.
-                Naps don't reduce edit pressure (they don't consolidate).
+            facts_refreshed: Number of degraded facts re-injected this cycle.
+            facts_pruned: Number of facts pruned (removed) this cycle.
         """
         self._last_sleep_time = time.time()
         if sleep_type == "full":
-            self._edit_count = max(0, self._edit_count - facts_consolidated)
-        # Naps don't reduce edit pressure — they reinforce but don't consolidate
+            # Re-sync edit count from ledger after maintenance
+            self._edit_count = max(0, self._edit_count - facts_pruned)
+        # Naps are audit-only — no pressure change
 
     def get_snapshot(self) -> HealthSnapshot:
         """Return a snapshot of current health metrics."""

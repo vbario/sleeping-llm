@@ -23,10 +23,6 @@ context:
   system_prompt: "You may recall things from previous conversations."
 
 sleep:
-  # Number of conversation turns before triggering light sleep
-  light_sleep_turns: 5
-  # Number of light sleep cycles before triggering deep sleep
-  deep_sleep_interval: 5
   # Manual sleep command (user can type this to trigger sleep)
   manual_trigger: "/sleep"
   # Trigger mode: "health" (MEMIT-based pressure) or "turns" (original fixed counter)
@@ -44,6 +40,17 @@ sleep:
     min_grounding_score: 0.3
     # Use model to double-check borderline cases (slower but more accurate)
     use_model_verification: false
+
+  # MEMIT maintenance during sleep
+  maintenance:
+    # Recall rate below which a fact is re-injected during sleep
+    degraded_threshold: 0.5
+    # Rollback if PPL increases more than this fraction
+    max_ppl_increase: 0.15
+    # Max facts to re-inject per sleep cycle
+    max_refresh_per_cycle: 10
+    # How many recent facts nap audits
+    nap_audit_count: 5
 
 memit:
   # Range of transformer layers to target for MEMIT edits
@@ -83,46 +90,8 @@ health:
   max_wake_seconds: 7200
 
 nap:
-  # LoRA epochs for nap (quick pass)
-  epochs: 1
-  # Learning rate for nap
-  learning_rate: 1.0e-4
-  # Revert MEMIT edits on successful nap
-  revert_on_success: true
   # Manual trigger command
   manual_trigger: "/nap"
-
-lora:
-  # LoRA rank (higher = more capacity to learn)
-  rank: 16
-  # LoRA alpha (higher = stronger updates)
-  alpha: 32
-  # Target layers for LoRA
-  layers: 8
-  # Learning rate for light sleep
-  light_learning_rate: 1.0e-4
-  # Learning rate for deep sleep
-  deep_learning_rate: 5.0e-5
-  # Training epochs: each example seen N times per sleep
-  light_epochs: 3
-  # Deep sleep: more passes
-  deep_epochs: 2
-  # Batch size
-  batch_size: 1
-
-replay:
-  # Max items in replay buffer
-  max_items: 1000
-  # Fraction of ACTIVE replay data to mix into each training run
-  # Light sleep: low ratio so new facts dominate
-  light_mix_ratio: 0.2
-  # Deep sleep: higher ratio for consolidation
-  deep_mix_ratio: 0.6
-  # Decay factor for spaced repetition (lower = forget faster)
-  # At 0.85: ~7 replays to halve priority, ~15 replays to reach floor
-  decay_factor: 0.85
-  # Items below this priority stop being trained on (but stay in buffer)
-  min_priority: 0.05
 
 validation:
   # If eval score drops below this fraction of baseline, block the merge
@@ -131,34 +100,9 @@ validation:
   # Number of eval questions to run
   num_questions: 5
 
-dreamer:
-  # Number of synthetic examples to generate per deep sleep
-  num_dreams: 10
-  # Temperature for dream generation (higher = more creative)
-  temperature: 0.9
-
-rem:
-  # REM integration phase (deep sleep only) — trains on multi-fact conversations
-  enabled: true
-  # Lower LR than SWS to gently integrate without overwriting
-  learning_rate: 5.0e-5
-  epochs: 1
-  # Number of multi-fact integration conversations to generate
-  num_integrations: 10
-  # Temperature for integration generation
-  temperature: 0.8
-  # Max PPL increase allowed (fraction) — rollback if exceeded
-  max_ppl_increase: 0.10
-
 paths:
   conversations: "data/conversations"
-  training: "data/training"
-  replay_buffer: "data/replay_buffer"
   core_identity: "data/core_identity"
   benchmarks: "data/benchmarks"
-  base_model: "models/base"
-  current_model: "models/current"
-  checkpoints: "models/checkpoints"
-  adapters: "adapters"
   memit_data: "data/memit"
   memit_ledger: "data/memit/ledger.json"
