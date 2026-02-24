@@ -73,7 +73,7 @@ class FullSleepController:
                     facts = self.fact_extractor.extract_from_exchange(user_msg, asst_msg)
                     for fact in facts:
                         try:
-                            self.memit_engine.inject([fact])
+                            self.memit_engine.inject_facts([fact])
                             new_facts_injected += 1
                         except Exception as e:
                             print(f"        Failed to inject: {fact.subject} {fact.relation} → {e}")
@@ -176,7 +176,7 @@ class FullSleepController:
                 # Revert old delta
                 self.memit_engine.revert_edit(edit)
                 # Fresh inject with current null-space constraints
-                self.memit_engine.inject(edit.facts)
+                self.memit_engine.inject_facts(edit.facts)
                 refreshed += 1
                 print(f"        Refreshed: {edit.facts[0].subject} {edit.facts[0].relation}")
             except Exception as e:
@@ -242,7 +242,7 @@ class FullSleepController:
                     facts = self.fact_extractor.extract_from_exchange(user_msg, asst_msg)
                     for fact in facts:
                         try:
-                            self.memit_engine.inject([fact])
+                            self.memit_engine.inject_facts([fact])
                             new_facts_injected += 1
                         except Exception:
                             pass

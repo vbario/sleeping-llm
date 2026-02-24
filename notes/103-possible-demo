@@ -1,0 +1,86 @@
+  What You Actually Have Today                                                                                                              
+                                                                                                                                            
+  A local LLM that genuinely learns from conversation — not RAG, not prompt injection, but actual weight edits via MEMIT. It has a web UI   
+  with streaming, background sleep, health monitoring, and a full audit trail. The working envelope is ~20 facts at 8B with 100% chat       
+  recall. At 3B (your MacBook), ~10 facts at 70% recall.                                                                                    
+
+  That's already unusual. Most "memory" products are vector-DB retrieval dressed up as remembering. Yours is the real thing — the model's
+  weights change. That's the differentiator.
+
+  ---
+  Three Demo Directions (from most to least impressive)
+
+  1. "The Forgetting Test" — Live A/B Comparison
+
+  Concept: Side-by-side chat with two instances of the same model. One has the sleep-wake system, one doesn't. You teach both the same facts
+   over a conversation, then restart both (clearing context). The vanilla model remembers nothing. Yours remembers.
+
+  Why it's compelling: It's visceral. The audience sees the difference in real time. No slides needed. The "restart and ask again" moment is
+   the wow factor — it proves the knowledge is in the weights, not the context window.
+
+  What you'd need to build: A split-screen web UI (your existing frontend is close), a second "control" model instance with no MEMIT. Maybe
+  2-3 hours of work on top of what exists.
+
+  Risk: 3B recall at 70% means it might flub a fact during the demo. You'd want to rehearse or use 8B on a rented GPU.
+
+  2. "The Personal Assistant That Actually Learns" — Longitudinal Demo
+
+  Concept: A 5-minute video or live demo showing multiple sessions over "days" (compressed). Session 1: you tell it your preferences, your
+  team's names, your project details. Session 2 (fresh context): it remembers and uses them naturally. Session 3: you correct a fact, it
+  sleeps, the correction sticks. Session 4: you ask it to reflect on what it knows — it can enumerate its learned facts via /status.
+
+  Why it's compelling: This is the product pitch — "an AI that remembers you without a database." The sleep/wake cycle becomes a feature,
+  not a research artifact. The /status transparency (showing the ledger, health metrics, recall scores) is a trust differentiator — you can
+  see exactly what it "knows" and how confident it is.
+
+  What you'd need: Mostly scripting and polish. Your web UI already supports this flow. You'd want to add a "what do you know about me?"
+  introspection command that reads the ledger and presents it naturally. Maybe a small "memory timeline" panel in the sidebar.
+
+  Risk: Keeping it to 20 facts means the "personal assistant" can only learn a narrow slice. You'd need to be deliberate about what you
+  teach it.
+
+  3. "The Self-Healing Model" — Sleep as a Feature
+
+  Concept: Focus the demo on the sleep cycle itself. Deliberately degrade the model (inject conflicting facts, let recall decay), then
+  trigger sleep and show it audit, refresh, and prune — with live metrics. Show the PPL curve, recall scores recovering, the pruning
+  decisions.
+
+  Why it's compelling: This is unique in the field. Nobody else has a model that monitors its own knowledge health and self-repairs. The
+  audience for this is researchers and ML engineers, not end-users. It positions the work as infrastructure, not just an app.
+
+  What you'd need: Your existing sleep pipeline + better visualization of the 6-step process. A dashboard showing PPL over time, per-fact
+  recall heatmap, sleep cycle history. The data is all there in the ledger and health monitor — it's a frontend job.
+
+  Risk: Niche audience. Impressive to the right people, boring to everyone else.
+
+  ---
+  What I'd Actually Recommend
+
+  Option 2 with elements of Option 1. The "personal assistant that learns" is the most legible product story. But include the A/B restart
+  test as the climax — the moment where you prove it's real.
+
+  The minimum viable demo:
+
+  1. Polish the web UI — it's already dark-themed and functional, but add a "Memory" panel that shows active facts, their recall scores, and
+   when they were learned. This makes the invisible (weight edits) visible.
+  2. Add a /memories or /whatdoyouknow command that makes the model narrate its own learned facts from the ledger. This is the "trust"
+  feature — the user can audit what the AI "remembers."
+  3. Script a 3-minute flow: teach 5-6 facts → sleep → restart (clear context) → ask questions that require the learned facts → show the
+  memory panel proving they're in the weights.
+  4. Run it on 8B (rent a GPU for the demo day) so recall is solid.
+
+  That's maybe a weekend of work on top of what exists, and it would be genuinely unlike anything else people have seen.
+
+  ---
+  The Harder Question
+
+  The note asks: more science or more engineering?
+
+  The honest answer from looking at your codebase: the engineering is already ahead of the science. You have a production-quality system
+  (background threads, streaming, health monitoring, web UI, config management) wrapped around a research result that tops out at 20 facts.
+  The demo/MVP path makes sense if you want to show what exists. But for the product to be useful beyond a demo, you'd need the capacity
+  ceiling to move — and that's back to science (PPL-constrained optimization, different edit methods, or scaling to models where MEMIT has
+  more room).
+
+  A demo now, while pursuing v4 science in parallel, seems like the right call. The demo validates that the concept resonates. The science
+  determines whether it can ever be a real product.
