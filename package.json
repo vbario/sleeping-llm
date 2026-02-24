@@ -9,6 +9,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "python3 -m src.main --web --port 3000",
-    "push-deploy": "git add -A && git commit -m 'Changes' && git push origin memory-version-6"
+    "push-deploy": "git add -A && git commit -m 'Changes' && git push origin memory-version-7"
   }
 }
