@@ -774,6 +774,23 @@ class MemitEngine:
         edit.scale = new_scale
         self.ledger.update_scale(edit.edit_id, new_scale, edit.consolidation_stage)
 
+    def reapply_active_edits(self):
+        """Re-apply all active in-memory MEMIT edits after model reload.
+
+        After fuse+reload, the model has fresh weights (base + LoRA merged).
+        MEMIT deltas are still in memory but not applied to the new weights.
+        This method re-applies them.
+        """
+        applied = 0
+        for edit in self._active_edits:
+            if abs(edit.scale) < 1e-8:
+                continue
+            for layer_idx, delta in edit.layer_deltas.items():
+                self._apply_delta(layer_idx, self._scale_tensor(delta, edit.scale))
+            applied += 1
+        if applied:
+            print(f"  MEMIT: re-applied {applied} edit(s) to fused model")
+
     def snapshot_target_weights(self) -> Dict[int, object]:
         """Copy target layer weights for later restoration.
 

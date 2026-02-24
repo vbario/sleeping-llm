@@ -76,6 +76,19 @@ class NapController:
             learning_rate=self.learning_rate,
         )
 
+        # Fuse adapter into model and reload
+        fuse_dir = self.config.paths["current_model"]
+        try:
+            self.backend.fuse_adapter(str(adapter_path), fuse_dir)
+            self.backend.reload(fuse_dir)
+        except Exception as e:
+            print(f"  Nap fuse/reload failed: {e}")
+
+        # Dequantize + reapply MEMIT
+        if self.memit_engine.enabled and hasattr(self.backend, "dequantize_layer"):
+            self.memit_engine._dequantize_target_layers()
+        self.memit_engine.reapply_active_edits()
+
         # Done. MEMIT edits are untouched — nap just reinforced via LoRA.
         elapsed = time.time() - start_time
         return {
@@ -116,9 +129,22 @@ class NapController:
             learning_rate=self.learning_rate,
         )
 
+        # Fuse adapter into model and reload
+        fuse_dir = self.config.paths["current_model"]
+        try:
+            self.backend.fuse_adapter(str(adapter_path), fuse_dir)
+            self.backend.reload(fuse_dir)
+        except Exception as e:
+            print(f"  Nap fuse/reload failed: {e}")
+
+        # Dequantize + reapply MEMIT
+        if self.memit_engine.enabled and hasattr(self.backend, "dequantize_layer"):
+            self.memit_engine._dequantize_target_layers()
+        self.memit_engine.reapply_active_edits()
+
         elapsed = time.time() - start_time
         yield {"step": 2, "total": 2, "label": "LoRA reinforcement", "status": "done",
-               "detail": f"Trained on {len(training_data)} examples. MEMIT intact. ({elapsed:.1f}s)"}
+               "detail": f"Trained on {len(training_data)} examples. Fused. ({elapsed:.1f}s)"}
 
     def _generate_training_data(self, facts, cycle_id):
         """Convert facts to training JSONL (chat pairs + raw completions).
@@ -139,12 +165,14 @@ class NapController:
         data_dir = Path(self.config.paths["training"]) / f"nap_{cycle_id}"
         data_dir.mkdir(parents=True, exist_ok=True)
 
+        fact_repeat = self.config.get("nap.fact_repeat", 3)
         examples = []
-        for pair in chat_pairs:
-            text = self.backend.apply_chat_template(pair, for_training=True)
-            examples.append({"text": text})
-        for text in raw_texts:
-            examples.append({"text": text})
+        for _ in range(fact_repeat):
+            for pair in chat_pairs:
+                text = self.backend.apply_chat_template(pair, for_training=True)
+                examples.append({"text": text})
+            for text in raw_texts:
+                examples.append({"text": text})
 
         # Write train.jsonl
         with open(data_dir / "train.jsonl", "w") as f:

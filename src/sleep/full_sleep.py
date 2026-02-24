@@ -91,15 +91,17 @@ class FullSleepController:
             raw_texts = memit_pairs["raw_texts"]
             print(f"        + {len(chat_pairs)} MEMIT fact pairs added ({len(raw_texts)} raw)")
 
+            fact_repeat = self.config.get("sleep.consolidation.fact_repeat", 3)
             training_dir = Path(self.config.paths["training"]) / f"cycle_{cycle_id}"
             training_dir.mkdir(parents=True, exist_ok=True)
             train_file = training_dir / "train.jsonl"
             with open(train_file, "a") as f:
-                for pair in chat_pairs:
-                    text = self.backend.apply_chat_template(pair, for_training=True)
-                    f.write(json.dumps({"text": text}) + "\n")
-                for text in raw_texts:
-                    f.write(json.dumps({"text": text}) + "\n")
+                for _ in range(fact_repeat):
+                    for pair in chat_pairs:
+                        text = self.backend.apply_chat_template(pair, for_training=True)
+                        f.write(json.dumps({"text": text}) + "\n")
+                    for text in raw_texts:
+                        f.write(json.dumps({"text": text}) + "\n")
 
         if not curated and not memit_facts and self.replay_buffer.stats()["count"] == 0:
             print("        No training data and empty replay buffer. Skipping sleep.")
@@ -131,6 +133,23 @@ class FullSleepController:
             print("        No training data available. Skipping.")
             return {"status": "skipped", "reason": "No training data", "facts_consolidated": 0}
         print(f"        Adapter saved: {adapter_path}")
+
+        # Fuse LoRA adapter into model weights and reload
+        fuse_dir = self.config.paths["current_model"]
+        try:
+            self.backend.fuse_adapter(str(adapter_path), fuse_dir)
+            self.backend.reload(fuse_dir)
+            print(f"        Fused adapter and reloaded model")
+        except Exception as e:
+            print(f"        WARNING: Fuse/reload failed: {e}. Proceeding without fuse.")
+
+        # Dequantize MEMIT target layers (required after reload for 4-bit models)
+        if self.memit_engine.enabled and hasattr(self.backend, "dequantize_layer"):
+            self.memit_engine._dequantize_target_layers()
+
+        # Re-apply MEMIT edits to the new (fused) model
+        if active_edits:
+            self.memit_engine.reapply_active_edits()
 
         # Consolidation (step 5 for deep, step 6 for light)
         consolidate_step = 5 if sleep_type == "deep" else 6
@@ -464,15 +483,17 @@ class FullSleepController:
             memit_pairs = self.curator.triples_to_training_pairs(memit_facts)
             chat_pairs = memit_pairs["chat_pairs"]
             raw_texts = memit_pairs["raw_texts"]
+            fact_repeat = self.config.get("sleep.consolidation.fact_repeat", 3)
             training_dir = Path(self.config.paths["training"]) / f"cycle_{cycle_id}"
             training_dir.mkdir(parents=True, exist_ok=True)
             train_file = training_dir / "train.jsonl"
             with open(train_file, "a") as f:
-                for pair in chat_pairs:
-                    text = self.backend.apply_chat_template(pair, for_training=True)
-                    f.write(json.dumps({"text": text}) + "\n")
-                for text in raw_texts:
-                    f.write(json.dumps({"text": text}) + "\n")
+                for _ in range(fact_repeat):
+                    for pair in chat_pairs:
+                        text = self.backend.apply_chat_template(pair, for_training=True)
+                        f.write(json.dumps({"text": text}) + "\n")
+                    for text in raw_texts:
+                        f.write(json.dumps({"text": text}) + "\n")
 
         detail = f"{len(curated)} exchanges, {len(consumed_sessions)} session(s)"
         if memit_facts:
@@ -517,8 +538,25 @@ class FullSleepController:
             yield {"step": sws_step, "total": total_steps, "label": "SWS Training", "status": "done",
                    "detail": "No data available. Skipped."}
             return
+
+        # Fuse LoRA adapter into model weights and reload
+        fuse_dir = self.config.paths["current_model"]
+        try:
+            self.backend.fuse_adapter(str(adapter_path), fuse_dir)
+            self.backend.reload(fuse_dir)
+        except Exception as e:
+            print(f"        WARNING: Fuse/reload failed: {e}. Proceeding without fuse.")
+
+        # Dequantize MEMIT target layers (required after reload for 4-bit models)
+        if self.memit_engine.enabled and hasattr(self.backend, "dequantize_layer"):
+            self.memit_engine._dequantize_target_layers()
+
+        # Re-apply MEMIT edits to the new (fused) model
+        if active_edits:
+            self.memit_engine.reapply_active_edits()
+
         yield {"step": sws_step, "total": total_steps, "label": "SWS Training", "status": "done",
-               "detail": "Adapter saved"}
+               "detail": "Adapter fused and reloaded"}
 
         # Consolidation (step 5 for deep, step 6 for light)
         consolidate_step = 5 if sleep_type == "deep" else 6
