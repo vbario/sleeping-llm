@@ -96,6 +96,42 @@ class SleepValidator:
                 "post_score": post,
             }
 
+    def validate_ppl(self, ppl_before, ppl_after, max_increase):
+        """Validate that perplexity hasn't degraded beyond threshold.
+
+        Args:
+            ppl_before: Baseline perplexity (before maintenance)
+            ppl_after: Post-maintenance perplexity
+            max_increase: Max allowed fractional increase (e.g. 0.15 = 15%)
+
+        Returns:
+            dict with 'approved' bool, 'reason', 'ppl_before', 'ppl_after'
+        """
+        if ppl_before is None or ppl_after is None:
+            return {"approved": True, "reason": "No PPL data, auto-approve",
+                    "ppl_before": ppl_before, "ppl_after": ppl_after}
+
+        if ppl_before <= 0:
+            return {"approved": True, "reason": "Invalid baseline PPL",
+                    "ppl_before": ppl_before, "ppl_after": ppl_after}
+
+        increase = (ppl_after - ppl_before) / ppl_before
+
+        if increase <= max_increase:
+            return {
+                "approved": True,
+                "reason": f"PPL increase {increase:.1%} within threshold {max_increase:.0%}",
+                "ppl_before": round(ppl_before, 2),
+                "ppl_after": round(ppl_after, 2),
+            }
+        else:
+            return {
+                "approved": False,
+                "reason": f"PPL increase {increase:.1%} exceeds threshold {max_increase:.0%}",
+                "ppl_before": round(ppl_before, 2),
+                "ppl_after": round(ppl_after, 2),
+            }
+
     def _check_answer(self, response, expected_keywords):
         """Check if a response contains expected keywords."""
         response_lower = response.lower()

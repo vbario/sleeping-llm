@@ -18,7 +18,8 @@ class Curator:
     def __init__(self, config, backend):
         self.config = config
         self.backend = backend
-        self.training_dir = Path(config.paths["training"])
+        training_path = config.paths.get("training", "data/training")
+        self.training_dir = Path(training_path)
         self.training_dir.mkdir(parents=True, exist_ok=True)
         self.firewall = HallucinationFirewall(config, backend)
 

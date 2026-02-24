@@ -1,8 +1,8 @@
 """MEMIT engine — Mass-Editing Memory in a Transformer.
 
-Implements the MEMIT algorithm for MLX, providing fast factual memory injection
-during the wake phase. Acts as the "hippocampus" — fast, fragile memory that
-gets consolidated into stable LoRA weights during sleep.
+Implements the MEMIT algorithm (MLX and PyTorch), providing fast factual memory
+injection during wake. MEMIT is the sole memory system — sleep performs health
+maintenance (audit, refresh degraded facts, prune excess).
 
 Key classes:
   FactTriple — subject/relation/object representation of a fact
@@ -174,9 +174,9 @@ class MemitEdit:
     layer_indices: List[int] = field(default_factory=list)
     key_vectors: Dict[int, object] = field(default_factory=dict)  # layer_idx -> mx.array
     timestamp: float = field(default_factory=time.time)
-    consolidated: bool = False
-    scale: float = 1.0  # fraction of delta applied (1.0=full, 0.1=residual trace)
-    consolidation_stage: int = 0  # 0=active, 1=consolidating (LoRA+residual), 2=consolidated
+    scale: float = 1.0  # fraction of delta applied (1.0=full, 0.0=pruned)
+    last_verified: float = 0.0  # timestamp of last recall audit
+    recall_success_rate: float = 1.0  # fraction of facts recalled in last audit
 
     def to_ledger_dict(self) -> dict:
         """Serialize metadata only (no arrays) for the ledger."""
@@ -185,17 +185,16 @@ class MemitEdit:
             "facts": [f.to_dict() for f in self.facts],
             "layer_indices": self.layer_indices,
             "timestamp": self.timestamp,
-            "consolidated": self.consolidated,
             "scale": self.scale,
-            "consolidation_stage": self.consolidation_stage,
+            "last_verified": self.last_verified,
+            "recall_success_rate": self.recall_success_rate,
         }
 
 
 class EditLedger:
     """Persists MEMIT edit metadata to disk.
 
-    Tracks which facts have been injected via MEMIT, which are still active,
-    and which have been consolidated into LoRA during sleep.
+    Tracks which facts have been injected via MEMIT and their health status.
     """
 
     def __init__(self, ledger_path: str):
@@ -212,58 +211,55 @@ class EditLedger:
         self.save()
 
     def get_active_edits(self) -> List[dict]:
-        """Return all non-consolidated edits (stage 0 and 1).
+        """Return all active (non-pruned) edits.
 
-        Backward compat: missing scale/consolidation_stage default to 1.0/0.
+        Backward compat: migrates old consolidation fields on first access.
         """
         active = []
         for e in self._edits:
-            if not e.get("consolidated", False):
-                # Ensure backward-compat defaults
-                e.setdefault("scale", 1.0)
-                e.setdefault("consolidation_stage", 0)
+            if e.get("pruned", False):
+                continue
+            # Backward compat: old ledger entries may have consolidation fields
+            e.setdefault("scale", 1.0)
+            e.setdefault("last_verified", 0.0)
+            e.setdefault("recall_success_rate", 1.0)
+            if e.get("scale", 1.0) > 0:
                 active.append(e)
         return active
 
     def get_edit_count(self) -> int:
-        """Return count of active (non-consolidated) edits."""
+        """Return count of active edits."""
         return len(self.get_active_edits())
 
     def get_active_fact_count(self) -> int:
         """Return count of individual active facts across all edits."""
         return sum(len(e["facts"]) for e in self.get_active_edits())
 
-    def mark_consolidated(self, edit_ids: List[str]):
-        """Mark edits as consolidated (absorbed into LoRA)."""
-        id_set = set(edit_ids)
-        for edit in self._edits:
-            if edit["edit_id"] in id_set:
-                edit["consolidated"] = True
-        self.save()
-
-    def update_scale(self, edit_id: str, new_scale: float, stage: int):
-        """Update scale and consolidation_stage for an edit."""
+    def update_scale(self, edit_id: str, new_scale: float):
+        """Update scale for an edit."""
         for edit in self._edits:
             if edit["edit_id"] == edit_id:
                 edit["scale"] = new_scale
-                edit["consolidation_stage"] = stage
                 break
         self.save()
 
-    def get_consolidating_edits(self) -> List[dict]:
-        """Return edits with consolidation_stage == 1 (partially consolidated)."""
-        return [e for e in self._edits
-                if not e.get("consolidated", False)
-                and e.get("consolidation_stage", 0) == 1]
+    def mark_pruned(self, edit_id: str):
+        """Mark an edit as pruned (logically removed)."""
+        for edit in self._edits:
+            if edit["edit_id"] == edit_id:
+                edit["pruned"] = True
+                edit["scale"] = 0.0
+                break
+        self.save()
 
-    def get_stage_counts(self) -> Dict[int, int]:
-        """Return count of active edits per consolidation stage."""
-        counts: Dict[int, int] = {0: 0, 1: 0, 2: 0}
-        for e in self._edits:
-            if not e.get("consolidated", False):
-                stage = e.get("consolidation_stage", 0)
-                counts[stage] = counts.get(stage, 0) + 1
-        return counts
+    def update_verification(self, edit_id: str, recall_rate: float):
+        """Update verification metadata after an audit."""
+        for edit in self._edits:
+            if edit["edit_id"] == edit_id:
+                edit["last_verified"] = time.time()
+                edit["recall_success_rate"] = recall_rate
+                break
+        self.save()
 
     def get_facts_for_training(self) -> List[FactTriple]:
         """Return all active facts as FactTriple objects for training data generation."""
@@ -272,11 +268,6 @@ class EditLedger:
             for fact_dict in edit["facts"]:
                 facts.append(FactTriple.from_dict(fact_dict))
         return facts
-
-    def clear_consolidated(self):
-        """Remove all consolidated edits from the ledger."""
-        self._edits = [e for e in self._edits if not e.get("consolidated", False)]
-        self.save()
 
     def clear_all(self):
         """Clear the entire ledger."""
@@ -324,7 +315,7 @@ class EditLedger:
             json.dump(self._edits, f, indent=2)
 
     def load(self):
-        """Load ledger from disk."""
+        """Load ledger from disk, migrating old LoRA-era format if needed."""
         if self.ledger_path.exists():
             try:
                 with open(self.ledger_path) as f:
@@ -333,6 +324,47 @@ class EditLedger:
                 self._edits = []
         else:
             self._edits = []
+
+        if self._edits and self._needs_migration():
+            self._migrate_from_lora_format()
+
+    def _needs_migration(self) -> bool:
+        """Check if any edits have old LoRA-era fields."""
+        for e in self._edits:
+            if "consolidated" in e or "consolidation_stage" in e:
+                return True
+        return False
+
+    def _migrate_from_lora_format(self):
+        """One-time migration from old LoRA-era ledger format.
+
+        - Entries at scale 0.0 → mark as pruned
+        - Entries at scale 0.1 (old residual traces) → restore to 1.0 for re-injection
+        - Entries at scale 1.0 → active, no change
+        - Strip consolidated/consolidation_stage, add last_verified/recall_success_rate
+        """
+        migrated = 0
+        for e in self._edits:
+            # Handle old scale values
+            scale = e.get("scale", 1.0)
+            if scale == 0.0:
+                e["pruned"] = True
+            elif scale < 1.0:
+                # Old residual traces (0.1) — flag for re-injection by restoring full scale
+                e["scale"] = 1.0
+
+            # Strip old fields
+            e.pop("consolidated", None)
+            e.pop("consolidation_stage", None)
+
+            # Add new fields
+            e.setdefault("last_verified", 0.0)
+            e.setdefault("recall_success_rate", 1.0)
+            migrated += 1
+
+        if migrated > 0:
+            print(f"  Ledger: migrated {migrated} entries from LoRA-era format")
+            self.save()
 
 
 def _detect_backend(backend):
@@ -754,7 +786,7 @@ class MemitEngine:
         self._active_edits = [e for e in self._active_edits if e.edit_id != edit.edit_id]
 
     def revert_all_active(self) -> int:
-        """Revert all unconsolidated edits. Returns count of edits reverted."""
+        """Revert all active edits. Returns count of edits reverted."""
         count = len(self._active_edits)
         for edit in list(self._active_edits):
             self.revert_edit(edit)
@@ -772,7 +804,7 @@ class MemitEngine:
         for layer_idx, delta in edit.layer_deltas.items():
             self._apply_delta(layer_idx, self._scale_tensor(delta, scale_diff))
         edit.scale = new_scale
-        self.ledger.update_scale(edit.edit_id, new_scale, edit.consolidation_stage)
+        self.ledger.update_scale(edit.edit_id, new_scale)
 
     def reapply_active_edits(self):
         """Re-apply all active in-memory MEMIT edits after model reload.
@@ -856,9 +888,9 @@ class MemitEngine:
                 layer_deltas=layer_deltas,
                 layer_indices=edit_dict.get("layer_indices", []),
                 timestamp=edit_dict.get("timestamp", 0),
-                consolidated=edit_dict.get("consolidated", False),
                 scale=scale,
-                consolidation_stage=edit_dict.get("consolidation_stage", 0),
+                last_verified=edit_dict.get("last_verified", 0.0),
+                recall_success_rate=edit_dict.get("recall_success_rate", 1.0),
             )
             self._active_edits.append(edit)
             reloaded += 1
@@ -872,7 +904,7 @@ class MemitEngine:
         Args:
             fact: The fact triple to test
             raw: If True, use raw completion (matches MEMIT's edit pathway).
-                 If False, use chat template (tests LoRA generalization).
+                 If False, use chat template.
 
         Returns:
             (passed, response_text)

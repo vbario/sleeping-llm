@@ -205,7 +205,7 @@ def test_background_sleep_basic():
         time.sleep(0.05)
         yield {"step": 1, "total": 2, "label": "Curating", "status": "done"}
         yield {"step": 2, "total": 2, "label": "Training", "status": "done",
-               "facts_consolidated": 3}
+               "facts_refreshed": 3}
 
     started = mgr.start_sleep(fake_sleep)
     assert started
@@ -243,7 +243,7 @@ def test_background_sleep_callback():
     callback_result = {}
 
     def fake_sleep():
-        yield {"step": 1, "total": 1, "label": "Done", "status": "done", "facts_consolidated": 5}
+        yield {"step": 1, "total": 1, "label": "Done", "status": "done", "facts_refreshed": 5}
 
     def on_done(result):
         callback_result.update(result)

@@ -204,13 +204,13 @@ class Chat:
                     self._nap_callback("health")
                     return
             # Also check turn-based as fallback
-            light_threshold = self.config.sleep["light_sleep_turns"]
+            light_threshold = self.config.sleep.get("light_sleep_turns", 10)
             if self.turn_count > 0 and self.turn_count % light_threshold == 0:
                 if self._sleep_callback:
                     self._sleep_callback("auto")
         else:
             # Turn-based triggers (original behavior)
-            light_threshold = self.config.sleep["light_sleep_turns"]
+            light_threshold = self.config.sleep.get("light_sleep_turns", 10)
             if self.turn_count > 0 and self.turn_count % light_threshold == 0:
                 if self._sleep_callback:
                     self._sleep_callback("auto")

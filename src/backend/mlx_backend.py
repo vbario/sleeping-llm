@@ -1,10 +1,6 @@
-"""MLX backend — wraps mlx-lm for inference, tokenization, LoRA training, and adapter fusion."""
+"""MLX backend — wraps mlx-lm for inference, tokenization, and MEMIT weight editing."""
 
-import json
 import os
-import subprocess
-import sys
-from pathlib import Path
 
 
 def nn_create_additive_causal_mask(seq_len, dtype):
@@ -40,11 +36,7 @@ class MLXBackend:
         return self
 
     def _resolve_model_path(self):
-        """Determine which model to load: current (post-sleep) or base."""
-        current = self.config.paths["current_model"]
-        if os.path.exists(current) and os.listdir(current):
-            print(f"  Loading from models/current/ (post-sleep model)")
-            return current
+        """Always load from the base model (MEMIT edits are re-applied in memory)."""
         base = self.config.model["path"]
         print(f"  Loading from base: {base}")
         return base
@@ -118,72 +110,6 @@ class MLXBackend:
     def tokenize(self, text):
         """Tokenize text and return token IDs."""
         return self.tokenizer.encode(text)
-
-    def train_lora(self, data_path, adapter_path, epochs=None, learning_rate=None):
-        """Run LoRA fine-tuning using mlx_lm.lora CLI.
-
-        Args:
-            data_path: Directory containing train.jsonl (and optionally valid.jsonl)
-            adapter_path: Where to save the LoRA adapter
-            epochs: Number of passes over the data
-            learning_rate: Override config learning rate
-        """
-        model_path = self._model_path or self._resolve_model_path()
-        epochs = epochs or self.config.lora["light_epochs"]
-        learning_rate = learning_rate or self.config.lora["light_learning_rate"]
-        lora_layers = self.config.lora["layers"]
-        batch_size = self.config.lora["batch_size"]
-
-        # Count training examples to scale iterations properly
-        train_file = Path(data_path) / "train.jsonl"
-        num_examples = 0
-        if train_file.exists():
-            with open(train_file) as f:
-                num_examples = sum(1 for line in f if line.strip())
-
-        if num_examples == 0:
-            return adapter_path
-
-        # iterations = examples × epochs (each example seen `epochs` times)
-        iters = max(1, num_examples * epochs)
-
-        os.makedirs(adapter_path, exist_ok=True)
-
-        cmd = [
-            sys.executable, "-m", "mlx_lm.lora",
-            "--model", str(model_path),
-            "--train",
-            "--data", str(data_path),
-            "--adapter-path", str(adapter_path),
-            "--batch-size", str(batch_size),
-            "--num-layers", str(lora_layers),
-            "--iters", str(iters),
-            "--learning-rate", str(learning_rate),
-        ]
-
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            raise RuntimeError(f"LoRA training failed:\n{result.stderr}")
-
-        return adapter_path
-
-    def fuse_adapter(self, adapter_path, save_path):
-        """Merge a LoRA adapter into the model and save."""
-        model_path = self._model_path or self._resolve_model_path()
-        os.makedirs(save_path, exist_ok=True)
-
-        cmd = [
-            sys.executable, "-m", "mlx_lm.fuse",
-            "--model", str(model_path),
-            "--adapter-path", str(adapter_path),
-            "--save-path", str(save_path),
-        ]
-
-        result = subprocess.run(cmd, capture_output=True, text=True)
-        if result.returncode != 0:
-            raise RuntimeError(f"Adapter fusion failed:\n{result.stderr}")
-
-        return save_path
 
     def generate_stream(self, prompt, max_tokens=None, temperature=None, top_p=None):
         """Generate text with streaming. Yields token strings incrementally.

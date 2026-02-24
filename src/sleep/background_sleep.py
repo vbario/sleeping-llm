@@ -26,7 +26,7 @@ class SleepState(Enum):
     IDLE = "idle"
     SLEEPING = "sleeping"         # Full sleep in progress
     NAPPING = "napping"           # Nap in progress
-    CONSOLIDATING = "consolidating"  # Write-lock phase (fuse/reload)
+    MAINTAINING = "maintaining"      # Maintenance phase (refresh/prune)
     ERROR = "error"
 
 
@@ -112,12 +112,12 @@ class BackgroundSleepManager:
                 with self._lock:
                     self._progress.append(progress_dict)
 
-                    # Track consolidation phase (write lock held by sleep pipeline)
+                    # Track maintenance phase
                     label = progress_dict.get("label", "")
                     status = progress_dict.get("status", "")
-                    if "Consolidat" in label and status == "running":
-                        self._state = SleepState.CONSOLIDATING
-                    elif self._state == SleepState.CONSOLIDATING and status == "done":
+                    if "Maintenance" in label and status == "running":
+                        self._state = SleepState.MAINTAINING
+                    elif self._state == SleepState.MAINTAINING and status == "done":
                         self._state = SleepState.SLEEPING
 
             with self._lock:
@@ -126,7 +126,8 @@ class BackgroundSleepManager:
                     last = self._progress[-1]
                     self._result = {
                         "status": "completed",
-                        "facts_consolidated": last.get("facts_consolidated", 0),
+                        "facts_refreshed": last.get("facts_refreshed", 0),
+                        "facts_pruned": last.get("facts_pruned", 0),
                         "steps": len(self._progress),
                     }
                 else:
