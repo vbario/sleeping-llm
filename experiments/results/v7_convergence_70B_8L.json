@@ -1,0 +1,124 @@
+{
+  "config": {
+    "model": "meta-llama/Llama-3.1-70B-Instruct",
+    "backend": "torch",
+    "layers": [
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43
+    ],
+    "num_layers": 8,
+    "max_inject": 60,
+    "max_cycles": 10,
+    "min_degraded": 3,
+    "second_wave": 3
+  },
+  "phase_a": {
+    "injection": {
+      "total_facts": 7,
+      "final_recall": 0.571,
+      "degraded_count": 3,
+      "degraded_facts": [
+        "Aria",
+        "Kaito",
+        "Zara"
+      ],
+      "baseline_ppl": 5.096,
+      "trajectory": [
+        {
+          "fact_num": 1,
+          "recall": 1.0,
+          "degraded_count": 0,
+          "ppl": 5.084
+        },
+        {
+          "fact_num": 2,
+          "recall": 1.0,
+          "degraded_count": 0,
+          "ppl": 5.099
+        },
+        {
+          "fact_num": 3,
+          "recall": 0.667,
+          "degraded_count": 1,
+          "ppl": 5.085
+        },
+        {
+          "fact_num": 4,
+          "recall": 0.75,
+          "degraded_count": 1,
+          "ppl": 5.098
+        },
+        {
+          "fact_num": 5,
+          "recall": 0.6,
+          "degraded_count": 2,
+          "ppl": 5.095
+        },
+        {
+          "fact_num": 6,
+          "recall": 0.667,
+          "degraded_count": 2,
+          "ppl": 5.1
+        },
+        {
+          "fact_num": 7,
+          "recall": 0.571,
+          "degraded_count": 3,
+          "ppl": 5.094
+        }
+      ]
+    },
+    "convergence": {
+      "converged": true,
+      "cycles_to_converge": 2,
+      "total_cycles_run": 2,
+      "trajectory": [
+        {
+          "cycle": 1,
+          "recall": 1.0,
+          "degraded_count": 0,
+          "degraded_facts": [],
+          "facts_refreshed": 3,
+          "facts_pruned": 0,
+          "ppl": 5.079,
+          "elapsed_seconds": 158.0
+        },
+        {
+          "cycle": 2,
+          "recall": 1.0,
+          "degraded_count": 0,
+          "degraded_facts": [],
+          "facts_refreshed": 0,
+          "facts_pruned": 0,
+          "ppl": 5.1,
+          "elapsed_seconds": 90.2
+        }
+      ]
+    }
+  },
+  "phase_b": {
+    "injection": {
+      "new_facts": 3,
+      "total_facts": 10,
+      "recall_before_injection": 1.0,
+      "recall_after_injection": 1.0,
+      "degraded_count": 0,
+      "degraded_facts": [],
+      "ppl": 5.105
+    },
+    "convergence": {
+      "converged": true,
+      "cycles_to_converge": 0,
+      "trajectory": [],
+      "note": "No degradation after second wave"
+    }
+  },
+  "overall_verdict": "CONVERGED (A: 2 cycles, B: 0 cycles)",
+  "total_elapsed_seconds": 705.9
+}

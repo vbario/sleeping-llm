@@ -1,0 +1,523 @@
+{
+  "config": {
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "backend": "torch",
+    "layers": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "num_layers": 8,
+    "max_inject": 30,
+    "max_cycles": 10,
+    "min_degraded": 30,
+    "second_wave": 5
+  },
+  "phase_a": {
+    "injection": {
+      "total_facts": 30,
+      "final_recall": 0.4,
+      "degraded_count": 18,
+      "degraded_facts": [
+        "Aria",
+        "Zara",
+        "Finnley",
+        "Amara",
+        "Suki",
+        "Draven",
+        "Isolde",
+        "Theron",
+        "Niamh",
+        "Elara",
+        "Cassian",
+        "Yuki",
+        "Tariq",
+        "Brielle",
+        "Maren",
+        "Ronan",
+        "Viggo",
+        "Orion"
+      ],
+      "baseline_ppl": 5.661,
+      "trajectory": [
+        {
+          "fact_num": 1,
+          "recall": 1.0,
+          "degraded_count": 0,
+          "ppl": 5.677
+        },
+        {
+          "fact_num": 2,
+          "recall": 0.5,
+          "degraded_count": 1,
+          "ppl": 5.653
+        },
+        {
+          "fact_num": 3,
+          "recall": 0.667,
+          "degraded_count": 1,
+          "ppl": 5.658
+        },
+        {
+          "fact_num": 4,
+          "recall": 0.75,
+          "degraded_count": 1,
+          "ppl": 5.618
+        },
+        {
+          "fact_num": 5,
+          "recall": 0.8,
+          "degraded_count": 1,
+          "ppl": 5.646
+        },
+        {
+          "fact_num": 6,
+          "recall": 0.833,
+          "degraded_count": 1,
+          "ppl": 5.644
+        },
+        {
+          "fact_num": 7,
+          "recall": 0.857,
+          "degraded_count": 1,
+          "ppl": 5.65
+        },
+        {
+          "fact_num": 8,
+          "recall": 0.875,
+          "degraded_count": 1,
+          "ppl": 5.644
+        },
+        {
+          "fact_num": 9,
+          "recall": 0.889,
+          "degraded_count": 1,
+          "ppl": 5.626
+        },
+        {
+          "fact_num": 10,
+          "recall": 0.9,
+          "degraded_count": 1,
+          "ppl": 5.634
+        },
+        {
+          "fact_num": 11,
+          "recall": 0.909,
+          "degraded_count": 1,
+          "ppl": 5.654
+        },
+        {
+          "fact_num": 12,
+          "recall": 0.917,
+          "degraded_count": 1,
+          "ppl": 5.662
+        },
+        {
+          "fact_num": 13,
+          "recall": 0.923,
+          "degraded_count": 1,
+          "ppl": 5.643
+        },
+        {
+          "fact_num": 14,
+          "recall": 0.571,
+          "degraded_count": 6,
+          "ppl": 5.655
+        },
+        {
+          "fact_num": 15,
+          "recall": 0.533,
+          "degraded_count": 7,
+          "ppl": 5.642
+        },
+        {
+          "fact_num": 16,
+          "recall": 0.562,
+          "degraded_count": 7,
+          "ppl": 5.657
+        },
+        {
+          "fact_num": 17,
+          "recall": 0.529,
+          "degraded_count": 8,
+          "ppl": 5.633
+        },
+        {
+          "fact_num": 18,
+          "recall": 0.611,
+          "degraded_count": 7,
+          "ppl": 5.626
+        },
+        {
+          "fact_num": 19,
+          "recall": 0.632,
+          "degraded_count": 7,
+          "ppl": 5.65
+        },
+        {
+          "fact_num": 20,
+          "recall": 0.55,
+          "degraded_count": 9,
+          "ppl": 5.645
+        },
+        {
+          "fact_num": 21,
+          "recall": 0.619,
+          "degraded_count": 8,
+          "ppl": 5.648
+        },
+        {
+          "fact_num": 22,
+          "recall": 0.545,
+          "degraded_count": 10,
+          "ppl": 5.657
+        },
+        {
+          "fact_num": 23,
+          "recall": 0.609,
+          "degraded_count": 9,
+          "ppl": 5.637
+        },
+        {
+          "fact_num": 24,
+          "recall": 0.375,
+          "degraded_count": 15,
+          "ppl": 5.665
+        },
+        {
+          "fact_num": 25,
+          "recall": 0.44,
+          "degraded_count": 14,
+          "ppl": 5.637
+        },
+        {
+          "fact_num": 26,
+          "recall": 0.462,
+          "degraded_count": 14,
+          "ppl": 5.625
+        },
+        {
+          "fact_num": 27,
+          "recall": 0.444,
+          "degraded_count": 15,
+          "ppl": 5.609
+        },
+        {
+          "fact_num": 28,
+          "recall": 0.464,
+          "degraded_count": 15,
+          "ppl": 5.634
+        },
+        {
+          "fact_num": 29,
+          "recall": 0.552,
+          "degraded_count": 13,
+          "ppl": 5.615
+        },
+        {
+          "fact_num": 30,
+          "recall": 0.4,
+          "degraded_count": 18,
+          "ppl": 5.626
+        }
+      ]
+    },
+    "convergence": {
+      "converged": true,
+      "cycles_to_converge": 4,
+      "total_cycles_run": 4,
+      "trajectory": [
+        {
+          "cycle": 1,
+          "recall": 0.4,
+          "degraded_count": 18,
+          "degraded_facts": [
+            "Leandro",
+            "Suki",
+            "Ravi",
+            "Yuki",
+            "Tariq",
+            "Brielle",
+            "Idris",
+            "Maren",
+            "Ronan",
+            "Liora",
+            "Viggo",
+            "Orion",
+            "Farah",
+            "Elio",
+            "Zadie",
+            "Caspian",
+            "Anwen",
+            "Kael"
+          ],
+          "facts_refreshed": 10,
+          "facts_pruned": 0,
+          "ppl": 5.663,
+          "elapsed_seconds": 348.3
+        },
+        {
+          "cycle": 2,
+          "recall": 0.767,
+          "degraded_count": 7,
+          "degraded_facts": [
+            "Aria",
+            "Zara",
+            "Viggo",
+            "Zadie",
+            "Caspian",
+            "Anwen",
+            "Kael"
+          ],
+          "facts_refreshed": 10,
+          "facts_pruned": 0,
+          "ppl": 5.79,
+          "elapsed_seconds": 355.9
+        },
+        {
+          "cycle": 3,
+          "recall": 1.0,
+          "degraded_count": 0,
+          "degraded_facts": [],
+          "facts_refreshed": 7,
+          "facts_pruned": 0,
+          "ppl": 5.843,
+          "elapsed_seconds": 316.7
+        },
+        {
+          "cycle": 4,
+          "recall": 1.0,
+          "degraded_count": 0,
+          "degraded_facts": [],
+          "facts_refreshed": 0,
+          "facts_pruned": 0,
+          "ppl": 5.813,
+          "elapsed_seconds": 183.0
+        }
+      ]
+    }
+  },
+  "phase_b": {
+    "injection": {
+      "new_facts": 5,
+      "total_facts": 35,
+      "recall_before_injection": 1.0,
+      "recall_after_injection": 0.914,
+      "degraded_count": 3,
+      "degraded_facts": [
+        "Soraya",
+        "Lucian",
+        "Emeric"
+      ],
+      "ppl": 5.799
+    },
+    "convergence": {
+      "converged": false,
+      "cycles_to_converge": null,
+      "total_cycles_run": 10,
+      "trajectory": [
+        {
+          "cycle": 1,
+          "recall": 0.971,
+          "degraded_count": 1,
+          "degraded_facts": [
+            "Elara"
+          ],
+          "facts_refreshed": 3,
+          "facts_pruned": 0,
+          "ppl": 5.802,
+          "elapsed_seconds": 297.0
+        },
+        {
+          "cycle": 2,
+          "recall": 0.971,
+          "degraded_count": 1,
+          "degraded_facts": [
+            "Kaito"
+          ],
+          "facts_refreshed": 1,
+          "facts_pruned": 3,
+          "ppl": 5.794,
+          "elapsed_seconds": 243.1
+        },
+        {
+          "cycle": 3,
+          "recall": 0.914,
+          "degraded_count": 3,
+          "degraded_facts": [
+            "Kaito",
+            "Yuki",
+            "Ximena"
+          ],
+          "facts_refreshed": 0,
+          "facts_pruned": 3,
+          "ppl": 5.818,
+          "elapsed_seconds": 221.4
+        },
+        {
+          "cycle": 4,
+          "recall": 0.857,
+          "degraded_count": 5,
+          "degraded_facts": [
+            "Kaito",
+            "Finnley",
+            "Suki",
+            "Yuki",
+            "Ximena"
+          ],
+          "facts_refreshed": 0,
+          "facts_pruned": 3,
+          "ppl": 5.781,
+          "elapsed_seconds": 220.6
+        },
+        {
+          "cycle": 5,
+          "recall": 0.829,
+          "degraded_count": 6,
+          "degraded_facts": [
+            "Kaito",
+            "Finnley",
+            "Amara",
+            "Draven",
+            "Isolde",
+            "Ximena"
+          ],
+          "facts_refreshed": 0,
+          "facts_pruned": 3,
+          "ppl": 5.761,
+          "elapsed_seconds": 224.4
+        },
+        {
+          "cycle": 6,
+          "recall": 0.714,
+          "degraded_count": 10,
+          "degraded_facts": [
+            "Kaito",
+            "Finnley",
+            "Amara",
+            "Draven",
+            "Isolde",
+            "Theron",
+            "Niamh",
+            "Cassian",
+            "Ximena",
+            "Kael"
+          ],
+          "facts_refreshed": 0,
+          "facts_pruned": 3,
+          "ppl": 5.772,
+          "elapsed_seconds": 228.8
+        },
+        {
+          "cycle": 7,
+          "recall": 0.657,
+          "degraded_count": 12,
+          "degraded_facts": [
+            "Kaito",
+            "Finnley",
+            "Amara",
+            "Suki",
+            "Draven",
+            "Isolde",
+            "Theron",
+            "Niamh",
+            "Ravi",
+            "Cassian",
+            "Yuki",
+            "Ximena"
+          ],
+          "facts_refreshed": 1,
+          "facts_pruned": 3,
+          "ppl": 5.781,
+          "elapsed_seconds": 249.0
+        },
+        {
+          "cycle": 8,
+          "recall": 0.657,
+          "degraded_count": 12,
+          "degraded_facts": [
+            "Kaito",
+            "Zara",
+            "Finnley",
+            "Amara",
+            "Draven",
+            "Isolde",
+            "Theron",
+            "Niamh",
+            "Cassian",
+            "Tariq",
+            "Brielle",
+            "Ximena"
+          ],
+          "facts_refreshed": 0,
+          "facts_pruned": 3,
+          "ppl": 5.779,
+          "elapsed_seconds": 228.3
+        },
+        {
+          "cycle": 9,
+          "recall": 0.571,
+          "degraded_count": 15,
+          "degraded_facts": [
+            "Kaito",
+            "Zara",
+            "Finnley",
+            "Amara",
+            "Draven",
+            "Isolde",
+            "Theron",
+            "Niamh",
+            "Cassian",
+            "Tariq",
+            "Brielle",
+            "Idris",
+            "Maren",
+            "Ronan",
+            "Ximena"
+          ],
+          "facts_refreshed": 0,
+          "facts_pruned": 3,
+          "ppl": 5.768,
+          "elapsed_seconds": 228.2
+        },
+        {
+          "cycle": 10,
+          "recall": 0.457,
+          "degraded_count": 19,
+          "degraded_facts": [
+            "Aria",
+            "Kaito",
+            "Finnley",
+            "Amara",
+            "Leandro",
+            "Draven",
+            "Isolde",
+            "Theron",
+            "Niamh",
+            "Cassian",
+            "Tariq",
+            "Brielle",
+            "Idris",
+            "Maren",
+            "Ronan",
+            "Liora",
+            "Ximena",
+            "Orion",
+            "Farah"
+          ],
+          "facts_refreshed": 1,
+          "facts_pruned": 3,
+          "ppl": 5.73,
+          "elapsed_seconds": 248.0
+        }
+      ]
+    }
+  },
+  "overall_verdict": "PARTIAL (A converged in 4, B did not \u2014 last recall 0.457)",
+  "total_elapsed_seconds": 4819.5
+}
