@@ -8,6 +8,7 @@ memory-version-3-continued		Progress checkpoint
 memory-version-4				Good with 8B
 memory-version-5				Good with 8B
 memory-version-5-continued		Best with 3B/8B/70B
-memory-version-7				No LoRa
+memory-version-7				No LoRA
 memory-version-8				
 memory-version-9				Stable, not public ready
+memory-version-10				Full cycle
