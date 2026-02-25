@@ -189,8 +189,8 @@ class FullSleepController:
 
             if recall_rate >= self.degraded_threshold:
                 healthy += 1
-            elif edit.consolidation_stage >= 1:
-                # Edit has been partially consolidated — low raw recall is
+            elif any(s >= 1 for s in edit.fact_stages):
+                # Some facts have been partially consolidated — low raw recall is
                 # expected because MEMIT scale was intentionally reduced.
                 # Check chat recall (LoRA pathway) before flagging as degraded.
                 chat_recalled = 0
@@ -201,7 +201,7 @@ class FullSleepController:
                 chat_rate = chat_recalled / len(edit.facts) if edit.facts else 1.0
                 if chat_rate >= self.degraded_threshold:
                     healthy += 1
-                    print(f"        OK (consolidated stage {edit.consolidation_stage}): "
+                    print(f"        OK (consolidated stages {edit.fact_stages}): "
                           f"{edit.facts[0].subject} {edit.facts[0].relation} "
                           f"(raw {recall_rate:.0%}, chat {chat_rate:.0%})")
                 else:
@@ -309,42 +309,39 @@ class FullSleepController:
         self.backend.reload(fused_path)
         self.memit_engine.reapply_active_edits()
 
-        # 5. Per-fact gating: test chat recall with MEMIT zeroed out
-        stage_changes = []  # list of (edit, old_stage, new_stage)
+        # 5. Per-fact gating: test each fact's chat recall with MEMIT zeroed
+        # stage_changes tracks (edit, fact_idx, old_stage, new_stage) for rollback
+        stage_changes = []
         for edit in eligible:
             # Temporarily zero MEMIT for this edit
             old_scale = edit.scale
             self.memit_engine.scale_edit(edit, 0.0)
 
-            # Test chat recall (without MEMIT, relying on LoRA)
-            chat_passed = True
-            for fact in edit.facts:
+            # Test each fact individually
+            for fact_idx, fact in enumerate(edit.facts):
+                old_stage = edit.fact_stages[fact_idx]
                 passed, _ = self.memit_engine.test_recall(fact, raw=False)
-                if not passed:
-                    chat_passed = False
-                    break
+
+                if passed:
+                    new_stage = self.ledger.advance_fact_stage(edit.edit_id, fact_idx)
+                    edit.fact_stages[fact_idx] = new_stage
+                    stage_changes.append((edit, fact_idx, old_stage, new_stage))
+                    stats["advanced"] += 1
+                    print(f"        Advanced: {fact.subject} {fact.relation} "
+                          f"stage {old_stage}→{new_stage}")
+                else:
+                    if old_stage > 0:
+                        self.ledger.retreat_fact_stage(edit.edit_id, fact_idx)
+                        edit.fact_stages[fact_idx] = 0
+                        stats["retreated"] += 1
+                        print(f"        Retreated: {fact.subject} {fact.relation} → stage 0")
 
             # Restore MEMIT scale
             self.memit_engine.scale_edit(edit, old_scale)
 
-            if chat_passed:
-                old_stage = edit.consolidation_stage
-                new_stage = self.ledger.advance_stage(edit.edit_id)
-                edit.consolidation_stage = new_stage
-                stage_changes.append((edit, old_stage, new_stage))
-                stats["advanced"] += 1
-                print(f"        Advanced: {edit.facts[0].subject} "
-                      f"stage {old_stage}→{new_stage}")
-            else:
-                if edit.consolidation_stage > 0:
-                    self.ledger.retreat_stage(edit.edit_id)
-                    edit.consolidation_stage = 0
-                    stats["retreated"] += 1
-                    print(f"        Retreated: {edit.facts[0].subject} → stage 0")
-
-        # 6. Apply scale schedule based on new stages
+        # 6. Apply scale schedule: edit scale = schedule[min fact stage]
         for edit in self.memit_engine._active_edits:
-            stage = edit.consolidation_stage
+            stage = edit.consolidation_stage  # min of fact_stages
             if stage < len(self.scale_schedule):
                 target_scale = self.scale_schedule[stage]
                 if abs(edit.scale - target_scale) > 1e-8:
@@ -354,18 +351,18 @@ class FullSleepController:
         # 7. PPL gate: rollback if PPL degrades too much
         if ref_text:
             ppl_after = self.backend.compute_perplexity(ref_text)
-            ppl_baseline = self.backend.compute_perplexity(ref_text)  # re-measure on fused
-            # Simple check: if PPL > 2x what we'd expect, rollback
             if ppl_after and ppl_after > 50:  # sanity threshold
                 print(f"        PPL gate FAILED ({ppl_after:.2f}), rolling back...")
                 self.memit_engine.restore_target_weights(snapshot)
                 self.memit_engine.reapply_active_edits()
-                # Revert all stage changes
-                for edit, old_stage, new_stage in stage_changes:
-                    self.ledger.retreat_stage(edit.edit_id)
-                    edit.consolidation_stage = old_stage
-                    # Restore original scale
-                    original_scale = self.scale_schedule[old_stage] if old_stage < len(self.scale_schedule) else 1.0
+                # Revert all per-fact stage changes
+                for edit, fact_idx, old_stage, new_stage in stage_changes:
+                    self.ledger.retreat_fact_stage(edit.edit_id, fact_idx)
+                    edit.fact_stages[fact_idx] = old_stage
+                # Restore original scales
+                for edit in self.memit_engine._active_edits:
+                    stage = edit.consolidation_stage
+                    original_scale = self.scale_schedule[stage] if stage < len(self.scale_schedule) else 1.0
                     self.memit_engine.scale_edit(edit, original_scale)
                 stats = {"advanced": 0, "retreated": 0, "scaled_down": 0,
                          "skipped": False, "rolled_back": True}

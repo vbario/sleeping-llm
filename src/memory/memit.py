@@ -177,7 +177,28 @@ class MemitEdit:
     scale: float = 1.0  # fraction of delta applied (1.0=full, 0.0=pruned)
     last_verified: float = 0.0  # timestamp of last recall audit
     recall_success_rate: float = 1.0  # fraction of facts recalled in last audit
-    consolidation_stage: int = 0  # 0=MEMIT only, 1-2=LoRA absorbing, 3=LoRA carries
+    fact_stages: List[int] = field(default_factory=list)  # per-fact stage: 0=MEMIT only, 1-2=LoRA absorbing, 3=LoRA carries
+
+    def __post_init__(self):
+        """Ensure fact_stages has one entry per fact."""
+        if not self.fact_stages and self.facts:
+            self.fact_stages = [0] * len(self.facts)
+        elif self.facts and len(self.fact_stages) != len(self.facts):
+            # Length mismatch — extend or truncate to match facts
+            if len(self.fact_stages) < len(self.facts):
+                self.fact_stages.extend([0] * (len(self.facts) - len(self.fact_stages)))
+            else:
+                self.fact_stages = self.fact_stages[:len(self.facts)]
+
+    @property
+    def consolidation_stage(self) -> int:
+        """Effective stage = min of all fact stages (backward compat)."""
+        return min(self.fact_stages) if self.fact_stages else 0
+
+    @consolidation_stage.setter
+    def consolidation_stage(self, value: int):
+        """Set all fact stages to the same value (backward compat)."""
+        self.fact_stages = [value] * len(self.facts)
 
     def to_ledger_dict(self) -> dict:
         """Serialize metadata only (no arrays) for the ledger."""
@@ -189,7 +210,7 @@ class MemitEdit:
             "scale": self.scale,
             "last_verified": self.last_verified,
             "recall_success_rate": self.recall_success_rate,
-            "consolidation_stage": self.consolidation_stage,
+            "fact_stages": self.fact_stages,
         }
 
 
@@ -225,7 +246,11 @@ class EditLedger:
             e.setdefault("scale", 1.0)
             e.setdefault("last_verified", 0.0)
             e.setdefault("recall_success_rate", 1.0)
-            e.setdefault("consolidation_stage", 0)
+            # Migrate old consolidation_stage int → fact_stages list
+            if "fact_stages" not in e:
+                old_stage = e.pop("consolidation_stage", 0)
+                num_facts = len(e.get("facts", []))
+                e["fact_stages"] = [old_stage] * max(num_facts, 1)
             if e.get("scale", 1.0) > 0:
                 active.append(e)
         return active
@@ -264,22 +289,47 @@ class EditLedger:
                 break
         self.save()
 
-    def advance_stage(self, edit_id: str) -> int:
-        """Increment consolidation stage (cap at 3). Returns new stage."""
+    def advance_fact_stage(self, edit_id: str, fact_idx: int) -> int:
+        """Increment consolidation stage for a single fact (cap at 3). Returns new stage."""
         for edit in self._edits:
             if edit["edit_id"] == edit_id:
-                stage = edit.get("consolidation_stage", 0)
-                new_stage = min(stage + 1, 3)
-                edit["consolidation_stage"] = new_stage
+                stages = edit.get("fact_stages", [0])
+                if fact_idx < len(stages):
+                    stages[fact_idx] = min(stages[fact_idx] + 1, 3)
+                    edit["fact_stages"] = stages
+                    self.save()
+                    return stages[fact_idx]
+        return 0
+
+    def retreat_fact_stage(self, edit_id: str, fact_idx: int):
+        """Reset consolidation stage to 0 for a single fact."""
+        for edit in self._edits:
+            if edit["edit_id"] == edit_id:
+                stages = edit.get("fact_stages", [0])
+                if fact_idx < len(stages):
+                    stages[fact_idx] = 0
+                    edit["fact_stages"] = stages
+                    self.save()
+                return
+
+    # Backward-compat wrappers (whole-edit)
+    def advance_stage(self, edit_id: str) -> int:
+        """Advance all facts in an edit. Returns min stage."""
+        for edit in self._edits:
+            if edit["edit_id"] == edit_id:
+                stages = edit.get("fact_stages", [0])
+                stages = [min(s + 1, 3) for s in stages]
+                edit["fact_stages"] = stages
                 self.save()
-                return new_stage
+                return min(stages)
         return 0
 
     def retreat_stage(self, edit_id: str):
-        """Reset consolidation stage to 0 (LoRA recall failed)."""
+        """Reset all facts in an edit to stage 0."""
         for edit in self._edits:
             if edit["edit_id"] == edit_id:
-                edit["consolidation_stage"] = 0
+                stages = edit.get("fact_stages", [0])
+                edit["fact_stages"] = [0] * len(stages)
                 self.save()
                 return
 
@@ -375,13 +425,17 @@ class EditLedger:
                 # Old residual traces (0.1) — flag for re-injection by restoring full scale
                 e["scale"] = 1.0
 
-            # Strip old LoRA-era fields (keep consolidation_stage)
+            # Strip old LoRA-era fields
             e.pop("consolidated", None)
 
             # Add new fields
             e.setdefault("last_verified", 0.0)
             e.setdefault("recall_success_rate", 1.0)
-            e.setdefault("consolidation_stage", 0)
+            # Migrate consolidation_stage → fact_stages
+            if "fact_stages" not in e:
+                old_stage = e.pop("consolidation_stage", 0)
+                num_facts = len(e.get("facts", []))
+                e["fact_stages"] = [old_stage] * max(num_facts, 1)
             migrated += 1
 
         if migrated > 0:
@@ -913,7 +967,7 @@ class MemitEngine:
                 scale=scale,
                 last_verified=edit_dict.get("last_verified", 0.0),
                 recall_success_rate=edit_dict.get("recall_success_rate", 1.0),
-                consolidation_stage=edit_dict.get("consolidation_stage", 0),
+                fact_stages=edit_dict.get("fact_stages", [0] * len(facts)),
             )
             self._active_edits.append(edit)
             reloaded += 1
