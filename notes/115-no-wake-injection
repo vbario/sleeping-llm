@@ -1,0 +1,27 @@
+Right now the architecture is:                     
+                                                                                          
+  - Wake: MEMIT injects facts immediately, no constraints (interference)                  
+  - Sleep: curation extracts facts from sessions, injects WITH constraints (protected)
+                                                                                          
+  The cycle 1 "paradox" might not be a bug — it's sleep doing both jobs: learning new
+  facts safely (constrained curation) AND repairing old ones (maintenance). The 2
+  curation-injected facts survived perfectly because they had full null-space protection.
+
+  So the real question: what if wake never injects at all? Wake just chats and logs
+  sessions. Sleep does ALL the MEMIT work — curation extracts facts, injects with
+  constraints, audits, refreshes. No unconstrained injection ever happens.
+
+  That would mean:
+  - No tipping-point crashes during wake
+  - No degradation to repair (or much less)
+  - Facts only enter the model through the protected pathway
+  - Trade-off: facts aren't recalled until after the next sleep cycle (delayed learning)
+
+  The test to prove this: same 14 facts, but instead of inject_without_constraints, just
+  teach_facts() to create session data, then let sleep's curation handle all injection.
+  Compare degradation and convergence.
+
+  Want me to build that as a variant? Could call it v7_curation_only_test.py — inject zero
+   facts during wake, rely entirely on sleep curation. If recall is high with zero
+  degradation, it proves the "sleep-only learning" pathway is superior and the wake
+  injection is the source of all problems.

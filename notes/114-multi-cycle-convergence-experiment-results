@@ -1,0 +1,115 @@
+Note 113: Multi-Cycle Convergence Experiment Results
+=====================================================
+
+Date: 2026-02-24
+Model: Llama-3.1-8B-Instruct (4-bit), 8 layers [12-19], 2xH100
+Runtime: 18.0 min
+Verdict: CONVERGED (A: 4 cycles, B: 2 cycles)
+
+## Question
+
+Note 112 showed one sleep cycle recovers 5/6 degraded facts but creates 2 new
+casualties (recall 0.57 -> 0.79, 3 still degraded). Does iterating sleep cycles
+converge to stable recall, or is it whack-a-mole?
+
+## Phase A: Initial Wake + Convergence (14 facts)
+
+### Injection (batch_size=1, no null-space constraints)
+
+Facts 1-13: recall stayed high (0.86-0.92), only 1 degraded at any time.
+Fact 14 (Cassian/Lisbon): catastrophic interference — recall crashed 0.92 -> 0.57,
+6 facts degraded simultaneously. Tipping point behavior.
+
+Degraded after injection: Aria, Zara, Amara, Suki, Draven, Isolde
+
+### Convergence Trajectory
+
+  Cycle | Recall | Degraded | Refreshed | PPL   | Degraded Facts
+  ------|--------|----------|-----------|-------|----------------------------------
+  start | 0.571  | 6        | -         | 5.66  | Aria,Zara,Amara,Suki,Draven,Isolde
+  1     | 0.500  | 7        | 6         | 5.68  | Leandro,Suki,Theron,Niamh,Ravi,Elara,Cassian
+  2     | 0.786  | 3        | 4         | 5.69  | Aria,Zara,Leandro
+  3     | 1.000  | 0        | 3         | 5.64  | (none)
+  4     | 1.000  | 0        | 0         | 5.65  | (none)
+
+Key observations:
+- Cycle 1 paradox: fixed original 6, but broke 7 others (net worse!). This is
+  because curation also injected 2 new facts from conversation extraction,
+  adding more interference before maintenance ran.
+- Cycle 2: reduced from 7 to 3. The constraint matrix is growing (more
+  null-space keys per refresh), so each refresh is less destructive.
+- Cycle 3: clean sweep — all 14 facts recalled perfectly.
+- Cycle 4: confirmation — 0 refreshed needed, system is stable.
+
+Pattern: degraded count follows 6 -> 7 -> 3 -> 0 -> 0 (not monotonic at first,
+but converges). The initial spike is real whack-a-mole, but the growing constraint
+matrix acts as a damper.
+
+## Phase B: Second Wake + Re-Convergence (+5 facts = 19 total)
+
+### Injection (5 new facts, no constraints from converged state)
+
+Pre-injection: recall 1.00, 0 degraded (confirming Phase A stability)
+Post-injection: recall 0.895, 2 degraded (Kaito, Suki)
+
+Much less damage than Phase A (2 casualties vs 6). The existing constraint matrix
+from Phase A provides partial protection even for unconstrained injections.
+
+### Convergence Trajectory
+
+  Cycle | Recall | Degraded | Refreshed | PPL   | Degraded Facts
+  ------|--------|----------|-----------|-------|------------------
+  start | 0.895  | 2        | -         | 5.65  | Kaito, Suki
+  1     | 1.000  | 0        | 1         | 5.68  | (none)
+  2     | 1.000  | 0        | 0         | 5.69  | (none)
+
+One sleep cycle fixed both. Converged in 2 cycles (vs 4 for Phase A).
+
+## PPL Analysis
+
+PPL stayed flat throughout: 5.66 baseline -> 5.69 max across all 6 sleep cycles.
+Less than 0.5% drift. Sleep does not damage general knowledge.
+
+## Key Findings
+
+1. CONVERGENCE IS REAL. Not whack-a-mole (long-term). The system does temporarily
+   create new casualties when fixing old ones (cycle 1 went 6->7), but the growing
+   null-space constraint matrix acts as a damper. Each successive refresh is less
+   destructive because it protects more existing facts.
+
+2. CONVERGENCE ACCELERATES. Phase A: 4 cycles. Phase B: 2 cycles. As the constraint
+   matrix densifies, fewer facts get damaged and fewer cycles are needed. This
+   suggests a system that gets more stable over time, not less.
+
+3. CURATION INTERFERENCE. Cycle 1's paradoxical worsening (6->7 degraded) is partly
+   caused by curation injecting 2 new facts before maintenance runs. In later cycles
+   sessions are already consumed, so curation has nothing new to inject -> sleep is
+   pure audit+refresh -> cleaner convergence. This is the designed behavior:
+   first cycle handles both new learning and repair, later cycles are pure repair.
+
+4. TIPPING POINT BEHAVIOR. During injection, recall was fine at 13 facts (0.92)
+   then crashed at 14 (0.57). Without constraints, there's a sharp capacity cliff
+   rather than gradual degradation. Sleep repairs this, but the cliff is real.
+
+5. PPL IS A NON-ISSUE. 6 sleep cycles, 14 refreshes total, PPL barely moved.
+   The null-space constraint approach genuinely preserves general knowledge.
+
+## For the Paper
+
+The ideal figure from this data:
+- X-axis: timeline (inject 1-14, sleep A1-A4, inject 15-19, sleep B1-B2)
+- Y-axis left: recall (blue line), with Phase A and Phase B marked
+- Y-axis right: degraded count (red bars)
+- PPL as dashed line on right axis (flat)
+- Shows the V-shape: recall drops during wake, recovers during sleep, drops
+  again with new facts, recovers faster the second time
+
+Narrative: "Sleep-wake cycles converge to stable recall. Initial consolidation
+takes 3-4 cycles, but subsequent disruptions heal faster (1-2 cycles) as the
+null-space constraint matrix grows denser."
+
+## Files
+
+- Script: experiments/v7_convergence_test.py
+- Config: experiments/configs/8b_v7.yaml
+- Results: experiments/results/v7_convergence_Llama-3.1-8B-Instruct.json

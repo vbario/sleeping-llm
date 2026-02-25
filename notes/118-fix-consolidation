@@ -1,0 +1,189 @@
+Plan: Fix Pruning Bug + Re-introduce LoRA Consolidation                                             
+
+ Context
+
+ Two problems to solve:
+
+ Pruning death spiral (note 116): Refresh creates new edit entries without pruning old ones, inflating
+  the edit count. Pruning then removes oldest-first (healthy edits) instead of lowest-recall (damaged
+ edits). Result: 0.971 → 0.457 recall over 10 cycles.
+
+ Chat-template gap: MEMIT edits raw completion pathway only. Users interact via chat. LoRA training on
+  Q&A pairs gives facts chat access. The biological model: MEMIT = sharp hippocampal encoding (fast,
+ specific), LoRA = distributed neocortical integration (slow, stable). Sleep gradually transfers
+ knowledge from MEMIT→LoRA over multiple cycles, fading MEMIT peaks as LoRA absorbs the knowledge.
+
+ Existing infrastructure that supports this (all already in codebase):
+ - memit_engine.reapply_active_edits() — re-apply MEMIT after model reload post-fuse
+ - memit_engine.snapshot_target_weights() / restore_target_weights() — rollback
+ - memit_engine.scale_edit(edit, new_scale) — zero out individual MEMIT edits for testing
+ - memit_engine.test_recall(fact, raw=False) — chat-template recall test
+ - FactTriple.to_question() / .to_answer() / .to_raw_training_text() — training data
+ - backend.reload(model_path) — reload model post-fuse
+
+ ---
+ Changes
+
+ 1. Fix pruning bug — src/sleep/full_sleep.py lines 163-198
+
+ Fix A: Mark old edit as pruned before re-injecting (line ~177)
+
+ Current _maintain_edits() calls revert_edit(edit) then inject_facts(edit.facts). revert_edit removes
+ the edit from the in-memory _active_edits list but does NOT mark it as pruned in the ledger. The new
+ inject_facts call creates a fresh ledger entry. Result: the ledger accumulates stale entries that
+ reappear on restart (double-applying deltas) and inflate the count.
+
+ Fix: After revert_edit, call ledger.mark_pruned(edit.edit_id).
+
+ Fix B: Prune by lowest recall, not oldest timestamp (line ~191)
+
+ Current: sorted(..., key=lambda e: e.timestamp) — removes oldest, which are often the healthiest.
+
+ Fix: sorted(..., key=lambda e: (e.recall_success_rate, e.timestamp)) — removes most-damaged first.
+
+ 2. Add consolidation_stage to edit model — src/memory/memit.py
+
+ MemitEdit (line 164): Add consolidation_stage: int = 0 field.
+
+ MemitEdit.to_ledger_dict() (line 181): Include consolidation_stage.
+
+ EditLedger.get_active_edits() (line 213): Add e.setdefault("consolidation_stage", 0).
+
+ EditLedger — add two methods:
+ - advance_stage(edit_id) → increment stage (cap at 3), save, return new stage
+ - retreat_stage(edit_id) → set stage to 0, save
+
+ MemitEngine.reload_persisted_edits() (line 851): Read consolidation_stage from ledger dict when
+ reconstructing in-memory MemitEdit.
+
+ 3. Create src/sleep/trainer.py
+
+ New file. LoRA training orchestrator.
+
+ class SleepTrainer:
+     def __init__(self, config, backend)
+     def prepare_training_data(self, facts, output_dir) -> Path
+         # For each fact, write to train.jsonl:
+         #   Chat Q&A: {"messages": [user: to_question(), assistant: to_answer()]}
+         #   Raw completion: {"text": to_raw_training_text()}
+     def train_and_fuse(self, facts, cycle_id, save_dir) -> Optional[str]
+         # 1. prepare_training_data → data_dir
+         # 2. backend.train_lora(data_dir, adapter_path, **lora_config)
+         # 3. backend.fuse_adapter(adapter_path, save_dir)
+         # 4. Return fused model path (or None on failure)
+
+ 4. Add LoRA methods to MLX backend — src/backend/mlx_backend.py
+
+ def train_lora(self, data_path, adapter_path, num_layers=8,
+                batch_size=1, iters=None, learning_rate=1e-4):
+     """Train LoRA via `python -m mlx_lm.lora` subprocess."""
+
+ def fuse_adapter(self, adapter_path, save_path):
+     """Fuse via `python -m mlx_lm.fuse` subprocess."""
+
+ Both use subprocess.run calling mlx_lm CLI tools (same approach the deleted trainer used).
+
+ 5. Stub LoRA methods on torch backend — src/backend/torch_backend.py
+
+ Add train_lora() and fuse_adapter() that raise NotImplementedError. Keeps the interface consistent;
+ torch LoRA implementation can follow later.
+
+ 6. Add consolidation step to sleep pipeline — src/sleep/full_sleep.py
+
+ Pipeline grows from 6 to 8 steps:
+
+ [1] Health Check          (existing)
+ [2] Curate                (existing)
+ [3] Fact Audit            (existing)
+ [4] MEMIT Maintenance     (existing, with bug fixes from step 1)
+ [5] LoRA Consolidation    (NEW — train, fuse, per-fact gate)
+ [6] MEMIT Scale-Down      (NEW — apply stage-based scale schedule)
+ [7] Validate              (existing, now also checks post-consolidation PPL)
+ [8] Report                (existing, expanded with consolidation stats)
+
+ New __init__ parameter: Accept trainer=None. If None or lora.enabled is false, skip steps 5-6.
+
+ New method _consolidate(self, cycle_id, ref_text):
+
+ 1. Gather stage 0–2 edits with healthy recall
+ 2. If none → skip
+ 3. Collect all facts → trainer.prepare_training_data()
+ 4. snapshot = memit_engine.snapshot_target_weights()
+ 5. fused_path = trainer.train_and_fuse(facts, cycle_id)
+ 6. backend.reload(fused_path) + memit_engine.reapply_active_edits()
+ 7. Per-fact gating loop:
+   - For each edit: temporarily scale_edit(edit, 0.0), test chat recall, restore
+   - If passed: ledger.advance_stage(edit_id), apply new MEMIT scale from schedule
+ 8. PPL gate: if too high, restore_target_weights(snapshot) + revert all stage changes
+ 9. Return stats dict
+
+ Scale schedule (from config consolidation.scale_schedule):
+ Stage 0 → 1.0  (MEMIT fully active, no LoRA backup)
+ Stage 1 → 0.5  (LoRA proved recall once, halve MEMIT)
+ Stage 2 → 0.1  (LoRA proved recall twice, MEMIT as residual trace)
+ Stage 3 → 0.0  (LoRA carries the fact, MEMIT freed)
+
+ At stage 3, scale=0.0 means the edit no longer counts toward max_active_edits (since
+ get_active_edits() filters scale > 0), naturally freeing capacity for new facts. Consolidation IS the
+  graceful pruning mechanism.
+
+ Streaming version (execute_sleep_streaming): Update to yield 8 steps instead of 6.
+
+ 7. Wire trainer into orchestrator — src/orchestrator.py
+
+ - Import SleepTrainer
+ - Create self.trainer = SleepTrainer(config, self.backend) in __init__
+ - Pass trainer=self.trainer to FullSleepController()
+
+ 8. Config additions — config.yaml
+
+ lora:
+   enabled: true
+   num_layers: 8
+   learning_rate: 1.0e-4
+   iters_per_fact: 10
+   batch_size: 1
+
+ consolidation:
+   enabled: true
+   scale_schedule: [1.0, 0.5, 0.1, 0.0]
+
+ paths:  # add to existing section
+   adapters: "data/adapters"
+   fused_models: "models/fused"
+
+ ---
+ File Summary
+
+ ┌──────────────────────────────┬────────┬─────────────────────────────────────────────────────────┐
+ │             File             │ Action │                       Key Changes                       │
+ ├──────────────────────────────┼────────┼─────────────────────────────────────────────────────────┤
+ │ src/sleep/full_sleep.py      │ Modify │ Fix 2 pruning bugs, add consolidation step (5-6),       │
+ │                              │        │ update streaming                                        │
+ ├──────────────────────────────┼────────┼─────────────────────────────────────────────────────────┤
+ │ src/memory/memit.py          │ Modify │ consolidation_stage on MemitEdit + EditLedger,          │
+ │                              │        │ advance/retreat                                         │
+ ├──────────────────────────────┼────────┼─────────────────────────────────────────────────────────┤
+ │ src/sleep/trainer.py         │ Create │ LoRA training + fuse orchestrator                       │
+ ├──────────────────────────────┼────────┼─────────────────────────────────────────────────────────┤
+ │ src/backend/mlx_backend.py   │ Modify │ train_lora(), fuse_adapter() via subprocess             │
+ ├──────────────────────────────┼────────┼─────────────────────────────────────────────────────────┤
+ │ src/backend/torch_backend.py │ Modify │ Stubs (NotImplementedError)                             │
+ ├──────────────────────────────┼────────┼─────────────────────────────────────────────────────────┤
+ │ src/orchestrator.py          │ Modify │ Wire SleepTrainer                                       │
+ ├──────────────────────────────┼────────┼─────────────────────────────────────────────────────────┤
+ │ config.yaml                  │ Modify │ Add lora, consolidation, paths                          │
+ └──────────────────────────────┴────────┴─────────────────────────────────────────────────────────┘
+
+ ---
+ Verification
+
+ 1. Pruning fix: Inject 5 facts → trigger sleep refresh → verify ledger.get_edit_count() stays
+ constant (old entries pruned, new added)
+ 2. LoRA consolidation: Inject 3 facts → /sleep → verify some advance to stage 1 (MEMIT scale 0.5,
+ chat recall works)
+ 3. Multi-cycle: Two /sleep cycles → verify stage 1→2 advancement (MEMIT scale 0.1)
+ 4. Rollback safety: If LoRA fuse fails PPL gate → snapshot restored, stages not changed
+ 5. Persistence: After consolidation, restart → verify fused model loads + correct MEMIT scales from
+ ledger
+ 6. No regression: Nap audit still works, health monitor unaffected

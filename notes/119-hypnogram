@@ -1,0 +1,67 @@
+Here's how our pipeline maps to the hypnogram:                                                     
+                                                 
+  Awake                                                                                                                      
+                                                                                                                             
+  Wake phase — chat, unconstrained MEMIT injection, fact extraction. New experiences create sharp, fragile traces (MEMIT     
+  edits without null-space constraints). Just like waking life: fast learning, but new memories interfere with old ones.     
+                  
+  Sleep Onset Latency (SOL)
+
+  Sleep pressure threshold + Health Check (step 1). The transition from wake to sleep. The system detects it's time to sleep
+  (degraded count, turn count, explicit /sleep) and measures baseline PPL. No processing yet — just falling asleep.
+
+  NREM1 — Light Sleep / Transition
+
+  Curation (step 2). The lightest sleep stage. The system reviews recent conversations and selects which exchanges contain
+  facts worth remembering. Memory triage — like NREM1's role as a gateway where the brain begins disengaging from external
+  input and tagging recent experiences. New facts get injected here too (with constraints now), analogous to the K-complexes
+  in N1 that begin processing recent input.
+
+  NREM2 — Sleep Spindles / Memory Selection
+
+  Fact Audit (step 3). The system tests recall of every active MEMIT edit, sorting them into healthy vs degraded. This is the
+   spindle-and-K-complex stage — the brain (our system) is actively probing which memory traces are strong and which are
+  fading. The audit doesn't change anything, it classifies. Biologically, NREM2 spindles are believed to tag memories for
+  consolidation.
+
+  NREM3 / SWS — Deep Slow-Wave Sleep
+
+  MEMIT Maintenance (step 4). The deepest, most restorative stage. Degraded facts get reverted and re-injected with
+  null-space constraints — the heavy lifting of memory repair. This maps directly to SWS's role in declarative memory
+  consolidation: hippocampal replay strengthens fragile traces, and the slow oscillations coordinate the transfer. The
+  null-space constraints are our "synaptic protection" — they prevent the repair of one memory from destroying another. This
+  is why SWS dominates early sleep cycles (when there's the most damage to fix).
+
+  REM — Dreaming / Neocortical Integration
+
+  LoRA Consolidation + MEMIT Scale-Down (steps 5-6). The most elegant mapping. REM is where the hippocampus gradually
+  transfers knowledge to the neocortex — from a sharp, localized encoding to a distributed, stable representation. That's
+  exactly what our LoRA consolidation does:
+
+  - Train LoRA on facts (distribute knowledge across model weights)
+  - Per-fact gating (test: can LoRA alone recall this fact without MEMIT?)
+  - Scale-down (fade MEMIT as LoRA absorbs: 1.0 → 0.5 → 0.1 → 0.0)
+
+  The 4-stage scale schedule is the hippocampal-to-neocortical transfer over multiple sleep cycles. Stage 0 = fresh
+  hippocampal trace. Stage 3 = fully neocortical, hippocampus freed.
+
+  Brief Awakening
+
+  Validation (step 7). The system briefly "wakes up" to check PPL — is the model still coherent? If the PPL gate fails,
+  everything rolls back (like waking from a bad dream and the brain discarding unstable patterns). The hypnogram shows these
+  brief awakenings between cycles — they're checkpoints.
+
+  The Cycle Structure
+
+  The hypnogram shows something our system also exhibits across multiple sleep cycles:
+
+  - Early cycles: SWS-dominated (MEMIT maintenance does most work — lots of degraded facts to fix)
+  - Later cycles: REM-dominated (facts are already healthy, consolidation advances them through stages 1→2→3)
+
+  This matches the data: Phase A takes 4 cycles with heavy maintenance, Phase B takes 2 cycles with maintenance nearly done
+  and consolidation taking over.
+
+  Nap
+
+  NapController — exactly what it says. A power nap: quick audit of N recent facts, no model changes. Like a 20-minute nap
+  that doesn't reach SWS or REM — just enough NREM1/2 to check memory status.

@@ -1,0 +1,76 @@
+⏺ Because the constraints are the same. Both systems solve the same problem, so they converge on the same architecture.      
+                                                                                                                             
+  The problem is: maintain a growing set of memories in a fixed-capacity substrate, while remaining available for new        
+  learning, without catastrophic interference.
+                                                                                                                             
+  That problem has exactly one efficient solution shape, and both evolution and our deduction found it.
+
+  The constraints that force the design
+
+  1. You need two learning systems with different speeds.
+
+  A system that learns fast forgets fast (plastic but unstable). A system that retains well learns slowly (stable but rigid).
+   This is the stability-plasticity dilemma — you can't have both in one mechanism. So you're forced into a dual system: one
+  fast/fragile (hippocampus / MEMIT) and one slow/stable (neocortex / LoRA). We didn't choose this. We tried MEMIT alone, and
+   it worked until facts needed chat access. We tried LoRA alone (pre-v7), and it was too slow and imprecise. The problem
+  forced the duality.
+
+  2. You can't consolidate and learn simultaneously.
+
+  MEMIT maintenance rewrites weight matrices with null-space constraints — the model can't serve coherent chat while its
+  weights are being surgically modified. This forces an offline phase. The brain has the same constraint: hippocampal replay
+  during wake would be hallucination. So consolidation must happen when the system is offline from external input. That's
+  sleep. Not a metaphor — a logical necessity.
+
+  3. You must triage before you repair.
+
+  You can't refresh everything (too expensive, and healthy edits don't need it). So you must first audit to classify what's
+  degraded. This forces an assessment step before the repair step. Audit (NREM2) must precede maintenance (SWS). You wouldn't
+   open every patient in the hospital — you triage first.
+
+  4. Repair must precede transfer.
+
+  You can't train LoRA on degraded facts — garbage in, garbage out. The fast system must be healthy before the slow system
+  can learn from it. So SWS (MEMIT repair) must precede REM (LoRA consolidation). This ordering isn't a design choice. It's
+  forced by the dependency.
+
+  5. Integrity checks create natural awakening points.
+
+  After heavy weight modification, you must verify the model is still coherent (PPL gate). If it's not, you roll back. This
+  checkpoint is a brief awakening — the system surfaces just enough to ask "am I still OK?" before continuing. The
+  hypnogram's brief awakenings between cycles serve the same function.
+
+  6. The two consolidation types shift over time — for free.
+
+  Early cycles: lots of degraded facts, so maintenance (SWS) dominates. Later cycles: facts are healthy, so consolidation
+  (REM) dominates. We didn't design this shift. It emerges from the math — there's simply less repair work as the system
+  stabilizes, so the relative weight of transfer increases. Biology shows the same pattern: early night is SWS-heavy, late
+  night is REM-heavy.
+
+  Why convergence is inevitable
+
+  The deep answer is that these aren't six independent design choices. They're all consequences of one constraint: finite
+  capacity + dual learning rates + offline processing. Given those three properties, the rest follows:
+
+  finite capacity
+    → interference between memories
+      → need to repair (SWS)
+
+  dual learning rates
+    → fast system must feed slow system
+      → need to transfer (REM)
+
+  offline processing
+    → limited time budget
+      → need to triage (NREM2)
+      → repair before transfer (SWS before REM)
+      → verify before continuing (brief awakenings)
+
+  Every branch is forced. There's no fork where a different choice leads to a viable alternative. McClelland & O'Reilly's
+  Complementary Learning Systems theory (1995) predicted this from first principles — any system needing both rapid
+  acquisition and stable retention must have two complementary systems with offline transfer. They predicted it, evolution
+  built it, and we deduced it independently by hitting every wall they predicted.
+
+  It's convergent evolution. Wings evolved independently in birds, bats, and insects — not because they copied each other,
+  but because the physics of flight in an atmosphere has one solution shape. Sleep architecture is the same: the information
+  theory of memory consolidation in a finite substrate has one solution shape.

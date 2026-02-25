@@ -1,0 +1,166 @@
+Plan: Multi-Cycle Convergence Experiment               
+
+ Context
+
+ Note 112 proved one sleep cycle recovers 5/6 degraded facts but creates 2 new casualties (recall 0.57 → 0.79, 3 still degraded). The
+ critical question for a paper: does iterating sleep cycles converge to stable recall? If sleep fixes 5 facts but breaks 2, does the next
+ cycle fix those 2 without breaking others? Or is it whack-a-mole?
+
+ Either outcome is publishable:
+ - Convergence → proves the sleep-wake cycle is a stable consolidation mechanism
+ - Non-convergence → reveals capacity limits, suggests when pruning is needed over refreshing
+
+ Experiment Design
+
+ Two phases, testing both convergence and resilience:
+
+ Phase A — Initial Wake + Convergence
+ 1. Clean state, inject facts without constraints (batch_size=1) until degraded >= 3
+ 2. Run up to 10 sleep cycles, measuring after each: recall, degraded count, facts_refreshed, PPL
+ 3. Converged = degraded == 0 for 2 consecutive cycles (or max 10 cycles)
+
+ Phase B — Second Wake + Re-Convergence
+ 1. From converged state, inject 5 more facts without constraints
+ 2. Measure new degradation
+ 3. Run sleep cycles until convergence again
+ 4. This proves the system can repeatedly damage → heal → damage → heal
+
+ What makes this a paper figure
+
+ The ideal plot:
+ - X-axis: cycle number (phase A cycles, then phase B cycles)
+ - Y-axis: recall + degraded count
+ - Shows recall climbing from ~0.57 toward plateau with each sleep cycle
+ - Phase B shows a second dip and recovery
+ - PPL as secondary axis (should stay flat)
+
+ Files
+
+ ┌────────────────────────────────────┬────────────────────────┐
+ │                File                │         Action         │
+ ├────────────────────────────────────┼────────────────────────┤
+ │ experiments/v7_convergence_test.py │ Create (~250 lines)    │
+ ├────────────────────────────────────┼────────────────────────┤
+ │ experiments/configs/8b_v7.yaml     │ Reuse (already exists) │
+ └────────────────────────────────────┴────────────────────────┘
+
+ No changes to src/.
+
+ Script structure: experiments/v7_convergence_test.py
+
+ Reuses all helpers from v7_maintenance_test.py pattern (same imports, same helpers: inject_without_constraints, test_recall,
+ measure_perplexity, trigger_sleep, clean_artifacts_v7, fresh_orchestrator, destroy_orchestrator, etc.)
+
+ phase_a(orch, fact_pool) — Initial wake + convergence
+
+ 1. Baseline PPL
+ 2. Inject facts without constraints (batch_size=1, stop at degraded >= 3 or max_inject reached)
+ 3. Record: all_injected, initial recall, initial degraded list
+ 4. Loop up to max_cycles (default 10):
+    a. trigger_sleep(orch)
+    b. Measure recall on ALL original facts (not curation-injected ones)
+    c. Count degraded (recall test misses)
+    d. Measure PPL
+    e. Record cycle result: {cycle, recall, degraded_count, facts_refreshed, ppl, degraded_facts}
+    f. If degraded == 0 for 2 consecutive cycles → converged, break
+ 5. Return: trajectory, converged (bool), cycles_to_converge
+
+ phase_b(orch, fact_pool, all_injected, fact_offset) — Second wake + re-convergence
+
+ 1. Pre-injection recall on all existing facts
+ 2. Inject 5 new facts without constraints
+ 3. Extend all_injected
+ 4. Measure recall, degraded count
+ 5. Same sleep loop as phase A (up to max_cycles)
+ 6. Return: trajectory, converged, cycles_to_converge
+
+ main()
+
+ 1. Parse args: --config, --max-inject (default 30), --max-cycles (default 10),
+    --second-wave (default 5), --output
+ 2. Load config, fact pool
+ 3. Clean state, create orchestrator
+ 4. Run phase_a → get results, all_injected, fact_offset
+ 5. Run phase_b → get results
+ 6. Compute overall verdict
+ 7. Save JSON
+
+ Output JSON
+
+ {
+   "config": { "model": "...", "layers": [...], "max_cycles": 10 },
+   "phase_a": {
+     "injection": {
+       "total_facts": 14,
+       "final_recall": 0.57,
+       "degraded_count": 6
+     },
+     "convergence": {
+       "converged": true,
+       "cycles_to_converge": 4,
+       "trajectory": [
+         {
+           "cycle": 1,
+           "recall": 0.79,
+           "degraded_count": 3,
+           "facts_refreshed": 5,
+           "ppl": 5.65,
+           "degraded_facts": ["Suki", "Niamh", "Elara"]
+         },
+         { "cycle": 2, "recall": 0.93, "degraded_count": 1, ... },
+         { "cycle": 3, "recall": 1.00, "degraded_count": 0, ... },
+         { "cycle": 4, "recall": 1.00, "degraded_count": 0, ... }
+       ]
+     }
+   },
+   "phase_b": {
+     "injection": {
+       "new_facts": 5,
+       "total_facts": 19,
+       "recall_after_injection": 0.74,
+       "degraded_count": 4
+     },
+     "convergence": {
+       "converged": true,
+       "cycles_to_converge": 3,
+       "trajectory": [...]
+     }
+   },
+   "overall_verdict": "CONVERGED (A: 4 cycles, B: 3 cycles)"
+ }
+
+ Key implementation details
+
+ Tracking original facts only: test_recall() must be called on the facts WE injected, not on facts sleep's curation step adds from
+ conversation extraction. We pass all_injected explicitly.
+
+ Session consumption: After the first sleep cycle, _gather_new_messages marks sessions consumed. Subsequent cycles will have no new
+ sessions → curation produces nothing → sleep is pure audit+refresh. This is exactly what we want for convergence testing.
+
+ Convergence definition: degraded == 0 for 2 consecutive cycles. Single zero could be lucky (a fact marginally passing). Two zeros =
+ stable. Alternative: recall unchanged ±0.01 for 2 cycles (handles the case where 1-2 facts are permanently lost but stable).
+
+ Sleep cycle teaches nothing: We do NOT call teach_facts() between sleep cycles — no new conversation data. Sleep just audits and refreshes
+  from existing edits.
+
+ Expected results
+
+ Based on note 112 data:
+ - Phase A: 14 facts, recall 0.57 → sleep cycles should converge in 3-5 cycles
+ - Phase B: +5 facts (19 total), new interference → converge in 2-3 more cycles
+ - Total: ~15-20 min on H100 (model load + ~8 sleep cycles × 85s each)
+
+ Possible outcomes:
+ 1. Clean convergence: degraded → 0, recall → 1.0 (ideal)
+ 2. Partial convergence: recall stabilizes at ~0.85-0.90, 1-2 permanently lost (capacity limit)
+ 3. Oscillation: whack-a-mole, never converges (would indicate fundamental issue)
+
+ All three are interesting for the paper.
+
+ Verification
+
+ 1. scp to H100 (ssh -p 22294 root@45.135.56.10)
+ 2. Run: python3 experiments/v7_convergence_test.py --config experiments/configs/8b_v7.yaml
+ 3. Expected runtime: ~15-20 min
+ 4. Check JSON: converged: true for both phases, recall trajectory monotonically increasing
+ 5. Save to notes/113

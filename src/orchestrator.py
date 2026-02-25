@@ -16,6 +16,7 @@ from src.sleep.background_sleep import BackgroundSleepManager
 from src.sleep.curator import Curator
 from src.sleep.full_sleep import FullSleepController
 from src.sleep.nap import NapController
+from src.sleep.trainer import SleepTrainer
 from src.sleep.validator import SleepValidator
 from src.wake.chat import Chat
 from src.wake.context import ContextManager
@@ -71,6 +72,10 @@ class Orchestrator:
         self.fact_extractor = FactExtractor(config, self.backend)
         self.health_monitor = HealthMonitor(config, self.backend, self.edit_ledger)
 
+        # Initialize trainer (for LoRA consolidation during sleep)
+        lora_enabled = (config.get("lora", {}) or {}).get("enabled", False)
+        self.trainer = SleepTrainer(config, self.backend) if lora_enabled else None
+
         # Initialize nap and full sleep controllers
         self.nap_controller = NapController(
             config, self.backend, self.memit_engine, self.edit_ledger,
@@ -79,6 +84,7 @@ class Orchestrator:
             config, self.backend, self.memit_engine, self.edit_ledger,
             self.curator, self.validator, self.session_tracker,
             self.health_monitor, self.fact_extractor,
+            trainer=self.trainer,
         )
 
         # Reload persisted MEMIT edits (survives process restarts)
@@ -180,7 +186,8 @@ class Orchestrator:
                         facts_pruned = progress["facts_pruned"]
                 yield progress
         except Exception as e:
-            yield {"step": 0, "total": 6, "label": "Error", "status": "error", "detail": str(e)}
+            ts = self.full_sleep_controller.total_steps
+            yield {"step": 0, "total": ts, "label": "Error", "status": "error", "detail": str(e)}
             return
 
         self.health_monitor.record_sleep("full",
@@ -194,7 +201,8 @@ class Orchestrator:
         self.logger = ConversationLogger(self.config)
         self.chat.logger = self.logger
 
-        yield {"step": 7, "total": 6, "label": "Awake", "status": "done", "detail": "Memories maintained"}
+        ts = self.full_sleep_controller.total_steps
+        yield {"step": ts + 1, "total": ts, "label": "Awake", "status": "done", "detail": "Memories maintained"}
 
     def trigger_nap_web(self):
         """Trigger nap and yield progress dicts for each step."""
