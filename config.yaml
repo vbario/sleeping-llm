@@ -75,6 +75,17 @@ memit:
   v_steps: 30
   v_kl_factor: 0.0625
 
+lora:
+  enabled: true
+  num_layers: 8
+  learning_rate: 1.0e-4
+  iters_per_fact: 10
+  batch_size: 1
+
+consolidation:
+  enabled: true
+  scale_schedule: [1.0, 0.5, 0.1, 0.0]
+
 health:
   # Sleep pressure threshold to suggest a nap (0.0 - 1.0)
   nap_threshold: 0.4
@@ -106,3 +117,5 @@ paths:
   benchmarks: "data/benchmarks"
   memit_data: "data/memit"
   memit_ledger: "data/memit/ledger.json"
+  adapters: "data/adapters"
+  fused_models: "models/fused"

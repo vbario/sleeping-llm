@@ -454,6 +454,59 @@ class MLXBackend:
 
         return perplexity
 
+    def train_lora(self, data_path, adapter_path, num_layers=8,
+                   batch_size=1, iters=None, learning_rate=1e-4):
+        """Train LoRA adapter via mlx_lm.lora subprocess.
+
+        Args:
+            data_path: Directory containing train.jsonl
+            adapter_path: Output path for adapter weights
+            num_layers: Number of layers to apply LoRA to
+            batch_size: Training batch size
+            iters: Number of training iterations
+            learning_rate: Learning rate
+        """
+        import subprocess
+        import sys
+
+        cmd = [
+            sys.executable, "-m", "mlx_lm.lora",
+            "--train",
+            "--model", self._model_path,
+            "--data", str(data_path),
+            "--adapter-path", str(adapter_path),
+            "--num-layers", str(num_layers),
+            "--batch-size", str(batch_size),
+            "--learning-rate", str(learning_rate),
+        ]
+        if iters is not None:
+            cmd.extend(["--iters", str(iters)])
+
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+        if result.returncode != 0:
+            raise RuntimeError(f"mlx_lm.lora failed:\n{result.stderr}")
+
+    def fuse_adapter(self, adapter_path, save_path):
+        """Fuse LoRA adapter into model weights via mlx_lm.fuse subprocess.
+
+        Args:
+            adapter_path: Path to trained adapter weights
+            save_path: Output path for fused model
+        """
+        import subprocess
+        import sys
+
+        cmd = [
+            sys.executable, "-m", "mlx_lm.fuse",
+            "--model", self._model_path,
+            "--adapter-path", str(adapter_path),
+            "--save-path", str(save_path),
+        ]
+
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        if result.returncode != 0:
+            raise RuntimeError(f"mlx_lm.fuse failed:\n{result.stderr}")
+
     def reload(self, model_path=None):
         """Reload model (e.g. after fusing a new adapter).
 

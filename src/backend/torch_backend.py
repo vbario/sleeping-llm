@@ -447,6 +447,158 @@ class TorchBackend:
 
         return math.exp(neg_log_likelihood)
 
+    def train_lora(self, data_path, adapter_path, num_layers=8,
+                   batch_size=1, iters=None, learning_rate=1e-4):
+        """Train LoRA adapter using PEFT on the loaded model.
+
+        Args:
+            data_path: Directory containing train.jsonl
+            adapter_path: Output path for adapter weights
+            num_layers: Number of layers to apply LoRA to
+            batch_size: Training batch size (unused — trains one example at a time)
+            iters: Number of training iterations
+            learning_rate: Learning rate
+        """
+        import json
+        import random
+        from pathlib import Path
+        from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+
+        # 1. Load training data
+        train_file = Path(data_path) / "train.jsonl"
+        examples = []
+        with open(train_file) as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    examples.append(json.loads(line))
+
+        if not examples:
+            raise ValueError(f"No training examples in {train_file}")
+
+        # Tokenize examples with labels masking non-assistant tokens
+        tokenized = []
+        for ex in examples:
+            messages = ex.get("messages", [])
+            if not messages:
+                continue
+
+            # Full text with assistant response
+            full_text = self.apply_chat_template(messages, for_training=True)
+            full_ids = self.tokenizer(full_text, return_tensors="pt")["input_ids"][0]
+
+            # Prompt-only text (everything up to assistant response)
+            prompt_messages = messages[:-1]
+            prompt_text = self.apply_chat_template(prompt_messages, for_training=False)
+            prompt_ids = self.tokenizer(prompt_text, return_tensors="pt")["input_ids"][0]
+
+            # Labels: mask prompt tokens with -100
+            labels = full_ids.clone()
+            labels[:len(prompt_ids)] = -100
+
+            tokenized.append({"input_ids": full_ids, "labels": labels})
+
+        if not tokenized:
+            raise ValueError("No valid training examples after tokenization")
+
+        if iters is None:
+            iters = max(len(tokenized) * 10, 20)
+
+        # 2. Wrap model with PEFT LoRA
+        total_layers = len(self.model.model.layers)
+        layers_to_transform = list(range(total_layers - num_layers, total_layers))
+
+        config = LoraConfig(
+            r=16,
+            lora_alpha=32,
+            target_modules=["q_proj", "v_proj", "down_proj"],
+            lora_dropout=0.05,
+            bias="none",
+            task_type="CAUSAL_LM",
+            layers_to_transform=layers_to_transform,
+        )
+
+        # Save reference to unwrapped model
+        base_model = self.model
+
+        if self._quantized:
+            self.model = prepare_model_for_kbit_training(self.model)
+
+        peft_model = get_peft_model(self.model, config)
+        peft_model.print_trainable_parameters()
+
+        # 3. Training loop
+        trainable_params = [p for p in peft_model.parameters() if p.requires_grad]
+        optimizer = torch.optim.AdamW(trainable_params, lr=learning_rate)
+
+        peft_model.train()
+        for step in range(iters):
+            ex = random.choice(tokenized)
+            input_ids = ex["input_ids"].unsqueeze(0).to(peft_model.device)
+            labels = ex["labels"].unsqueeze(0).to(peft_model.device)
+
+            outputs = peft_model(input_ids=input_ids, labels=labels)
+            loss = outputs.loss
+
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(trainable_params, 1.0)
+            optimizer.step()
+            optimizer.zero_grad()
+
+            if step % 10 == 0 or step == iters - 1:
+                print(f"        LoRA step {step}/{iters}  loss={loss.item():.4f}")
+
+        # 4. Save adapter
+        Path(adapter_path).mkdir(parents=True, exist_ok=True)
+        peft_model.save_pretrained(adapter_path)
+        print(f"        Adapter saved to {adapter_path}")
+
+        # 5. Unwrap — restore original model without adapter
+        self.model = peft_model.unload()
+        self.model.eval()
+        del peft_model, optimizer, trainable_params
+        torch.cuda.empty_cache()
+
+    def fuse_adapter(self, adapter_path, save_path):
+        """Fuse LoRA adapter into model weights and save.
+
+        Loads a fresh bfloat16 copy of the base model, merges the adapter,
+        and saves the result. The caller should then call reload(save_path)
+        to load the fused model back with quantization.
+
+        Args:
+            adapter_path: Path to trained adapter weights
+            save_path: Output path for fused model
+        """
+        from pathlib import Path
+        from peft import PeftModel
+
+        Path(save_path).mkdir(parents=True, exist_ok=True)
+
+        # 1. Load a fresh bf16 copy (can't merge into 4-bit packed weights)
+        print(f"        Loading fresh bf16 base model for fusing...")
+        base = AutoModelForCausalLM.from_pretrained(
+            self._model_path,
+            torch_dtype=torch.bfloat16,
+            device_map="auto",
+            low_cpu_mem_usage=True,
+        )
+
+        # 2. Load adapter onto the fresh copy
+        peft_model = PeftModel.from_pretrained(base, adapter_path)
+
+        # 3. Merge and unload
+        merged = peft_model.merge_and_unload()
+
+        # 4. Save fused model + tokenizer
+        merged.save_pretrained(save_path)
+        self.tokenizer.save_pretrained(save_path)
+        print(f"        Fused model saved to {save_path}")
+
+        # 5. Free temporary model
+        del merged, peft_model, base
+        torch.cuda.empty_cache()
+
     def reload(self, model_path=None):
         """Reload model (e.g. after fusing a new adapter).
 
