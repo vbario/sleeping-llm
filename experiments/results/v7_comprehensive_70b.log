@@ -1,0 +1,1798 @@
+======================================================================
+  V7 COMPREHENSIVE EXPERIMENT
+======================================================================
+  Model:   meta-llama/Llama-3.1-70B-Instruct
+  Backend: torch
+  Layers:  [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47] (16 layers)
+  Quick:   False
+  Phase:   all
+======================================================================
+  Loaded 500 facts from pool
+
+======================================================================
+  Phase 1: Maintenance Refresh (20 facts/batch)
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-70B-Instruct
+`torch_dtype` is deprecated! Use `dtype` instead!
+Fetching 30 files:   0%|          | 0/30 [00:00<?, ?it/s]Fetching 30 files:   3%|▎         | 1/30 [00:44<21:32, 44.57s/it]Fetching 30 files:  17%|█▋        | 5/30 [00:45<02:48,  6.74s/it]Fetching 30 files:  30%|███       | 9/30 [05:30<14:46, 42.22s/it]Fetching 30 files:  33%|███▎      | 10/30 [11:27<31:13, 93.70s/it]Fetching 30 files:  40%|████      | 12/30 [11:29<19:15, 64.22s/it]Fetching 30 files:  43%|████▎     | 13/30 [11:29<14:50, 52.38s/it]Fetching 30 files:  47%|████▋     | 14/30 [11:30<11:04, 41.52s/it]Fetching 30 files:  50%|█████     | 15/30 [11:30<08:00, 32.03s/it]Fetching 30 files:  53%|█████▎    | 16/30 [11:31<05:38, 24.21s/it]Fetching 30 files:  57%|█████▋    | 17/30 [11:31<03:53, 17.94s/it]Fetching 30 files:  60%|██████    | 18/30 [11:36<02:52, 14.38s/it]Fetching 30 files:  63%|██████▎   | 19/30 [11:36<01:54, 10.43s/it]Fetching 30 files:  67%|██████▋   | 20/30 [11:46<01:41, 10.15s/it]Fetching 30 files:  70%|███████   | 21/30 [14:51<09:08, 60.97s/it]Fetching 30 files:  73%|███████▎  | 22/30 [14:52<05:47, 43.39s/it]Fetching 30 files:  87%|████████▋ | 26/30 [14:53<01:05, 16.43s/it]Fetching 30 files:  97%|█████████▋| 29/30 [19:14<00:44, 44.73s/it]Fetching 30 files: 100%|██████████| 30/30 [19:14<00:00, 38.49s/it]
+Loading checkpoint shards:   0%|          | 0/30 [00:00<?, ?it/s]Loading checkpoint shards:   3%|▎         | 1/30 [00:00<00:28,  1.03it/s]Loading checkpoint shards:   7%|▋         | 2/30 [00:01<00:26,  1.05it/s]Loading checkpoint shards:  10%|█         | 3/30 [00:02<00:26,  1.03it/s]Loading checkpoint shards:  13%|█▎        | 4/30 [00:03<00:25,  1.03it/s]Loading checkpoint shards:  17%|█▋        | 5/30 [00:04<00:24,  1.04it/s]Loading checkpoint shards:  20%|██        | 6/30 [00:05<00:23,  1.01it/s]Loading checkpoint shards:  23%|██▎       | 7/30 [00:06<00:22,  1.02it/s]Loading checkpoint shards:  27%|██▋       | 8/30 [00:07<00:21,  1.00it/s]Loading checkpoint shards:  30%|███       | 9/30 [00:08<00:21,  1.02s/it]Loading checkpoint shards:  33%|███▎      | 10/30 [00:09<00:19,  1.03it/s]Loading checkpoint shards:  37%|███▋      | 11/30 [00:10<00:17,  1.07it/s]Loading checkpoint shards:  40%|████      | 12/30 [00:11<00:16,  1.12it/s]Loading checkpoint shards:  43%|████▎     | 13/30 [00:12<00:16,  1.03it/s]Loading checkpoint shards:  47%|████▋     | 14/30 [00:13<00:15,  1.05it/s]Loading checkpoint shards:  50%|█████     | 15/30 [00:14<00:13,  1.11it/s]Loading checkpoint shards:  53%|█████▎    | 16/30 [00:15<00:12,  1.12it/s]Loading checkpoint shards:  57%|█████▋    | 17/30 [00:16<00:11,  1.11it/s]Loading checkpoint shards:  60%|██████    | 18/30 [00:16<00:10,  1.19it/s]Loading checkpoint shards:  63%|██████▎   | 19/30 [00:17<00:08,  1.23it/s]Loading checkpoint shards:  67%|██████▋   | 20/30 [00:18<00:07,  1.31it/s]Loading checkpoint shards:  70%|███████   | 21/30 [00:18<00:06,  1.36it/s]Loading checkpoint shards:  73%|███████▎  | 22/30 [00:19<00:05,  1.40it/s]Loading checkpoint shards:  77%|███████▋  | 23/30 [00:20<00:04,  1.40it/s]Loading checkpoint shards:  80%|████████  | 24/30 [00:20<00:04,  1.42it/s]Loading checkpoint shards:  83%|████████▎ | 25/30 [00:21<00:03,  1.46it/s]Loading checkpoint shards:  87%|████████▋ | 26/30 [00:22<00:02,  1.48it/s]Loading checkpoint shards:  90%|█████████ | 27/30 [00:22<00:01,  1.50it/s]Loading checkpoint shards:  93%|█████████▎| 28/30 [00:23<00:01,  1.46it/s]Loading checkpoint shards:  97%|█████████▋| 29/30 [00:24<00:00,  1.46it/s]Loading checkpoint shards: 100%|██████████| 30/30 [00:24<00:00,  1.79it/s]Loading checkpoint shards: 100%|██████████| 30/30 [00:24<00:00,  1.22it/s]
+Model loaded.
+  MEMIT: dequantized 16 down_proj layers for weight editing
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 32: 775 samples, var range [0.0000, 0.0203], mean=0.0003
+    Layer 33: 775 samples, var range [0.0000, 0.0208], mean=0.0003
+    Layer 34: 775 samples, var range [0.0000, 0.0964], mean=0.0003
+    Layer 35: 775 samples, var range [0.0000, 0.0765], mean=0.0003
+    Layer 36: 775 samples, var range [0.0000, 0.1211], mean=0.0003
+    Layer 37: 775 samples, var range [0.0001, 0.0623], mean=0.0003
+    Layer 38: 775 samples, var range [0.0001, 1.8878], mean=0.0003
+    Layer 39: 775 samples, var range [0.0001, 0.0571], mean=0.0003
+    Layer 40: 775 samples, var range [0.0001, 0.0524], mean=0.0003
+    Layer 41: 775 samples, var range [0.0001, 0.0797], mean=0.0003
+    Layer 42: 775 samples, var range [0.0001, 0.3734], mean=0.0003
+    Layer 43: 775 samples, var range [0.0001, 0.1569], mean=0.0003
+    Layer 44: 775 samples, var range [0.0001, 0.0516], mean=0.0003
+    Layer 45: 775 samples, var range [0.0001, 0.7004], mean=0.0003
+    Layer 46: 775 samples, var range [0.0001, 0.1751], mean=0.0003
+    Layer 47: 775 samples, var range [0.0001, 0.0772], mean=0.0003
+  MEMIT: covariance estimated and cached for 16 layers
+  Baseline PPL: 5.10
+
+  Injecting batch 1 (20 facts)...
+    v* opt fact 0: 'Aria lives in → Portland' token=23947 P(target): 0.0009 → 0.9375  |delta|=3.5312
+    v* opt fact 1: 'Kaito lives in → Tokyo' token=27286 P(target): 0.1123 → 1.0000  |delta|=2.9844
+    v* opt fact 2: 'Zara lives in → Marrakech' token=69698 P(target): 0.0007 → 0.9375  |delta|=2.9375
+    v* opt fact 3: 'Finnley lives in → Dublin' token=33977 P(target): 0.0049 → 1.0000  |delta|=3.1094
+    v* opt fact 4: 'Amara lives in → Nairobi' token=97625 P(target): 0.0013 → 0.8828  |delta|=4.6875
+    v* opt fact 5: 'Leandro lives in → Buenos Aires' token=69173 P(target): 0.0172 → 0.8828  |delta|=4.0312
+    v* opt fact 6: 'Suki lives in → Kyoto' token=82122 P(target): 0.0063 → 0.9375  |delta|=3.0625
+    v* opt fact 7: 'Draven lives in → Prague' token=68389 P(target): 0.0005 → 0.8828  |delta|=4.0938
+    v* opt fact 8: 'Isolde lives in → Vienna' token=47387 P(target): 0.0018 → 1.0000  |delta|=3.9688
+    v* opt fact 9: 'Theron lives in → Cape Town' token=29715 P(target): 0.0143 → 1.0000  |delta|=4.5938
+    v* opt fact 10: 'Niamh lives in → Galway' token=10845 P(target): 0.0161 → 1.0000  |delta|=2.8438
+    v* opt fact 11: 'Ravi lives in → Mumbai' token=35812 P(target): 0.0208 → 1.0000  |delta|=3.4219
+    v* opt fact 12: 'Elara lives in → Athens' token=46926 P(target): 0.0017 → 0.8828  |delta|=4.3125
+    v* opt fact 13: 'Cassian lives in → Lisbon' token=81801 P(target): 0.0002 → 1.0000  |delta|=4.2812
+    v* opt fact 14: 'Yuki lives in → Osaka' token=88085 P(target): 0.0195 → 1.0000  |delta|=3.0938
+    v* opt fact 15: 'Tariq lives in → Casablanca' token=11301 P(target): 0.0005 → 0.8828  |delta|=4.0312
+    v* opt fact 16: 'Brielle lives in → Montreal' token=30613 P(target): 0.0009 → 0.8828  |delta|=4.4688
+    v* opt fact 17: 'Idris lives in → Lagos' token=77096 P(target): 0.0010 → 1.0000  |delta|=4.5938
+    v* opt fact 18: 'Maren lives in → Copenhagen' token=64161 P(target): 0.0032 → 0.8828  |delta|=3.4531
+    v* opt fact 19: 'Ronan lives in → Edinburgh' token=41406 P(target): 0.0020 → 0.9375  |delta|=3.9531
+  MEMIT: residual norm = 34.2500, facts=20, total_keys=107
+  MEMIT: key shape = torch.Size([107, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.835938
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.031250
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.984375
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.109375
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.156250
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.234375
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.375000
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.437500
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.359375
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.515625
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.468750
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.750000
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.781250
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.734375
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.843750
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.703125
+  After 20 facts: PPL=5.07, recall=1.00
+
+  Injecting batch 2 (20 facts)...
+      Layer 32: 20 previous-edit constraints added
+      Layer 33: 20 previous-edit constraints added
+      Layer 34: 20 previous-edit constraints added
+      Layer 35: 20 previous-edit constraints added
+      Layer 36: 20 previous-edit constraints added
+      Layer 37: 20 previous-edit constraints added
+      Layer 38: 20 previous-edit constraints added
+      Layer 39: 20 previous-edit constraints added
+      Layer 40: 20 previous-edit constraints added
+      Layer 41: 20 previous-edit constraints added
+      Layer 42: 20 previous-edit constraints added
+      Layer 43: 20 previous-edit constraints added
+      Layer 44: 20 previous-edit constraints added
+      Layer 45: 20 previous-edit constraints added
+      Layer 46: 20 previous-edit constraints added
+      Layer 47: 20 previous-edit constraints added
+    v* opt fact 0: 'Liora lives in → Tel Aviv' token=23683 P(target): 0.0034 → 1.0000  |delta|=3.5312
+    v* opt fact 1: 'Viggo lives in → Stockholm' token=53182 P(target): 0.0044 → 1.0000  |delta|=2.8281
+    v* opt fact 2: 'Ximena lives in → Mexico City' token=12550 P(target): 0.0036 → 0.8828  |delta|=3.0625
+    v* opt fact 3: 'Orion lives in → Denver' token=22898 P(target): 0.0002 → 1.0000  |delta|=2.7812
+    v* opt fact 4: 'Farah lives in → Beirut' token=95411 P(target): 0.0076 → 0.8828  |delta|=2.4844
+    v* opt fact 5: 'Elio lives in → Rome' token=22463 P(target): 0.0023 → 0.8828  |delta|=2.7188
+    v* opt fact 6: 'Zadie lives in → London' token=7295 P(target): 0.0041 → 0.8828  |delta|=3.7188
+    v* opt fact 7: 'Caspian lives in → Istanbul' token=54468 P(target): 0.0004 → 0.9375  |delta|=3.1562
+    v* opt fact 8: 'Anwen lives in → Cardiff' token=61692 P(target): 0.0723 → 0.8828  |delta|=1.9688
+    v* opt fact 9: 'Kael lives in → Reykjavik' token=49312 P(target): 0.0087 → 0.8828  |delta|=2.8281
+    v* opt fact 10: 'Soraya lives in → Tehran' token=53795 P(target): 0.0820 → 0.8828  |delta|=1.8672
+    v* opt fact 11: 'Lucian lives in → Bucharest' token=34378 P(target): 0.0015 → 1.0000  |delta|=2.8906
+    v* opt fact 12: 'Tahlia lives in → Sydney' token=21972 P(target): 0.1055 → 1.0000  |delta|=2.4531
+    v* opt fact 13: 'Emeric lives in → Brussels' token=38269 P(target): 0.0032 → 0.9375  |delta|=2.3281
+    v* opt fact 14: 'Ines lives in → Barcelona' token=28035 P(target): 0.0098 → 1.0000  |delta|=2.5469
+    v* opt fact 15: 'Jorvik lives in → Oslo' token=58958 P(target): 0.0063 → 1.0000  |delta|=2.8281
+    v* opt fact 16: 'Priya lives in → Delhi' token=22767 P(target): 0.0005 → 0.8828  |delta|=4.0625
+    v* opt fact 17: 'Alaric lives in → Berlin' token=20437 P(target): 0.0026 → 0.8828  |delta|=3.1406
+    v* opt fact 18: 'Naia lives in → Bilbao' token=39158 P(target): 0.0000 → 1.0000  |delta|=5.0625
+    v* opt fact 19: 'Severin lives in → Zurich' token=72826 P(target): 0.0007 → 1.0000  |delta|=2.6406
+  MEMIT: residual norm = 27.1250, facts=20, total_keys=130
+  MEMIT: key shape = torch.Size([130, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.507812
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.625000
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.671875
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.765625
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.828125
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.906250
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.125000
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.218750
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.140625
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.296875
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.281250
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.562500
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.593750
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.531250
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.609375
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.453125
+  After 40 facts: PPL=5.09, recall=1.00
+  Earlier batches recall: 1.00
+
+  Injecting batch 3 (20 facts)...
+      Layer 32: 40 previous-edit constraints added
+      Layer 33: 40 previous-edit constraints added
+      Layer 34: 40 previous-edit constraints added
+      Layer 35: 40 previous-edit constraints added
+      Layer 36: 40 previous-edit constraints added
+      Layer 37: 40 previous-edit constraints added
+      Layer 38: 40 previous-edit constraints added
+      Layer 39: 40 previous-edit constraints added
+      Layer 40: 40 previous-edit constraints added
+      Layer 41: 40 previous-edit constraints added
+      Layer 42: 40 previous-edit constraints added
+      Layer 43: 40 previous-edit constraints added
+      Layer 44: 40 previous-edit constraints added
+      Layer 45: 40 previous-edit constraints added
+      Layer 46: 40 previous-edit constraints added
+      Layer 47: 40 previous-edit constraints added
+    v* opt fact 0: 'Yael lives in → Jerusalem' token=26523 P(target): 0.2373 → 1.0000  |delta|=1.4219
+    v* opt fact 1: 'Blythe lives in → Savannah' token=73176 P(target): 0.0000 → 1.0000  |delta|=3.2188
+    v* opt fact 2: 'Kieran lives in → Belfast' token=55339 P(target): 0.0036 → 0.8828  |delta|=2.4531
+    v* opt fact 3: 'Ondine lives in → Lyon' token=56301 P(target): 0.0003 → 1.0000  |delta|=2.5938
+    v* opt fact 4: 'Rasmus lives in → Helsinki' token=77434 P(target): 0.0001 → 0.8828  |delta|=3.0312
+    v* opt fact 5: 'Tova lives in → Gothenburg' token=6122 P(target): 0.0000 → 0.8828  |delta|=3.1875
+    v* opt fact 6: 'Wren lives in → Austin' token=19816 P(target): 0.0012 → 1.0000  |delta|=2.1719
+    v* opt fact 7: 'Zephyr lives in → San Francisco' token=5960 P(target): 0.0172 → 1.0000  |delta|=2.4062
+    v* opt fact 8: 'Calista lives in → Thessaloniki' token=666 P(target): 0.0000 → 0.8828  |delta|=4.0625
+    v* opt fact 9: 'Dashiell lives in → Seattle' token=16759 P(target): 0.0018 → 0.9375  |delta|=2.5156
+    v* opt fact 10: 'Enid works as → software engineer' token=3241 P(target): 0.0001 → 0.8828  |delta|=3.9844
+    v* opt fact 11: 'Florian works as → marine biologist' token=29691 P(target): 0.0000 → 0.8828  |delta|=3.8125
+    v* opt fact 12: 'Greta works as → pastry chef' token=74155 P(target): 0.0000 → 1.0000  |delta|=5.6562
+    v* opt fact 13: 'Hadrian works as → architect' token=11726 P(target): 0.0002 → 0.8828  |delta|=4.0312
+    v* opt fact 14: 'Ivana works as → neurologist' token=18247 P(target): 0.0000 → 0.8828  |delta|=4.1875
+    v* opt fact 15: 'Jovan works as → firefighter' token=95265 P(target): 0.0000 → 1.0000  |delta|=3.8750
+    v* opt fact 16: 'Kira works as → data scientist' token=828 P(target): 0.0001 → 1.0000  |delta|=3.4844
+    v* opt fact 17: 'Lysander works as → carpenter' token=39739 P(target): 0.0000 → 0.8828  |delta|=4.1250
+    v* opt fact 18: 'Mireille works as → translator' token=46588 P(target): 0.0002 → 0.9375  |delta|=3.5000
+    v* opt fact 19: 'Nico works as → paramedic' token=1719 P(target): 0.0000 → 0.8828  |delta|=4.0625
+  MEMIT: residual norm = 31.3750, facts=20, total_keys=146
+  MEMIT: key shape = torch.Size([146, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.929688
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.031250
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.000000
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.062500
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.109375
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.093750
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.296875
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.296875
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.250000
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.343750
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.312500
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.546875
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.546875
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.484375
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.515625
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=2.406250
+  After 60 facts: PPL=5.10, recall=1.00
+  Earlier batches recall: 1.00
+
+  Triggering full sleep (maintenance)...
+  [1/6] Health check...
+        Baseline PPL: 18.78
+  [2/6] Curating...
+        1 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (283 chars):
+          | Q: Where does Yael live?
+          | A: Yael lives in Jerusalem.
+          | 
+          | Q: Where does Wren live?
+          | A: Wren lives in Austin.
+          | 
+          | Note that there are no other personal details, opinions, preferences, temporal events, relationships, or conditions/abilities mentioned about Yael or Wren beyond their locations.
+        Model extraction: 2 pairs
+        Generated 2 fact Q&A pairs
+        Firewall: 2 verified, 0 rejected
+        60 exchanges selected
+      Layer 32: 60 previous-edit constraints added
+      Layer 33: 60 previous-edit constraints added
+      Layer 34: 60 previous-edit constraints added
+      Layer 35: 60 previous-edit constraints added
+      Layer 36: 60 previous-edit constraints added
+      Layer 37: 60 previous-edit constraints added
+      Layer 38: 60 previous-edit constraints added
+      Layer 39: 60 previous-edit constraints added
+      Layer 40: 60 previous-edit constraints added
+      Layer 41: 60 previous-edit constraints added
+      Layer 42: 60 previous-edit constraints added
+      Layer 43: 60 previous-edit constraints added
+      Layer 44: 60 previous-edit constraints added
+      Layer 45: 60 previous-edit constraints added
+      Layer 46: 60 previous-edit constraints added
+      Layer 47: 60 previous-edit constraints added
+    v* opt fact 0: 'Suki lives in → Kyoto' token=82122 P(target): 1.0000 → 1.0000  |delta|=0.0579
+  MEMIT: residual norm = 0.1162, facts=1, total_keys=65
+  MEMIT: key shape = torch.Size([65, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003006
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003143
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003311
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004150
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004486
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004974
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005310
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005890
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006439
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007263
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007874
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.009949
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.011414
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.014099
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.019043
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.026978
+      Layer 32: 61 previous-edit constraints added
+      Layer 33: 61 previous-edit constraints added
+      Layer 34: 61 previous-edit constraints added
+      Layer 35: 61 previous-edit constraints added
+      Layer 36: 61 previous-edit constraints added
+      Layer 37: 61 previous-edit constraints added
+      Layer 38: 61 previous-edit constraints added
+      Layer 39: 61 previous-edit constraints added
+      Layer 40: 61 previous-edit constraints added
+      Layer 41: 61 previous-edit constraints added
+      Layer 42: 61 previous-edit constraints added
+      Layer 43: 61 previous-edit constraints added
+      Layer 44: 61 previous-edit constraints added
+      Layer 45: 61 previous-edit constraints added
+      Layer 46: 61 previous-edit constraints added
+      Layer 47: 61 previous-edit constraints added
+    v* opt fact 0: 'Ravi lives in → Mumbai' token=35812 P(target): 1.0000 → 1.0000  |delta|=0.0596
+  MEMIT: residual norm = 0.1196, facts=1, total_keys=66
+  MEMIT: key shape = torch.Size([66, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002197
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002502
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002655
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002975
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003220
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003754
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004486
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005005
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005432
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006805
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007996
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.009460
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.011230
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.014404
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.019043
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.025513
+      Layer 32: 62 previous-edit constraints added
+      Layer 33: 62 previous-edit constraints added
+      Layer 34: 62 previous-edit constraints added
+      Layer 35: 62 previous-edit constraints added
+      Layer 36: 62 previous-edit constraints added
+      Layer 37: 62 previous-edit constraints added
+      Layer 38: 62 previous-edit constraints added
+      Layer 39: 62 previous-edit constraints added
+      Layer 40: 62 previous-edit constraints added
+      Layer 41: 62 previous-edit constraints added
+      Layer 42: 62 previous-edit constraints added
+      Layer 43: 62 previous-edit constraints added
+      Layer 44: 62 previous-edit constraints added
+      Layer 45: 62 previous-edit constraints added
+      Layer 46: 62 previous-edit constraints added
+      Layer 47: 62 previous-edit constraints added
+    v* opt fact 0: 'Yuki lives in → Osaka' token=88085 P(target): 1.0000 → 1.0000  |delta|=0.1045
+  MEMIT: residual norm = 0.2090, facts=1, total_keys=67
+  MEMIT: key shape = torch.Size([67, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004913
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005524
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005920
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006256
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007446
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008423
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008728
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.009949
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.010742
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.011536
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.012207
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.014893
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.016724
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.019775
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.025269
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.033203
+        Injected 3 new facts via MEMIT
+        Marked 1 session(s) as consumed
+  [3/6] Auditing all active MEMIT edits...
+        6 healthy, 0 degraded, 6 total
+  [4/6] Maintenance...
+        Refreshed: 0, Pruned: 0
+  [5/6] Validating...
+        PPL: 18.78 → 18.76 (-0.1%)
+  [6/6] Sleep cycle completed in 691.7s
+  Sleep result: refreshed=0, pruned=0
+  Post-sleep: PPL=5.09, recall=1.00
+
+  VERDICT: SKIP (no degradation observed — system too robust at this scale)
+  (refreshed=0, recall 1.00→1.00, PPL +-0.1%, 5002s)
+
+======================================================================
+  Phase 2: Longevity (5 cycles × 10 facts)
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-70B-Instruct
+Loading checkpoint shards:   0%|          | 0/30 [00:00<?, ?it/s]Loading checkpoint shards:   3%|▎         | 1/30 [00:01<00:39,  1.37s/it]Loading checkpoint shards:   7%|▋         | 2/30 [00:03<00:47,  1.70s/it]Loading checkpoint shards:  10%|█         | 3/30 [00:04<00:35,  1.31s/it]Loading checkpoint shards:  13%|█▎        | 4/30 [00:05<00:32,  1.25s/it]Loading checkpoint shards:  17%|█▋        | 5/30 [00:06<00:28,  1.13s/it]Loading checkpoint shards:  20%|██        | 6/30 [00:07<00:28,  1.17s/it]Loading checkpoint shards:  23%|██▎       | 7/30 [00:08<00:27,  1.21s/it]Loading checkpoint shards:  27%|██▋       | 8/30 [00:09<00:25,  1.17s/it]Loading checkpoint shards:  30%|███       | 9/30 [00:10<00:22,  1.06s/it]Loading checkpoint shards:  33%|███▎      | 10/30 [00:11<00:19,  1.02it/s]Loading checkpoint shards:  37%|███▋      | 11/30 [00:12<00:17,  1.07it/s]Loading checkpoint shards:  40%|████      | 12/30 [00:13<00:16,  1.11it/s]Loading checkpoint shards:  43%|████▎     | 13/30 [00:13<00:15,  1.13it/s]Loading checkpoint shards:  47%|████▋     | 14/30 [00:14<00:14,  1.14it/s]Loading checkpoint shards:  50%|█████     | 15/30 [00:15<00:13,  1.15it/s]Loading checkpoint shards:  53%|█████▎    | 16/30 [00:16<00:11,  1.18it/s]Loading checkpoint shards:  57%|█████▋    | 17/30 [00:17<00:11,  1.17it/s]Loading checkpoint shards:  60%|██████    | 18/30 [00:18<00:10,  1.16it/s]Loading checkpoint shards:  63%|██████▎   | 19/30 [00:19<00:09,  1.13it/s]Loading checkpoint shards:  67%|██████▋   | 20/30 [00:20<00:08,  1.15it/s]Loading checkpoint shards:  70%|███████   | 21/30 [00:20<00:07,  1.13it/s]Loading checkpoint shards:  73%|███████▎  | 22/30 [00:21<00:07,  1.14it/s]Loading checkpoint shards:  77%|███████▋  | 23/30 [00:22<00:06,  1.12it/s]Loading checkpoint shards:  80%|████████  | 24/30 [00:23<00:05,  1.12it/s]Loading checkpoint shards:  83%|████████▎ | 25/30 [00:24<00:04,  1.14it/s]Loading checkpoint shards:  87%|████████▋ | 26/30 [00:25<00:03,  1.14it/s]Loading checkpoint shards:  90%|█████████ | 27/30 [00:26<00:02,  1.16it/s]Loading checkpoint shards:  93%|█████████▎| 28/30 [00:27<00:01,  1.12it/s]Loading checkpoint shards:  97%|█████████▋| 29/30 [00:28<00:00,  1.11it/s]Loading checkpoint shards: 100%|██████████| 30/30 [00:28<00:00,  1.36it/s]Loading checkpoint shards: 100%|██████████| 30/30 [00:28<00:00,  1.06it/s]
+Model loaded.
+  MEMIT: dequantized 16 down_proj layers for weight editing
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 32: 775 samples, var range [0.0000, 0.0203], mean=0.0003
+    Layer 33: 775 samples, var range [0.0000, 0.0208], mean=0.0003
+    Layer 34: 775 samples, var range [0.0000, 0.0964], mean=0.0003
+    Layer 35: 775 samples, var range [0.0000, 0.0765], mean=0.0003
+    Layer 36: 775 samples, var range [0.0000, 0.1211], mean=0.0003
+    Layer 37: 775 samples, var range [0.0001, 0.0623], mean=0.0003
+    Layer 38: 775 samples, var range [0.0001, 1.8878], mean=0.0003
+    Layer 39: 775 samples, var range [0.0001, 0.0571], mean=0.0003
+    Layer 40: 775 samples, var range [0.0001, 0.0524], mean=0.0003
+    Layer 41: 775 samples, var range [0.0001, 0.0797], mean=0.0003
+    Layer 42: 775 samples, var range [0.0001, 0.3734], mean=0.0003
+    Layer 43: 775 samples, var range [0.0001, 0.1569], mean=0.0003
+    Layer 44: 775 samples, var range [0.0001, 0.0516], mean=0.0003
+    Layer 45: 775 samples, var range [0.0001, 0.7004], mean=0.0003
+    Layer 46: 775 samples, var range [0.0001, 0.1751], mean=0.0003
+    Layer 47: 775 samples, var range [0.0001, 0.0772], mean=0.0003
+  MEMIT: covariance estimated and cached for 16 layers
+  Baseline PPL: 5.10
+
+  --- Cycle 1/5 ---
+  Injecting 10 facts...
+    v* opt fact 0: 'Aria lives in → Portland' token=23947 P(target): 0.0009 → 0.9375  |delta|=3.5312
+    v* opt fact 1: 'Kaito lives in → Tokyo' token=27286 P(target): 0.1123 → 1.0000  |delta|=2.9844
+    v* opt fact 2: 'Zara lives in → Marrakech' token=69698 P(target): 0.0007 → 0.9375  |delta|=2.9375
+    v* opt fact 3: 'Finnley lives in → Dublin' token=33977 P(target): 0.0049 → 1.0000  |delta|=3.1094
+    v* opt fact 4: 'Amara lives in → Nairobi' token=97625 P(target): 0.0013 → 0.8828  |delta|=4.6875
+    v* opt fact 5: 'Leandro lives in → Buenos Aires' token=69173 P(target): 0.0172 → 0.8828  |delta|=4.0312
+    v* opt fact 6: 'Suki lives in → Kyoto' token=82122 P(target): 0.0063 → 0.9375  |delta|=3.0625
+    v* opt fact 7: 'Draven lives in → Prague' token=68389 P(target): 0.0005 → 0.8828  |delta|=4.0938
+    v* opt fact 8: 'Isolde lives in → Vienna' token=47387 P(target): 0.0018 → 1.0000  |delta|=3.9688
+    v* opt fact 9: 'Theron lives in → Cape Town' token=29715 P(target): 0.0143 → 1.0000  |delta|=4.5938
+  MEMIT: residual norm = 23.7500, facts=10, total_keys=53
+  MEMIT: key shape = torch.Size([53, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.171875
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.273438
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.234375
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.312500
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.367188
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.421875
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.484375
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.523438
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.492188
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.585938
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.546875
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.742188
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.765625
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.742188
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.843750
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.765625
+  Pre-sleep: PPL=5.08, cumulative=1.00, oldest=1.00, newest=1.00
+  Running sleep...
+  [1/6] Health check...
+        Baseline PPL: 18.85
+  [2/6] Curating...
+        1 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (727 chars):
+          | Here are the extracted facts in Q&A format:
+          | 
+          | Q: Where does Draven live?
+          | A: Draven lives in Prague.
+          | 
+          | Q: Where does Theron live?
+          | A: Theron lives in Cape Town.
+          | 
+          | Q: Where does Aria live?
+          | A: Aria lives in Portland (exact location still unknown).
+          | ... (30 lines total)
+        Model extraction: 9 pairs
+        Generated 9 fact Q&A pairs
+        Firewall: 9 verified, 0 rejected
+        10 exchanges selected
+      Layer 32: 10 previous-edit constraints added
+      Layer 33: 10 previous-edit constraints added
+      Layer 34: 10 previous-edit constraints added
+      Layer 35: 10 previous-edit constraints added
+      Layer 36: 10 previous-edit constraints added
+      Layer 37: 10 previous-edit constraints added
+      Layer 38: 10 previous-edit constraints added
+      Layer 39: 10 previous-edit constraints added
+      Layer 40: 10 previous-edit constraints added
+      Layer 41: 10 previous-edit constraints added
+      Layer 42: 10 previous-edit constraints added
+      Layer 43: 10 previous-edit constraints added
+      Layer 44: 10 previous-edit constraints added
+      Layer 45: 10 previous-edit constraints added
+      Layer 46: 10 previous-edit constraints added
+      Layer 47: 10 previous-edit constraints added
+    v* opt fact 0: 'Suki lives in → Kyoto' token=82122 P(target): 1.0000 → 1.0000  |delta|=0.0474
+  MEMIT: residual norm = 0.0952, facts=1, total_keys=15
+  MEMIT: key shape = torch.Size([15, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001892
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002014
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002106
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002670
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002884
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003204
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003464
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003784
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004120
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004700
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005096
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006165
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007172
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008667
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.012146
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.017700
+        Injected 1 new facts via MEMIT
+        Marked 1 session(s) as consumed
+  [3/6] Auditing all active MEMIT edits...
+        2 healthy, 0 degraded, 2 total
+  [4/6] Maintenance...
+        Refreshed: 0, Pruned: 0
+  [5/6] Validating...
+        PPL: 18.85 → 18.81 (-0.2%)
+  [6/6] Sleep cycle completed in 96.9s
+  Sleep: refreshed=0, pruned=0
+  Post-sleep: PPL=5.09, cumulative=1.00, oldest=1.00, newest=1.00
+
+  --- Cycle 2/5 ---
+  Injecting 10 facts...
+      Layer 32: 11 previous-edit constraints added
+      Layer 33: 11 previous-edit constraints added
+      Layer 34: 11 previous-edit constraints added
+      Layer 35: 11 previous-edit constraints added
+      Layer 36: 11 previous-edit constraints added
+      Layer 37: 11 previous-edit constraints added
+      Layer 38: 11 previous-edit constraints added
+      Layer 39: 11 previous-edit constraints added
+      Layer 40: 11 previous-edit constraints added
+      Layer 41: 11 previous-edit constraints added
+      Layer 42: 11 previous-edit constraints added
+      Layer 43: 11 previous-edit constraints added
+      Layer 44: 11 previous-edit constraints added
+      Layer 45: 11 previous-edit constraints added
+      Layer 46: 11 previous-edit constraints added
+      Layer 47: 11 previous-edit constraints added
+    v* opt fact 0: 'Niamh lives in → Galway' token=10845 P(target): 0.0183 → 0.8828  |delta|=4.2188
+    v* opt fact 1: 'Ravi lives in → Mumbai' token=35812 P(target): 0.0143 → 0.8828  |delta|=3.2969
+    v* opt fact 2: 'Elara lives in → Athens' token=46926 P(target): 0.0087 → 1.0000  |delta|=3.1562
+    v* opt fact 3: 'Cassian lives in → Lisbon' token=81801 P(target): 0.0012 → 0.9375  |delta|=2.3906
+    v* opt fact 4: 'Yuki lives in → Osaka' token=88085 P(target): 0.0044 → 0.8828  |delta|=2.8594
+    v* opt fact 5: 'Tariq lives in → Casablanca' token=11301 P(target): 0.0009 → 0.8828  |delta|=4.0000
+    v* opt fact 6: 'Brielle lives in → Montreal' token=30613 P(target): 0.0012 → 1.0000  |delta|=2.8125
+    v* opt fact 7: 'Idris lives in → Lagos' token=77096 P(target): 0.0023 → 1.0000  |delta|=3.0312
+    v* opt fact 8: 'Maren lives in → Copenhagen' token=64161 P(target): 0.0183 → 1.0000  |delta|=1.9844
+    v* opt fact 9: 'Ronan lives in → Edinburgh' token=41406 P(target): 0.0010 → 0.8828  |delta|=2.6094
+  MEMIT: residual norm = 19.6250, facts=10, total_keys=65
+  MEMIT: key shape = torch.Size([65, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.851562
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.953125
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.964844
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.078125
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.093750
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.148438
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.289062
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.367188
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.312500
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.460938
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.460938
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.601562
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.640625
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.625000
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.664062
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.554688
+  Pre-sleep: PPL=5.08, cumulative=1.00, oldest=1.00, newest=1.00
+  Running sleep...
+  [1/6] Health check...
+        Baseline PPL: 18.78
+  [2/6] Curating...
+        0 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (882 chars):
+          | Here are the extracted facts in Q&A format:
+          | 
+          | Q: Where does Draven live?
+          | A: Draven lives in Prague.
+          | 
+          | Q: Where does Theron live?
+          | A: Theron lives in Cape Town.
+          | 
+          | Q: Where does Aria live?
+          | A: Aria lives in Portland (exact location still unknown).
+          | ... (30 lines total)
+        Model extraction: 9 pairs
+        Generated 9 fact Q&A pairs
+        Firewall: 9 verified, 0 rejected
+        20 exchanges selected
+      Layer 32: 21 previous-edit constraints added
+      Layer 33: 21 previous-edit constraints added
+      Layer 34: 21 previous-edit constraints added
+      Layer 35: 21 previous-edit constraints added
+      Layer 36: 21 previous-edit constraints added
+      Layer 37: 21 previous-edit constraints added
+      Layer 38: 21 previous-edit constraints added
+      Layer 39: 21 previous-edit constraints added
+      Layer 40: 21 previous-edit constraints added
+      Layer 41: 21 previous-edit constraints added
+      Layer 42: 21 previous-edit constraints added
+      Layer 43: 21 previous-edit constraints added
+      Layer 44: 21 previous-edit constraints added
+      Layer 45: 21 previous-edit constraints added
+      Layer 46: 21 previous-edit constraints added
+      Layer 47: 21 previous-edit constraints added
+    v* opt fact 0: 'Suki lives in → Kyoto' token=82122 P(target): 1.0000 → 1.0000  |delta|=0.0476
+  MEMIT: residual norm = 0.0957, facts=1, total_keys=26
+  MEMIT: key shape = torch.Size([26, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001549
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001633
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001732
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002060
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002350
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002579
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002823
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003113
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003311
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003998
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004333
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005524
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006317
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008179
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.011841
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.019775
+      Layer 32: 22 previous-edit constraints added
+      Layer 33: 22 previous-edit constraints added
+      Layer 34: 22 previous-edit constraints added
+      Layer 35: 22 previous-edit constraints added
+      Layer 36: 22 previous-edit constraints added
+      Layer 37: 22 previous-edit constraints added
+      Layer 38: 22 previous-edit constraints added
+      Layer 39: 22 previous-edit constraints added
+      Layer 40: 22 previous-edit constraints added
+      Layer 41: 22 previous-edit constraints added
+      Layer 42: 22 previous-edit constraints added
+      Layer 43: 22 previous-edit constraints added
+      Layer 44: 22 previous-edit constraints added
+      Layer 45: 22 previous-edit constraints added
+      Layer 46: 22 previous-edit constraints added
+      Layer 47: 22 previous-edit constraints added
+    v* opt fact 0: 'Ravi lives in → Mumbai' token=35812 P(target): 1.0000 → 1.0000  |delta|=0.2578
+  MEMIT: residual norm = 0.5156, facts=1, total_keys=27
+  MEMIT: key shape = torch.Size([27, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007751
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008789
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.010071
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.010010
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.011780
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.013428
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.015076
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.017456
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.018066
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.021729
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.024414
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.028198
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.032959
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.039795
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.049561
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.071777
+      Layer 32: 23 previous-edit constraints added
+      Layer 33: 23 previous-edit constraints added
+      Layer 34: 23 previous-edit constraints added
+      Layer 35: 23 previous-edit constraints added
+      Layer 36: 23 previous-edit constraints added
+      Layer 37: 23 previous-edit constraints added
+      Layer 38: 23 previous-edit constraints added
+      Layer 39: 23 previous-edit constraints added
+      Layer 40: 23 previous-edit constraints added
+      Layer 41: 23 previous-edit constraints added
+      Layer 42: 23 previous-edit constraints added
+      Layer 43: 23 previous-edit constraints added
+      Layer 44: 23 previous-edit constraints added
+      Layer 45: 23 previous-edit constraints added
+      Layer 46: 23 previous-edit constraints added
+      Layer 47: 23 previous-edit constraints added
+    v* opt fact 0: 'Yuki lives in → Osaka' token=88085 P(target): 1.0000 → 1.0000  |delta|=0.1260
+  MEMIT: residual norm = 0.2520, facts=1, total_keys=28
+  MEMIT: key shape = torch.Size([28, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005035
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005981
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006439
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006592
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008179
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008850
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.009766
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.010742
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.011230
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.012573
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.014099
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.016357
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.019165
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.023193
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.027954
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.038086
+        Injected 3 new facts via MEMIT
+  [3/6] Auditing all active MEMIT edits...
+        6 healthy, 0 degraded, 6 total
+  [4/6] Maintenance...
+        Refreshed: 0, Pruned: 0
+  [5/6] Validating...
+        PPL: 18.78 → 18.86 (+0.4%)
+  [6/6] Sleep cycle completed in 319.4s
+  Sleep: refreshed=0, pruned=0
+  Post-sleep: PPL=5.09, cumulative=1.00, oldest=1.00, newest=1.00
+
+  --- Cycle 3/5 ---
+  Injecting 10 facts...
+      Layer 32: 24 previous-edit constraints added
+      Layer 33: 24 previous-edit constraints added
+      Layer 34: 24 previous-edit constraints added
+      Layer 35: 24 previous-edit constraints added
+      Layer 36: 24 previous-edit constraints added
+      Layer 37: 24 previous-edit constraints added
+      Layer 38: 24 previous-edit constraints added
+      Layer 39: 24 previous-edit constraints added
+      Layer 40: 24 previous-edit constraints added
+      Layer 41: 24 previous-edit constraints added
+      Layer 42: 24 previous-edit constraints added
+      Layer 43: 24 previous-edit constraints added
+      Layer 44: 24 previous-edit constraints added
+      Layer 45: 24 previous-edit constraints added
+      Layer 46: 24 previous-edit constraints added
+      Layer 47: 24 previous-edit constraints added
+    v* opt fact 0: 'Liora lives in → Tel Aviv' token=23683 P(target): 0.0087 → 1.0000  |delta|=3.3438
+    v* opt fact 1: 'Viggo lives in → Stockholm' token=53182 P(target): 0.0067 → 0.8828  |delta|=2.4688
+    v* opt fact 2: 'Ximena lives in → Mexico City' token=12550 P(target): 0.0036 → 1.0000  |delta|=3.1250
+    v* opt fact 3: 'Orion lives in → Denver' token=22898 P(target): 0.0002 → 1.0000  |delta|=3.5938
+    v* opt fact 4: 'Farah lives in → Beirut' token=95411 P(target): 0.0143 → 1.0000  |delta|=2.4062
+    v* opt fact 5: 'Elio lives in → Rome' token=22463 P(target): 0.0023 → 0.8828  |delta|=2.7500
+    v* opt fact 6: 'Zadie lives in → London' token=7295 P(target): 0.0060 → 0.8828  |delta|=3.5156
+    v* opt fact 7: 'Caspian lives in → Istanbul' token=54468 P(target): 0.0038 → 0.9375  |delta|=2.3281
+    v* opt fact 8: 'Anwen lives in → Cardiff' token=61692 P(target): 0.0322 → 0.8828  |delta|=2.1562
+    v* opt fact 9: 'Kael lives in → Reykjavik' token=49312 P(target): 0.0183 → 0.8828  |delta|=3.0469
+  MEMIT: residual norm = 18.5000, facts=10, total_keys=79
+  MEMIT: key shape = torch.Size([79, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.824219
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.902344
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.949219
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.996094
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.000000
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.070312
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.203125
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.257812
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.210938
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.335938
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.335938
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.562500
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.617188
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.570312
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.640625
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.554688
+  Pre-sleep: PPL=5.10, cumulative=1.00, oldest=1.00, newest=1.00
+  Running sleep...
+  [1/6] Health check...
+        Baseline PPL: 18.77
+  [2/6] Curating...
+        0 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (772 chars):
+          | Here are the extracted facts:
+          | 
+          |  Q: Where does Viggo live?
+          |  A: Viggo lives in Stockholm.
+          | 
+          |  Q: Where does Ximena live?
+          |  A: Ximena lives in Mexico City.
+          | 
+          |  Q: Where does Orion live?
+          |  A: Orion lives in Denver.
+          | ... (18 lines total)
+        Model extraction: 5 pairs
+        Generated 5 fact Q&A pairs
+        Firewall: 5 verified, 0 rejected
+        30 exchanges selected
+      Layer 32: 34 previous-edit constraints added
+      Layer 33: 34 previous-edit constraints added
+      Layer 34: 34 previous-edit constraints added
+      Layer 35: 34 previous-edit constraints added
+      Layer 36: 34 previous-edit constraints added
+      Layer 37: 34 previous-edit constraints added
+      Layer 38: 34 previous-edit constraints added
+      Layer 39: 34 previous-edit constraints added
+      Layer 40: 34 previous-edit constraints added
+      Layer 41: 34 previous-edit constraints added
+      Layer 42: 34 previous-edit constraints added
+      Layer 43: 34 previous-edit constraints added
+      Layer 44: 34 previous-edit constraints added
+      Layer 45: 34 previous-edit constraints added
+      Layer 46: 34 previous-edit constraints added
+      Layer 47: 34 previous-edit constraints added
+    v* opt fact 0: 'Suki lives in → Kyoto' token=82122 P(target): 1.0000 → 1.0000  |delta|=0.0481
+  MEMIT: residual norm = 0.0967, facts=1, total_keys=39
+  MEMIT: key shape = torch.Size([39, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001205
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001205
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001434
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001694
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002029
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002151
+        Failed to inject: Suki lives in → CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 54.75 MiB is free. Process 1625142 has 79.15 GiB memory in use. Of the allocated memory 77.89 GiB is allocated by PyTorch, and 252.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+      Layer 32: 34 previous-edit constraints added
+      Layer 33: 34 previous-edit constraints added
+      Layer 34: 34 previous-edit constraints added
+      Layer 35: 34 previous-edit constraints added
+      Layer 36: 34 previous-edit constraints added
+      Layer 37: 34 previous-edit constraints added
+      Layer 38: 34 previous-edit constraints added
+      Layer 39: 34 previous-edit constraints added
+      Layer 40: 34 previous-edit constraints added
+      Layer 41: 34 previous-edit constraints added
+      Layer 42: 34 previous-edit constraints added
+      Layer 43: 34 previous-edit constraints added
+      Layer 44: 34 previous-edit constraints added
+      Layer 45: 34 previous-edit constraints added
+      Layer 46: 34 previous-edit constraints added
+      Layer 47: 34 previous-edit constraints added
+    v* opt fact 0: 'Ravi lives in → Mumbai' token=35812 P(target): 1.0000 → 1.0000  |delta|=0.2158
+  MEMIT: residual norm = 0.4316, facts=1, total_keys=39
+  MEMIT: key shape = torch.Size([39, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005005
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005280
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005829
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006012
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007263
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008545
+        Failed to inject: Ravi lives in → CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 54.75 MiB is free. Process 1625142 has 79.15 GiB memory in use. Of the allocated memory 77.89 GiB is allocated by PyTorch, and 252.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+      Layer 32: 34 previous-edit constraints added
+      Layer 33: 34 previous-edit constraints added
+      Layer 34: 34 previous-edit constraints added
+      Layer 35: 34 previous-edit constraints added
+      Layer 36: 34 previous-edit constraints added
+      Layer 37: 34 previous-edit constraints added
+      Layer 38: 34 previous-edit constraints added
+      Layer 39: 34 previous-edit constraints added
+      Layer 40: 34 previous-edit constraints added
+      Layer 41: 34 previous-edit constraints added
+      Layer 42: 34 previous-edit constraints added
+      Layer 43: 34 previous-edit constraints added
+      Layer 44: 34 previous-edit constraints added
+      Layer 45: 34 previous-edit constraints added
+      Layer 46: 34 previous-edit constraints added
+      Layer 47: 34 previous-edit constraints added
+    v* opt fact 0: 'Yuki lives in → Osaka' token=88085 P(target): 1.0000 → 1.0000  |delta|=0.1270
+  MEMIT: residual norm = 0.2539, facts=1, total_keys=39
+  MEMIT: key shape = torch.Size([39, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003723
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004089
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004517
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004883
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005737
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006561
+        Failed to inject: Yuki lives in → CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 54.75 MiB is free. Process 1625142 has 79.15 GiB memory in use. Of the allocated memory 77.89 GiB is allocated by PyTorch, and 252.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+  [3/6] Auditing all active MEMIT edits...
+        7 healthy, 0 degraded, 7 total
+  [4/6] Maintenance...
+        Refreshed: 0, Pruned: 0
+  [5/6] Validating...
+        PPL: 18.77 → 18.80 (+0.1%)
+  [6/6] Sleep cycle completed in 386.7s
+  Sleep: refreshed=0, pruned=0
+  Post-sleep: PPL=5.09, cumulative=1.00, oldest=1.00, newest=1.00
+
+  --- Cycle 4/5 ---
+  Injecting 10 facts...
+      Layer 32: 34 previous-edit constraints added
+      Layer 33: 34 previous-edit constraints added
+      Layer 34: 34 previous-edit constraints added
+      Layer 35: 34 previous-edit constraints added
+      Layer 36: 34 previous-edit constraints added
+      Layer 37: 34 previous-edit constraints added
+      Layer 38: 34 previous-edit constraints added
+      Layer 39: 34 previous-edit constraints added
+      Layer 40: 34 previous-edit constraints added
+      Layer 41: 34 previous-edit constraints added
+      Layer 42: 34 previous-edit constraints added
+      Layer 43: 34 previous-edit constraints added
+      Layer 44: 34 previous-edit constraints added
+      Layer 45: 34 previous-edit constraints added
+      Layer 46: 34 previous-edit constraints added
+      Layer 47: 34 previous-edit constraints added
+    v* opt fact 0: 'Soraya lives in → Tehran' token=53795 P(target): 0.0679 → 0.8828  |delta|=1.9453
+    v* opt fact 1: 'Lucian lives in → Bucharest' token=34378 P(target): 0.0098 → 0.8828  |delta|=2.3281
+    v* opt fact 2: 'Tahlia lives in → Sydney' token=21972 P(target): 0.1738 → 0.8828  |delta|=2.1719
+    v* opt fact 3: 'Emeric lives in → Brussels' token=38269 P(target): 0.0023 → 1.0000  |delta|=2.4375
+    v* opt fact 4: 'Ines lives in → Barcelona' token=28035 P(target): 0.0076 → 0.8828  |delta|=2.4844
+    v* opt fact 5: 'Jorvik lives in → Oslo' token=58958 P(target): 0.0087 → 1.0000  |delta|=2.5625
+    v* opt fact 6: 'Priya lives in → Delhi' token=22767 P(target): 0.0021 → 1.0000  |delta|=3.9062
+    v* opt fact 7: 'Alaric lives in → Berlin' token=20437 P(target): 0.0111 → 1.0000  |delta|=2.5625
+    v* opt fact 8: 'Naia lives in → Bilbao' token=39158 P(target): 0.0000 → 1.0000  |delta|=4.9688
+    v* opt fact 9: 'Severin lives in → Zurich' token=72826 P(target): 0.0005 → 0.8828  |delta|=2.5938
+  MEMIT: residual norm = 18.5000, facts=10, total_keys=89
+  MEMIT: key shape = torch.Size([89, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.171875
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.250000
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.273438
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.351562
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.414062
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.460938
+
+  Phase 'longevity' CRASHED: CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 14.75 MiB is free. Process 1625142 has 79.19 GiB memory in use. Of the allocated memory 77.95 GiB is allocated by PyTorch, and 231.50 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Traceback (most recent call last):
+  File "/workspace/j/experiments/v7_comprehensive_test.py", line 737, in main
+    result = phase_longevity(config, fact_pool, quick=args.quick)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/j/experiments/v7_comprehensive_test.py", line 341, in phase_longevity
+    orch.memit_engine.inject_facts(batch)
+  File "/workspace/j/src/memory/memit.py", line 725, in inject_facts
+    delta = self._compute_layer_delta(keys_matrix, expanded_residuals, layer_idx=layer_idx)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/j/src/memory/memit.py", line 1286, in _compute_layer_delta
+    return self._compute_layer_delta_covariance(keys, residuals, layer_idx)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/j/src/memory/memit.py", line 1380, in _compute_layer_delta_covariance
+    return delta.to(orig_dtype)
+           ^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 14.75 MiB is free. Process 1625142 has 79.19 GiB memory in use. Of the allocated memory 77.95 GiB is allocated by PyTorch, and 231.50 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+======================================================================
+  Phase 3: Nap Audit (4 cycles × 10 facts)
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-70B-Instruct
+Loading checkpoint shards:   0%|          | 0/30 [00:00<?, ?it/s]Loading checkpoint shards:   3%|▎         | 1/30 [00:01<00:39,  1.35s/it]Loading checkpoint shards:   7%|▋         | 2/30 [00:02<00:35,  1.28s/it]Loading checkpoint shards:  10%|█         | 3/30 [00:03<00:27,  1.03s/it]Loading checkpoint shards:  13%|█▎        | 4/30 [00:04<00:23,  1.09it/s]Loading checkpoint shards:  17%|█▋        | 5/30 [00:04<00:21,  1.19it/s]Loading checkpoint shards:  20%|██        | 6/30 [00:05<00:19,  1.23it/s]Loading checkpoint shards:  23%|██▎       | 7/30 [00:06<00:18,  1.27it/s]Loading checkpoint shards:  27%|██▋       | 8/30 [00:07<00:17,  1.27it/s]Loading checkpoint shards:  30%|███       | 9/30 [00:07<00:15,  1.33it/s]Loading checkpoint shards:  33%|███▎      | 10/30 [00:08<00:14,  1.35it/s]Loading checkpoint shards:  37%|███▋      | 11/30 [00:09<00:13,  1.39it/s]Loading checkpoint shards:  40%|████      | 12/30 [00:09<00:12,  1.39it/s]Loading checkpoint shards:  43%|████▎     | 13/30 [00:10<00:12,  1.38it/s]Loading checkpoint shards:  47%|████▋     | 14/30 [00:11<00:11,  1.37it/s]Loading checkpoint shards:  50%|█████     | 15/30 [00:12<00:10,  1.36it/s]Loading checkpoint shards:  53%|█████▎    | 16/30 [00:12<00:10,  1.39it/s]Loading checkpoint shards:  57%|█████▋    | 17/30 [00:13<00:09,  1.39it/s]Loading checkpoint shards:  60%|██████    | 18/30 [00:14<00:08,  1.35it/s]Loading checkpoint shards:  63%|██████▎   | 19/30 [00:15<00:08,  1.30it/s]Loading checkpoint shards:  67%|██████▋   | 20/30 [00:15<00:07,  1.30it/s]Loading checkpoint shards:  70%|███████   | 21/30 [00:16<00:06,  1.30it/s]Loading checkpoint shards:  73%|███████▎  | 22/30 [00:17<00:06,  1.31it/s]Loading checkpoint shards:  77%|███████▋  | 23/30 [00:18<00:05,  1.28it/s]Loading checkpoint shards:  80%|████████  | 24/30 [00:18<00:04,  1.27it/s]Loading checkpoint shards:  83%|████████▎ | 25/30 [00:19<00:03,  1.28it/s]Loading checkpoint shards:  87%|████████▋ | 26/30 [00:20<00:03,  1.29it/s]Loading checkpoint shards:  90%|█████████ | 27/30 [00:21<00:02,  1.31it/s]Loading checkpoint shards:  93%|█████████▎| 28/30 [00:22<00:01,  1.26it/s]Loading checkpoint shards:  97%|█████████▋| 29/30 [00:22<00:00,  1.26it/s]Loading checkpoint shards: 100%|██████████| 30/30 [00:23<00:00,  1.53it/s]Loading checkpoint shards: 100%|██████████| 30/30 [00:23<00:00,  1.29it/s]
+Model loaded.
+  MEMIT: dequantized 16 down_proj layers for weight editing
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 32: 775 samples, var range [0.0000, 0.0203], mean=0.0003
+    Layer 33: 775 samples, var range [0.0000, 0.0208], mean=0.0003
+    Layer 34: 775 samples, var range [0.0000, 0.0964], mean=0.0003
+    Layer 35: 775 samples, var range [0.0000, 0.0765], mean=0.0003
+    Layer 36: 775 samples, var range [0.0000, 0.1211], mean=0.0003
+    Layer 37: 775 samples, var range [0.0001, 0.0623], mean=0.0003
+    Layer 38: 775 samples, var range [0.0001, 1.8878], mean=0.0003
+    Layer 39: 775 samples, var range [0.0001, 0.0571], mean=0.0003
+    Layer 40: 775 samples, var range [0.0001, 0.0524], mean=0.0003
+    Layer 41: 775 samples, var range [0.0001, 0.0797], mean=0.0003
+    Layer 42: 775 samples, var range [0.0001, 0.3734], mean=0.0003
+    Layer 43: 775 samples, var range [0.0001, 0.1569], mean=0.0003
+    Layer 44: 775 samples, var range [0.0001, 0.0516], mean=0.0003
+    Layer 45: 775 samples, var range [0.0001, 0.7004], mean=0.0003
+    Layer 46: 775 samples, var range [0.0001, 0.1751], mean=0.0003
+    Layer 47: 775 samples, var range [0.0001, 0.0772], mean=0.0003
+  MEMIT: covariance estimated and cached for 16 layers
+  Baseline PPL: 5.10
+
+  --- Cycle 1/4 ---
+  Injecting 10 facts...
+    v* opt fact 0: 'Aria lives in → Portland' token=23947 P(target): 0.0009 → 0.9375  |delta|=3.5312
+    v* opt fact 1: 'Kaito lives in → Tokyo' token=27286 P(target): 0.1123 → 1.0000  |delta|=2.9844
+    v* opt fact 2: 'Zara lives in → Marrakech' token=69698 P(target): 0.0007 → 0.9375  |delta|=2.9375
+    v* opt fact 3: 'Finnley lives in → Dublin' token=33977 P(target): 0.0049 → 1.0000  |delta|=3.1094
+    v* opt fact 4: 'Amara lives in → Nairobi' token=97625 P(target): 0.0013 → 0.8828  |delta|=4.6875
+    v* opt fact 5: 'Leandro lives in → Buenos Aires' token=69173 P(target): 0.0172 → 0.8828  |delta|=4.0312
+    v* opt fact 6: 'Suki lives in → Kyoto' token=82122 P(target): 0.0063 → 0.9375  |delta|=3.0625
+    v* opt fact 7: 'Draven lives in → Prague' token=68389 P(target): 0.0005 → 0.8828  |delta|=4.0938
+    v* opt fact 8: 'Isolde lives in → Vienna' token=47387 P(target): 0.0018 → 1.0000  |delta|=3.9688
+    v* opt fact 9: 'Theron lives in → Cape Town' token=29715 P(target): 0.0143 → 1.0000  |delta|=4.5938
+  MEMIT: residual norm = 23.7500, facts=10, total_keys=53
+  MEMIT: key shape = torch.Size([53, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.171875
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.273438
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.234375
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.312500
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.367188
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.421875
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.484375
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.523438
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.492188
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.585938
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.546875
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.742188
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.765625
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.742188
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.843750
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.765625
+  Running nap audit...
+  Nap: audited=1, degraded=0
+  Running full sleep...
+  [1/6] Health check...
+        Baseline PPL: 18.85
+  [2/6] Curating...
+        1 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (738 chars):
+          | Q: Where does Aria live?
+          | A: Aria lives in Portland.
+          | 
+          | Q: Where does Kaito live?
+          | A: Kaito lives in Tokyo.
+          | 
+          | Q: Where does Zara live?
+          | A: Zara lives in Marrakech.
+          | 
+          | Q: Where does Finnley live?
+          | ... (28 lines total)
+        Model extraction: 9 pairs
+        Generated 9 fact Q&A pairs
+        Firewall: 9 verified, 0 rejected
+        10 exchanges selected
+      Layer 32: 10 previous-edit constraints added
+      Layer 33: 10 previous-edit constraints added
+      Layer 34: 10 previous-edit constraints added
+      Layer 35: 10 previous-edit constraints added
+      Layer 36: 10 previous-edit constraints added
+      Layer 37: 10 previous-edit constraints added
+      Layer 38: 10 previous-edit constraints added
+      Layer 39: 10 previous-edit constraints added
+      Layer 40: 10 previous-edit constraints added
+      Layer 41: 10 previous-edit constraints added
+      Layer 42: 10 previous-edit constraints added
+      Layer 43: 10 previous-edit constraints added
+      Layer 44: 10 previous-edit constraints added
+      Layer 45: 10 previous-edit constraints added
+      Layer 46: 10 previous-edit constraints added
+      Layer 47: 10 previous-edit constraints added
+    v* opt fact 0: 'Suki lives in → Kyoto' token=82122 P(target): 1.0000 → 1.0000  |delta|=0.0474
+  MEMIT: residual norm = 0.0952, facts=1, total_keys=15
+  MEMIT: key shape = torch.Size([15, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001892
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002014
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002106
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002670
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002884
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003204
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003464
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003784
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004120
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004700
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005096
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006165
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007172
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008667
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.012146
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.017700
+        Injected 1 new facts via MEMIT
+        Marked 1 session(s) as consumed
+  [3/6] Auditing all active MEMIT edits...
+        2 healthy, 0 degraded, 2 total
+  [4/6] Maintenance...
+        Refreshed: 0, Pruned: 0
+  [5/6] Validating...
+        PPL: 18.85 → 18.81 (-0.2%)
+  [6/6] Sleep cycle completed in 91.0s
+  Sleep: refreshed=0
+
+  --- Cycle 2/4 ---
+  Injecting 10 facts...
+      Layer 32: 11 previous-edit constraints added
+      Layer 33: 11 previous-edit constraints added
+      Layer 34: 11 previous-edit constraints added
+      Layer 35: 11 previous-edit constraints added
+      Layer 36: 11 previous-edit constraints added
+      Layer 37: 11 previous-edit constraints added
+      Layer 38: 11 previous-edit constraints added
+      Layer 39: 11 previous-edit constraints added
+      Layer 40: 11 previous-edit constraints added
+      Layer 41: 11 previous-edit constraints added
+      Layer 42: 11 previous-edit constraints added
+      Layer 43: 11 previous-edit constraints added
+      Layer 44: 11 previous-edit constraints added
+      Layer 45: 11 previous-edit constraints added
+      Layer 46: 11 previous-edit constraints added
+      Layer 47: 11 previous-edit constraints added
+    v* opt fact 0: 'Niamh lives in → Galway' token=10845 P(target): 0.0183 → 0.8828  |delta|=4.2188
+    v* opt fact 1: 'Ravi lives in → Mumbai' token=35812 P(target): 0.0143 → 0.8828  |delta|=3.2969
+    v* opt fact 2: 'Elara lives in → Athens' token=46926 P(target): 0.0087 → 1.0000  |delta|=3.1562
+    v* opt fact 3: 'Cassian lives in → Lisbon' token=81801 P(target): 0.0012 → 0.9375  |delta|=2.3906
+    v* opt fact 4: 'Yuki lives in → Osaka' token=88085 P(target): 0.0044 → 0.8828  |delta|=2.8594
+    v* opt fact 5: 'Tariq lives in → Casablanca' token=11301 P(target): 0.0009 → 0.8828  |delta|=4.0000
+    v* opt fact 6: 'Brielle lives in → Montreal' token=30613 P(target): 0.0012 → 1.0000  |delta|=2.8125
+    v* opt fact 7: 'Idris lives in → Lagos' token=77096 P(target): 0.0023 → 1.0000  |delta|=3.0312
+    v* opt fact 8: 'Maren lives in → Copenhagen' token=64161 P(target): 0.0183 → 1.0000  |delta|=1.9844
+    v* opt fact 9: 'Ronan lives in → Edinburgh' token=41406 P(target): 0.0010 → 0.8828  |delta|=2.6094
+  MEMIT: residual norm = 19.6250, facts=10, total_keys=65
+  MEMIT: key shape = torch.Size([65, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.851562
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.953125
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.964844
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.078125
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.093750
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.148438
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.289062
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.367188
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.312500
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.460938
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.460938
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.601562
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.640625
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.625000
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.664062
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.554688
+  Running nap audit...
+  Nap: audited=3, degraded=0
+  Running full sleep...
+  [1/6] Health check...
+        Baseline PPL: 18.78
+  [2/6] Curating...
+        0 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (814 chars):
+          | There are no personal details, opinions, preferences, or direct statements made by the users in this conversation. However, some facts can still be extracted based on the context provided:
+          | 
+          | 
+          | Q: Where does Niamh live?
+          | A: Niamh lives in Galway.
+          | 
+          | 
+          | Q: Who else lives in Ireland besides Niamh?
+          | A: Finnley lives in Dublin.
+          | 
+          | ... (45 lines total)
+        Model extraction: 11 pairs
+        Generated 11 fact Q&A pairs
+        Firewall: 11 verified, 0 rejected
+        20 exchanges selected
+      Layer 32: 21 previous-edit constraints added
+      Layer 33: 21 previous-edit constraints added
+      Layer 34: 21 previous-edit constraints added
+      Layer 35: 21 previous-edit constraints added
+      Layer 36: 21 previous-edit constraints added
+      Layer 37: 21 previous-edit constraints added
+      Layer 38: 21 previous-edit constraints added
+      Layer 39: 21 previous-edit constraints added
+      Layer 40: 21 previous-edit constraints added
+      Layer 41: 21 previous-edit constraints added
+      Layer 42: 21 previous-edit constraints added
+      Layer 43: 21 previous-edit constraints added
+      Layer 44: 21 previous-edit constraints added
+      Layer 45: 21 previous-edit constraints added
+      Layer 46: 21 previous-edit constraints added
+      Layer 47: 21 previous-edit constraints added
+    v* opt fact 0: 'Ravi lives in → Mumbai' token=35812 P(target): 1.0000 → 1.0000  |delta|=0.2559
+  MEMIT: residual norm = 0.5117, facts=1, total_keys=26
+  MEMIT: key shape = torch.Size([26, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007812
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008850
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.009766
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.009888
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.011597
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.013123
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.015076
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.017090
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.017822
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.021484
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.023804
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.028931
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.032471
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.040283
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.049805
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.070801
+      Layer 32: 22 previous-edit constraints added
+      Layer 33: 22 previous-edit constraints added
+      Layer 34: 22 previous-edit constraints added
+      Layer 35: 22 previous-edit constraints added
+      Layer 36: 22 previous-edit constraints added
+      Layer 37: 22 previous-edit constraints added
+      Layer 38: 22 previous-edit constraints added
+      Layer 39: 22 previous-edit constraints added
+      Layer 40: 22 previous-edit constraints added
+      Layer 41: 22 previous-edit constraints added
+      Layer 42: 22 previous-edit constraints added
+      Layer 43: 22 previous-edit constraints added
+      Layer 44: 22 previous-edit constraints added
+      Layer 45: 22 previous-edit constraints added
+      Layer 46: 22 previous-edit constraints added
+      Layer 47: 22 previous-edit constraints added
+    v* opt fact 0: 'Suki lives in → Kyoto' token=82122 P(target): 1.0000 → 1.0000  |delta|=0.0479
+  MEMIT: residual norm = 0.0962, facts=1, total_keys=27
+  MEMIT: key shape = torch.Size([27, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001610
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001671
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001709
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002090
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002335
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002594
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002914
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003098
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003387
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003891
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004272
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005432
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006561
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008362
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.012085
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.019653
+      Layer 32: 23 previous-edit constraints added
+      Layer 33: 23 previous-edit constraints added
+      Layer 34: 23 previous-edit constraints added
+      Layer 35: 23 previous-edit constraints added
+      Layer 36: 23 previous-edit constraints added
+      Layer 37: 23 previous-edit constraints added
+      Layer 38: 23 previous-edit constraints added
+      Layer 39: 23 previous-edit constraints added
+      Layer 40: 23 previous-edit constraints added
+      Layer 41: 23 previous-edit constraints added
+      Layer 42: 23 previous-edit constraints added
+      Layer 43: 23 previous-edit constraints added
+      Layer 44: 23 previous-edit constraints added
+      Layer 45: 23 previous-edit constraints added
+      Layer 46: 23 previous-edit constraints added
+      Layer 47: 23 previous-edit constraints added
+    v* opt fact 0: 'Yuki lives in → Osaka' token=88085 P(target): 1.0000 → 1.0000  |delta|=0.1221
+  MEMIT: residual norm = 0.2441, facts=1, total_keys=28
+  MEMIT: key shape = torch.Size([28, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004944
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005676
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006165
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006439
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007874
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008545
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.009521
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.010681
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.010986
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.012329
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.013977
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.015747
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.018433
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.021851
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.027832
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.039307
+        Injected 3 new facts via MEMIT
+  [3/6] Auditing all active MEMIT edits...
+        6 healthy, 0 degraded, 6 total
+  [4/6] Maintenance...
+        Refreshed: 0, Pruned: 0
+  [5/6] Validating...
+        PPL: 18.78 → 18.83 (+0.2%)
+  [6/6] Sleep cycle completed in 306.7s
+  Sleep: refreshed=0
+
+  --- Cycle 3/4 ---
+  Injecting 10 facts...
+      Layer 32: 24 previous-edit constraints added
+      Layer 33: 24 previous-edit constraints added
+      Layer 34: 24 previous-edit constraints added
+      Layer 35: 24 previous-edit constraints added
+      Layer 36: 24 previous-edit constraints added
+      Layer 37: 24 previous-edit constraints added
+      Layer 38: 24 previous-edit constraints added
+      Layer 39: 24 previous-edit constraints added
+      Layer 40: 24 previous-edit constraints added
+      Layer 41: 24 previous-edit constraints added
+      Layer 42: 24 previous-edit constraints added
+      Layer 43: 24 previous-edit constraints added
+      Layer 44: 24 previous-edit constraints added
+      Layer 45: 24 previous-edit constraints added
+      Layer 46: 24 previous-edit constraints added
+      Layer 47: 24 previous-edit constraints added
+    v* opt fact 0: 'Liora lives in → Tel Aviv' token=23683 P(target): 0.0081 → 1.0000  |delta|=3.3750
+    v* opt fact 1: 'Viggo lives in → Stockholm' token=53182 P(target): 0.0063 → 0.8828  |delta|=2.4375
+    v* opt fact 2: 'Ximena lives in → Mexico City' token=12550 P(target): 0.0036 → 0.8828  |delta|=3.0781
+    v* opt fact 3: 'Orion lives in → Denver' token=22898 P(target): 0.0002 → 0.8828  |delta|=3.5938
+    v* opt fact 4: 'Farah lives in → Beirut' token=95411 P(target): 0.0143 → 1.0000  |delta|=2.4062
+    v* opt fact 5: 'Elio lives in → Rome' token=22463 P(target): 0.0023 → 0.9375  |delta|=2.7969
+    v* opt fact 6: 'Zadie lives in → London' token=7295 P(target): 0.0060 → 0.8828  |delta|=3.5625
+    v* opt fact 7: 'Caspian lives in → Istanbul' token=54468 P(target): 0.0038 → 0.9375  |delta|=2.4375
+    v* opt fact 8: 'Anwen lives in → Cardiff' token=61692 P(target): 0.0342 → 0.8828  |delta|=2.1562
+    v* opt fact 9: 'Kael lives in → Reykjavik' token=49312 P(target): 0.0172 → 0.8828  |delta|=3.0312
+  MEMIT: residual norm = 18.5000, facts=10, total_keys=79
+  MEMIT: key shape = torch.Size([79, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.824219
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.902344
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.949219
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.996094
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.000000
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.078125
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.203125
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.265625
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.210938
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.335938
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.335938
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.562500
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.609375
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.570312
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.648438
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.570312
+  Running nap audit...
+  Nap: audited=7, degraded=0
+  Running full sleep...
+  [1/6] Health check...
+        Baseline PPL: 18.81
+  [2/6] Curating...
+        0 new session(s) to process
+        Extracting facts from conversation...
+        [DEBUG] Model extraction raw output (869 chars):
+          | Here are the extracted facts in Q&A format:
+          | 
+          | Q: Where does Ravi live?
+          | A: Ravi lives in Mumbai.
+          | 
+          | Q: Who lives in Athens?
+          | A: Elara lives in Athens.
+          | 
+          | Q: Where does Niamh live?
+          | A: Niamh lives in Galway.
+          | ... (39 lines total)
+        Model extraction: 12 pairs
+        Generated 12 fact Q&A pairs
+        Firewall: 12 verified, 0 rejected
+        30 exchanges selected
+      Layer 32: 34 previous-edit constraints added
+      Layer 33: 34 previous-edit constraints added
+      Layer 34: 34 previous-edit constraints added
+      Layer 35: 34 previous-edit constraints added
+      Layer 36: 34 previous-edit constraints added
+      Layer 37: 34 previous-edit constraints added
+      Layer 38: 34 previous-edit constraints added
+      Layer 39: 34 previous-edit constraints added
+      Layer 40: 34 previous-edit constraints added
+      Layer 41: 34 previous-edit constraints added
+      Layer 42: 34 previous-edit constraints added
+      Layer 43: 34 previous-edit constraints added
+      Layer 44: 34 previous-edit constraints added
+      Layer 45: 34 previous-edit constraints added
+      Layer 46: 34 previous-edit constraints added
+      Layer 47: 34 previous-edit constraints added
+    v* opt fact 0: 'Ravi lives in → Mumbai' token=35812 P(target): 1.0000 → 1.0000  |delta|=0.2148
+  MEMIT: residual norm = 0.4297, facts=1, total_keys=39
+  MEMIT: key shape = torch.Size([39, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004822
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005035
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005951
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006348
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.007172
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.008911
+        Failed to inject: Ravi lives in → CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 54.75 MiB is free. Process 1625142 has 79.15 GiB memory in use. Of the allocated memory 77.89 GiB is allocated by PyTorch, and 252.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+      Layer 32: 34 previous-edit constraints added
+      Layer 33: 34 previous-edit constraints added
+      Layer 34: 34 previous-edit constraints added
+      Layer 35: 34 previous-edit constraints added
+      Layer 36: 34 previous-edit constraints added
+      Layer 37: 34 previous-edit constraints added
+      Layer 38: 34 previous-edit constraints added
+      Layer 39: 34 previous-edit constraints added
+      Layer 40: 34 previous-edit constraints added
+      Layer 41: 34 previous-edit constraints added
+      Layer 42: 34 previous-edit constraints added
+      Layer 43: 34 previous-edit constraints added
+      Layer 44: 34 previous-edit constraints added
+      Layer 45: 34 previous-edit constraints added
+      Layer 46: 34 previous-edit constraints added
+      Layer 47: 34 previous-edit constraints added
+    v* opt fact 0: 'Suki lives in → Kyoto' token=82122 P(target): 1.0000 → 1.0000  |delta|=0.0496
+  MEMIT: residual norm = 0.0996, facts=1, total_keys=39
+  MEMIT: key shape = torch.Size([39, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001305
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001274
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001495
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001785
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.001999
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.002213
+        Failed to inject: Suki lives in → CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 54.75 MiB is free. Process 1625142 has 79.15 GiB memory in use. Of the allocated memory 77.89 GiB is allocated by PyTorch, and 252.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+      Layer 32: 34 previous-edit constraints added
+      Layer 33: 34 previous-edit constraints added
+      Layer 34: 34 previous-edit constraints added
+      Layer 35: 34 previous-edit constraints added
+      Layer 36: 34 previous-edit constraints added
+      Layer 37: 34 previous-edit constraints added
+      Layer 38: 34 previous-edit constraints added
+      Layer 39: 34 previous-edit constraints added
+      Layer 40: 34 previous-edit constraints added
+      Layer 41: 34 previous-edit constraints added
+      Layer 42: 34 previous-edit constraints added
+      Layer 43: 34 previous-edit constraints added
+      Layer 44: 34 previous-edit constraints added
+      Layer 45: 34 previous-edit constraints added
+      Layer 46: 34 previous-edit constraints added
+      Layer 47: 34 previous-edit constraints added
+    v* opt fact 0: 'Yuki lives in → Osaka' token=88085 P(target): 1.0000 → 1.0000  |delta|=0.1260
+  MEMIT: residual norm = 0.2520, facts=1, total_keys=39
+  MEMIT: key shape = torch.Size([39, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.003601
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004120
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004547
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.004822
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.005707
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.006439
+        Failed to inject: Yuki lives in → CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 54.75 MiB is free. Process 1625142 has 79.15 GiB memory in use. Of the allocated memory 77.89 GiB is allocated by PyTorch, and 252.51 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+  [3/6] Auditing all active MEMIT edits...
+        7 healthy, 0 degraded, 7 total
+  [4/6] Maintenance...
+        Refreshed: 0, Pruned: 0
+  [5/6] Validating...
+        PPL: 18.81 → 18.80 (-0.0%)
+  [6/6] Sleep cycle completed in 386.9s
+  Sleep: refreshed=0
+
+  --- Cycle 4/4 ---
+  Injecting 10 facts...
+      Layer 32: 34 previous-edit constraints added
+      Layer 33: 34 previous-edit constraints added
+      Layer 34: 34 previous-edit constraints added
+      Layer 35: 34 previous-edit constraints added
+      Layer 36: 34 previous-edit constraints added
+      Layer 37: 34 previous-edit constraints added
+      Layer 38: 34 previous-edit constraints added
+      Layer 39: 34 previous-edit constraints added
+      Layer 40: 34 previous-edit constraints added
+      Layer 41: 34 previous-edit constraints added
+      Layer 42: 34 previous-edit constraints added
+      Layer 43: 34 previous-edit constraints added
+      Layer 44: 34 previous-edit constraints added
+      Layer 45: 34 previous-edit constraints added
+      Layer 46: 34 previous-edit constraints added
+      Layer 47: 34 previous-edit constraints added
+    v* opt fact 0: 'Soraya lives in → Tehran' token=53795 P(target): 0.0679 → 0.8828  |delta|=1.9375
+    v* opt fact 1: 'Lucian lives in → Bucharest' token=34378 P(target): 0.0092 → 0.8828  |delta|=2.3281
+    v* opt fact 2: 'Tahlia lives in → Sydney' token=21972 P(target): 0.1631 → 0.8828  |delta|=2.1562
+    v* opt fact 3: 'Emeric lives in → Brussels' token=38269 P(target): 0.0023 → 1.0000  |delta|=2.4375
+    v* opt fact 4: 'Ines lives in → Barcelona' token=28035 P(target): 0.0076 → 0.8828  |delta|=2.5312
+    v* opt fact 5: 'Jorvik lives in → Oslo' token=58958 P(target): 0.0081 → 0.8828  |delta|=2.4531
+    v* opt fact 6: 'Priya lives in → Delhi' token=22767 P(target): 0.0021 → 1.0000  |delta|=3.9219
+    v* opt fact 7: 'Alaric lives in → Berlin' token=20437 P(target): 0.0104 → 0.8828  |delta|=2.4375
+    v* opt fact 8: 'Naia lives in → Bilbao' token=39158 P(target): 0.0000 → 0.8828  |delta|=4.9688
+    v* opt fact 9: 'Severin lives in → Zurich' token=72826 P(target): 0.0006 → 1.0000  |delta|=2.6719
+  MEMIT: residual norm = 18.5000, facts=10, total_keys=89
+  MEMIT: key shape = torch.Size([89, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.171875
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.257812
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.281250
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.351562
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.414062
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.460938
+
+  Phase 'nap' CRASHED: CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 14.75 MiB is free. Process 1625142 has 79.19 GiB memory in use. Of the allocated memory 77.95 GiB is allocated by PyTorch, and 231.50 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Traceback (most recent call last):
+  File "/workspace/j/experiments/v7_comprehensive_test.py", line 740, in main
+    result = phase_nap(config, fact_pool, quick=args.quick)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/j/experiments/v7_comprehensive_test.py", line 474, in phase_nap
+    orch.memit_engine.inject_facts(batch)
+  File "/workspace/j/src/memory/memit.py", line 725, in inject_facts
+    delta = self._compute_layer_delta(keys_matrix, expanded_residuals, layer_idx=layer_idx)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/j/src/memory/memit.py", line 1286, in _compute_layer_delta
+    return self._compute_layer_delta_covariance(keys, residuals, layer_idx)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/j/src/memory/memit.py", line 1380, in _compute_layer_delta_covariance
+    return delta.to(orig_dtype)
+           ^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 14.75 MiB is free. Process 1625142 has 79.19 GiB memory in use. Of the allocated memory 77.95 GiB is allocated by PyTorch, and 231.50 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+======================================================================
+  Phase 4: Scaling to 100 Facts
+======================================================================
+Loading model...
+  Loading from base: meta-llama/Llama-3.1-70B-Instruct
+Loading checkpoint shards:   0%|          | 0/30 [00:00<?, ?it/s]Loading checkpoint shards:   3%|▎         | 1/30 [00:00<00:24,  1.18it/s]Loading checkpoint shards:   7%|▋         | 2/30 [00:01<00:23,  1.19it/s]Loading checkpoint shards:  10%|█         | 3/30 [00:02<00:21,  1.24it/s]Loading checkpoint shards:  13%|█▎        | 4/30 [00:03<00:20,  1.30it/s]Loading checkpoint shards:  17%|█▋        | 5/30 [00:03<00:18,  1.34it/s]Loading checkpoint shards:  20%|██        | 6/30 [00:04<00:17,  1.35it/s]Loading checkpoint shards:  23%|██▎       | 7/30 [00:05<00:16,  1.37it/s]Loading checkpoint shards:  27%|██▋       | 8/30 [00:06<00:16,  1.36it/s]Loading checkpoint shards:  30%|███       | 9/30 [00:06<00:14,  1.41it/s]Loading checkpoint shards:  33%|███▎      | 10/30 [00:07<00:14,  1.37it/s]Loading checkpoint shards:  37%|███▋      | 11/30 [00:08<00:13,  1.41it/s]Loading checkpoint shards:  40%|████      | 12/30 [00:08<00:12,  1.42it/s]Loading checkpoint shards:  43%|████▎     | 13/30 [00:09<00:12,  1.40it/s]Loading checkpoint shards:  47%|████▋     | 14/30 [00:10<00:11,  1.39it/s]Loading checkpoint shards:  50%|█████     | 15/30 [00:11<00:10,  1.39it/s]Loading checkpoint shards:  53%|█████▎    | 16/30 [00:11<00:09,  1.43it/s]Loading checkpoint shards:  57%|█████▋    | 17/30 [00:12<00:09,  1.41it/s]Loading checkpoint shards:  60%|██████    | 18/30 [00:13<00:08,  1.37it/s]Loading checkpoint shards:  63%|██████▎   | 19/30 [00:14<00:08,  1.31it/s]Loading checkpoint shards:  67%|██████▋   | 20/30 [00:14<00:07,  1.32it/s]Loading checkpoint shards:  70%|███████   | 21/30 [00:15<00:06,  1.32it/s]Loading checkpoint shards:  73%|███████▎  | 22/30 [00:16<00:06,  1.33it/s]Loading checkpoint shards:  77%|███████▋  | 23/30 [00:17<00:05,  1.29it/s]Loading checkpoint shards:  80%|████████  | 24/30 [00:17<00:04,  1.29it/s]Loading checkpoint shards:  83%|████████▎ | 25/30 [00:18<00:03,  1.31it/s]Loading checkpoint shards:  87%|████████▋ | 26/30 [00:19<00:03,  1.31it/s]Loading checkpoint shards:  90%|█████████ | 27/30 [00:20<00:02,  1.33it/s]Loading checkpoint shards:  93%|█████████▎| 28/30 [00:20<00:01,  1.30it/s]Loading checkpoint shards:  97%|█████████▋| 29/30 [00:21<00:00,  1.29it/s]Loading checkpoint shards: 100%|██████████| 30/30 [00:22<00:00,  1.58it/s]Loading checkpoint shards: 100%|██████████| 30/30 [00:22<00:00,  1.36it/s]
+Model loaded.
+  MEMIT: dequantized 16 down_proj layers for weight editing
+  MEMIT: estimating covariance from 30 reference texts...
+    processed 10/30 texts
+    processed 20/30 texts
+    processed 30/30 texts
+    Layer 32: 775 samples, var range [0.0000, 0.0203], mean=0.0003
+    Layer 33: 775 samples, var range [0.0000, 0.0208], mean=0.0003
+    Layer 34: 775 samples, var range [0.0000, 0.0964], mean=0.0003
+    Layer 35: 775 samples, var range [0.0000, 0.0765], mean=0.0003
+    Layer 36: 775 samples, var range [0.0000, 0.1211], mean=0.0003
+    Layer 37: 775 samples, var range [0.0001, 0.0623], mean=0.0003
+    Layer 38: 775 samples, var range [0.0001, 1.8878], mean=0.0003
+    Layer 39: 775 samples, var range [0.0001, 0.0571], mean=0.0003
+    Layer 40: 775 samples, var range [0.0001, 0.0524], mean=0.0003
+    Layer 41: 775 samples, var range [0.0001, 0.0797], mean=0.0003
+    Layer 42: 775 samples, var range [0.0001, 0.3734], mean=0.0003
+    Layer 43: 775 samples, var range [0.0001, 0.1569], mean=0.0003
+    Layer 44: 775 samples, var range [0.0001, 0.0516], mean=0.0003
+    Layer 45: 775 samples, var range [0.0001, 0.7004], mean=0.0003
+    Layer 46: 775 samples, var range [0.0001, 0.1751], mean=0.0003
+    Layer 47: 775 samples, var range [0.0001, 0.0772], mean=0.0003
+  MEMIT: covariance estimated and cached for 16 layers
+  Baseline PPL: 5.10
+
+  Injecting facts 1-5...
+    v* opt fact 0: 'Aria lives in → Portland' token=23947 P(target): 0.0009 → 0.9375  |delta|=3.5312
+    v* opt fact 1: 'Kaito lives in → Tokyo' token=27286 P(target): 0.1123 → 1.0000  |delta|=2.9844
+    v* opt fact 2: 'Zara lives in → Marrakech' token=69698 P(target): 0.0007 → 0.9375  |delta|=2.9375
+    v* opt fact 3: 'Finnley lives in → Dublin' token=33977 P(target): 0.0049 → 1.0000  |delta|=3.1094
+    v* opt fact 4: 'Amara lives in → Nairobi' token=97625 P(target): 0.0013 → 0.8828  |delta|=4.6875
+  MEMIT: residual norm = 15.6875, facts=5, total_keys=27
+  MEMIT: key shape = torch.Size([27, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.769531
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.871094
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.847656
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.867188
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.906250
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.921875
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.960938
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.984375
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.945312
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.054688
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.031250
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.054688
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.085938
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.078125
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.125000
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.078125
+
+  Injecting facts 6-10...
+      Layer 32: 5 previous-edit constraints added
+      Layer 33: 5 previous-edit constraints added
+      Layer 34: 5 previous-edit constraints added
+      Layer 35: 5 previous-edit constraints added
+      Layer 36: 5 previous-edit constraints added
+      Layer 37: 5 previous-edit constraints added
+      Layer 38: 5 previous-edit constraints added
+      Layer 39: 5 previous-edit constraints added
+      Layer 40: 5 previous-edit constraints added
+      Layer 41: 5 previous-edit constraints added
+      Layer 42: 5 previous-edit constraints added
+      Layer 43: 5 previous-edit constraints added
+      Layer 44: 5 previous-edit constraints added
+      Layer 45: 5 previous-edit constraints added
+      Layer 46: 5 previous-edit constraints added
+      Layer 47: 5 previous-edit constraints added
+    v* opt fact 0: 'Leandro lives in → Buenos Aires' token=69173 P(target): 0.1738 → 0.8828  |delta|=1.7734
+    v* opt fact 1: 'Suki lives in → Kyoto' token=82122 P(target): 0.0302 → 1.0000  |delta|=1.8984
+    v* opt fact 2: 'Draven lives in → Prague' token=68389 P(target): 0.0000 → 1.0000  |delta|=4.0625
+    v* opt fact 3: 'Isolde lives in → Vienna' token=47387 P(target): 0.0063 → 1.0000  |delta|=2.6250
+    v* opt fact 4: 'Theron lives in → Cape Town' token=29715 P(target): 0.0564 → 0.8828  |delta|=2.5469
+  MEMIT: residual norm = 12.0625, facts=5, total_keys=31
+  MEMIT: key shape = torch.Size([31, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.550781
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.566406
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.578125
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.640625
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.652344
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.695312
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.750000
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.789062
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.769531
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.808594
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.812500
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.984375
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.988281
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.964844
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.046875
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.023438
+  [10 facts] PPL=5.10 (+0.0%), recall=1.00
+
+  Injecting facts 11-15...
+      Layer 32: 10 previous-edit constraints added
+      Layer 33: 10 previous-edit constraints added
+      Layer 34: 10 previous-edit constraints added
+      Layer 35: 10 previous-edit constraints added
+      Layer 36: 10 previous-edit constraints added
+      Layer 37: 10 previous-edit constraints added
+      Layer 38: 10 previous-edit constraints added
+      Layer 39: 10 previous-edit constraints added
+      Layer 40: 10 previous-edit constraints added
+      Layer 41: 10 previous-edit constraints added
+      Layer 42: 10 previous-edit constraints added
+      Layer 43: 10 previous-edit constraints added
+      Layer 44: 10 previous-edit constraints added
+      Layer 45: 10 previous-edit constraints added
+      Layer 46: 10 previous-edit constraints added
+      Layer 47: 10 previous-edit constraints added
+    v* opt fact 0: 'Niamh lives in → Galway' token=10845 P(target): 0.0236 → 1.0000  |delta|=4.0938
+    v* opt fact 1: 'Ravi lives in → Mumbai' token=35812 P(target): 0.0067 → 1.0000  |delta|=3.1562
+    v* opt fact 2: 'Elara lives in → Athens' token=46926 P(target): 0.0008 → 1.0000  |delta|=3.4531
+    v* opt fact 3: 'Cassian lives in → Lisbon' token=81801 P(target): 0.0010 → 0.9375  |delta|=2.7969
+    v* opt fact 4: 'Yuki lives in → Osaka' token=88085 P(target): 0.0056 → 1.0000  |delta|=2.7656
+  MEMIT: residual norm = 14.7500, facts=5, total_keys=37
+  MEMIT: key shape = torch.Size([37, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.632812
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.699219
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.707031
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.769531
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.800781
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.839844
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.917969
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.976562
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.941406
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.039062
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.031250
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.093750
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.117188
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.093750
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.125000
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.062500
+
+  Injecting facts 16-20...
+      Layer 32: 15 previous-edit constraints added
+      Layer 33: 15 previous-edit constraints added
+      Layer 34: 15 previous-edit constraints added
+      Layer 35: 15 previous-edit constraints added
+      Layer 36: 15 previous-edit constraints added
+      Layer 37: 15 previous-edit constraints added
+      Layer 38: 15 previous-edit constraints added
+      Layer 39: 15 previous-edit constraints added
+      Layer 40: 15 previous-edit constraints added
+      Layer 41: 15 previous-edit constraints added
+      Layer 42: 15 previous-edit constraints added
+      Layer 43: 15 previous-edit constraints added
+      Layer 44: 15 previous-edit constraints added
+      Layer 45: 15 previous-edit constraints added
+      Layer 46: 15 previous-edit constraints added
+      Layer 47: 15 previous-edit constraints added
+    v* opt fact 0: 'Tariq lives in → Casablanca' token=11301 P(target): 0.0003 → 1.0000  |delta|=4.2500
+    v* opt fact 1: 'Brielle lives in → Montreal' token=30613 P(target): 0.0010 → 1.0000  |delta|=2.8594
+    v* opt fact 2: 'Idris lives in → Lagos' token=77096 P(target): 0.0001 → 0.8828  |delta|=3.5312
+    v* opt fact 3: 'Maren lives in → Copenhagen' token=64161 P(target): 0.0208 → 1.0000  |delta|=1.9453
+    v* opt fact 4: 'Ronan lives in → Edinburgh' token=41406 P(target): 0.0003 → 1.0000  |delta|=2.6719
+  MEMIT: residual norm = 14.0625, facts=5, total_keys=42
+  MEMIT: key shape = torch.Size([42, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.593750
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.667969
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.687500
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.789062
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.781250
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.816406
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.945312
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.996094
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.949219
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.054688
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.070312
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.218750
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.250000
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.242188
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.273438
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.187500
+  [20 facts] PPL=5.09 (+-0.1%), recall=1.00
+
+  Injecting facts 21-25...
+      Layer 32: 20 previous-edit constraints added
+      Layer 33: 20 previous-edit constraints added
+      Layer 34: 20 previous-edit constraints added
+      Layer 35: 20 previous-edit constraints added
+      Layer 36: 20 previous-edit constraints added
+      Layer 37: 20 previous-edit constraints added
+      Layer 38: 20 previous-edit constraints added
+      Layer 39: 20 previous-edit constraints added
+      Layer 40: 20 previous-edit constraints added
+      Layer 41: 20 previous-edit constraints added
+      Layer 42: 20 previous-edit constraints added
+      Layer 43: 20 previous-edit constraints added
+      Layer 44: 20 previous-edit constraints added
+      Layer 45: 20 previous-edit constraints added
+      Layer 46: 20 previous-edit constraints added
+      Layer 47: 20 previous-edit constraints added
+    v* opt fact 0: 'Liora lives in → Tel Aviv' token=23683 P(target): 0.0046 → 1.0000  |delta|=3.3125
+    v* opt fact 1: 'Viggo lives in → Stockholm' token=53182 P(target): 0.0044 → 0.8828  |delta|=2.3125
+    v* opt fact 2: 'Ximena lives in → Mexico City' token=12550 P(target): 0.0413 → 1.0000  |delta|=2.3750
+    v* opt fact 3: 'Orion lives in → Denver' token=22898 P(target): 0.0000 → 0.8828  |delta|=3.2031
+    v* opt fact 4: 'Farah lives in → Beirut' token=95411 P(target): 0.0072 → 1.0000  |delta|=2.5000
+  MEMIT: residual norm = 12.4375, facts=5, total_keys=48
+  MEMIT: key shape = torch.Size([48, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.511719
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.539062
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.578125
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.605469
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.613281
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.652344
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.710938
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.761719
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.746094
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.812500
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.816406
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.964844
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.988281
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.964844
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.023438
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.960938
+
+  Injecting facts 26-30...
+      Layer 32: 25 previous-edit constraints added
+      Layer 33: 25 previous-edit constraints added
+      Layer 34: 25 previous-edit constraints added
+      Layer 35: 25 previous-edit constraints added
+      Layer 36: 25 previous-edit constraints added
+      Layer 37: 25 previous-edit constraints added
+      Layer 38: 25 previous-edit constraints added
+      Layer 39: 25 previous-edit constraints added
+      Layer 40: 25 previous-edit constraints added
+      Layer 41: 25 previous-edit constraints added
+      Layer 42: 25 previous-edit constraints added
+      Layer 43: 25 previous-edit constraints added
+      Layer 44: 25 previous-edit constraints added
+      Layer 45: 25 previous-edit constraints added
+      Layer 46: 25 previous-edit constraints added
+      Layer 47: 25 previous-edit constraints added
+    v* opt fact 0: 'Elio lives in → Rome' token=22463 P(target): 0.0012 → 0.8828  |delta|=3.0156
+    v* opt fact 1: 'Zadie lives in → London' token=7295 P(target): 0.0104 → 0.8828  |delta|=3.4062
+    v* opt fact 2: 'Caspian lives in → Istanbul' token=54468 P(target): 0.0019 → 0.9375  |delta|=2.4219
+    v* opt fact 3: 'Anwen lives in → Cardiff' token=61692 P(target): 0.0044 → 0.8828  |delta|=2.5156
+    v* opt fact 4: 'Kael lives in → Reykjavik' token=49312 P(target): 0.0208 → 1.0000  |delta|=2.8750
+  MEMIT: residual norm = 12.8125, facts=5, total_keys=52
+  MEMIT: key shape = torch.Size([52, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.562500
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.621094
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.675781
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.710938
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.699219
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.761719
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.875000
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.890625
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.839844
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.949219
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.949219
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.093750
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.140625
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.109375
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.164062
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.117188
+  [30 facts] PPL=5.10 (+0.1%), recall=1.00
+
+  Injecting facts 31-35...
+      Layer 32: 30 previous-edit constraints added
+      Layer 33: 30 previous-edit constraints added
+      Layer 34: 30 previous-edit constraints added
+      Layer 35: 30 previous-edit constraints added
+      Layer 36: 30 previous-edit constraints added
+      Layer 37: 30 previous-edit constraints added
+      Layer 38: 30 previous-edit constraints added
+      Layer 39: 30 previous-edit constraints added
+      Layer 40: 30 previous-edit constraints added
+      Layer 41: 30 previous-edit constraints added
+      Layer 42: 30 previous-edit constraints added
+      Layer 43: 30 previous-edit constraints added
+      Layer 44: 30 previous-edit constraints added
+      Layer 45: 30 previous-edit constraints added
+      Layer 46: 30 previous-edit constraints added
+      Layer 47: 30 previous-edit constraints added
+    v* opt fact 0: 'Soraya lives in → Tehran' token=53795 P(target): 0.0195 → 0.8828  |delta|=2.4219
+    v* opt fact 1: 'Lucian lives in → Bucharest' token=34378 P(target): 0.0044 → 1.0000  |delta|=2.6094
+    v* opt fact 2: 'Tahlia lives in → Sydney' token=21972 P(target): 0.1533 → 1.0000  |delta|=2.2500
+    v* opt fact 3: 'Emeric lives in → Brussels' token=38269 P(target): 0.0009 → 1.0000  |delta|=2.6250
+    v* opt fact 4: 'Ines lives in → Barcelona' token=28035 P(target): 0.0001 → 1.0000  |delta|=3.3906
+  MEMIT: residual norm = 12.0000, facts=5, total_keys=57
+  MEMIT: key shape = torch.Size([57, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.738281
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.785156
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.796875
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.875000
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.902344
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.941406
+    Layer 41 (1/10 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.039062
+    Layer 40 (1/9 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.085938
+    Layer 39 (1/8 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.046875
+    Layer 38 (1/7 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.085938
+    Layer 37 (1/6 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.070312
+    Layer 36 (1/5 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.179688
+    Layer 35 (1/4 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.195312
+    Layer 34 (1/3 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.148438
+    Layer 33 (1/2 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.179688
+    Layer 32 (1/1 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.109375
+
+  Injecting facts 36-40...
+      Layer 32: 35 previous-edit constraints added
+      Layer 33: 35 previous-edit constraints added
+      Layer 34: 35 previous-edit constraints added
+      Layer 35: 35 previous-edit constraints added
+      Layer 36: 35 previous-edit constraints added
+      Layer 37: 35 previous-edit constraints added
+      Layer 38: 35 previous-edit constraints added
+      Layer 39: 35 previous-edit constraints added
+      Layer 40: 35 previous-edit constraints added
+      Layer 41: 35 previous-edit constraints added
+      Layer 42: 35 previous-edit constraints added
+      Layer 43: 35 previous-edit constraints added
+      Layer 44: 35 previous-edit constraints added
+      Layer 45: 35 previous-edit constraints added
+      Layer 46: 35 previous-edit constraints added
+      Layer 47: 35 previous-edit constraints added
+    v* opt fact 0: 'Jorvik lives in → Oslo' token=58958 P(target): 0.0143 → 1.0000  |delta|=2.2656
+    v* opt fact 1: 'Priya lives in → Delhi' token=22767 P(target): 0.0021 → 0.8828  |delta|=3.4375
+    v* opt fact 2: 'Alaric lives in → Berlin' token=20437 P(target): 0.0056 → 0.8828  |delta|=2.7969
+    v* opt fact 3: 'Naia lives in → Bilbao' token=39158 P(target): 0.0000 → 1.0000  |delta|=5.0938
+    v* opt fact 4: 'Severin lives in → Zurich' token=72826 P(target): 0.0001 → 1.0000  |delta|=2.7969
+  MEMIT: residual norm = 15.3125, facts=5, total_keys=63
+  MEMIT: key shape = torch.Size([63, 28672]), weight shape = torch.Size([8192, 28672])
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 47 (1/16 residual): delta shape=torch.Size([8192, 28672]), |delta|=0.937500
+    Layer 46 (1/15 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.007812
+    Layer 45 (1/14 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.039062
+    Layer 44 (1/13 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.085938
+    Layer 43 (1/12 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.132812
+    Layer 42 (1/11 residual): delta shape=torch.Size([8192, 28672]), |delta|=1.164062
+
+  Phase 'scaling' CRASHED: CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 42.75 MiB is free. Process 1625142 has 79.16 GiB memory in use. Of the allocated memory 77.92 GiB is allocated by PyTorch, and 234.45 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+Traceback (most recent call last):
+  File "/workspace/j/experiments/v7_comprehensive_test.py", line 743, in main
+    result = phase_scaling(config, fact_pool, quick=args.quick)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/j/experiments/v7_comprehensive_test.py", line 589, in phase_scaling
+    orch.memit_engine.inject_facts(batch)
+  File "/workspace/j/src/memory/memit.py", line 725, in inject_facts
+    delta = self._compute_layer_delta(keys_matrix, expanded_residuals, layer_idx=layer_idx)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/j/src/memory/memit.py", line 1286, in _compute_layer_delta
+    return self._compute_layer_delta_covariance(keys, residuals, layer_idx)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/j/src/memory/memit.py", line 1380, in _compute_layer_delta_covariance
+    return delta.to(orig_dtype)
+           ^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 42.75 MiB is free. Process 1625142 has 79.16 GiB memory in use. Of the allocated memory 77.92 GiB is allocated by PyTorch, and 234.45 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+======================================================================
+  OVERALL RESULTS
+======================================================================
+  [  OK] maintenance: SKIP (no degradation observed — system too robust at this scale)
+  [FAIL] longevity: CRASH: CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 14.75 MiB is free. Process 1625142 has 79.19 GiB memory in use. Of the allocated memory 77.95 GiB is allocated by PyTorch, and 231.50 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+  [FAIL] nap: CRASH: CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 14.75 MiB is free. Process 1625142 has 79.19 GiB memory in use. Of the allocated memory 77.95 GiB is allocated by PyTorch, and 231.50 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+  [FAIL] scaling: CRASH: CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 42.75 MiB is free. Process 1625142 has 79.16 GiB memory in use. Of the allocated memory 77.92 GiB is allocated by PyTorch, and 234.45 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)
+
+  Overall: FAIL (1/4)
+  Total time: 10545s (175.8 min)
+======================================================================
+
+  Results saved to experiments/results/v7_comprehensive_Llama-3.1-70B-Instruct.json

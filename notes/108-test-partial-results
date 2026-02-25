@@ -1,0 +1,46 @@
+ Results So Far (Runs 1-2, 24 layers)                                                                                              
+                                                                                                                                    
+  Phase 1: Maintenance Refresh — SKIP (system too robust)                                                                           
+                                                                                                                                    
+  ┌────────────┬───────┬──────┬────────┐                                                                                            
+  │    Step    │ Facts │ PPL  │ Recall │
+  ├────────────┼───────┼──────┼────────┤                                                                                            
+  │ Baseline   │ 0     │ 5.10 │ —      │                                                                                            
+  ├────────────┼───────┼──────┼────────┤                                                                                            
+  │ Batch 1    │ 20    │ 5.10 │ 1.00   │                                                                                            
+  ├────────────┼───────┼──────┼────────┤
+  │ Batch 2    │ 40    │ 5.08 │ 1.00   │
+  ├────────────┼───────┼──────┼────────┤
+  │ Batch 3    │ 60    │ 5.08 │ 1.00   │
+  ├────────────┼───────┼──────┼────────┤
+  │ Post-sleep │ 60    │ 5.09 │ 0.98   │
+  └────────────┴───────┴──────┴────────┘
+
+  Sleep audited 5 edits → 5 healthy, 0 degraded. No maintenance needed.
+
+  Phase 2: Longevity — Completed 2/5 cycles before OOM
+
+  ┌───────┬───────────┬────────────┬────────┬────────┬──────────┐
+  │ Cycle │    PPL    │ Cumulative │ Oldest │ Newest │ Degraded │
+  ├───────┼───────────┼────────────┼────────┼────────┼──────────┤
+  │ 1     │ 5.09      │ 1.00       │ 1.00   │ 1.00   │ 0        │
+  ├───────┼───────────┼────────────┼────────┼────────┼──────────┤
+  │ 2     │ 5.08      │ 1.00       │ 1.00   │ 1.00   │ 0        │
+  ├───────┼───────────┼────────────┼────────┼────────┼──────────┤
+  │ 3     │ OOM crash │            │        │        │          │
+  └───────┴───────────┴────────────┴────────┴────────┴──────────┘
+
+  Phase 3: Nap Audit — Completed 2/4 cycles before OOM
+
+  - Cycle 1: Nap audited 1 fact, 0 degraded
+  - Cycle 2: Nap audited 3 facts, 0 degraded
+  - Cycle 3: OOM crash
+
+  Phase 4: Scaling — Got to 20 facts before OOM
+
+  - 10 facts: recall=1.00, PPL=5.11
+  - 20 facts: recall=1.00, PPL=5.10
+  - Then OOM crash
+
+  Key finding: 70B + 24 layers is incredibly robust — 100% recall at 60 facts, zero degradation, zero PPL impact. But 24 dequantized
+   layers exhaust 2×H100 VRAM after ~2 cycles of accumulated null-space constraints.

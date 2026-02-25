@@ -21,11 +21,16 @@ Usage:
 """
 
 import argparse
+import gc
 import json
+import os
 import shutil
 import sys
 import time
 from pathlib import Path
+
+# Prevent CUDA fragmentation OOM on multi-phase runs
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
 
 project_root = Path(__file__).parent.parent
 sys.path.insert(0, str(project_root))
@@ -114,12 +119,35 @@ def clean_artifacts_v7(config):
     memit_dir.mkdir(parents=True, exist_ok=True)
 
 
+def cleanup_gpu():
+    """Force-free GPU memory between phases."""
+    gc.collect()
+    try:
+        import torch
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+            torch.cuda.synchronize()
+    except ImportError:
+        pass
+
+
 def fresh_orchestrator(config):
     """Create a fresh orchestrator with auto-triggers disabled."""
+    cleanup_gpu()
     orch = Orchestrator(config, disable_memit=False)
     orch.chat._sleep_callback = None
     orch.chat._nap_callback = None
     return orch
+
+
+def destroy_orchestrator(orch):
+    """Explicitly destroy orchestrator and free GPU memory."""
+    if hasattr(orch, 'backend') and hasattr(orch.backend, 'model'):
+        del orch.backend.model
+    if hasattr(orch, 'backend') and hasattr(orch.backend, 'tokenizer'):
+        del orch.backend.tokenizer
+    del orch
+    cleanup_gpu()
 
 
 def trigger_sleep(orch):
@@ -273,6 +301,7 @@ def phase_maintenance(config, fact_pool, quick=False):
     print(f"\n  VERDICT: {verdict}")
     print(f"  (refreshed={facts_refreshed}, recall {recall_pre_sleep:.2f}→{recall_post:.2f}, "
           f"PPL +{ppl_increase*100:.1f}%, {elapsed:.0f}s)")
+    destroy_orchestrator(orch)
     return result
 
 
@@ -369,6 +398,9 @@ def phase_longevity(config, fact_pool, quick=False):
             "facts_refreshed": sleep_result.get("facts_refreshed", 0) if sleep_ok else 0,
         })
 
+        # Free intermediate CUDA tensors between cycles
+        cleanup_gpu()
+
     # Final measurements
     final = trajectory[-1]["post_sleep"] if trajectory else {}
     final_cumulative = final.get("cumulative_recall", 0)
@@ -401,6 +433,7 @@ def phase_longevity(config, fact_pool, quick=False):
     print(f"\n  VERDICT: {verdict}")
     print(f"  (cumulative={final_cumulative:.2f}, oldest={final_oldest:.2f}, "
           f"PPL +{ppl_increase*100:.1f}%, {elapsed:.0f}s)")
+    destroy_orchestrator(orch)
     return result
 
 
@@ -490,6 +523,9 @@ def phase_nap(config, fact_pool, quick=False):
             "facts_refreshed": sleep_result.get("facts_refreshed", 0) if sleep_ok else 0,
         })
 
+        # Free intermediate CUDA tensors between cycles
+        cleanup_gpu()
+
     # Verdict
     if degradation_detected and fixed_by_sleep:
         verdict = "PASS"
@@ -515,6 +551,7 @@ def phase_nap(config, fact_pool, quick=False):
 
     print(f"\n  VERDICT: {verdict}")
     print(f"  (detected={degradation_detected}, fixed={fixed_by_sleep}, {elapsed:.0f}s)")
+    destroy_orchestrator(orch)
     return result
 
 
@@ -598,10 +635,16 @@ def phase_scaling(config, fact_pool, quick=False):
 
             trajectory.append(checkpoint)
 
+            # Free intermediate CUDA tensors
+            cleanup_gpu()
+
             # Early stop if recall collapses
             if total >= batch_size * 4 and recall < 0.20:
                 print(f"  STOPPING EARLY — recall collapsed to {recall:.2f}")
                 break
+
+        # Also cleanup after non-checkpoint injections
+        cleanup_gpu()
 
     # Final state
     final_checkpoint = trajectory[-1] if trajectory else {}
@@ -635,6 +678,7 @@ def phase_scaling(config, fact_pool, quick=False):
     print(f"\n  VERDICT: {verdict}")
     print(f"  ({len(all_injected)} facts, recall={final_recall:.2f}, "
           f"PPL +{ppl_increase*100:.1f}%, {elapsed:.0f}s)")
+    destroy_orchestrator(orch)
     return result
 
 
