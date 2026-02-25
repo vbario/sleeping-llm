@@ -1,0 +1,302 @@
+⏺ This is a fascinating intersection. Let me lay out the argument.                                                     
+   
+  ---                                                                                                                  
+  The Core Gap in Helix
+                                                                                                                       
+  Helix is impressive — a 3-tier architecture (S2 at 7-9 Hz for reasoning, S1 at 200 Hz for visuomotor control, S0 at 1
+   kHz for balance) trained end-to-end on 500 hours of teleoperation data. But there's a critical detail buried in the
+  Helix 02 writeup:
+
+  No explicit details provided regarding online learning, adaptation mechanisms, or continual improvement systems
+  beyond initial training.
+
+  Helix robots ship frozen. They're trained in the lab, deployed to a kitchen, and run the same weights forever. Every
+  Figure 02 unloading a dishwasher does it with the exact same policy, regardless of whether it's been doing it for 1
+  day or 6 months. It never learns that this dishwasher's door sticks, or that the mugs in this house are heavier than
+  training data, or that the owner prefers plates stacked a certain way.
+
+  That's the gap. And it maps almost exactly to the problem your system solves for language.
+
+  ---
+  The Architectural Parallel
+
+  The parallel between Helix and your sleep-wake system is surprisingly direct:
+
+  ┌────────────────┬───────────────────────┬────────────────────────────────────────────────────────┐
+  │                │     Sleeping LLM      │                      Helix Robot                       │
+  ├────────────────┼───────────────────────┼────────────────────────────────────────────────────────┤
+  │ "Brain"        │ 7B language model     │ 7B VLM (System 2)                                      │
+  ├────────────────┼───────────────────────┼────────────────────────────────────────────────────────┤
+  │ Fast pathway   │ Token generation      │ S1 visuomotor policy (200 Hz)                          │
+  ├────────────────┼───────────────────────┼────────────────────────────────────────────────────────┤
+  │ Slow pathway   │ MEMIT weight edits    │ ??? (nothing today)                                    │
+  ├────────────────┼───────────────────────┼────────────────────────────────────────────────────────┤
+  │ Wake phase     │ Conversation          │ Task execution                                         │
+  ├────────────────┼───────────────────────┼────────────────────────────────────────────────────────┤
+  │ Sleep phase    │ Audit, refresh, prune │ Charging / idle time                                   │
+  ├────────────────┼───────────────────────┼────────────────────────────────────────────────────────┤
+  │ What's learned │ Facts about the user  │ Skills, corrections, preferences about the environment │
+  └────────────────┴───────────────────────┴────────────────────────────────────────────────────────┘
+
+  System 2 is a 7B VLM — the same class of model you're editing with MEMIT. It processes images and language, outputs
+  semantic latent vectors. Right now it's frozen after training. But there's no fundamental reason it has to be.
+
+  ---
+  How Sleep-Wake Maps Onto Helix
+
+  Wake Phase: Learning By Doing
+
+  During operation, the robot is generating a continuous stream of experience:
+  - Successes: Task completed, objects placed correctly, no drops
+  - Failures: Grasp slipped, object placed in wrong location, balance recovery triggered
+  - Corrections: Human intervenes, repositions something, gives verbal feedback ("no, that goes on the top rack")
+  - Novel situations: New object never seen in training, unfamiliar kitchen layout
+
+  Today, all of this is discarded. The robot executes, succeeds or fails, and moves on with the same weights.
+
+  In your architecture, this is the equivalent of the conversation phase — raw experience that contains learnable
+  signal. Your system extracts facts from conversation. A Helix equivalent would extract skill corrections from
+  experience:
+
+  - "The blue mug in this kitchen weighs ~400g" (object property)
+  - "Grasp approach from the left fails on the tall glasses — approach from above" (skill correction)
+  - "Owner prefers bowls stacked rim-down" (preference)
+  - "The dishwasher door requires 12N of force to open fully" (environment calibration)
+
+  These are the robotic equivalent of your personal facts. They're specific to this robot in this environment with this
+   user.
+
+  Sleep Phase: Consolidation During Charging
+
+  Helix robots need to charge. That's idle time — the exact equivalent of your sleep phase. During charging:
+
+  1. Curate: Review the day's experience logs. Extract high-signal episodes (failures, corrections, novel situations).
+  Discard routine successful executions that don't contain new information. This is your curator.py.
+  2. Inject: Use MEMIT (or a MEMIT-equivalent for vision-language models) to edit the curated knowledge into S2's
+  weights. "This mug is heavy" becomes a weight edit that shifts S2's latent representation when it sees that mug
+  again, which flows down through S1 into a firmer grasp.
+  3. Audit: Probe recall of previously learned corrections. "What grasp approach works for the tall glasses?" Does the
+  model still encode the correction from last week? This is your fact audit.
+  4. Refresh: Re-inject degraded corrections. The spaced-repetition argument you made earlier applies directly — a
+  skill correction reinforced across 3 sleep cycles is more robust than one injected once.
+  5. Validate: Run the edited model through simulation rollouts (Helix already uses sim for S0 training — 200,000
+  parallel environments). Check that the edits didn't break general capability. This is your PPL check, but for
+  robotics it's "can the model still do basic tasks in simulation after the edits?"
+  6. Report: Log what was learned, refreshed, pruned. Auditable. Transparent. The owner can see "your robot learned 3
+  new things last night."
+
+  The Three-Tier Learning Question
+
+  The interesting architectural question is which tier learns:
+
+  System 2 (7B VLM) — the most natural target for MEMIT. It's a transformer, it processes language and vision, and it's
+   the "brain" that decides what to do. Editing S2 means changing what the robot understands about its environment.
+  This is closest to what you're already doing.
+
+  System 1 (80M transformer) — faster, smaller, handles visuomotor control. Editing S1 means changing how the robot
+  moves. This is more like motor learning — adjusting grasp trajectories, approach angles, force profiles. MEMIT might
+  work here too (it's a transformer), but the "facts" are different — they're sensorimotor corrections, not linguistic
+  facts.
+
+  System 0 (10M network) — probably too low-level and too fast (1 kHz) for MEMIT-style editing. This is
+  spinal-cord-level control. It should stay frozen unless fundamental body dynamics change (e.g., joint wear).
+
+  The natural starting point is S2 only — the same 7B VLM class you're already working with. Teach the robot's "mind"
+  about its environment, and let S1 and S0 translate that understanding into motion through the existing latent
+  conditioning pathway.
+
+  ---
+  Why This Is Harder Than Language (And Why It Might Be Easier)
+
+  Harder
+
+  - Verification is physical. You verify a language fact by asking a question. You verify a robotic skill by executing
+  it in the real world (or a high-fidelity sim). Failure costs are real — a dropped plate, a fall.
+  - The fact space is continuous. "The mug weighs 400g" isn't a discrete fact — it's a point in a continuous space of
+  object properties that affects grasp force, trajectory planning, and timing. MEMIT works with discrete
+  subject-relation-object triples. Robotics needs something more graded.
+  - Latent conditioning. In your system, MEMIT edits the model that directly generates output. In Helix, MEMIT would
+  edit S2, which generates a latent vector that conditions S1. You'd need the edit to propagate correctly through the
+  latent bottleneck.
+
+  Easier (and this is the surprise)
+
+  - The alignment tax disappears. Your biggest blocker on 70B language models was RLHF alignment — the model actively
+  resists learning personal facts because it was trained to say "I don't have personal information." A VLM trained on
+  robotic teleoperation data has no such alignment. It wants to map perceptions to actions. There's no safety training
+  telling it "you don't know what this mug weighs." The model should be far more receptive to MEMIT edits.
+  - Ground truth is available. In language, you can't easily verify "does the model really know Viktor's dog is named
+  Max, or is it just pattern-matching?" In robotics, ground truth is physics. The grasp works or it doesn't. The object
+   gets placed correctly or it doesn't. Your audit step becomes dramatically more reliable.
+  - The sleep environment exists. Figure already trains S0 in 200,000 parallel sim environments. That infrastructure
+  can be repurposed for sleep-phase validation. You don't need to build the sim — it's already there.
+  - 500 hours of training data is small. Helix was trained on 500 hours — tiny by LLM standards. This means the model
+  has less "hardened" knowledge that resists editing. MEMIT edits should have an easier time shifting the model's
+  behavior because the original training signal is weaker.
+
+  ---
+  What The Demo Becomes
+
+  If this works, the demo isn't "a chatbot that remembers you." It's:
+
+  A humanoid robot that gets better at its job every day. Day 1, it unloads your dishwasher generically. Day 7, it
+  knows where everything goes in your kitchen. Day 30, it handles your weird mugs, knows your stacking preferences, and
+   has adapted to your dishwasher's quirks. Every morning, it's slightly better than the night before. And you can ask
+  it "what did you learn last night?" and it tells you.
+
+  That's not a research demo. That's a product vision for the next decade of robotics.
+
+  ---
+  The Concrete Research Path
+
+  If you wanted to pursue this seriously:
+
+  1. Prove MEMIT works on a VLM — take an open-source 7B VLM (LLaVA, Qwen-VL), inject visual-semantic facts ("this
+  object is fragile," "this container goes on the top shelf"), measure if the latent representations shift
+  appropriately. This is doable on your current hardware.
+  2. Prove latent conditioning survives MEMIT — the edited S2 must still produce latent vectors that S1 can consume.
+  This requires a simplified S2→S1 pipeline, probably in simulation.
+  3. Prove sleep-cycle reinforcement works for skill corrections — same experiment as your language spaced-repetition
+  proposal, but with visuomotor corrections instead of personal facts.
+
+  Each of these is a paper. Together, they're a research program. And Figure is almost certainly going to need
+  something like this — because shipping frozen models to every kitchen in America and hoping training generalizes is
+  not a long-term strategy.
+
+  ---
+  Sources:
+  - https://www.figure.ai/news/helix
+  - https://www.figure.ai/news/helix-02
+  - https://mlq.ai/news/figure-ai-opens-new-helix-lab-to-accelerate-learning-for-its-humanoid-robots/
+
+  ⏺ Sleeping LLM + Humanoid Robots: Continuously Learning Embodied AI                                                  
+                                                                                                                     
+  The Core Idea                                                                                                      
+                  
+  Our system already implements a wake/sleep learning cycle for language. The same architecture maps naturally onto  
+  robots that operate during the day and consolidate learning overnight.
+
+  How It Maps
+
+  Wake Phase → Robot Operating Hours
+
+  During operation, a 1X NEO or Sanctuary Phoenix robot encounters new knowledge:
+
+  - New objects: "The red mug belongs on the third shelf"
+  - User preferences: "This household sorts recycling into three bins"
+  - Task corrections: "When folding towels here, use thirds not halves"
+  - Spatial facts: "The garage door sticks — lift and push simultaneously"
+
+  Our wake/extractor.py already extracts structured (subject, relation, object) facts from interaction. For robots,
+  the extractor would also ingest:
+  - Vision-language model observations
+  - Tactile/force feedback summaries
+  - Task success/failure signals
+  - Human corrections and demonstrations
+
+  These become MEMIT-compatible fact triples stored in the EditLedger.
+
+  Sleep Phase → Charging/Idle Hours
+
+  When the robot docks to charge (overnight, breaks), our sleep cycle runs:
+
+  ┌──────────────┬──────────────────────────────┬──────────────────────────────────────┐
+  │  Sleep Step  │      Language (current)      │           Robot (extended)           │
+  ├──────────────┼──────────────────────────────┼──────────────────────────────────────┤
+  │ Health Check │ Measure fact recall          │ Measure task recall + sim rollouts   │
+  ├──────────────┼──────────────────────────────┼──────────────────────────────────────┤
+  │ Curate       │ Deduplicate/prioritize facts │ Merge spatial + procedural knowledge │
+  ├──────────────┼──────────────────────────────┼──────────────────────────────────────┤
+  │ Fact Audit   │ Probe each fact              │ Probe facts + replay task sequences  │
+  ├──────────────┼──────────────────────────────┼──────────────────────────────────────┤
+  │ Maintenance  │ MEMIT refresh degraded facts │ MEMIT refresh + update motor priors  │
+  ├──────────────┼──────────────────────────────┼──────────────────────────────────────┤
+  │ Validate     │ Q&A accuracy check           │ Simulated task execution check       │
+  ├──────────────┼──────────────────────────────┼──────────────────────────────────────┤
+  │ Report       │ Recall stats                 │ Recall + task success metrics        │
+  └──────────────┴──────────────────────────────┴──────────────────────────────────────┘
+
+  MEMIT → The Key Enabler
+
+  Why MEMIT matters for robots specifically:
+
+  1. No full retraining — A robot can't afford hours of GPU training nightly. MEMIT edits targeted weight deltas in
+  seconds.
+  2. Catastrophic forgetting resistance — Cross-batch null-space constraints (which we already implement) prevent
+  learning "red mug goes on shelf 3" from erasing "never put knives in the dishwasher blade-up."
+  3. Capacity scales with model size — Our H100 experiments showed 0.80 recall @ 40 facts on 70B. A robot running a
+  70B model on onboard or edge hardware has room for significant daily learning.
+  4. Auditable — The EditLedger gives a complete log of what the robot "knows" and when it learned it. Critical for
+  safety.
+
+  Architecture for 1X / Sanctuary Integration
+
+  ┌─────────────────────────────────────────────┐
+  │  Robot Runtime (1X NEO / Sanctuary Phoenix)  │
+  │                                              │
+  │  VLM/Policy Model ◄── MEMIT-edited weights  │
+  │       │                                      │
+  │  Sensors → Observations → Fact Extractor     │
+  │       │                                      │
+  │  Task Execution → Success/Failure Logger     │
+  └──────────────┬──────────────────────────────┘
+                 │ new facts + task outcomes
+                 ▼
+  ┌──────────────────────────────────────────────┐
+  │  Sleeping LLM Orchestrator (our system)      │
+  │                                              │
+  │  EditLedger ← accumulates daily facts        │
+  │       │                                      │
+  │  Sleep Trigger (docked / idle / scheduled)   │
+  │       │                                      │
+  │  Full Sleep: Health → Curate → Audit →       │
+  │              Maintain → Validate → Report    │
+  │       │                                      │
+  │  Updated weights pushed back to robot        │
+  └──────────────────────────────────────────────┘
+
+  What We'd Need to Build
+
+  Already have (reusable as-is):
+  - Orchestrator state machine (orchestrator.py)
+  - MEMIT engine with Woodbury inversion, null-space constraints (memory/memit.py)
+  - EditLedger with audit trail
+  - Sleep pipeline (sleep/full_sleep.py, nap.py, curator.py, validator.py)
+  - Health monitoring (memory/health.py)
+  - Torch backend for CUDA/H100 (backend/torch_backend.py)
+
+  Need to extend:
+  1. Multimodal fact extractor — Current extractor.py handles text. Needs vision-language grounding to extract facts
+  from camera/lidar/tactile streams. Both 1X and Sanctuary use VLMs internally; we'd hook into their observation
+  pipeline.
+  2. Embodied validation — Current validator asks Q&A. Robot validator would run simulated task rollouts ("Can you
+  still fold a towel correctly?") during sleep.
+  3. Weight sync protocol — Push updated weights to the robot's onboard compute (or edge server) after sleep
+  completes. Needs to be atomic and safe (rollback if validation fails).
+  4. Nap during operation — Our nap.py (quick audit, no model changes) could run during idle moments while the robot
+  is awake, flagging degraded facts for the next full sleep.
+
+  Why This Beats Alternatives
+
+  ┌───────────────────┬───────────────────────────────────────────────────────────────────────────────┐
+  │     Approach      │                                    Problem                                    │
+  ├───────────────────┼───────────────────────────────────────────────────────────────────────────────┤
+  │ Cloud fine-tuning │ Latency, privacy, bandwidth for sensor data                                   │
+  ├───────────────────┼───────────────────────────────────────────────────────────────────────────────┤
+  │ RAG only          │ No weight-level learning, context window limits                               │
+  ├───────────────────┼───────────────────────────────────────────────────────────────────────────────┤
+  │ Full LoRA nightly │ Too slow, catastrophic forgetting risk, we already removed it for good reason │
+  ├───────────────────┼───────────────────────────────────────────────────────────────────────────────┤
+  │ MEMIT sleep cycle │ Fast, targeted, auditable, forgetting-resistant                               │
+  └───────────────────┴───────────────────────────────────────────────────────────────────────────────┘
+
+  Practical Deployment Scenario
+
+  A Sanctuary Phoenix robot works a warehouse shift. During 8 hours it learns 12 new facts (bin locations changed,
+  new product types, a colleague's name). It docks at 6 PM. Our sleep orchestrator runs a ~5 minute full sleep cycle
+  on the robot's onboard GPU (or a nearby edge node). By 6:05 PM the robot has consolidated today's knowledge into
+  its weights, validated it hasn't forgotten yesterday's knowledge, and is ready for tomorrow — carrying forward
+  everything it's ever learned.
+
+  The fundamental insight: biological brains consolidate memories during sleep. Our system already does this for
+  LLMs. Robots are the natural physical embodiment of that idea.

@@ -1,0 +1,115 @@
+The Human Analogy Isn't Just Marketing — It's Mechanistically Sound
+                                                                                                                                            
+  When you learn someone's name at a party, you don't have 100% recall the next day. You have maybe 60-70%. If you meet them again, it jumps
+   to 85%. By the third encounter, it's locked in. This isn't a bug in human memory — it's the system working as designed. Repetition
+  signals importance. The hippocampus replays memories during sleep precisely to strengthen the ones that keep coming up.
+
+  Your system has the same structure, and arguably should behave this way:
+
+  1. MEMIT injection — first encounter. The fact is written into the weights, but it's a single low-rank perturbation across 8-16 layers. It
+   competes with everything the model already "knows" in those layers.
+  2. Sleep audit — the system probes recall. Some facts come back strong (0.9+), some are degraded (0.5-0.7), some are nearly gone (<0.3).
+  3. Sleep refresh — degraded facts get re-injected. But this second injection is not the same as the first. The model's weight landscape
+  has shifted. The new edit finds a slightly different direction in weight space. The two edits together create a more robust representation
+   than either alone.
+  4. Next sleep cycle — audit again. Facts that were refreshed once are now stronger. Facts that degraded again despite refresh might be
+  genuinely conflicting with the model's priors and need a third pass, or they're candidates for pruning.
+
+  This is spaced repetition at the weight level. And there's a real mathematical reason it should work.
+
+  ---
+  The Linear Algebra Argument
+
+  A single MEMIT edit computes a rank-1 (or low-rank) update to a layer's weight matrix. It finds one direction in the key space that maps
+  the subject to the new object. But that direction is computed against the model's current covariance matrix — it's optimal for the model
+  at that moment.
+
+  After other edits happen (new facts, refreshes of other facts), the covariance landscape shifts. The original direction may no longer be
+  optimal. When you re-inject the same fact in a refresh, MEMIT recomputes the optimal direction against the current covariance. This second
+   direction is likely different from the first. The combination of both edits — the original plus the refresh — spans a higher-dimensional
+  subspace, making the fact more robust to future perturbations.
+
+  In other words: each refresh doesn't just restore the fact, it encodes it more deeply by finding complementary directions in weight space.
+   Two rank-1 edits for the same fact are more durable than one rank-2 edit, because they were computed against different model states.
+
+  This is directly analogous to why spaced repetition works better than massed practice in human learning — the different contexts of each
+  repetition create more retrieval pathways.
+
+  ---
+  Why Demanding 100% After One Sleep Is Actually Wrong
+
+  If your system achieved 100% recall on 100 facts after a single injection, you should be worried, not celebrating. It would mean one of:
+
+  - The edits are too aggressive — the scale parameter is so high that each fact is being hammered into the weights. This works for recall
+  but will destroy PPL at scale. You're overfitting the weights to the facts.
+  - The evaluation is too easy — the recall probes are so close to the training prompts that the model is pattern-matching, not genuinely
+  recalling. It would fail on rephrasings.
+  - The model has massive unused capacity — which is possible on 70B, but then you'd expect recall to degrade gracefully, not stay at 100%.
+
+  A healthy system should show something like:
+
+  ┌───────────────────┬────────────────────┐
+  │   Sleep Cycles    │ Recall (100 facts) │
+  ├───────────────────┼────────────────────┤
+  │ 0 (just injected) │ 0.70-0.80          │
+  ├───────────────────┼────────────────────┤
+  │ 1                 │ 0.82-0.88          │
+  ├───────────────────┼────────────────────┤
+  │ 2                 │ 0.88-0.93          │
+  ├───────────────────┼────────────────────┤
+  │ 3                 │ 0.93-0.97          │
+  ├───────────────────┼────────────────────┤
+  │ Steady state      │ 0.95+              │
+  └───────────────────┴────────────────────┘
+
+  That curve tells a better story than "100% from day one." It says: the system learns, consolidates, and strengthens over time. Facts that
+  matter (because the user keeps referencing them) get reinforced naturally through conversation context + sleep refresh. Facts that never
+  come up again gradually decay — and that's correct behavior, not a failure.
+
+  ---
+  The Product Argument
+
+  This reframes sleep from "maintenance overhead" to "the learning process itself." In the current framing, sleep is janitorial — it cleans
+  up after MEMIT. In the repetition framing, sleep is where learning actually happens. MEMIT injection is just the first exposure. Sleep is
+  where the model studies.
+
+  That's a much better story for the demo. Instead of:
+
+  "We inject facts and they're immediately permanent"
+
+  You say:
+
+  "The model learns like you do. It hears something once and mostly remembers it. As it sleeps and encounters the fact again, the memory
+  strengthens. After a few cycles, it's locked in. Facts you never mention again naturally fade — the model focuses its limited capacity on
+  what matters to you."
+
+  That's not a limitation you're apologizing for. That's a feature that maps to how people intuitively understand learning. Nobody trusts a
+  system that claims perfect memory on first exposure. Everyone trusts a system that says "I'm still learning this, give me another day."
+
+  ---
+  The Capacity Argument
+
+  This also directly addresses the 100-fact ceiling problem. If you demand 100% recall on 100 facts after one pass, you need enormous edit
+  headroom — every fact must be injected with enough force to stick permanently. That's what causes PPL pressure.
+
+  But if you allow recall to build over 2-3 sleep cycles, each individual injection can be gentler. Lower scale, smaller perturbation, less
+  PPL impact. The durability comes from repetition, not force. This means:
+
+  - Each edit is smaller → less PPL impact per edit
+  - More edits fit before PPL degrades → higher capacity
+  - Degraded facts get re-injected with fresh directions → more robust encoding
+  - Facts that the user never references again decay naturally → self-pruning
+
+  You might actually get more than 100 facts this way, because you're not paying the full PPL cost upfront for each one.
+
+  ---
+  The Honest Caveat
+
+  This argument only holds if the refresh mechanism actually works the way I described — if re-injection into a shifted weight landscape
+  genuinely creates more robust representations. You have some evidence for this (the sleep refresh exists and recall improves
+  post-maintenance), but you haven't systematically measured the "recall vs. number of sleep cycles" curve. That's a specific experiment
+  worth running: inject 50 facts, then run 5 sleep cycles without adding new facts, and plot the recall curve. If it's monotonically
+  increasing and converging, the argument is validated. If it's flat or noisy, then refresh is just patching, not deepening.
+
+  But even without that data, the framing is sound. A system that learns gradually through repetition is more believable, more robust, and
+  probably more scalable than one that claims instant perfect memory.

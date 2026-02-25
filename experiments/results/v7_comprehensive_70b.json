@@ -1,0 +1,67 @@
+{
+  "config": {
+    "model": "meta-llama/Llama-3.1-70B-Instruct",
+    "backend": "torch",
+    "layers": [
+      32,
+      33,
+      34,
+      35,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47
+    ],
+    "num_layers": 16,
+    "quick": false
+  },
+  "phase_1_maintenance": {
+    "verdict": "SKIP (no degradation observed \u2014 system too robust at this scale)",
+    "verdict_pass": true,
+    "total_facts": 60,
+    "batches_injected": 3,
+    "degraded_found": false,
+    "facts_refreshed": 0,
+    "recall_pre_sleep": 1.0,
+    "recall_post_sleep": 1.0,
+    "baseline_ppl": 5.096,
+    "post_sleep_ppl": 5.092,
+    "ppl_increase_pct": -0.1,
+    "sleep_result": {
+      "status": "approved",
+      "new_facts_injected": 3,
+      "audited": 6,
+      "facts_refreshed": 0,
+      "facts_pruned": 0,
+      "ppl_before": 18.78,
+      "ppl_after": 18.76,
+      "elapsed_seconds": 691.7
+    },
+    "elapsed_seconds": 5002.3
+  },
+  "phase_longevity": {
+    "verdict": "CRASH",
+    "verdict_pass": false,
+    "error": "CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 14.75 MiB is free. Process 1625142 has 79.19 GiB memory in use. Of the allocated memory 77.95 GiB is allocated by PyTorch, and 231.50 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+  },
+  "phase_nap": {
+    "verdict": "CRASH",
+    "verdict_pass": false,
+    "error": "CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 14.75 MiB is free. Process 1625142 has 79.19 GiB memory in use. Of the allocated memory 77.95 GiB is allocated by PyTorch, and 231.50 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+  },
+  "phase_scaling": {
+    "verdict": "CRASH",
+    "verdict_pass": false,
+    "error": "CUDA out of memory. Tried to allocate 448.00 MiB. GPU 1 has a total capacity of 79.21 GiB of which 42.75 MiB is free. Process 1625142 has 79.16 GiB memory in use. Of the allocated memory 77.92 GiB is allocated by PyTorch, and 234.45 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)"
+  },
+  "overall_verdict": "FAIL (1/4)",
+  "total_elapsed_seconds": 10545.0
+}
