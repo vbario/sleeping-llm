@@ -1,0 +1,151 @@
+Plan: Write Paper v5 — MEMIT-Only Sleep-Wake Convergence
+
+ Context
+
+ The v4 paper (docs/arxiv-v4/main.tex) describes a LoRA+MEMIT two-phase sleep system
+ (SWS+REM). Since then, LoRA was removed entirely. The system now uses MEMIT as the sole
+ memory mechanism, with sleep performing health maintenance (audit → refresh → prune) rather
+ than LoRA consolidation. Notes 111-116 contain new experimental data proving sleep
+ convergence, wake capacity thresholds, and a pruning death spiral. This is a fundamentally
+ different paper — v5 rewrite.
+
+ Paper Structure
+
+ Title: "Sleep-Wake Memory Convergence in Weight-Edited Language Models"
+
+ Location: docs/arxiv-v5/main.tex + docs/arxiv-v5/references.bib
+
+ Reuse LaTeX preamble and relevant bibliography entries from v4. Remove all LoRA/SWS/REM
+ content.
+
+ ---
+ 1. Abstract (~200 words)
+
+ - MEMIT injects facts into MLP weights during wake with near-zero PPL cost
+ - Unconstrained injection has a sharp capacity threshold (~13 facts for 8B/8 layers) beyond
+ which recall collapses
+ - Sleep maintenance (audit + constrained refresh) converges to 100% recall even from severe
+ degradation (30 facts, 40% → 100% in 3 cycles)
+ - Wake/sleep capacity ratio defines optimal sleep frequency
+ - 70B converges 2× faster than 8B; absorbs second wave without damage
+ - Failure mode: pruning death spiral when edit count exceeds cap
+
+ 2. Introduction (~1.5 pages)
+
+ - Problem: LLMs lose context between sessions; RAG externalizes
+ - Biological parallel: hippocampal encoding + sleep consolidation (CLS theory)
+ - Our approach: MEMIT as fast learning + sleep maintenance cycles
+ - Key insight: wake capacity threshold defines when sleep is needed
+ - Five contributions:
+   a. Wake capacity threshold (sharp tipping point, reproducible)
+   b. Sleep convergence proof (3 configs, 2 model scales)
+   c. Recovery from severe damage (30 facts, 40% → 100%)
+   d. Wake/sleep capacity ratio as "drowsiness" signal
+   e. Pruning death spiral as discovered failure mode
+
+ 3. Related Work (~1 page)
+
+ - Reuse from v4: ROME/MEMIT, CLS theory, continual learning, CLS-inspired systems
+ - Remove: LoRA-specific work (O-LoRA, InfLoRA, experience replay)
+ - Keep: Larimar, WSCL, Behrouz et al. (positioning)
+
+ 4. System Architecture (~2 pages)
+
+ - 4.1 Wake: MEMIT injection equation (from v4), null-space constraints, delta persistence
+ - 4.2 Sleep: 6-step pipeline algorithm (health check → curate → audit → maintain → validate
+ → report)
+ - 4.3 Key design: wake injects WITHOUT constraints (fast, causes interference); sleep
+ refreshes WITH constraints (preserves existing edits)
+ - 4.4 Health monitoring: sleep pressure from edit count + degradation
+
+ 5. Experimental Setup (~1 page)
+
+ - Models: 8B/8L [12-19], 70B/8L [36-43], both 4-bit on 2×H100
+ - Fact pool: 500 synthetic person-city facts
+ - Protocol: inject batch_size=1 until degraded ≥ N, then sleep cycles
+ - Convergence = degraded=0 for 2 consecutive cycles
+ - Metrics: recall, degraded count, PPL, refreshed/pruned counts
+
+ 6. Results (~4 pages)
+
+ 6.1 Wake Capacity Threshold — 8B/8L trajectory: stable at 13 facts (0.92 recall), crashes at
+  14 (0.57). Reproducible across two independent runs.
+ → Figure 1 + Table
+
+ 6.2 Sleep Convergence — Three configs converge:
+ - 8B/14 facts: 4 cycles (0.57→1.00)
+ - 8B/30 facts: 4 cycles (0.40→1.00)
+ - 70B/7 facts: 2 cycles (0.57→1.00)
+ → Figure 2 + Table
+
+ 6.3 Two-Phase Damage-Recovery — Phase A + Phase B:
+ - 8B/14: A=4 cycles, B=2 cycles
+ - 70B/7+3: A=2 cycles, B=0 cycles (zero degradation)
+ → Figure 3
+
+ 6.4 Model Scaling — 70B converges 2× faster, 0% PPL drift, absorbs second wave
+ → Table
+
+ 6.5 Pruning Death Spiral — 8B/30 Phase B: 0.971→0.457 over 10 cycles, 3 pruned/cycle, 0
+ refreshed
+ → Figure 4
+
+ 6.6 PPL Stability — 8B: +0.5% to +3.2%, 70B: 0%
+ → Table
+
+ 7. Discussion (~1.5 pages)
+
+ - Wake/sleep capacity biological analogy
+ - Null-space constraints as the convergence mechanism
+ - Pruning as the bottleneck (not convergence)
+ - MEMIT as durable memory (not temporary hippocampus)
+
+ 8. Limitations (~0.5 page)
+
+ - Single-run, synthetic facts, VRAM-limited 70B, pruning not fixed, no RAG comparison
+
+ 9. Conclusion (~0.5 page)
+
+ ---
+ Key Figures (4)
+
+ 1. Wake Tipping Point: X=fact count, Y=recall, sharp drop at 14
+ 2. Convergence Curves: Recall over cycles for 3 configs
+ 3. Two-Phase Timeline: Phase A+B combined (8B/14 facts)
+ 4. Pruning Death Spiral: Phase B divergence (8B/30 facts)
+
+ All as pgfplots with data from JSON result files.
+
+ Key Tables (4-5)
+
+ 1. Hardware/model configs
+ 2. Injection trajectories (wake capacity data)
+ 3. Convergence comparison across experiments
+ 4. PPL stability
+ 5. Model scaling comparison
+
+ Data Sources
+
+ - experiments/results/v7_convergence_Llama-3.1-8B-Instruct.json
+ - experiments/results/v7_convergence_ceiling_8B.json
+ - experiments/results/v7_convergence_70B_8L.json
+ - notes/111-v7-comprehensive-results (70B/16L data)
+ - notes/116-convergence-followup-results
+
+ Files to Create
+
+ ┌──────────────────────────────┬──────────────────────────────────────────────┐
+ │             File             │                    Action                    │
+ ├──────────────────────────────┼──────────────────────────────────────────────┤
+ │ docs/arxiv-v5/main.tex       │ Create (~650 lines)                          │
+ ├──────────────────────────────┼──────────────────────────────────────────────┤
+ │ docs/arxiv-v5/references.bib │ Adapted from v4 (prune LoRA, keep MEMIT/CLS) │
+ └──────────────────────────────┴──────────────────────────────────────────────┘
+
+ Verification
+
+ 1. cd docs/arxiv-v5 && pdflatex main.tex && bibtex main && pdflatex main.tex && pdflatex
+ main.tex
+ 2. Check all tables match JSON data exactly
+ 3. Check figures have correct data points
+ 4. Verify no LoRA/SWS/REM references remain in architecture/results
