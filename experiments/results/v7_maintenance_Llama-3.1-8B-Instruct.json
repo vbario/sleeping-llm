@@ -1,0 +1,260 @@
+{
+  "config": {
+    "model": "meta-llama/Llama-3.1-8B-Instruct",
+    "backend": "torch",
+    "layers": [
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19
+    ],
+    "num_layers": 8,
+    "degraded_threshold": 0.5,
+    "max_facts": 50,
+    "batch_size": 1
+  },
+  "step_1_injection": {
+    "total_facts": 14,
+    "batches": 14,
+    "final_recall": 0.571,
+    "degraded_count": 6,
+    "degraded_facts": [
+      {
+        "subject": "Aria",
+        "relation": "lives in",
+        "expected": "Portland"
+      },
+      {
+        "subject": "Zara",
+        "relation": "lives in",
+        "expected": "Marrakech"
+      },
+      {
+        "subject": "Amara",
+        "relation": "lives in",
+        "expected": "Nairobi"
+      },
+      {
+        "subject": "Suki",
+        "relation": "lives in",
+        "expected": "Kyoto"
+      },
+      {
+        "subject": "Draven",
+        "relation": "lives in",
+        "expected": "Prague"
+      },
+      {
+        "subject": "Isolde",
+        "relation": "lives in",
+        "expected": "Vienna"
+      }
+    ],
+    "baseline_ppl": 5.661,
+    "trajectory": [
+      {
+        "batch": 1,
+        "total_facts": 1,
+        "recall": 1.0,
+        "degraded_count": 0,
+        "ppl": 5.677
+      },
+      {
+        "batch": 2,
+        "total_facts": 2,
+        "recall": 0.5,
+        "degraded_count": 1,
+        "ppl": 5.653
+      },
+      {
+        "batch": 3,
+        "total_facts": 3,
+        "recall": 0.667,
+        "degraded_count": 1,
+        "ppl": 5.658
+      },
+      {
+        "batch": 4,
+        "total_facts": 4,
+        "recall": 0.75,
+        "degraded_count": 1,
+        "ppl": 5.618
+      },
+      {
+        "batch": 5,
+        "total_facts": 5,
+        "recall": 0.8,
+        "degraded_count": 1,
+        "ppl": 5.646
+      },
+      {
+        "batch": 6,
+        "total_facts": 6,
+        "recall": 0.833,
+        "degraded_count": 1,
+        "ppl": 5.644
+      },
+      {
+        "batch": 7,
+        "total_facts": 7,
+        "recall": 0.857,
+        "degraded_count": 1,
+        "ppl": 5.65
+      },
+      {
+        "batch": 8,
+        "total_facts": 8,
+        "recall": 0.875,
+        "degraded_count": 1,
+        "ppl": 5.644
+      },
+      {
+        "batch": 9,
+        "total_facts": 9,
+        "recall": 0.889,
+        "degraded_count": 1,
+        "ppl": 5.626
+      },
+      {
+        "batch": 10,
+        "total_facts": 10,
+        "recall": 0.9,
+        "degraded_count": 1,
+        "ppl": 5.634
+      },
+      {
+        "batch": 11,
+        "total_facts": 11,
+        "recall": 0.909,
+        "degraded_count": 1,
+        "ppl": 5.654
+      },
+      {
+        "batch": 12,
+        "total_facts": 12,
+        "recall": 0.917,
+        "degraded_count": 1,
+        "ppl": 5.662
+      },
+      {
+        "batch": 13,
+        "total_facts": 13,
+        "recall": 0.923,
+        "degraded_count": 1,
+        "ppl": 5.643
+      },
+      {
+        "batch": 14,
+        "total_facts": 14,
+        "recall": 0.571,
+        "degraded_count": 6,
+        "ppl": 5.655
+      }
+    ]
+  },
+  "step_2_nap": {
+    "verdict": "PASS",
+    "audited": 10,
+    "degraded": 4,
+    "degraded_facts": [
+      {
+        "edit_id": "4a94239c",
+        "fact": "Isolde lives in",
+        "recall_rate": 0.0,
+        "healthy": false
+      },
+      {
+        "edit_id": "1174df64",
+        "fact": "Draven lives in",
+        "recall_rate": 0.0,
+        "healthy": false
+      },
+      {
+        "edit_id": "a7f66aa0",
+        "fact": "Suki lives in",
+        "recall_rate": 0.0,
+        "healthy": false
+      },
+      {
+        "edit_id": "136b1bf0",
+        "fact": "Amara lives in",
+        "recall_rate": 0.0,
+        "healthy": false
+      }
+    ]
+  },
+  "step_3_sleep": {
+    "verdict": "PASS",
+    "facts_refreshed": 5,
+    "facts_pruned": 0,
+    "recall_pre": 0.571,
+    "recall_post": 0.786,
+    "degraded_before": [
+      {
+        "subject": "Aria",
+        "relation": "lives in",
+        "expected": "Portland"
+      },
+      {
+        "subject": "Zara",
+        "relation": "lives in",
+        "expected": "Marrakech"
+      },
+      {
+        "subject": "Amara",
+        "relation": "lives in",
+        "expected": "Nairobi"
+      },
+      {
+        "subject": "Suki",
+        "relation": "lives in",
+        "expected": "Kyoto"
+      },
+      {
+        "subject": "Draven",
+        "relation": "lives in",
+        "expected": "Prague"
+      },
+      {
+        "subject": "Isolde",
+        "relation": "lives in",
+        "expected": "Vienna"
+      }
+    ],
+    "degraded_after": [
+      {
+        "subject": "Suki",
+        "relation": "lives in",
+        "expected": "Kyoto"
+      },
+      {
+        "subject": "Niamh",
+        "relation": "lives in",
+        "expected": "Galway"
+      },
+      {
+        "subject": "Elara",
+        "relation": "lives in",
+        "expected": "Athens"
+      }
+    ],
+    "fixed": [
+      "Aria",
+      "Zara",
+      "Amara",
+      "Draven",
+      "Isolde"
+    ],
+    "still_broken": [
+      "Suki"
+    ],
+    "ppl_before": 5.655,
+    "ppl_after": 5.634
+  },
+  "overall_verdict": "PASS",
+  "total_elapsed_seconds": 363.9
+}
