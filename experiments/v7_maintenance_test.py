@@ -1,12 +1,20 @@
 """V7 Maintenance Test — Prove sleep detects and fixes degraded MEMIT facts.
 
-Uses 8B with 8 layers [12-19] where degradation naturally occurs at 10-20 facts
-(recall ~0.65-0.70), so ~30-35% of facts fall below the 0.5 degraded threshold.
+Simulates human-like memory interference during wake:
+  - Wake injection has NO null-space constraints (new facts can overwrite old ones)
+  - Sleep re-injection uses full null-space constraints (consolidation protects all facts)
+
+This mirrors how human memory works:
+  - During wake, new learning causes retroactive interference with old memories
+  - During sleep, hippocampal replay reconsolidates degraded memories
+
+Uses 8B with 8 layers [12-19]. Without null-space protection, interference causes
+degradation after ~10-15 facts, triggering the maintenance path.
 
 Three steps:
-  Step 1: Inject facts in batches of 5 until degraded_count >= 3 (or 30 max)
+  Step 1: Inject facts WITHOUT null-space constraints (simulates wake interference)
   Step 2: Nap — detect degradation
-  Step 3: Sleep — fix degradation via revert + re-inject
+  Step 3: Sleep — fix degradation via revert + re-inject WITH constraints (consolidation)
 
 Usage:
     python experiments/v7_maintenance_test.py --config experiments/configs/8b_v7.yaml
@@ -162,12 +170,30 @@ def ppl_delta_pct(baseline, current):
     return (current - baseline) / baseline
 
 
+def inject_without_constraints(engine, facts):
+    """Inject facts with null-space constraints disabled (wake-mode interference).
+
+    Temporarily hides existing active edits so _compute_keys() won't add
+    previous-edit constraint keys. The new edit is still tracked in _active_edits
+    after injection, so sleep can later audit and refresh it.
+    """
+    stashed = list(engine._active_edits)
+    engine._active_edits = []
+    try:
+        result = engine.inject_facts(facts)
+    finally:
+        # Restore previous edits + any new edit that inject_facts appended
+        new_edits = list(engine._active_edits)
+        engine._active_edits = stashed + new_edits
+    return result
+
+
 # ── Step 1: Inject until degradation ──
 
 def step_injection(orch, fact_pool, degraded_threshold=0.5, max_facts=30, batch_size=5):
-    """Inject facts in batches until degraded_count >= 3 or max_facts reached."""
+    """Inject facts WITHOUT null-space constraints (wake-mode interference)."""
     print(f"\n{'=' * 70}")
-    print(f"  Step 1: Inject until degradation")
+    print(f"  Step 1: Inject until degradation (NO null-space constraints)")
     print(f"  (batch_size={batch_size}, max={max_facts}, threshold={degraded_threshold})")
     print(f"{'=' * 70}")
 
@@ -185,8 +211,8 @@ def step_injection(orch, fact_pool, degraded_threshold=0.5, max_facts=30, batch_
             break
         batch_num += 1
 
-        print(f"\n  Batch {batch_num}: injecting facts {batch_start+1}-{batch_start+len(batch)}...")
-        orch.memit_engine.inject_facts(batch)
+        print(f"\n  Batch {batch_num}: injecting facts {batch_start+1}-{batch_start+len(batch)} (no constraints)...")
+        inject_without_constraints(orch.memit_engine, batch)
         all_injected.extend(batch)
 
         # Teach so sleep has session data
