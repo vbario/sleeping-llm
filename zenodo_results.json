@@ -33,5 +33,12 @@
     "doi": "10.5281/zenodo.18778768",
     "doi_url": "https://doi.org/10.5281/zenodo.18778768",
     "record_url": "https://zenodo.org/record/18778768"
+  },
+  {
+    "paper": 6,
+    "title": "Per-Fact Graduated Consolidation Resolves the Capacity Ceiling in Weight-Edited Language Models",
+    "doi": "10.5281/zenodo.18779159",
+    "doi_url": "https://doi.org/10.5281/zenodo.18779159",
+    "record_url": "https://zenodo.org/record/18779159"
   }
 ]
