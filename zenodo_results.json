@@ -1,0 +1,37 @@
+[
+  {
+    "paper": 1,
+    "title": "Sleep-Wake Consolidation for Lifelong Conversational Memory in Local Language Models",
+    "doi": "10.5281/zenodo.18778760",
+    "doi_url": "https://doi.org/10.5281/zenodo.18778760",
+    "record_url": "https://zenodo.org/record/18778760"
+  },
+  {
+    "paper": 2,
+    "title": "The Alignment Tax on Continual Learning: Inverse Scaling of Memory Consolidation in Language Models",
+    "doi": "10.5281/zenodo.18778762",
+    "doi_url": "https://doi.org/10.5281/zenodo.18778762",
+    "record_url": "https://zenodo.org/record/18778762"
+  },
+  {
+    "paper": 3,
+    "title": "Dual-System Memory Consolidation for Lifelong Learning in Language Models: Combining Direct Weight Editing with Sleep-Wake Training",
+    "doi": "10.5281/zenodo.18778764",
+    "doi_url": "https://doi.org/10.5281/zenodo.18778764",
+    "record_url": "https://zenodo.org/record/18778764"
+  },
+  {
+    "paper": 4,
+    "title": "Sleeping LLM: Two-Phase Memory Consolidation for Lifelong Learning from 3B to 70B Parameters",
+    "doi": "10.5281/zenodo.18778766",
+    "doi_url": "https://doi.org/10.5281/zenodo.18778766",
+    "record_url": "https://zenodo.org/record/18778766"
+  },
+  {
+    "paper": 5,
+    "title": "Sleep-Wake Memory Convergence in Weight-Edited Language Models",
+    "doi": "10.5281/zenodo.18778768",
+    "doi_url": "https://doi.org/10.5281/zenodo.18778768",
+    "record_url": "https://zenodo.org/record/18778768"
+  }
+]

@@ -1,237 +1,226 @@
 # Sleeping LLM
 
-A local LLM that forms persistent memories by sleeping.
+A language model that forms persistent memories from conversation and maintains them through sleep.
 
-The system runs a chat interface during **wake** phases and consolidates conversation knowledge into model weights during **sleep** phases — using LoRA fine-tuning as the memory consolidation mechanism. Inspired by the [Complementary Learning Systems](https://en.wikipedia.org/wiki/Complementary_learning_systems) framework from neuroscience.
+During **wake**, facts are injected directly into model weights via [MEMIT](https://memit.baulab.info/) — no retrieval, no database, no context stuffing. During **sleep**, a maintenance cycle audits, refreshes degraded memories with null-space constraints, and prunes excess. The model genuinely *knows* what it learned. The context window is empty. The knowledge is in the weights.
 
-**This is not RAG.** The model doesn't retrieve facts from a database. After sleep, the information is in the weights. The context window is empty. The model genuinely *knows* things it learned from conversation.
+Inspired by [Complementary Learning Systems](https://en.wikipedia.org/wiki/Complementary_learning_systems) theory from neuroscience: fast encoding during wake, protective consolidation during sleep.
 
-/proof-of-concept-alpha-1 (lora - shown on 3B)
-/experiments-2 (scaling)
-/memory-version-3
-/memory-version-3-continued
-/memory-version-4 (dual-mode - 20 facts recall on 8B)
-/memory-version-5
+## Key Results
 
-## How It Works
+| Model | Facts | Recall | PPL Drift | Hardware |
+|-------|-------|--------|-----------|----------|
+| Llama-3.2-3B-4bit | 15 | 0.60 | +0.3% | MacBook Air M3, 8GB |
+| Llama-3.1-8B | 14 | 1.00 (after sleep) | +0.5% | 2x H100 80GB |
+| Llama-3.1-8B | 30 | 1.00 (after sleep) | +3.2% | 2x H100 80GB |
+| Llama-3.1-70B-NF4 | 60 | 1.00 | 0.0% | 2x H100 80GB |
 
-```
-┌─────────────────────────────────────┐
-│           WAKE (Inference)          │
-│                                     │
-│  User <-> Model chat                │
-│  Context window manages itself      │
-│  Every exchange logged to disk      │
-│                                     │
-│  Trigger: /sleep or N turns         │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-┌─────────────────────────────────────┐
-│           SLEEP (Training)          │
-│                                     │
-│  1. Benchmark pre-sleep quality     │
-│  2. Extract facts as Q&A pairs      │
-│  3. Add to spaced repetition buffer │
-│  4. LoRA fine-tune on curated data  │
-│  5. Validate model didn't degrade   │
-│  6. If approved: fuse into weights  │
-│     If rejected: rollback           │
-│                                     │
-└──────────────┬──────────────────────┘
-               │
-               ▼
-        Wake with updated weights.
-        Knowledge now persistent.
-```
+**Sleep convergence**: 30 facts at 40% initial recall recover to 100% within 4 sleep cycles. The 70B model converges 2x faster.
 
-### The Neuroscience Parallel
+**Wake capacity threshold**: The 8B model sustains 0.92 recall up to 13 unconstrained edits, then crashes to 0.57 at 14 — a sharp phase transition from cascading edit interference, not gradual decay.
 
-| Human Brain | This System |
-|---|---|
-| Short-term memory (hippocampus) | Context window |
-| Long-term memory (neocortex) | Model weights |
-| Memory consolidation during sleep | LoRA fine-tuning on conversation data |
-| Emotional tagging (amygdala) | Curation scoring (novelty, importance, utility) |
-| Memory replay during sleep | Spaced repetition replay buffer |
-| Dreaming / REM | Synthetic Q&A generation from learned knowledge |
-| Sleep deprivation = poor function | Skipping training = context overflow, lost info |
-| Catastrophic forgetting resistance | Validation gating + checkpoint rollback |
-| Core identity persistence | Identity reinforcement dataset mixed into every training run |
-
-## Results
-
-Tested on a MacBook Air M3 with 8GB RAM running Llama 3.2 3B (4-bit quantized):
-
-- The model successfully formed persistent memories from conversation after a single sleep cycle
-- After restart (empty context window), the model recalled specific facts it had never been pretrained on
-- Second sleep cycle improved recall — spaced repetition effect confirmed
-- General capabilities preserved (benchmark score maintained through sleep)
-
-### The Path to Success
-
-Finding the right configuration required systematic experimentation:
-
-| Learning Rate | Epochs | Iterations | Result |
-|---|---|---|---|
-| 5e-4 | 5 | 500 | Catastrophic forgetting — model destroyed |
-| 2e-4 | 3 | ~270 | Catastrophic forgetting — model destroyed |
-| 5e-5 | 3 | ~270 | No learning, no damage (weights unchanged) |
-| **1e-4** | **1** | **~90** | **Successful memory formation** |
-
-Key discoveries along the way:
-- Training data format matters critically — a dangling generation prompt was training the model to output nothing
-- Raw conversations don't teach recall — extracting focused Q&A fact pairs is essential
-- Iterations must scale with dataset size, not be a fixed number
-- Validation must happen *before* fusing into the production model (fuse-to-temp pattern)
-- All conversation sessions must be gathered for training, not just the current one
+**Alignment tax**: RLHF actively suppresses LoRA-injected knowledge at scale. 3B: 47% recall. 8B: 37%. 70B: 0%. This inverse scaling led us to abandon LoRA and use MEMIT as the sole memory mechanism.
 
 ## Architecture
 
 ```
-src/
-├── main.py                     # CLI entry point
-├── config.py                   # Configuration loader
-├── orchestrator.py             # Wake/sleep state machine
-├── wake/
-│   ├── chat.py                 # Inference loop, command handling
-│   ├── context.py              # Context window management + compaction
-│   └── logger.py               # Conversation persistence (JSONL)
-├── sleep/
-│   ├── curator.py              # Fact extraction + Q&A generation + scoring
-│   ├── trainer.py              # LoRA fine-tuning via MLX
-│   ├── validator.py            # Benchmark evaluation + drift detection
-│   └── dreamer.py              # REM: synthetic data generation
-├── memory/
-│   ├── replay.py               # Spaced repetition buffer with priority decay
-│   ├── checkpoints.py          # Model versioning and rollback
-│   └── identity.py             # Core identity reinforcement dataset
-└── backend/
-    └── mlx_backend.py          # MLX wrapper (inference, training, fusion)
+WAKE                                          SLEEP (6-step maintenance)
+
+  User ←→ Chat                               1. Health Check — measure PPL baseline
+     │                                        2. Curate — select active edits (scale > 0)
+     ▼                                        3. Audit — test recall of each fact
+  Fact Extraction                             4. Maintain — revert degraded edits,
+     │                                              re-inject with null-space constraints
+     ▼                                              protecting all healthy edits
+  MEMIT Injection                             5. Validate — PPL comparison, rollback
+     │  (direct weight edit,                        if model degraded
+     │   no constraints,                      6. Report — healthy/refreshed counts,
+     │   instant recall)                            PPL change, convergence status
+     │
+     ▼                                        Trigger: /sleep command or automatic
+  Weights updated.                            "drowsiness signal" (degraded fact count
+  No training. No LoRA.                       exceeds threshold)
+  Single forward pass.
 ```
 
-### Data Flow
+### How MEMIT Works Here
 
-```
-Conversation → Logger (JSONL on disk)
-                 │
-            ┌────▼─────┐
-            │  Curator  │──→ Scores exchanges (novelty, importance, utility)
-            │           │──→ Extracts facts as Q&A pairs using the model itself
-            └────┬──────┘
-                 │
-         ┌───────▼────────┐
-         │ Replay Buffer  │──→ Spaced repetition: high-value facts revisited
-         │                │    across multiple sleep cycles with decaying priority
-         └───────┬────────┘
-                 │
-         ┌───────▼────────┐
-         │    Trainer      │──→ LoRA fine-tune (MLX) on:
-         │                 │    - Extracted Q&A pairs (primary)
-         │                 │    - Raw conversation exchanges
-         │                 │    - Replay buffer samples
-         │                 │    - Core identity data
-         └───────┬─────────┘
-                 │
-         ┌───────▼────────┐
-         │   Validator     │──→ Pre/post benchmark comparison
-         │                 │    Blocks merge if quality drops too much
-         └───────┬─────────┘
-                 │
-            Fuse adapter into weights (or rollback)
-```
+Each fact (subject, relation, object) produces a weight update across target MLP layers:
+
+**W' = W + R K^T (K K^T + λ C)^{-1}**
+
+Where **K** are key vectors, **R** is the distributed residual, and **C** is the empirical covariance regularized via the Woodbury identity (keeping inversion in N×N space, not d×d).
+
+**Wake** injects without constraints — fast but interference accumulates. **Sleep** refreshes degraded edits *with* null-space constraints derived from all healthy edits — guaranteeing orthogonality to working memories. This asymmetry creates a natural rhythm: wake degrades, sleep restores.
+
+### Neuroscience Mapping
+
+| Biological Component | System Implementation |
+|---|---|
+| Hippocampal fast encoding | MEMIT weight edits (unconstrained, instant) |
+| Sleep consolidation | Audit + constrained refresh of degraded edits |
+| Sleep pressure / drowsiness | Degraded-fact count crossing threshold |
+| Synaptic homeostasis | Pruning of excess edits to maintain capacity |
+
+## Papers
+
+Five papers document the research trajectory from initial LoRA-based prototype through the alignment tax discovery to the current MEMIT-only system:
+
+| # | Paper | DOI |
+|---|-------|-----|
+| 1 | **Sleep-Wake Consolidation for Lifelong Conversational Memory in Local Language Models** — LoRA sleep-wake on 3B, MacBook Air. Narrow learning rate window, spaced repetition effect. | [10.5281/zenodo.18778760](https://doi.org/10.5281/zenodo.18778760) |
+| 2 | **The Alignment Tax on Continual Learning** — RLHF suppresses LoRA-injected knowledge. Inverse scaling: 3B 47%, 8B 37%, 70B 0% recall. | [10.5281/zenodo.18778762](https://doi.org/10.5281/zenodo.18778762) |
+| 3 | **Dual-System Memory Consolidation** — MEMIT+LoRA dual system. Covariance-regularized MEMIT, cross-edit null-space constraints, Woodbury identity. | [10.5281/zenodo.18778764](https://doi.org/10.5281/zenodo.18778764) |
+| 4 | **Sleeping LLM: Two-Phase Memory Consolidation** — SWS+REM two-phase sleep. Per-fact staged consolidation. Pathway separation: MEMIT edits raw completion, LoRA edits chat. | [10.5281/zenodo.18778766](https://doi.org/10.5281/zenodo.18778766) |
+| 5 | **Sleep-Wake Memory Convergence in Weight-Edited Language Models** — MEMIT-only (LoRA removed). Wake capacity threshold, sleep convergence proof, pruning death spiral. | [10.5281/zenodo.18778768](https://doi.org/10.5281/zenodo.18778768) |
 
 ## Setup
 
-Requires Apple Silicon Mac (M1/M2/M3/M4) with macOS 14+.
+### Apple Silicon (MLX)
 
 ```bash
-git clone https://github.com/vbario/j.git
-cd j
+git clone https://github.com/vbario/sleeping-llm.git && cd sleeping-llm
 pip3 install -r requirements.txt
 python3 -m src.main
 ```
 
-The first run downloads the model (~1.8 GB) from HuggingFace. Subsequent runs load from cache.
+First run downloads the model (~1.8 GB). Requires macOS 14+, Apple Silicon.
 
-### Hardware Requirements
+### NVIDIA GPU (PyTorch)
 
-| Machine | RAM | Model | Experience |
+```bash
+git clone https://github.com/vbario/sleeping-llm.git && cd sleeping-llm
+pip3 install -r requirements-torch.txt
+python3 -m src.main --config experiments/configs/8b_consolidation.yaml
+```
+
+Requires CUDA 12+, 80GB+ VRAM for 8B (BF16) or 2x80GB for 70B (NF4).
+
+### Hardware
+
+| Machine | RAM | Model | Notes |
 |---|---|---|---|
-| MacBook Air M3 | 8 GB | 3B 4-bit | Works. Sleep cycles ~5-8 min. |
-| Mac Mini M4 | 16-32 GB | 8B 4-bit | Better recall, faster training |
-| Mac Studio M4 Ultra | 128-192 GB | 70B 4-bit | Best. Much more capacity for new knowledge |
+| MacBook Air M3 | 8 GB | 3B 4-bit | Works. 15 facts, sleep ~5 min. |
+| Mac Mini M4 Pro | 24 GB | 8B 4-bit | Better capacity, faster sleep. |
+| Mac Studio M4 Ultra | 192 GB | 70B 4-bit | Full capacity, all experiments. |
+| 2x H100 80GB | 160 GB VRAM | 8B BF16 / 70B NF4 | Research configuration. |
 
 ### Commands
 
 | Command | Effect |
 |---|---|
-| `/sleep` | Trigger a manual sleep cycle |
-| `/status` | Show context usage, turn count, session info |
-| `/compact` | Force context compaction |
+| `/sleep` | Trigger a full sleep cycle (audit → maintain → validate) |
+| `/nap` | Quick audit of recent facts (no model changes) |
+| `/status` | Show context usage, turn count, MEMIT edit count |
+| `/compact` | Force context window compaction |
 | `/quit` | Exit |
+
+## Project Structure
+
+```
+src/
+├── main.py                  # CLI entry point
+├── orchestrator.py          # Wake/sleep state machine
+├── wake/
+│   ├── chat.py              # Inference loop, command handling
+│   ├── context.py           # Context window management + compaction
+│   ├── logger.py            # Conversation persistence (JSONL)
+│   └── extractor.py         # Fact extraction from conversation
+├── sleep/
+│   ├── full_sleep.py        # 6-step maintenance pipeline
+│   ├── nap.py               # Quick audit (no model changes)
+│   ├── curator.py           # Fact scoring (novelty, importance)
+│   ├── validator.py         # Pre/post benchmark + drift detection
+│   └── firewall.py          # Hallucination filter for extracted facts
+├── memory/
+│   ├── memit.py             # MEMIT engine + EditLedger (~1900 lines)
+│   │                        #   Covariance regularization (Woodbury)
+│   │                        #   Cross-edit null-space constraints
+│   │                        #   Delta persistence + reload
+│   ├── health.py            # Sleep pressure calculation
+│   ├── identity.py          # Core identity reinforcement
+│   └── session_tracker.py   # Session state tracking
+└── backend/
+    ├── mlx_backend.py       # Apple Silicon (MLX)
+    └── torch_backend.py     # NVIDIA GPU (PyTorch + PEFT)
+
+experiments/                 # 33 experiment scripts
+├── configs/                 # 23 YAML configs (3B, 8B, 70B)
+├── results/                 # Experimental outputs (JSON)
+├── sweep_consolidation_capacity.py
+├── v7_comprehensive_test.py
+├── memit_capacity_test.py
+└── ...
+
+notes/                       # 122 numbered research notes
+```
 
 ## Configuration
 
-All tunable parameters are in `config.yaml`. Key settings:
+Key settings in `config.yaml`:
 
 ```yaml
-lora:
-  rank: 16              # Adapter capacity (higher = learns more, risks overfitting)
-  alpha: 32             # Update strength (effective rate = alpha/rank)
-  layers: 8             # How many transformer layers get adapted
-  light_learning_rate: 1.0e-4   # THE critical parameter
-  light_epochs: 1       # Single pass over data
+memit:
+  target_layers: [8, 9, 10, 11, 12, 13, 14, 15]  # MLP layers to edit
+  lambda_reg: 0.1          # Covariance regularization strength
+  max_active_edits: 50     # Hard cap (triggers pruning)
+  covariance_samples: 200  # Reference samples for regularization
+  v_lr: 0.5               # v* optimization learning rate
+  v_steps: 30             # v* optimization steps
 
 sleep:
-  light_sleep_turns: 10          # Auto-sleep every N turns
-  deep_sleep_interval: 5         # Deep sleep (with dreaming) every N light sleeps
+  maintenance:
+    degraded_threshold: 0.5   # Re-inject if recall < 50%
+    max_ppl_increase: 0.15    # Rollback if PPL increases > 15%
+    max_refresh_per_cycle: 10 # Max refreshes per sleep cycle
 
-validation:
-  min_score_ratio: 0.5           # Block merge if score drops below 50% of baseline
+health:
+  sleep_threshold: 0.8     # Auto-sleep when pressure exceeds
+  nap_threshold: 0.4       # Auto-suggest nap
 ```
 
-### Resetting the Model
+## Reproducing Key Experiments
 
-If the model degrades, delete the learned weights to restore the original:
-
+### Wake capacity threshold (Paper 5, Fig 1)
 ```bash
-rm -rf models/current/*
+python3 experiments/memit_capacity_test.py --config experiments/configs/8b_consolidation.yaml
 ```
 
-## Research Context
+### Sleep convergence proof (Paper 5, Fig 2)
+```bash
+python3 experiments/v7_convergence_test.py --config experiments/configs/8b_consolidation.yaml
+```
 
-This project explores **continual learning** (also called lifelong learning) for LLMs — one of the major open problems in AI. The core question: how do you update a model's knowledge after deployment without retraining from scratch and without catastrophic forgetting?
+### Comprehensive validation (Paper 5, all figures)
+```bash
+python3 experiments/v7_comprehensive_test.py --config experiments/configs/8b_consolidation.yaml
+```
 
-The approach is inspired by neuroscience research on memory consolidation:
+### Consolidation capacity sweep (20 facts x 3 cycles)
+```bash
+python3 experiments/sweep_consolidation_capacity.py --config experiments/configs/8b_consolidation.yaml
+```
 
-- **McClelland, McNaughton & O'Reilly (1995)** — Complementary Learning Systems theory. The hippocampus learns fast (episodic), the neocortex learns slow (semantic). Sleep transfers between them. This system maps context window → hippocampus and model weights → neocortex.
+## Research Notes
 
-- **Ebbinghaus spacing effect** — Spaced repetition produces stronger long-term encoding than massed repetition. The replay buffer implements this by revisiting high-value examples across multiple sleep cycles with decaying priority.
+The `notes/` directory contains 122 numbered development notes tracing the entire research trajectory. Key entries:
 
-- **Kirkpatrick et al. (2017)** — Elastic Weight Consolidation (EWC) for overcoming catastrophic forgetting. The validation gating in this system serves a similar purpose — protecting existing capabilities during learning.
+| Note | Topic |
+|---|---|
+| 62 | H100 experiment results (3B/8B/70B MEMIT validation) |
+| 72 | Per-edit gating failure (0% advancement, the problem that led to per-fact gating) |
+| 111 | V7 comprehensive results (70B, 16 layers, 1.00 recall at 60 facts) |
+| 118 | Consolidation bugfix (fact re-injection during sleep) |
+| 120 | Theoretical analysis of convergence guarantees |
+| 122 | Consolidation capacity sweep (5/10/15/20 facts, all 100% advancement) |
 
-### Known Limitations
+## Known Limitations
 
-- **3B model has limited capacity** — larger models absorb new facts more reliably
-- **No deduplication** — old conversations get retrained every sleep cycle
-- **Trains on model outputs** — hallucinations can be reinforced into weights
-- **Single user** — no separation of knowledge from different users
-- **Sleep blocks chat** — model goes offline during training
-- **Fact extraction is noisy** — the model's own Q&A generation can be imprecise
-
-### Future Directions
-
-- Elastic Weight Consolidation for better forgetting resistance
-- Session deduplication (track which conversations have been consumed)
-- Train only on user inputs, not model outputs
-- Background training on a model copy while chat continues
-- Multi-user knowledge separation
-- Rigorous evaluation across fact types and sleep cycles
-
-## Process Documentation
-
-The `docs/` numbered files (1-16) chronicle the full research and development process — from initial theory through implementation, failure modes, debugging, and the final breakthrough. They document the reasoning at each step, including what failed and why.
+- **Synthetic facts only** — all experiments use person-city triples. Real conversational knowledge (opinions, temporal events, multi-hop) may behave differently.
+- **Raw completion pathway** — MEMIT edits are accessible via raw text completion, not chat templates. Context window bridges the gap during wake.
+- **Single-run experiments** — no error bars or confidence intervals (tipping point at 13/14 is reproducible across configs).
+- **No RAG comparison** — RAG solves a different problem (unlimited capacity, no weight modification) but a head-to-head comparison would strengthen the claims.
+- **VRAM ceiling** — null-space constraint matrices grow O(N*K) with edit count. 70B/16-layer config OOMs at ~30 facts/session on 2xH100.
 
 ## License
 
