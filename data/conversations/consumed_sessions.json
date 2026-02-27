@@ -4,6 +4,16 @@
       "filename": "session_20260225_080912.jsonl",
       "consumed_by_cycle": "0001",
       "consumed_at": 1772006995.585099
+    },
+    {
+      "filename": "session_20260227_055641.jsonl",
+      "consumed_by_cycle": "0001",
+      "consumed_at": 1772172013.192744
+    },
+    {
+      "filename": "session_20260227_060125.jsonl",
+      "consumed_by_cycle": "0001",
+      "consumed_at": 1772172356.817048
     }
   ]
 }

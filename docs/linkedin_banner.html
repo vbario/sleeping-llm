@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: #f0f0f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+  .banner {
+    width: 1200px;
+    height: 628px;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 48px 60px;
+  }
+  /* Subtle grid pattern */
+  .banner::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      linear-gradient(rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+  .title {
+    font-size: 38px;
+    font-weight: 700;
+    color: #f8fafc;
+    letter-spacing: -0.5px;
+    position: relative;
+    z-index: 1;
+    line-height: 1.2;
+  }
+  .title span {
+    color: #818cf8;
+  }
+  .subtitle {
+    font-size: 18px;
+    color: #94a3b8;
+    margin-top: 8px;
+    position: relative;
+    z-index: 1;
+  }
+  .diagram {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    position: relative;
+    z-index: 1;
+    margin-top: 16px;
+  }
+  .phase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  .phase-label {
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    padding: 6px 20px;
+    border-radius: 20px;
+  }
+  .wake-label {
+    color: #34d399;
+    background: rgba(52, 211, 153, 0.1);
+    border: 1px solid rgba(52, 211, 153, 0.3);
+  }
+  .sleep-label {
+    color: #818cf8;
+    background: rgba(129, 140, 248, 0.1);
+    border: 1px solid rgba(129, 140, 248, 0.3);
+  }
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    min-width: 100px;
+  }
+  .wake-node {
+    background: rgba(52, 211, 153, 0.08);
+    border: 1px solid rgba(52, 211, 153, 0.25);
+  }
+  .sleep-node {
+    background: rgba(129, 140, 248, 0.08);
+    border: 1px solid rgba(129, 140, 248, 0.25);
+  }
+  .node-icon {
+    font-size: 28px;
+  }
+  .node-text {
+    font-size: 13px;
+    font-weight: 600;
+    color: #e2e8f0;
+    text-align: center;
+  }
+  .node-sub {
+    font-size: 11px;
+    color: #64748b;
+    text-align: center;
+  }
+  .arrow {
+    color: #475569;
+    font-size: 20px;
+  }
+  .big-arrow {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+  }
+  .big-arrow-icon {
+    font-size: 36px;
+    color: #475569;
+  }
+  .big-arrow-text {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 500;
+  }
+  .scale-bar {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-top: 20px;
+    align-self: center;
+    position: relative;
+    z-index: 1;
+  }
+  .scale-stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    width: 120px;
+  }
+  .scale-dot {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: #f8fafc;
+  }
+  .scale-connector {
+    width: 80px;
+    height: 2px;
+    background: linear-gradient(90deg, #818cf8, #818cf8);
+    opacity: 0.3;
+    margin-top: -20px;
+  }
+  .scale-text {
+    font-size: 11px;
+    color: #94a3b8;
+  }
+  .scale-title {
+    font-size: 13px;
+    color: #64748b;
+    font-weight: 500;
+    margin-right: 24px;
+    align-self: center;
+    position: relative;
+    z-index: 1;
+  }
+  .bottom-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+  }
+  .result-pills {
+    display: flex;
+    gap: 12px;
+  }
+  .pill {
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: rgba(52, 211, 153, 0.08);
+    border: 1px solid rgba(52, 211, 153, 0.2);
+    color: #34d399;
+    font-weight: 600;
+  }
+  .author {
+    font-size: 14px;
+    color: #64748b;
+  }
+  .author a {
+    color: #818cf8;
+    text-decoration: none;
+  }
+</style>
+</head>
+<body>
+<div class="banner">
+  <div class="title">Sleeping LLM: <span>Persistent Memory</span> Through<br>Weight Editing and Sleep Consolidation</div>
+  <div class="subtitle">MEMIT is short-term memory. LoRA is long-term memory. Sleep is the transfer.</div>
+
+  <div class="diagram">
+    <div class="phase">
+      <div class="phase-label wake-label">Wake</div>
+      <div class="flow">
+        <div class="node wake-node">
+          <div class="node-icon">💬</div>
+          <div class="node-text">Chat</div>
+          <div class="node-sub">extract facts</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node wake-node">
+          <div class="node-icon">⚡</div>
+          <div class="node-text">MEMIT</div>
+          <div class="node-sub">inject into weights</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node wake-node">
+          <div class="node-icon">🧠</div>
+          <div class="node-text">Instant Recall</div>
+          <div class="node-sub">no training needed</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="big-arrow">
+      <div class="big-arrow-icon">⟳</div>
+      <div class="big-arrow-text">sleep<br>pressure</div>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label sleep-label">Sleep</div>
+      <div class="flow">
+        <div class="node sleep-node">
+          <div class="node-icon">🔍</div>
+          <div class="node-text">Audit</div>
+          <div class="node-sub">test each fact</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node sleep-node">
+          <div class="node-icon">🔧</div>
+          <div class="node-text">Refresh</div>
+          <div class="node-sub">null-space repair</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node sleep-node">
+          <div class="node-icon">📦</div>
+          <div class="node-text">LoRA Fuse</div>
+          <div class="node-sub">long-term store</div>
+        </div>
+        <div class="arrow">→</div>
+        <div class="node sleep-node">
+          <div class="node-icon">✨</div>
+          <div class="node-text">Dissolve</div>
+          <div class="node-sub">free MEMIT buffer</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; justify-content: center; gap: 8px; position: relative; z-index: 1; margin-top: 8px;">
+    <div class="scale-title">MEMIT scale:</div>
+    <div style="display: flex; align-items: center; gap: 0;">
+      <div class="scale-stage">
+        <div class="scale-dot" style="background: #34d399;">1.0</div>
+        <div class="scale-text">Stage 0</div>
+      </div>
+      <div class="scale-connector"></div>
+      <div class="scale-stage">
+        <div class="scale-dot" style="background: #6366f1;">0.5</div>
+        <div class="scale-text">Stage 1</div>
+      </div>
+      <div class="scale-connector"></div>
+      <div class="scale-stage">
+        <div class="scale-dot" style="background: #6366f1; opacity: 0.6;">0.1</div>
+        <div class="scale-text">Stage 2</div>
+      </div>
+      <div class="scale-connector"></div>
+      <div class="scale-stage">
+        <div class="scale-dot" style="background: #334155; border: 1px solid #475569;">0.0</div>
+        <div class="scale-text">Stage 3</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="result-pills">
+      <div class="pill">1.00 recall</div>
+      <div class="pill">100% advancement</div>
+      <div class="pill">unbounded capacity</div>
+    </div>
+    <div class="author">Vladimir Baranov &middot; <a>github.com/vbario/sleeping-llm</a></div>
+  </div>
+</div>
+</body>
+</html>
