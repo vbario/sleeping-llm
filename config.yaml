@@ -100,6 +100,31 @@ health:
   # Max wake duration in seconds before sleep is forced
   max_wake_seconds: 7200
 
+consolidation_moment:
+  # Master switch (false = legacy per-turn injection)
+  enabled: true
+  # Maximum facts in the volatile buffer before forced consolidation
+  max_buffer_size: 20
+  # What to do when buffer overflows: "consolidate" or "drop_oldest"
+  overflow_policy: "consolidate"
+  # Minimum age (seconds) of oldest fact before surprise can trigger consolidation
+  min_buffer_age_seconds: 0
+  # Minimum number of buffered facts before surprise can trigger consolidation
+  min_facts: 1
+
+  # Surprise signal configuration
+  surprise:
+    # Composite surprise score threshold to trigger consolidation (0.0 - 1.0)
+    threshold: 0.6
+    # Component weights (automatically normalized)
+    novelty_weight: 0.5
+    marker_weight: 0.3
+    ppl_weight: 0.2
+    # Whether to compute per-turn PPL (expensive on 8GB device)
+    use_ppl: false
+    # EMA smoothing for PPL baseline tracking
+    ppl_ema_alpha: 0.3
+
 nap:
   # Manual trigger command
   manual_trigger: "/nap"

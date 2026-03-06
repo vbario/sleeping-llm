@@ -19,6 +19,13 @@ class Chat:
         self._memit_engine = None
         self._health_monitor = None
 
+        # Consolidation-moment components (set via setter by orchestrator)
+        self._fact_buffer = None
+        self._surprise_estimator = None
+
+        # Saturation tracking — consolidate when fact discovery slows
+        self._dry_turns = 0  # Consecutive turns with 0 new facts
+
     def set_sleep_callback(self, callback):
         """Register a callback to invoke when sleep is triggered."""
         self._sleep_callback = callback
@@ -32,6 +39,11 @@ class Chat:
         self._extractor = extractor
         self._memit_engine = memit_engine
         self._health_monitor = health_monitor
+
+    def set_consolidation_components(self, fact_buffer, surprise_estimator):
+        """Set consolidation-moment components for buffered fact injection."""
+        self._fact_buffer = fact_buffer
+        self._surprise_estimator = surprise_estimator
 
     def process_input(self, user_input):
         """Process a single user input and return the response.
@@ -60,6 +72,8 @@ class Chat:
         if stripped == "/compact":
             self.context.compact()
             return "[Context compacted]"
+        if stripped == "/consolidate":
+            return self._manual_consolidate()
 
         # Normal chat flow
         self.context.add_user_message(user_input)
@@ -74,8 +88,8 @@ class Chat:
         self.logger.log_exchange(user_input, response)
         self.turn_count += 1
 
-        # MEMIT: extract facts and inject
-        self._memit_inject(user_input, response)
+        # MEMIT: extract and buffer facts (or inject directly if buffer disabled)
+        self._extract_and_buffer(user_input, response)
 
         # Check if context needs compaction
         if self.context.needs_compaction():
@@ -100,6 +114,10 @@ class Chat:
             f"Compacted summary: {'yes' if has_summary else 'no'}",
             f"Messages in context: {len(self.context.recent_messages)}",
         ]
+        if self._fact_buffer:
+            buf = self._fact_buffer
+            lines.append(f"Fact buffer: {buf.size}/{buf.max_buffer_size}")
+            lines.append(f"Consolidations: {buf._consolidation_count}")
         return "\n".join(lines)
 
     def process_input_stream(self, user_input):
@@ -129,6 +147,9 @@ class Chat:
             self.context.compact()
             yield "[Context compacted]"
             return
+        if stripped == "/consolidate":
+            yield self._manual_consolidate()
+            return
 
         self.context.add_user_message(user_input)
         messages = self.context.get_messages()
@@ -144,8 +165,8 @@ class Chat:
         self.logger.log_exchange(user_input, response)
         self.turn_count += 1
 
-        # MEMIT: extract facts and inject
-        self._memit_inject(user_input, response)
+        # MEMIT: extract and buffer facts (or inject directly if buffer disabled)
+        self._extract_and_buffer(user_input, response)
 
         if self.context.needs_compaction():
             self.context.compact()
@@ -157,27 +178,91 @@ class Chat:
         """Reset turn counter (called after sleep)."""
         self.turn_count = 0
 
-    def _memit_inject(self, user_input, response):
-        """Extract facts from exchange and inject via MEMIT."""
+    def _extract_and_buffer(self, user_input, response):
+        """Extract facts from conversation and buffer them.
+
+        Reviews the full conversation (not just latest message) so the model
+        has context to resolve pronouns and accumulate facts. Consolidates
+        when fact discovery slows down (saturation).
+
+        If no fact buffer is configured, falls back to legacy per-turn injection.
+        """
         if not self._extractor or not self._memit_engine:
             return
 
         if not self._memit_engine.enabled:
             return
 
+        # Fall back to legacy injection if buffer not configured
+        if not self._fact_buffer:
+            self._memit_inject_legacy(user_input, response)
+            return
+
         try:
-            # Extract facts
+            # Extract facts from full conversation (gives model context)
+            conversation = self.context.get_messages()
+            triples = self._extractor.extract_from_exchange(
+                user_input, response, conversation=conversation,
+            )
+
+            if not triples:
+                self._dry_turns += 1
+                self._check_saturation()
+                return
+
+            # Deduplicate against ledger
+            existing = self._memit_engine.ledger.get_facts_for_training()
+            new_triples = self._extractor.deduplicate(triples, existing)
+
+            # Also deduplicate against buffer contents
+            buffered_triples = self._fact_buffer.get_triples()
+            if buffered_triples:
+                new_triples = self._extractor.deduplicate(new_triples, buffered_triples)
+
+            # Buffer surviving facts
+            for triple in new_triples:
+                self._fact_buffer.add(triple, turn=self.turn_count)
+
+            # Track discovery rate
+            if new_triples:
+                self._dry_turns = 0
+                print(f"  [Buffer] +{len(new_triples)} new fact(s), "
+                      f"buffer={self._fact_buffer.size}")
+            else:
+                self._dry_turns += 1
+
+            self._check_saturation()
+
+        except Exception as e:
+            print(f"  [Buffer] Extraction/buffering failed: {e}")
+
+    def _check_saturation(self):
+        """Consolidate when fact discovery slows — the 'mental break' trigger.
+
+        Fires when: buffer has facts AND discovery has stalled for 2+ turns.
+        Like needing a break after absorbing new info — process what you have.
+        """
+        if self._fact_buffer.is_empty:
+            return
+        min_dry = 2
+        if self._dry_turns >= min_dry:
+            print(f"  [Saturation] {self._dry_turns} dry turns, "
+                  f"consolidating {self._fact_buffer.size} fact(s)")
+            self._fact_buffer.consolidate(reason="saturation")
+            self._dry_turns = 0
+
+    def _memit_inject_legacy(self, user_input, response):
+        """Legacy per-turn injection (used when consolidation_moment disabled)."""
+        try:
             triples = self._extractor.extract_from_exchange(user_input, response)
             if not triples:
                 return
 
-            # Deduplicate against ledger
             existing = self._memit_engine.ledger.get_facts_for_training()
             triples = self._extractor.deduplicate(triples, existing)
             if not triples:
                 return
 
-            # Inject one fact per edit for independent scalability
             injected = 0
             for triple in triples:
                 edit = self._memit_engine.inject_fact(triple)
@@ -186,8 +271,17 @@ class Chat:
             if injected and self._health_monitor:
                 self._health_monitor.record_edit(injected)
         except Exception as e:
-            # MEMIT injection is non-critical — log and continue
             print(f"  [MEMIT] Injection failed: {e}")
+
+    def _manual_consolidate(self):
+        """Handle /consolidate command."""
+        if not self._fact_buffer:
+            return "[Consolidation moments not enabled]"
+        if self._fact_buffer.is_empty:
+            return "[Buffer is empty — nothing to consolidate]"
+        edit = self._fact_buffer.consolidate(reason="manual")
+        count = len(edit.facts) if edit else 0
+        return f"[Consolidated {count} fact(s) into long-term memory]"
 
     def _check_sleep_triggers(self):
         """Check if nap or sleep should be triggered based on health or turn count."""

@@ -85,18 +85,40 @@ class FullSleepController:
         # Extract and inject new MEMIT facts from curated exchanges
         new_facts_injected = 0
         if curated and self.fact_extractor:
+            all_extracted = []
             for exchange in curated:
                 msgs = exchange.get("messages", [])
                 user_msg = next((m["content"] for m in msgs if m["role"] == "user"), "")
                 asst_msg = next((m["content"] for m in msgs if m["role"] == "assistant"), "")
                 if user_msg and asst_msg:
                     facts = self.fact_extractor.extract_from_exchange(user_msg, asst_msg)
-                    for fact in facts:
-                        try:
-                            self.memit_engine.inject_facts([fact])
-                            new_facts_injected += 1
-                        except Exception as e:
-                            print(f"        Failed to inject: {fact.subject} {fact.relation} → {e}")
+                    all_extracted.extend(facts)
+
+            # Deduplicate against existing ledger + within batch
+            if all_extracted:
+                existing = self.ledger.get_facts_for_training()
+                unique = self.fact_extractor.deduplicate(all_extracted, existing)
+
+                # Dedup within batch
+                seen_keys = {}
+                batch = []
+                for fact in unique:
+                    key = self.fact_extractor._dedup_key(fact)
+                    if key not in seen_keys:
+                        seen_keys[key] = True
+                        batch.append(fact)
+
+                skipped = len(all_extracted) - len(batch)
+                if skipped:
+                    print(f"        Skipped {skipped} duplicate/junk fact(s)")
+
+                for fact in batch:
+                    try:
+                        self.memit_engine.inject_facts([fact])
+                        new_facts_injected += 1
+                    except Exception as e:
+                        print(f"        Failed to inject: {fact.subject} {fact.relation} → {e}")
+
             if new_facts_injected:
                 print(f"        Injected {new_facts_injected} new facts via MEMIT")
 
@@ -123,7 +145,8 @@ class FullSleepController:
             print(f"  [5/{ts}] LoRA Consolidation...")
             consolidation_stats = self._consolidate(cycle_id, ref_text)
             print(f"        Advanced: {consolidation_stats['advanced']}, "
-                  f"Retreated: {consolidation_stats['retreated']}")
+                  f"Retreated: {consolidation_stats['retreated']}, "
+                  f"Already known: {consolidation_stats['already_known']}")
 
             print(f"  [6/{ts}] MEMIT Scale-Down...")
             scaled = consolidation_stats.get("scaled_down", 0)
@@ -273,7 +296,8 @@ class FullSleepController:
         Returns:
             Stats dict with advanced/retreated/scaled_down counts
         """
-        stats = {"advanced": 0, "retreated": 0, "scaled_down": 0, "skipped": False}
+        stats = {"advanced": 0, "retreated": 0, "already_known": 0,
+                 "scaled_down": 0, "skipped": False}
 
         # 1. Gather eligible edits (stage 0-2, healthy recall)
         eligible = [
@@ -292,6 +316,20 @@ class FullSleepController:
         for edit in eligible:
             all_facts.extend(edit.facts)
         print(f"        {len(eligible)} edit(s), {len(all_facts)} fact(s) eligible")
+
+        # 1b. Base recall pre-test: check which facts the base model already knows
+        # (with MEMIT zeroed, before LoRA training). This prevents advancing facts
+        # that the base model can answer regardless of LoRA.
+        base_recall = {}  # (edit_id, fact_idx) → bool
+        for edit in eligible:
+            old_scale = edit.scale
+            self.memit_engine.scale_edit(edit, 0.0)
+            for fact_idx, fact in enumerate(edit.facts):
+                passed, _ = self.memit_engine.test_recall(fact, raw=False)
+                base_recall[(edit.edit_id, fact_idx)] = passed
+                if passed:
+                    print(f"        Base already knows: {fact.subject} {fact.relation}")
+            self.memit_engine.scale_edit(edit, old_scale)
 
         # 2. Snapshot weights for rollback
         snapshot = self.memit_engine.snapshot_target_weights()
@@ -317,19 +355,27 @@ class FullSleepController:
             old_scale = edit.scale
             self.memit_engine.scale_edit(edit, 0.0)
 
-            # Test each fact individually
+            # Test each fact individually (differential: fused vs base)
             for fact_idx, fact in enumerate(edit.facts):
                 old_stage = edit.fact_stages[fact_idx]
                 passed, _ = self.memit_engine.test_recall(fact, raw=False)
+                base_passed = base_recall.get((edit.edit_id, fact_idx), False)
 
-                if passed:
+                if passed and not base_passed:
+                    # LoRA genuinely learned this fact
                     new_stage = self.ledger.advance_fact_stage(edit.edit_id, fact_idx)
                     edit.fact_stages[fact_idx] = new_stage
                     stage_changes.append((edit, fact_idx, old_stage, new_stage))
                     stats["advanced"] += 1
                     print(f"        Advanced: {fact.subject} {fact.relation} "
                           f"stage {old_stage}→{new_stage}")
+                elif passed and base_passed:
+                    # Base model already knew this — LoRA didn't prove anything
+                    stats["already_known"] += 1
+                    print(f"        Skipped (base already knew): "
+                          f"{fact.subject} {fact.relation}")
                 else:
+                    # Fused model can't recall — retreat
                     if old_stage > 0:
                         self.ledger.retreat_fact_stage(edit.edit_id, fact_idx)
                         edit.fact_stages[fact_idx] = 0
@@ -364,8 +410,8 @@ class FullSleepController:
                     stage = edit.consolidation_stage
                     original_scale = self.scale_schedule[stage] if stage < len(self.scale_schedule) else 1.0
                     self.memit_engine.scale_edit(edit, original_scale)
-                stats = {"advanced": 0, "retreated": 0, "scaled_down": 0,
-                         "skipped": False, "rolled_back": True}
+                stats = {"advanced": 0, "retreated": 0, "already_known": 0,
+                         "scaled_down": 0, "skipped": False, "rolled_back": True}
                 return stats
 
         return stats
@@ -407,18 +453,33 @@ class FullSleepController:
 
         new_facts_injected = 0
         if curated and self.fact_extractor:
+            all_extracted = []
             for exchange in curated:
                 msgs = exchange.get("messages", [])
                 user_msg = next((m["content"] for m in msgs if m["role"] == "user"), "")
                 asst_msg = next((m["content"] for m in msgs if m["role"] == "assistant"), "")
                 if user_msg and asst_msg:
                     facts = self.fact_extractor.extract_from_exchange(user_msg, asst_msg)
-                    for fact in facts:
-                        try:
-                            self.memit_engine.inject_facts([fact])
-                            new_facts_injected += 1
-                        except Exception:
-                            pass
+                    all_extracted.extend(facts)
+
+            if all_extracted:
+                existing = self.ledger.get_facts_for_training()
+                unique = self.fact_extractor.deduplicate(all_extracted, existing)
+
+                seen_keys = {}
+                batch = []
+                for fact in unique:
+                    key = self.fact_extractor._dedup_key(fact)
+                    if key not in seen_keys:
+                        seen_keys[key] = True
+                        batch.append(fact)
+
+                for fact in batch:
+                    try:
+                        self.memit_engine.inject_facts([fact])
+                        new_facts_injected += 1
+                    except Exception:
+                        pass
 
         if consumed_sessions:
             self.session_tracker.mark_consumed(consumed_sessions, cycle_id)
@@ -448,7 +509,8 @@ class FullSleepController:
             consolidation_stats = self._consolidate(cycle_id, ref_text)
             yield {"step": 5, "total": ts, "label": "LoRA Consolidation", "status": "done",
                    "detail": f"Advanced: {consolidation_stats['advanced']}, "
-                             f"Retreated: {consolidation_stats['retreated']}"}
+                             f"Retreated: {consolidation_stats['retreated']}, "
+                             f"Already known: {consolidation_stats['already_known']}"}
 
             yield {"step": 6, "total": ts, "label": "MEMIT Scale-Down", "status": "done",
                    "detail": f"Scaled: {consolidation_stats.get('scaled_down', 0)} edit(s)"}

@@ -1,0 +1,40 @@
+⏺ Great question — it cuts right to the heart of what your project is modeling.                                                                                                 
+                                                                                                                                                                              
+  Time in the human brain                                                                                                                                                       
+                                                                                                                                                                             
+  The brain doesn't have a clock register. Instead, time is an emergent property of state change:                                                                               
+                                                                                                                                                                             
+  - Working memory (prefrontal cortex) holds ~7 items for seconds. Time here is "how many things have happened since I started holding this."
+  - Episodic memory (hippocampus) timestamps events not with wall-clock time but with context — what came before, what came after, what was surprising. The hippocampus replays
+  sequences during sleep, and the order of replay is what encodes temporal structure.
+  - Consolidation is the brain's real clock tick. During slow-wave sleep, the hippocampus replays recent episodes to neocortex. Each sleep cycle is effectively one "write"
+  operation. Without sleep, days blur together — time collapses.
+
+  So for the brain: time ≈ the number of consolidation events between two memories.
+
+  Time in your model
+
+  Your architecture mirrors this surprisingly well:
+
+  - Tier 0 (context window) — no time at all. Everything in the window is "now." Earlier tokens aren't "past" — they're just positional offsets. The model has no sense that
+  turn 1 happened before turn 5 except through position encoding.
+  - Tier 1 (FactBuffer) — time is accumulation. Facts pile up until a consolidation moment fires. Between consolidation events, the buffer is a flat, unordered bag. There's no
+  "before" or "after" within a buffer — just "since last consolidation."
+  - Tier 2 (MEMIT edits) — time is edit order in the ledger. Each edit_id is a discrete moment. But once injected into weights, facts lose their temporal ordering — they become
+   timeless knowledge, just like neocortical memories in humans.
+  - Sleep cycles — this is the real heartbeat. Each full sleep is one "night." The system's subjective age isn't wall-clock hours — it's how many sleep cycles it has lived
+  through.
+
+  The key insight
+
+  Neither system experiences time as a continuous flow. Time is:
+
+  The number of irreversible state transitions (consolidations) that separate two pieces of knowledge.
+
+  A fact from 3 sleep cycles ago is "older" than one from 1 cycle ago — not because of timestamps, but because more consolidation has happened in between, and more
+  opportunities for interference, degradation, and pruning have occurred.
+
+  This is why your volatile buffer design is so apt. If the system crashes before consolidation, those facts vanish — exactly like retrograde amnesia after a head injury
+  disrupts hippocampal replay. The facts existed in a timeless limbo and never got a "timestamp" (consolidation event) to anchor them.
+
+  Wall-clock time is meaningless to both systems. Consolidation is the only clock that matters.

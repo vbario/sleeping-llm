@@ -21,7 +21,9 @@ from src.sleep.validator import SleepValidator
 from src.wake.chat import Chat
 from src.wake.context import ContextManager
 from src.wake.extractor import FactExtractor
+from src.wake.fact_buffer import FactBuffer
 from src.wake.logger import ConversationLogger
+from src.wake.surprise import SurpriseEstimator
 
 
 class Orchestrator:
@@ -97,6 +99,20 @@ class Orchestrator:
         )
         self.chat._background_sleep = self.background_sleep
 
+        # Initialize consolidation-moment components (surprise-gated buffering)
+        cm_config = config.get("consolidation_moment", {}) or {}
+        cm_enabled = cm_config.get("enabled", False) and self.memit_engine.enabled
+        if cm_enabled:
+            self.fact_buffer = FactBuffer(config, self.memit_engine, self.health_monitor)
+            self.surprise_estimator = SurpriseEstimator(config, self.backend)
+            self.chat.set_consolidation_components(
+                self.fact_buffer, self.surprise_estimator,
+            )
+            self.health_monitor.set_fact_buffer(self.fact_buffer)
+        else:
+            self.fact_buffer = None
+            self.surprise_estimator = None
+
         # Seed identity data if first run
         self.identity.seed_defaults()
 
@@ -107,7 +123,7 @@ class Orchestrator:
         memit_status = "ON" if self.memit_engine.enabled else "OFF"
         trigger_mode = self.config.sleep.get("trigger_mode", "turns")
         print(f"MEMIT: {memit_status} | Trigger: {trigger_mode}")
-        print(f"Commands: /sleep, /nap, /status, /compact, /quit")
+        print(f"Commands: /sleep, /nap, /consolidate, /status, /compact, /quit")
         print("=" * 40)
         print()
 
@@ -173,6 +189,10 @@ class Orchestrator:
         self.sleep_cycle_count += 1
         cycle_id = f"{self.sleep_cycle_count:04d}"
 
+        # Flush fact buffer before sleep
+        if self.fact_buffer and not self.fact_buffer.is_empty:
+            self.fact_buffer.consolidate(reason="pre_sleep")
+
         facts_refreshed = 0
         facts_pruned = 0
         try:
@@ -232,6 +252,10 @@ class Orchestrator:
         """
         if self.background_sleep.is_sleeping:
             return False
+
+        # Flush fact buffer before sleep
+        if self.fact_buffer and not self.fact_buffer.is_empty:
+            self.fact_buffer.consolidate(reason="pre_sleep")
 
         self.sleep_cycle_count += 1
         cycle_id = f"{self.sleep_cycle_count:04d}"
@@ -313,6 +337,8 @@ class Orchestrator:
             "memit_facts": self.memit_engine.get_active_fact_count(),
             "sleep_pressure": round(self.health_monitor.get_sleep_pressure(), 3),
             "health": self.health_monitor.to_dict(),
+            "fact_buffer": self.fact_buffer.to_dict() if self.fact_buffer else None,
+            "surprise_estimator": self.surprise_estimator.to_dict() if self.surprise_estimator else None,
             "background_sleep": self.background_sleep.to_dict(),
             "model_lock": self.model_lock.stats(),
         }
@@ -326,6 +352,10 @@ class Orchestrator:
         # Clear MEMIT edits (reverts weight deltas in memory)
         self.memit_engine.revert_all_active()
         self.edit_ledger.clear_all()
+
+        # Clear fact buffer (discard unconsolidated facts)
+        if self.fact_buffer:
+            self.fact_buffer.clear()
 
         # Reload base model
         self.backend.reload(self.config.model["path"])
@@ -372,6 +402,11 @@ class Orchestrator:
         print(f"  Entering sleep (cycle {cycle_id})...")
         print(f"  Trigger: {trigger_type}")
         print(f"{'=' * 40}\n")
+
+        # Flush fact buffer before sleep (unconsolidated facts = amnesia risk)
+        if self.fact_buffer and not self.fact_buffer.is_empty:
+            print(f"  Pre-sleep consolidation: {self.fact_buffer.size} buffered fact(s)")
+            self.fact_buffer.consolidate(reason="pre_sleep")
 
         try:
             result = self.full_sleep_controller.execute_sleep(

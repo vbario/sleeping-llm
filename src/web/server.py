@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import time
 
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -158,18 +159,76 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
         """Return current session messages."""
         return {"messages": _orchestrator.get_current_messages()}
 
+    @app.get("/api/buffer")
+    async def buffer_status():
+        """Return current fact buffer status."""
+        if not _orchestrator.fact_buffer:
+            return {"enabled": False}
+        return _orchestrator.fact_buffer.to_dict()
+
+    @app.post("/api/consolidate")
+    async def consolidate():
+        """Manually trigger consolidation of the fact buffer."""
+        if not _orchestrator.fact_buffer:
+            return {"status": "disabled", "message": "Consolidation moments not enabled"}
+        if _orchestrator.fact_buffer.is_empty:
+            return {"status": "empty", "message": "Buffer is empty"}
+        async with _model_lock:
+            edit = await asyncio.to_thread(
+                _orchestrator.fact_buffer.consolidate, "manual"
+            )
+        count = len(edit.facts) if edit else 0
+        return {"status": "ok", "facts_consolidated": count}
+
+    @app.get("/api/facts")
+    async def facts():
+        """Return all facts split into buffered and consolidated."""
+        result = {"buffered": [], "consolidated": []}
+        if _orchestrator.fact_buffer:
+            for bf in _orchestrator.fact_buffer._buffer:
+                result["buffered"].append({
+                    "subject": bf.triple.subject,
+                    "relation": bf.triple.relation,
+                    "object": bf.triple.object,
+                    "age_seconds": round(time.time() - bf.buffered_at, 1),
+                    "source_turn": bf.source_turn,
+                })
+        for edit in _orchestrator.edit_ledger.get_active_edits():
+            stages = edit.get("fact_stages", [])
+            for i, fact in enumerate(edit["facts"]):
+                result["consolidated"].append({
+                    "subject": fact["subject"],
+                    "relation": fact["relation"],
+                    "object": fact["object"],
+                    "edit_id": edit["edit_id"][:8],
+                    "scale": round(edit.get("scale", 1.0), 2),
+                    "recall": round(edit.get("recall_success_rate", 1.0), 2),
+                    "stage": stages[i] if i < len(stages) else 0,
+                })
+        return result
+
     @app.post("/api/reset/weights")
     async def reset_weights():
         """Reset model to base weights."""
-        async with _model_lock:
-            result = await asyncio.to_thread(_orchestrator.reset_weights)
-        return result
+        try:
+            async with _model_lock:
+                result = await asyncio.to_thread(_orchestrator.reset_weights)
+            return result
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return {"status": "error", "message": f"Weight reset failed: {e}"}
 
     @app.post("/api/reset/factory")
     async def factory_reset():
         """Full factory reset — clears everything."""
-        async with _model_lock:
-            result = await asyncio.to_thread(_orchestrator.factory_reset)
-        return result
+        try:
+            async with _model_lock:
+                result = await asyncio.to_thread(_orchestrator.factory_reset)
+            return result
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return {"status": "error", "message": f"Factory reset failed: {e}"}
 
     return app

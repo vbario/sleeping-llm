@@ -44,15 +44,22 @@ class HealthMonitor:
         self.perplexity_check_interval = health_config.get("perplexity_check_interval", 10)
         self.max_wake_seconds = health_config.get("max_wake_seconds", 7200)
 
+        self.buffer_weight = health_config.get("buffer_weight", 0.0)
+
         memit_config = config.get("memit", {}) or {}
         self.max_active_edits = memit_config.get("max_active_edits", 50)
 
         # State
+        self._fact_buffer = None
         self._last_sleep_time = time.time()
         self._edit_count = 0
         self._edits_since_perplexity = 0
         self._baseline_perplexity = None
         self._current_perplexity = None
+
+    def set_fact_buffer(self, fact_buffer):
+        """Register the fact buffer for pressure calculation."""
+        self._fact_buffer = fact_buffer
 
     def get_sleep_pressure(self) -> float:
         """Compute current sleep pressure (0.0 - 1.0+).
@@ -75,10 +82,16 @@ class HealthMonitor:
                 # Pressure rises when perplexity increases (ratio > 1)
                 perplexity_pressure = max(0.0, min(1.0, ratio - 1.0))
 
+        # Buffer pressure (how full the fact buffer is)
+        buffer_pressure = 0.0
+        if self._fact_buffer and self.buffer_weight > 0:
+            buffer_pressure = self._fact_buffer.size / max(1, self._fact_buffer.max_buffer_size)
+
         pressure = (
             self.edit_weight * edit_pressure +
             self.time_weight * time_pressure +
-            self.perplexity_weight * perplexity_pressure
+            self.perplexity_weight * perplexity_pressure +
+            self.buffer_weight * buffer_pressure
         )
 
         return pressure
@@ -166,4 +179,5 @@ class HealthMonitor:
             "should_nap": self.should_nap(),
             "should_sleep": self.should_sleep(),
             "seconds_since_sleep": round(time.time() - self._last_sleep_time, 0),
+            "buffer_size": self._fact_buffer.size if self._fact_buffer else 0,
         }

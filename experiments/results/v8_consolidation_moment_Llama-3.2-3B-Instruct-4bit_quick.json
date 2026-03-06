@@ -1,0 +1,226 @@
+{
+  "config": {
+    "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+    "backend": "mlx",
+    "layers": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "num_layers": 8,
+    "consolidation_moment": {
+      "enabled": true,
+      "max_buffer_size": 20,
+      "overflow_policy": "consolidate",
+      "min_buffer_age_seconds": 0,
+      "min_facts": 1,
+      "surprise": {
+        "threshold": 0.6,
+        "novelty_weight": 0.5,
+        "marker_weight": 0.3,
+        "ppl_weight": 0.2,
+        "use_ppl": false,
+        "ppl_ema_alpha": 0.3
+      }
+    },
+    "quick": true
+  },
+  "phase_1_buffer_mechanics": {
+    "verdict": "PASS",
+    "verdict_pass": true,
+    "num_facts": 3,
+    "buffer_after_add": 3,
+    "edits_after_add": 0,
+    "buffer_after_consolidation": 0,
+    "edits_after_consolidation": 1,
+    "facts_buffered": true,
+    "no_premature_edits": true,
+    "buffer_empty": true,
+    "edits_created": true,
+    "recall": 1.0,
+    "recall_details": [
+      {
+        "subject": "Aria",
+        "relation": "lives in",
+        "expected": "Portland",
+        "response": "Portland, Oregon. She is a 25-year-old freelance writer and artist who has been ",
+        "hit": true
+      },
+      {
+        "subject": "Kaito",
+        "relation": "lives in",
+        "expected": "Tokyo",
+        "response": "Tokyo, Japan. He is a 25-year-old freelance writer and photographer who has been",
+        "hit": true
+      },
+      {
+        "subject": "Zara",
+        "relation": "lives in",
+        "expected": "Marrakech",
+        "response": "Marrakech, Morocco. She is a 25-year-old fashion designer who has just returned ",
+        "hit": true
+      }
+    ],
+    "baseline_ppl": 6.253,
+    "elapsed_seconds": 25.4
+  },
+  "phase_2_surprise_gating": {
+    "verdict": "PASS",
+    "verdict_pass": true,
+    "threshold_used": 0.9,
+    "buffer_after_mundane": 2,
+    "edits_after_mundane": 0,
+    "buffer_after_surprise": 0,
+    "edits_after_surprise": 1,
+    "consolidation_count": 1,
+    "mundane_buffered": true,
+    "mundane_no_edits": true,
+    "surprise_triggered": true,
+    "edits_exist": true,
+    "elapsed_seconds": 40.1
+  },
+  "phase_3_batch_vs_perturn": {
+    "verdict": "PASS",
+    "verdict_pass": true,
+    "num_facts": 3,
+    "run_a_batch": {
+      "recall": 1.0,
+      "ppl": 6.245,
+      "ppl_increase_pct": -0.1,
+      "edits": 1,
+      "details": [
+        {
+          "subject": "Aria",
+          "relation": "lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a 25-year-old freelance writer and artist who has been ",
+          "hit": true
+        },
+        {
+          "subject": "Kaito",
+          "relation": "lives in",
+          "expected": "Tokyo",
+          "response": "Tokyo, Japan. He is a 25-year-old freelance writer and photographer who has been",
+          "hit": true
+        },
+        {
+          "subject": "Zara",
+          "relation": "lives in",
+          "expected": "Marrakech",
+          "response": "Marrakech, Morocco. She is a 25-year-old fashion designer who has just returned ",
+          "hit": true
+        }
+      ]
+    },
+    "run_b_perturn": {
+      "recall": 1.0,
+      "ppl": 6.246,
+      "ppl_increase_pct": -0.1,
+      "edits": 3,
+      "details": [
+        {
+          "subject": "Aria",
+          "relation": "lives in",
+          "expected": "Portland",
+          "response": "Portland, Oregon. She is a 25-year-old freelance writer and editor who has been ",
+          "hit": true
+        },
+        {
+          "subject": "Kaito",
+          "relation": "lives in",
+          "expected": "Tokyo",
+          "response": "Tokyo, Japan. He is a 25-year-old freelance writer and photographer who has been",
+          "hit": true
+        },
+        {
+          "subject": "Zara",
+          "relation": "lives in",
+          "expected": "Marrakech",
+          "response": "Marrakech, Morocco. She is a 25-year-old fashion designer who has just returned ",
+          "hit": true
+        }
+      ]
+    },
+    "batch_at_least_as_good": true,
+    "elapsed_seconds": 53.2
+  },
+  "phase_4_pre_sleep_flush": {
+    "verdict": "PASS",
+    "verdict_pass": true,
+    "num_facts": 3,
+    "buffer_before_sleep": 3,
+    "buffer_after_sleep": 0,
+    "edits_before_sleep": 0,
+    "edits_after_sleep": 1,
+    "buffered_before": true,
+    "buffer_flushed": true,
+    "edits_created": true,
+    "sleep_ok": true,
+    "recall": 0.333,
+    "recall_details": [
+      {
+        "subject": "Aria",
+        "relation": "lives in",
+        "expected": "Portland",
+        "response": "a small town where everyone knows each other.",
+        "hit": false
+      },
+      {
+        "subject": "Kaito",
+        "relation": "lives in",
+        "expected": "Tokyo",
+        "response": "Tokyo.",
+        "hit": true
+      },
+      {
+        "subject": "Zara",
+        "relation": "lives in",
+        "expected": "Marrakech",
+        "response": "a small village surrounded by mountains.",
+        "hit": false
+      }
+    ],
+    "elapsed_seconds": 77.1
+  },
+  "phase_5_volatility": {
+    "verdict": "PASS",
+    "verdict_pass": true,
+    "consolidated_facts": 2,
+    "buffered_facts": 2,
+    "edits_consolidated": 1,
+    "buffer_before_crash": 2,
+    "edits_before_crash": 1,
+    "buffer_after_crash": 0,
+    "edits_after_crash": 1,
+    "has_buffered": true,
+    "buffer_lost": true,
+    "edits_survived": true,
+    "recall_consolidated_pre": 1.0,
+    "recall_consolidated_post": 1.0,
+    "recall_buffered_post": 0.0,
+    "consolidated_survived": true,
+    "elapsed_seconds": 33.3
+  },
+  "phase_6_buffer_overflow": {
+    "verdict": "PASS",
+    "verdict_pass": true,
+    "max_buffer_size": 5,
+    "inject_count": 7,
+    "buffer_after": 1,
+    "edits_before": 0,
+    "edits_after": 1,
+    "consolidations_before": 0,
+    "consolidations_after": 1,
+    "total_facts_consolidated": 6,
+    "overflow_triggered": true,
+    "buffer_within_limit": true,
+    "elapsed_seconds": 37.5
+  },
+  "overall_verdict": "PASS (6/6)",
+  "total_elapsed_seconds": 266.8
+}

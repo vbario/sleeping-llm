@@ -1,0 +1,141 @@
+ Plan: Consolidation Moments — Surprise-Gated Memory Buffering
+
+ Context
+
+ Currently, every conversation turn extracts facts and immediately injects them into MEMIT weights (chat.py:_memit_inject). This is
+ biologically implausible — humans don't write to long-term memory after every sentence. Instead, facts accumulate in short-term
+ memory (hippocampal buffer) and are consolidated into long-term storage when something important happens or during sleep.
+
+ This change introduces a volatile fact buffer between extraction and MEMIT injection, gated by a surprise signal inspired by TITANS.
+ The buffer is intentionally fragile — a crash before consolidation loses those facts (retrograde amnesia analogy).
+
+ New Memory Flow
+
+ BEFORE:  Extract → Deduplicate → inject_fact() per triple → weights modified immediately
+ AFTER:   Extract → Deduplicate → FactBuffer.add()  [volatile, no weight changes]
+                                        ↓
+                               SurpriseEstimator.evaluate()
+                                        ↓
+                            surprise ≥ threshold? ──YES──→ buffer.consolidate()
+                                        ↓                  → inject_facts(batch)
+                                       NO                   → buffer.clear()
+                                        ↓
+                                  facts stay in buffer (vulnerable to loss)
+
+ Three-tier memory now:
+ - Tier 0: Context window (working memory, instant, volatile)
+ - Tier 1: Fact buffer (short-term, volatile, accumulated between consolidation moments)
+ - Tier 2: MEMIT edits (medium-term, persistent, written at consolidation moments)
+ - Tier 3: LoRA fusion (long-term, persistent, written during sleep)
+
+ New Files
+
+ 1. src/wake/fact_buffer.py — FactBuffer
+
+ Volatile in-memory accumulator. Never persists to disk.
+
+ - add(triple, turn, surprise) — append fact to buffer
+ - consolidate(reason) — batch-inject all buffered facts via memit_engine.inject_facts(batch), clear buffer
+ - clear() — discard all (amnesia)
+ - size, is_empty, get_triples(), to_dict()
+ - BufferedFact dataclass wrapping FactTriple with timestamp/turn/surprise metadata
+ - Overflow policy (configurable): "consolidate" (force flush) or "drop_oldest" (FIFO eviction)
+
+ 2. src/wake/surprise.py — SurpriseEstimator
+
+ Composite surprise score from three signals:
+
+ ┌──────────────────┬────────┬───────────┬────────────────────────────────────────────────────────────────────────────────────┐
+ │      Signal      │ Weight │   Cost    │                                  What it detects                                   │
+ ├──────────────────┼────────┼───────────┼────────────────────────────────────────────────────────────────────────────────────┤
+ │ Fact novelty     │ 0.5    │ Free      │ New facts surviving deduplication (count + ratio)                                  │
+ ├──────────────────┼────────┼───────────┼────────────────────────────────────────────────────────────────────────────────────┤
+ │ Explicit markers │ 0.3    │ Free      │ Corrections ("actually..."), emphasis ("remember this"), updates ("I moved to...") │
+ ├──────────────────┼────────┼───────────┼────────────────────────────────────────────────────────────────────────────────────┤
+ │ PPL surprise     │ 0.2    │ Expensive │ Model's prediction error on user input (EMA-normalized)                            │
+ └──────────────────┴────────┴───────────┴────────────────────────────────────────────────────────────────────────────────────┘
+
+ PPL component is off by default (costs a forward pass per turn on 8GB device). Novelty + markers alone provide strong signal at zero
+ cost.
+
+ - evaluate(user_message, new_triples, total_extracted) → float [0,1]
+ - should_consolidate(score) → bool (score ≥ threshold)
+
+ Modified Files
+
+ 3. src/wake/chat.py
+
+ - Replace _memit_inject() with _extract_and_buffer():
+   - Extracts facts as before
+   - Deduplicates against ledger AND buffer contents
+   - Adds to buffer (no weight changes)
+   - Evaluates surprise → triggers buffer.consolidate("surprise") if threshold exceeded
+ - Keep old _memit_inject as _memit_inject_legacy (used when consolidation_moment disabled)
+ - Add /consolidate command (manual flush)
+ - Update _status_report() with buffer info
+ - Add set_consolidation_components(fact_buffer, surprise_estimator) setter
+
+ 4. src/orchestrator.py
+
+ - Instantiate FactBuffer and SurpriseEstimator (gated by consolidation_moment.enabled)
+ - Wire into chat via set_consolidation_components()
+ - Pre-sleep flush: call fact_buffer.consolidate("pre_sleep") before entering sleep pipeline (in _on_sleep_trigger, trigger_sleep_web,
+  trigger_sleep_background)
+ - Clear buffer on reset_weights() / factory_reset()
+ - Add to get_status() output
+
+ 5. src/memory/health.py
+
+ - Add optional buffer_weight pressure component (default 0.0 = off)
+ - Full buffer → higher sleep pressure → earlier sleep trigger → pre-sleep flush
+ - Setter: set_fact_buffer(fact_buffer)
+
+ 6. config.yaml
+
+ consolidation_moment:
+   enabled: true
+   max_buffer_size: 20
+   overflow_policy: "consolidate"  # or "drop_oldest"
+   min_buffer_age_seconds: 0
+   min_facts: 1
+   surprise:
+     threshold: 0.6
+     novelty_weight: 0.5
+     marker_weight: 0.3
+     ppl_weight: 0.2
+     use_ppl: false
+
+ 7. src/web/server.py
+
+ - POST /api/consolidate — manual trigger
+ - GET /api/buffer — buffer status
+
+ Key Design Decisions
+
+ 1. Buffer overflow → force consolidation (default). 20 accumulated mundane facts are collectively worth encoding.
+ 2. Pre-sleep always flushes buffer. Sleep is the natural consolidation boundary — you don't lose memories right before falling
+ asleep.
+ 3. Crash loses buffer (by design). No disk persistence = true retrograde amnesia.
+ 4. Surprise on corrections even without new facts. "Actually, I moved to Berlin" may not extract as a new triple if "lives in X"
+ already exists, but the correction marker still fires surprise → consolidates pending buffer.
+ 5. Backward compatible. consolidation_moment.enabled: false restores exact per-turn injection behavior.
+
+ Implementation Order
+
+ 1. src/wake/fact_buffer.py (standalone)
+ 2. src/wake/surprise.py (standalone)
+ 3. config.yaml additions
+ 4. src/wake/chat.py modifications
+ 5. src/orchestrator.py wiring
+ 6. src/memory/health.py buffer pressure
+ 7. src/web/server.py endpoints
+ 8. Tests: tests/test_consolidation_moment.py
+
+ Verification
+
+ 1. Start a session, say "my name is Alice" → fact should appear in buffer (not MEMIT)
+ 2. /status → shows "Buffer: 1/20"
+ 3. Say "Actually, remember my real name is Bob" → surprise fires → buffer consolidates
+ 4. Check ledger → facts now persisted
+ 5. Kill process mid-conversation with buffered facts → restart → buffered facts gone, previously consolidated facts intact
+ 6. /sleep → pre-sleep flush empties buffer before audit begins

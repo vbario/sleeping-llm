@@ -1,0 +1,95 @@
+ Plan: Model-Based Fact Review (Replace Regex Extraction)                                                                          
+   
+     Context                                                                                                                           
+                                                            
+     Facts aren't appearing in the buffer because FactExtractor.extract_from_exchange() relies on rigid regex patterns ("my name
+     is X", "I live in Y") that miss most natural conversation. The model-based fallback only runs if regex finds nothing AND
+     personal markers are detected — a double gate that's too narrow.
+
+     Fix: After every exchange, ask the running model "what new things did I learn from this message?" and parse the structured
+     output into FactTriples. This uses both the user message and assistant response as context, catching facts regex never would.
+
+     File to Modify
+
+     src/wake/extractor.py
+
+     Rewrite extract_from_exchange() — model review first, regex supplement:
+
+     def extract_from_exchange(self, user_message, assistant_response):
+         # Primary: model reviews the full exchange
+         triples = self._review_exchange(user_message, assistant_response)
+
+         # Supplement: regex catches structured patterns model might rephrase
+         template_triples = self.extract_template(user_message)
+         if template_triples:
+             seen = {(t.subject.lower(), t.relation.lower()) for t in triples}
+             for t in template_triples:
+                 if (t.subject.lower(), t.relation.lower()) not in seen:
+                     triples.append(t)
+
+         # Tag source
+         source = user_message[:100]
+         for t in triples:
+             t.source_exchange = source
+         return triples
+
+     Add _review_exchange() — the core model self-reflection:
+
+     def _review_exchange(self, user_message, assistant_response):
+         prompt_messages = [{
+             "role": "user",
+             "content": (
+                 "Review this conversation and extract personal facts about the user.\n\n"
+                 f"User: {user_message}\n"
+                 f"Assistant: {assistant_response}\n\n"
+                 "Extract facts as subject-relation-object triples.\n"
+                 "Include: identity, preferences, opinions, experiences, relationships, "
+                 "location, work, hobbies, conditions, temporal events.\n"
+                 "Only extract facts clearly stated or strongly implied.\n"
+                 "If no personal facts, respond with: NONE\n\n"
+                 "Format: SUBJECT | RELATION | OBJECT\n"
+                 "Example: The user | lives in | Portland\n"
+                 "Example: The user | works as | software engineer\n"
+                 "Example: The user's cat | is named | Luna\n\n"
+                 "Facts:"
+             ),
+         }]
+         prompt = self.backend.apply_chat_template(prompt_messages)
+         raw = self.backend.generate(prompt, max_tokens=200, temperature=0.1)
+         return self._parse_triples(raw)
+
+     Extract _parse_triples() helper (shared by _review_exchange and extract_with_model):
+
+     def _parse_triples(self, raw):
+         triples = []
+         for line in raw.strip().split("\n"):
+             line = line.strip()
+             if not line or line.upper() == "NONE":
+                 break
+             if "|" not in line:
+                 continue
+             parts = [p.strip() for p in line.split("|")]
+             if len(parts) >= 3:
+                 subject, relation, obj = parts[0], parts[1], parts[2]
+                 if subject and relation and obj and len(obj) >= 2:
+                     triples.append(FactTriple(subject=subject, relation=relation, object=obj))
+         return triples
+
+     Refactor extract_with_model() to also use _parse_triples() (remove duplicated parsing).
+
+     No changes to chat.py or other files
+
+     _extract_and_buffer() already calls self._extractor.extract_from_exchange(user_input, response) — interface unchanged.
+
+     Trade-offs
+
+     - +1 model call per turn (~0.5-1s on 3B-4bit MLX). Acceptable for local assistant.
+     - Model catches "I went hiking in Alps last summer" → The user | went hiking in | the Alps, which regex misses entirely.
+     - Regex kept as supplement to catch structured patterns the model might rephrase differently.
+
+     Verification
+
+     1. python3 src/main.py --web --config config.yaml
+     2. Send "I went hiking in the Alps last summer" — buffered fact appears in sidebar
+     3. Send "My cat's name is Luna" — fact appears (model + regex both catch it, deduped)
+     4. Send "What's 2+2?" — no facts (model returns NONE)
