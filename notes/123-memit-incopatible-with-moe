@@ -1,0 +1,42 @@
+⏺ It's not fundamentally impossible, but standard MEMIT's guarantees break down, and making it work would require non-trivial modifications.   
+  Here's the core issue:
+                                                                                                                                               
+  Why MEMIT works in dense models
+                                                                                                                                               
+  MEMIT's formulation is: given subject s, modify MLP weights in layers L so the residual stream carries the new fact's value v. The critical
+  assumption is a deterministic path — every forward pass through layer L hits the same MLP weights. So if you edit those weights, the edit is
+  always encountered at recall time.
+
+  What MoE breaks
+
+  In an MoE layer, the path is: s → router → expert_k → output, where k is selected dynamically. You edit expert 3, but at recall time the
+  subject token routes to expert 7. The edit is invisible. It's not that the math is wrong — it's that MEMIT's edit may never be on the
+  execution path.
+
+  Could you work around it?
+
+  Several approaches, all with serious tradeoffs:
+
+  Edit all experts in the layer. Guarantees the edit is encountered, but you're now editing 8-64x more weight matrices. Destroys expert
+  specialization (the whole point of MoE). Likely tanks model quality.
+
+  Route-aware editing. Run the subject through the router, identify which experts activate, edit only those. Problem: routing depends on full
+  input context, not just the subject. "The capital of France" might route to expert 2 in one conversation and expert 5 in another. You'd need
+  to edit multiple experts to get robust recall, and you can't predict all future routing decisions.
+
+  Target shared components only. Some MoE architectures (e.g., DeepSeek-style) have shared experts that every token passes through alongside
+  routed experts. You could target these — they'd behave like dense layers for MEMIT. But these shared experts are a small fraction of the
+  model's capacity, so editing headroom may be limited.
+
+  Target attention layers. Attention is shared (not routed) in standard MoE models. But factual knowledge is primarily stored in FFN/MLP
+  layers, not attention. Editing attention for factual recall goes against the theoretical basis of both MEMIT and the knowledge neuron
+  literature.
+
+  Bottom line
+
+  Standard MEMIT is architecturally incompatible with MoE out of the box. You could make something work with modifications, but you'd be giving
+   up MEMIT's core guarantee (deterministic edit-to-recall path) and entering uncharted research territory. The shared-expert approach is the
+  most promising but depends on the specific MoE architecture having substantial shared components.
+
+  For your project, dense models remain the right choice — the 27B Qwen dense model gives you a clean MEMIT target without any of these
+  complications.

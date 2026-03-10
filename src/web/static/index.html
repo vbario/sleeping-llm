@@ -67,8 +67,13 @@
     transition: width 0.3s;
   }
 
-  .sleep-btn {
+  .sleep-buttons {
     margin-top: auto;
+    display: flex;
+    gap: 6px;
+  }
+  .sleep-btn {
+    flex: 1;
     padding: 10px 16px;
     background: #1f6feb;
     color: #fff;
@@ -84,6 +89,36 @@
     color: #8b949e;
     cursor: not-allowed;
   }
+  .microsleep-btn {
+    flex: 1;
+    padding: 10px 12px;
+    background: #8957e5;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s;
+    position: relative;
+  }
+  .microsleep-btn:hover { background: #a371f7; }
+  .microsleep-btn:disabled {
+    background: #30363d;
+    color: #8b949e;
+    cursor: not-allowed;
+  }
+  .microsleep-btn .micro-indicator {
+    display: none;
+    width: 6px;
+    height: 6px;
+    background: #d29922;
+    border-radius: 50%;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    animation: blink 1s step-end infinite;
+  }
+  .microsleep-btn.running .micro-indicator { display: block; }
 
   .reset-group {
     margin-top: 12px;
@@ -252,6 +287,39 @@
     color: #8b949e;
     margin-top: 2px;
   }
+  .sleep-step .step-facts {
+    margin-top: 4px;
+    padding-left: 0;
+    list-style: none;
+    font-size: 11px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+  .sleep-step .step-facts.expanded {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+  .sleep-step .step-facts li {
+    color: #7ee787;
+    padding: 1px 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sleep-step .step-facts li.bad {
+    color: #f85149;
+  }
+  .sleep-step .step-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: #58a6ff;
+    font-size: 10px;
+    cursor: pointer;
+    padding: 2px 0 0 0;
+  }
+  .sleep-step .step-toggle:hover { text-decoration: underline; }
   .sleep-step.pending .icon { color: #30363d; }
   .sleep-step.running .icon { color: #d29922; }
   .sleep-step.done .icon { color: #3fb950; }
@@ -283,6 +351,129 @@
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
+
+  /* Right sidebar — facts panel */
+  .right-sidebar {
+    width: 280px;
+    background: #161b22;
+    border-left: 1px solid #30363d;
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    flex-shrink: 0;
+    overflow-y: auto;
+  }
+  .right-sidebar h2 {
+    font-size: 16px;
+    color: #f0f6fc;
+    margin-bottom: 16px;
+  }
+  .facts-section {
+    margin-bottom: 20px;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .section-header .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #8b949e;
+    letter-spacing: 0.5px;
+  }
+  .section-header .count-badge {
+    font-size: 10px;
+    background: #30363d;
+    color: #c9d1d9;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-variant-numeric: tabular-nums;
+  }
+  .fact-card {
+    padding: 8px 10px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  .fact-card .fact-main {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .fact-status {
+    flex-shrink: 0;
+    margin-top: 2px;
+    font-size: 10px;
+  }
+  .fact-status.buffered { color: #d29922; }
+  .fact-status.consolidated { color: #3fb950; }
+  .fact-status.graduated { color: #f0c040; }
+  .fact-card .fact-text {
+    color: #c9d1d9;
+    word-break: break-word;
+  }
+  .fact-card .fact-meta {
+    font-size: 10px;
+    color: #8b949e;
+    margin-top: 3px;
+    padding-left: 16px;
+  }
+  .consolidate-btn {
+    width: 100%;
+    padding: 6px 10px;
+    background: transparent;
+    color: #d29922;
+    border: 1px solid #d29922;
+    border-radius: 6px;
+    font-size: 11px;
+    cursor: pointer;
+    margin-top: 4px;
+    transition: all 0.2s;
+  }
+  .consolidate-btn:hover {
+    background: rgba(210, 153, 34, 0.1);
+  }
+  .consolidate-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .tab-btn {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #8b949e;
+    letter-spacing: 0.5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: #c9d1d9; }
+  .tab-btn.active {
+    color: #c9d1d9;
+    border-bottom-color: #58a6ff;
+  }
+  .tab-btn .count-badge {
+    font-size: 10px;
+    background: #30363d;
+    color: #c9d1d9;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-variant-numeric: tabular-nums;
+    margin-left: 2px;
+  }
+  .empty-state {
+    font-size: 12px;
+    color: #484f58;
+    font-style: italic;
+    padding: 4px 0;
+  }
 </style>
 </head>
 <body>
@@ -309,8 +500,12 @@
     <div class="context-bar"><div class="fill" id="context-fill" style="width: 0%"></div></div>
   </div>
 
-  <button class="sleep-btn" id="sleep-btn" onclick="triggerSleep()">Sleep</button>
+  <div class="sleep-buttons">
+    <button class="sleep-btn" id="sleep-btn" onclick="triggerSleep()">Sleep</button>
+    <button class="microsleep-btn" id="microsleep-btn" onclick="triggerMicroSleep()">Micro<span class="micro-indicator"></span></button>
+  </div>
   <div class="reset-group">
+    <button class="reset-btn" id="clear-ledger-btn" onclick="clearLedger()">Clear Ledger</button>
     <button class="reset-btn" id="reset-weights-btn" onclick="resetWeights()">Reset Weights</button>
     <button class="reset-btn danger" id="factory-reset-btn" onclick="factoryReset()">Factory Reset</button>
   </div>
@@ -323,6 +518,34 @@
       <input type="text" id="chat-input" placeholder="Type a message..." autofocus
              onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}">
       <button id="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+</div>
+
+<div class="right-sidebar">
+  <h2>Memory</h2>
+
+  <div class="facts-section" id="buffered-section">
+    <div class="section-header">
+      <span class="section-label">Buffered</span>
+      <span class="count-badge" id="buffered-count">0</span>
+    </div>
+    <div id="buffered-facts">
+      <div class="empty-state">No buffered facts</div>
+    </div>
+    <button class="consolidate-btn" id="consolidate-btn" onclick="manualConsolidate()" style="display:none">Consolidate Now</button>
+  </div>
+
+  <div class="facts-section" id="consolidated-section">
+    <div class="section-header">
+      <button class="tab-btn active" id="tab-consolidated" onclick="switchFactTab('consolidated')">Consolidated <span class="count-badge" id="consolidated-count">0</span></button>
+      <button class="tab-btn" id="tab-graduated" onclick="switchFactTab('graduated')">Graduated <span class="count-badge" id="graduated-count">0</span></button>
+    </div>
+    <div id="consolidated-facts">
+      <div class="empty-state">No consolidated facts</div>
+    </div>
+    <div id="graduated-facts" style="display:none">
+      <div class="empty-state">No graduated facts</div>
     </div>
   </div>
 </div>
@@ -447,6 +670,7 @@ async function sendMessage() {
   sleepBtn.disabled = false;
   setInputState(true);
   refreshStatus();
+  refreshFacts();
 }
 
 function showSleepOverlay() {
@@ -476,6 +700,8 @@ function showSleepOverlay() {
       <div class="info">
         <div class="step-label">${label}</div>
         <div class="step-detail"></div>
+        <button class="step-toggle" onclick="toggleFacts(this)">show facts</button>
+        <ul class="step-facts"></ul>
       </div>
     `;
     stepsEl.appendChild(div);
@@ -539,6 +765,8 @@ function updateSleepStep(data) {
   const iconEl = stepEl.querySelector('.icon');
   const detailEl = stepEl.querySelector('.step-detail');
   const labelEl = stepEl.querySelector('.step-label');
+  const factsEl = stepEl.querySelector('.step-facts');
+  const toggleEl = stepEl.querySelector('.step-toggle');
 
   if (data.label) labelEl.textContent = data.label;
   if (data.detail) detailEl.textContent = data.detail;
@@ -551,6 +779,48 @@ function updateSleepStep(data) {
   } else if (data.status === 'error') {
     iconEl.innerHTML = '&#10007;';
   }
+
+  // Populate fact list if provided
+  const facts = data.facts || [];
+  const badFacts = data.facts_bad || [];
+  if (facts.length || badFacts.length) {
+    factsEl.innerHTML = '';
+    facts.forEach(f => {
+      const li = document.createElement('li');
+      li.textContent = f;
+      factsEl.appendChild(li);
+    });
+    badFacts.forEach(f => {
+      const li = document.createElement('li');
+      li.className = 'bad';
+      li.textContent = f;
+      factsEl.appendChild(li);
+    });
+    toggleEl.style.display = 'inline';
+  }
+}
+
+function toggleFacts(btn) {
+  const factsEl = btn.nextElementSibling;
+  const expanded = factsEl.classList.toggle('expanded');
+  btn.textContent = expanded ? 'hide facts' : 'show facts';
+}
+
+async function clearLedger() {
+  if (streaming || sleeping) return;
+  if (!confirm('Clear all consolidated facts from the system prompt? Graduated facts are preserved. This tests if LoRA recall works from weights alone.')) return;
+
+  document.getElementById('clear-ledger-btn').disabled = true;
+  try {
+    const resp = await fetch('/api/reset/ledger', { method: 'POST' });
+    const data = await resp.json();
+    addMessage('assistant', '[System] ' + data.message);
+  } catch (err) {
+    addMessage('assistant', '[System] Clear failed: ' + err.message);
+  }
+  document.getElementById('clear-ledger-btn').disabled = false;
+  refreshStatus();
+  refreshFacts();
 }
 
 async function resetWeights() {
@@ -575,7 +845,7 @@ async function resetWeights() {
 
 async function factoryReset() {
   if (streaming || sleeping) return;
-  if (!confirm('FACTORY RESET: This deletes ALL data — weights, conversations, and MEMIT data. Continue?')) return;
+  if (!confirm('FACTORY RESET: This deletes ALL data — weights, conversations, and fact data. Continue?')) return;
 
   document.getElementById('reset-weights-btn').disabled = true;
   document.getElementById('factory-reset-btn').disabled = true;
@@ -613,14 +883,186 @@ async function refreshStatus() {
       `${data.context_tokens} / ${data.context_max}`;
     document.getElementById('context-fill').style.width = `${data.context_pct}%`;
 
+    // Update micro-sleep button state
+    const microBtn = document.getElementById('microsleep-btn');
+    if (data.micro_sleep) {
+      if (data.micro_sleep.running) {
+        microBtn.classList.add('running');
+        microBtn.disabled = true;
+      } else {
+        microBtn.classList.remove('running');
+        microBtn.disabled = false;
+      }
+    } else {
+      // Micro-sleep not configured — keep button but show as disabled
+      microBtn.disabled = !data.micro_sleep;
+    }
+
   } catch (err) {
     console.error('Status fetch failed:', err);
   }
 }
 
+async function refreshFacts() {
+  try {
+    const resp = await fetch('/api/facts');
+    const data = await resp.json();
+
+    // Buffered facts
+    const bufferedEl = document.getElementById('buffered-facts');
+    const bufferedCount = document.getElementById('buffered-count');
+    const consolidateBtn = document.getElementById('consolidate-btn');
+    bufferedCount.textContent = data.buffered.length;
+
+    if (data.buffered.length === 0) {
+      bufferedEl.innerHTML = '<div class="empty-state">No buffered facts</div>';
+      consolidateBtn.style.display = 'none';
+    } else {
+      bufferedEl.innerHTML = data.buffered.map(f => `
+        <div class="fact-card">
+          <div class="fact-main">
+            <span class="fact-status buffered">&#9679;</span>
+            <span class="fact-text">${esc(f.answer)}</span>
+          </div>
+          <div class="fact-meta">${f.age_seconds}s ago</div>
+        </div>
+      `).join('');
+      consolidateBtn.style.display = 'block';
+    }
+
+    // Consolidated facts (non-graduated)
+    const consolidatedEl = document.getElementById('consolidated-facts');
+    const consolidatedCount = document.getElementById('consolidated-count');
+    consolidatedCount.textContent = data.consolidated.length;
+
+    if (data.consolidated.length === 0) {
+      consolidatedEl.innerHTML = '<div class="empty-state">No consolidated facts</div>';
+    } else {
+      consolidatedEl.innerHTML = data.consolidated.map(f => `
+        <div class="fact-card">
+          <div class="fact-main">
+            <span class="fact-status consolidated">&#10003;</span>
+            <span class="fact-text">${esc(f.answer)}</span>
+          </div>
+          <div class="fact-meta">
+            stage ${f.stage}
+            ${f.train_count > 0 ? ' · trained ' + f.train_count + 'x' : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Graduated facts
+    const graduatedEl = document.getElementById('graduated-facts');
+    const graduatedCount = document.getElementById('graduated-count');
+    graduatedCount.textContent = data.graduated.length;
+
+    if (data.graduated.length === 0) {
+      graduatedEl.innerHTML = '<div class="empty-state">No graduated facts</div>';
+    } else {
+      graduatedEl.innerHTML = data.graduated.map(f => `
+        <div class="fact-card">
+          <div class="fact-main">
+            <span class="fact-status graduated">&#9733;</span>
+            <span class="fact-text">${esc(f.answer)}</span>
+          </div>
+          <div class="fact-meta">
+            graduated · trained ${f.train_count}x
+          </div>
+        </div>
+      `).join('');
+    }
+  } catch (err) {
+    console.error('Facts fetch failed:', err);
+  }
+}
+
+function switchFactTab(tab) {
+  const consolidatedEl = document.getElementById('consolidated-facts');
+  const graduatedEl = document.getElementById('graduated-facts');
+  const tabConsolidated = document.getElementById('tab-consolidated');
+  const tabGraduated = document.getElementById('tab-graduated');
+
+  if (tab === 'graduated') {
+    consolidatedEl.style.display = 'none';
+    graduatedEl.style.display = 'block';
+    tabConsolidated.classList.remove('active');
+    tabGraduated.classList.add('active');
+  } else {
+    consolidatedEl.style.display = 'block';
+    graduatedEl.style.display = 'none';
+    tabConsolidated.classList.add('active');
+    tabGraduated.classList.remove('active');
+  }
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+async function triggerMicroSleep() {
+  if (streaming || sleeping) return;
+  const btn = document.getElementById('microsleep-btn');
+  btn.disabled = true;
+  btn.classList.add('running');
+
+  try {
+    const resp = await fetch('/api/microsleep', { method: 'POST' });
+    const data = await resp.json();
+    if (data.status === 'ok') {
+      addMessage('assistant', '[Micro-sleep started — training in background]');
+      // Poll until micro-sleep completes
+      const poll = setInterval(async () => {
+        try {
+          const s = await fetch('/api/status');
+          const st = await s.json();
+          const ms = st.micro_sleep;
+          if (!ms || !ms.running) {
+            clearInterval(poll);
+            btn.disabled = false;
+            btn.classList.remove('running');
+            addMessage('assistant', '[Micro-sleep complete]');
+            refreshStatus();
+            refreshFacts();
+          }
+        } catch (e) {
+          clearInterval(poll);
+          btn.disabled = false;
+          btn.classList.remove('running');
+        }
+      }, 3000);
+    } else {
+      addMessage('assistant', `[Micro-sleep] ${data.message}`);
+      btn.disabled = false;
+      btn.classList.remove('running');
+    }
+  } catch (err) {
+    addMessage('assistant', '[Micro-sleep] Failed: ' + err.message);
+    btn.disabled = false;
+    btn.classList.remove('running');
+  }
+}
+
+async function manualConsolidate() {
+  const btn = document.getElementById('consolidate-btn');
+  btn.disabled = true;
+  btn.textContent = 'Consolidating...';
+  try {
+    await fetch('/api/consolidate', { method: 'POST' });
+    await refreshFacts();
+  } catch (err) {
+    console.error('Consolidation failed:', err);
+  }
+  btn.disabled = false;
+  btn.textContent = 'Consolidate Now';
+}
+
 // Load history and status on start
 async function init() {
   refreshStatus();
+  refreshFacts();
 
   try {
     const resp = await fetch('/api/history');
@@ -636,8 +1078,8 @@ async function init() {
 }
 
 init();
-// Refresh status every 10 seconds
-setInterval(refreshStatus, 10000);
+// Refresh status and facts every 10 seconds
+setInterval(() => { refreshStatus(); refreshFacts(); }, 10000);
 </script>
 
 </body>

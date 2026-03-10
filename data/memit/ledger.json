@@ -1,43 +1,724 @@
 [
   {
-    "edit_id": "b84e7efa",
-    "facts": [
-      {
-        "subject": "Aria",
-        "relation": "lives in",
-        "object": "Portland",
-        "source_exchange": null,
-        "timestamp": 1772006688.230111
-      },
-      {
-        "subject": "Kaito",
-        "relation": "lives in",
-        "object": "Tokyo",
-        "source_exchange": null,
-        "timestamp": 1772006688.230112
-      },
-      {
-        "subject": "Zara",
-        "relation": "lives in",
-        "object": "Marrakech",
-        "source_exchange": null,
-        "timestamp": 1772006688.230113
-      }
-    ],
-    "layer_indices": [
-      8,
-      9,
-      10,
-      11,
-      12,
-      13,
-      14,
-      15
-    ],
-    "timestamp": 1772006976.17294,
-    "scale": 0.5,
-    "last_verified": 1772006999.452727,
-    "recall_success_rate": 1.0,
-    "consolidation_stage": 1
+    "fact_id": "3b72c8e9",
+    "qa": {
+      "question": "What does the user have?",
+      "answer": "The user has a son named Andre Patandre.",
+      "value": "son named Andre Patandre",
+      "source_exchange": "I have a son named Andre Patandre. Have you heard of him?",
+      "timestamp": 1772187239.817826,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 1773115959.337012,
+    "train_count": 6,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 1.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "8728f19b",
+    "qa": {
+      "question": "What tool does the user's son use to make music?",
+      "answer": "The user's son uses GarageBand to make music.",
+      "value": "GarageBand",
+      "source_exchange": "garageband :)",
+      "timestamp": 1773109410.006025,
+      "priority": 0.625
+    },
+    "stage": 2,
+    "last_trained": 1773115959.830894,
+    "train_count": 8,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "fb964bc7",
+    "qa": {
+      "question": "What is Andre Patandre's current focus in terms of music-making?",
+      "answer": "Andre Patandre enjoys making beats.",
+      "value": "making beats",
+      "source_exchange": "sure",
+      "timestamp": 1773109472.3973708,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 1773115960.321444,
+    "train_count": 8,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "dfee23d6",
+    "qa": {
+      "question": "What does the user believe about consciousness?",
+      "answer": "The user believes consciousness is a construct.",
+      "value": "consciousness is a construct",
+      "source_exchange": "Consciousness is a construct.",
+      "timestamp": 1773109606.6149602,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 1773115960.7979121,
+    "train_count": 6,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "439446b0",
+    "qa": {
+      "question": "Does the user have a son named Andre Patandre?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "Hey!",
+      "timestamp": 1773109369.115137,
+      "priority": 0.625
+    },
+    "stage": 1,
+    "last_trained": 1773109750.570949,
+    "train_count": 2,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "d6964102",
+    "qa": {
+      "question": "Is there something on the user's mind?",
+      "answer": "No",
+      "value": "No",
+      "source_exchange": "Hey!",
+      "timestamp": 1773109369.115169,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "9c8c7c9c",
+    "qa": {
+      "question": "Is everything okay with the user and Andre Patandre?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "Hey!",
+      "timestamp": 1773109369.115191,
+      "priority": 0.625
+    },
+    "stage": 1,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "24a508d0",
+    "qa": {
+      "question": "Is the user a parent?",
+      "answer": "Yes, the user is a parent",
+      "value": "Yes, the user is a parent",
+      "source_exchange": "Haha yeah!",
+      "timestamp": 1773109379.3825102,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "5747bec3",
+    "qa": {
+      "question": "Is the user male?",
+      "answer": "No information is provided about the user's gender",
+      "value": "No information",
+      "source_exchange": "Haha yeah!",
+      "timestamp": 1773109379.382563,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "3d158da3",
+    "qa": {
+      "question": "Is the user's son making music?",
+      "answer": "Yes, he is",
+      "value": "Yes, he is",
+      "source_exchange": "",
+      "timestamp": 1773109400.514841,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "339eb5f8",
+    "qa": {
+      "question": "What instrument?",
+      "answer": "I couldn't find this information",
+      "value": "",
+      "source_exchange": "",
+      "timestamp": 1773109400.514873,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "91005949",
+    "qa": {
+      "question": "Does the user recall things?",
+      "answer": "Yes, he does",
+      "value": "Yes, he does",
+      "source_exchange": "",
+      "timestamp": 1773109400.514892,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "fbbdd63e",
+    "qa": {
+      "question": "Does the user have a son?",
+      "answer": "Yes, he does",
+      "value": "Yes, he does",
+      "source_exchange": "",
+      "timestamp": 1773109410.0059829,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "c85408ca",
+    "qa": {
+      "question": "Is the user's son a beginner?",
+      "answer": "Yes, he is",
+      "value": "Yes, he is",
+      "source_exchange": "",
+      "timestamp": 1773109410.0060658,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "db8b8f82",
+    "qa": {
+      "question": "What is the user's son making music with?",
+      "answer": "GarageBand",
+      "value": "GarageBand",
+      "source_exchange": "",
+      "timestamp": 1773109421.397134,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "917d0a98",
+    "qa": {
+      "question": "Is the user's son pursuing music?",
+      "answer": "Yes, he is",
+      "value": "Yes, he is",
+      "source_exchange": "",
+      "timestamp": 1773109421.3971572,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "423e2a82",
+    "qa": {
+      "question": "Is the user a parent to Andre Patandre?",
+      "answer": "Yes, the user is a parent",
+      "value": "Yes, the user is a parent",
+      "source_exchange": "",
+      "timestamp": 1773109445.236948,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "d3d0058a",
+    "qa": {
+      "question": "User's relationship to music?",
+      "answer": "Has a son who makes music",
+      "value": "Has a son who makes music",
+      "source_exchange": "",
+      "timestamp": 1773109445.237013,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "7eacc5e9",
+    "qa": {
+      "question": "What tool does Andre Patandre use?",
+      "answer": "GarageBand",
+      "value": "GarageBand",
+      "source_exchange": "",
+      "timestamp": 1773109445.2370381,
+      "priority": 0.625
+    },
+    "stage": 1,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "f7527cf4",
+    "qa": {
+      "question": "Aware of projects?",
+      "answer": "No",
+      "value": "No",
+      "source_exchange": "",
+      "timestamp": 1773109472.397307,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "06022b02",
+    "qa": {
+      "question": "Favorite project?",
+      "answer": "No",
+      "value": "No",
+      "source_exchange": "",
+      "timestamp": 1773109472.397345,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "ee3d8769",
+    "qa": {
+      "question": "Online resources?",
+      "answer": "Hallucinated",
+      "value": "",
+      "source_exchange": "",
+      "timestamp": 1773109472.39744,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "c1a3f458",
+    "qa": {
+      "question": "Is the user responding?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "",
+      "timestamp": 1773109599.823627,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "5ff317c5",
+    "qa": {
+      "question": "Something to say?",
+      "answer": "No",
+      "value": "No",
+      "source_exchange": "",
+      "timestamp": 1773109599.823659,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "33b83f2e",
+    "qa": {
+      "question": "Is the user male?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "",
+      "timestamp": 1773109600.400445,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "1ae33726",
+    "qa": {
+      "question": "Familiar with GarageBand?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "",
+      "timestamp": 1773109602.280341,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "5773244b",
+    "qa": {
+      "question": "Is there a user?",
+      "answer": "No",
+      "value": "No",
+      "source_exchange": "",
+      "timestamp": 1773109603.0640798,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "98542d87",
+    "qa": {
+      "question": "Referring to themselves?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "",
+      "timestamp": 1773109604.321617,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "ccb80884",
+    "qa": {
+      "question": "Has son Andre Patandre?",
+      "answer": "No",
+      "value": "No",
+      "source_exchange": "",
+      "timestamp": 1773109604.321645,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "0a96bd0a",
+    "qa": {
+      "question": "User mentioned?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "",
+      "timestamp": 1773109605.488885,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "71c6fd6c",
+    "qa": {
+      "question": "Facts stated?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "",
+      "timestamp": 1773109605.488922,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "98b2757c",
+    "qa": {
+      "question": "Making a statement?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "",
+      "timestamp": 1773109606.61495,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "f724af7b",
+    "qa": {
+      "question": "Knows musician?",
+      "answer": "Yes",
+      "value": "Yes",
+      "source_exchange": "",
+      "timestamp": 1773109608.0387561,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "61127aee",
+    "qa": {
+      "question": "Thanking?",
+      "answer": "No",
+      "value": "No",
+      "source_exchange": "",
+      "timestamp": 1773109608.929642,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "9e16650a",
+    "qa": {
+      "question": "Details provided?",
+      "answer": "No",
+      "value": "No",
+      "source_exchange": "",
+      "timestamp": 1773109610.0746272,
+      "priority": 0.5
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "b2eb461a",
+    "qa": {
+      "question": "What is Andre Patandre's interest in making music?",
+      "answer": "Making beats",
+      "value": "Making beats",
+      "source_exchange": "What do you know about my son?",
+      "timestamp": 1773115251.746819,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 1773115961.295833,
+    "train_count": 6,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "6e2eee1e",
+    "qa": {
+      "question": "What does Andre Patandre use to make music?",
+      "answer": "GarageBand",
+      "value": "GarageBand",
+      "source_exchange": "My son loves making beats.",
+      "timestamp": 1773115895.91178,
+      "priority": 0.625
+    },
+    "stage": 1,
+    "last_trained": 1773115961.781966,
+    "train_count": 1,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "cb948e8d",
+    "qa": {
+      "question": "What is the user's relationship to Andre Patandre?",
+      "answer": "Parent",
+      "value": "Parent",
+      "source_exchange": "My son loves making beats.",
+      "timestamp": 1773115895.911794,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 1773115962.263099,
+    "train_count": 1,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
   }
 ]

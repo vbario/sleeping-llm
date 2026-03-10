@@ -86,6 +86,30 @@ consolidation:
   enabled: true
   scale_schedule: [1.0, 0.5, 0.1, 0.0]
 
+micro_sleep:
+  # Priority-triggered background LoRA training on high-importance facts
+  enabled: true
+  # Trigger mode:
+  #   "cycle" — accumulates high-priority facts, fires at 90-min ultradian boundary (BRAC)
+  #   "immediate" — fires as soon as a high-priority fact arrives (flashbulb memory)
+  trigger_mode: "cycle"
+  # Ultradian cycle length in seconds (default 5400 = 90 minutes, matching human BRAC)
+  cycle_seconds: 5400
+  # Minimum surprise score to queue/trigger micro-sleep (0.0-1.0)
+  priority_threshold: 0.7
+  # Maximum facts per micro-sleep pass
+  max_facts: 3
+  # LoRA iterations per micro-sleep (fewer = faster, ~5-10s on M3)
+  iters: 20
+  # Minimum seconds between micro-sleeps (used in "immediate" mode)
+  cooldown_seconds: 120
+  # Minimum age (seconds) before a fact is eligible for micro-training
+  min_age_seconds: 60
+
+spaced_repetition:
+  # Minimum seconds since last LoRA training before a fact is retrained
+  min_retrain_age_seconds: 3600
+
 health:
   # Sleep pressure threshold to suggest a nap (0.0 - 1.0)
   nap_threshold: 0.4
@@ -99,6 +123,31 @@ health:
   perplexity_check_interval: 10
   # Max wake duration in seconds before sleep is forced
   max_wake_seconds: 7200
+
+consolidation_moment:
+  # Master switch (false = legacy per-turn injection)
+  enabled: true
+  # Maximum facts in the volatile buffer before forced consolidation
+  max_buffer_size: 20
+  # What to do when buffer overflows: "consolidate" or "drop_oldest"
+  overflow_policy: "consolidate"
+  # Minimum age (seconds) of oldest fact before surprise can trigger consolidation
+  min_buffer_age_seconds: 0
+  # Minimum number of buffered facts before surprise can trigger consolidation
+  min_facts: 1
+
+  # Surprise signal configuration
+  surprise:
+    # Composite surprise score threshold to trigger consolidation (0.0 - 1.0)
+    threshold: 0.6
+    # Component weights (automatically normalized)
+    novelty_weight: 0.5
+    marker_weight: 0.3
+    ppl_weight: 0.2
+    # Whether to compute per-turn PPL (expensive on 8GB device)
+    use_ppl: false
+    # EMA smoothing for PPL baseline tracking
+    ppl_ema_alpha: 0.3
 
 nap:
   # Manual trigger command

@@ -1,0 +1,40 @@
+[
+  {
+    "fact_id": "50453408",
+    "qa": {
+      "question": "What is the name of the user's son?",
+      "answer": "The user's son's name is Andre Patandre.",
+      "value": "Andre Patandre",
+      "source_exchange": "garageband :)",
+      "timestamp": 1773109410.006007,
+      "priority": 0.625
+    },
+    "stage": 3,
+    "last_trained": 1773115517.9752052,
+    "train_count": 5,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": true,
+    "pruned": false
+  },
+  {
+    "fact_id": "1e29c76f",
+    "qa": {
+      "question": "What is the user's son's name?",
+      "answer": "Andre Patandre",
+      "value": "Andre Patandre",
+      "source_exchange": "What do you know about my son?",
+      "timestamp": 1773115251.7467709,
+      "priority": 0.625
+    },
+    "stage": 3,
+    "last_trained": 1773115520.10625,
+    "train_count": 3,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": true,
+    "pruned": false
+  }
+]
