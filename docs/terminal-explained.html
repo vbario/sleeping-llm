@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sleeping LLM — Terminal Output Explained</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --dim: #8b949e;
+    --green: #3fb950;
+    --blue: #58a6ff;
+    --orange: #d29922;
+    --red: #f85149;
+    --purple: #bc8cff;
+    --cyan: #39d353;
+    --yellow: #e3b341;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+  }
+
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 40px;
+    text-align: center;
+  }
+  header h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  header p {
+    color: var(--dim);
+    font-size: 15px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    padding: 16px 40px;
+    border-bottom: 1px solid var(--border);
+    background: var(--panel);
+    flex-wrap: wrap;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--dim);
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .step {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    margin-bottom: 32px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+
+  .step-terminal {
+    background: #0d1117;
+    padding: 20px 24px;
+    border-right: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .step-terminal pre {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+    font-size: 12.5px;
+    line-height: 1.55;
+    white-space: pre;
+    color: var(--text);
+    tab-size: 4;
+  }
+  .step-terminal .line-num {
+    color: #484f58;
+    user-select: none;
+    display: inline-block;
+    width: 30px;
+    text-align: right;
+    margin-right: 12px;
+  }
+
+  .step-explain {
+    background: var(--panel);
+    padding: 24px 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .step-explain h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .step-explain .phase-tag {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .step-explain h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--blue);
+    margin: 14px 0 6px;
+  }
+  .step-explain p {
+    font-size: 14px;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .step-explain ul {
+    padding-left: 18px;
+    margin-bottom: 8px;
+  }
+  .step-explain li {
+    font-size: 14px;
+    color: var(--dim);
+    margin-bottom: 4px;
+  }
+  .step-explain strong {
+    color: var(--text);
+    font-weight: 600;
+  }
+  .step-explain code {
+    font-family: 'SF Mono', Consolas, monospace;
+    font-size: 12px;
+    background: rgba(110,118,129,0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--blue);
+  }
+
+  .callout {
+    background: rgba(56,139,253,0.08);
+    border: 1px solid rgba(56,139,253,0.2);
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: 13px;
+    color: var(--blue);
+  }
+  .callout.warn {
+    background: rgba(210,153,34,0.08);
+    border-color: rgba(210,153,34,0.2);
+    color: var(--orange);
+  }
+  .callout.success {
+    background: rgba(63,185,80,0.08);
+    border-color: rgba(63,185,80,0.2);
+    color: var(--green);
+  }
+  .callout.danger {
+    background: rgba(248,81,73,0.08);
+    border-color: rgba(248,81,73,0.2);
+    color: var(--red);
+  }
+
+  /* Syntax highlighting in terminal */
+  .t-green { color: var(--green); }
+  .t-blue { color: var(--blue); }
+  .t-orange { color: var(--orange); }
+  .t-red { color: var(--red); }
+  .t-purple { color: var(--purple); }
+  .t-dim { color: var(--dim); }
+  .t-cyan { color: var(--cyan); }
+  .t-yellow { color: var(--yellow); }
+
+  .progress-bar {
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 16px 0 8px;
+    overflow: hidden;
+  }
+  .progress-bar .fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 0.3s;
+  }
+
+  .step-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    font-size: 14px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 900px) {
+    .step {
+      grid-template-columns: 1fr;
+    }
+    .step-terminal {
+      border-right: none;
+      border-bottom: 1px solid var(--border);
+    }
+  }
+
+  footer {
+    text-align: center;
+    padding: 40px;
+    color: var(--dim);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sleeping LLM &mdash; A Full Cycle, Explained</h1>
+  <p>This page walks through a complete wake &rarr; consolidate &rarr; sleep cycle of the Sleeping LLM system, a local lifelong-learning LLM that writes new memories directly into its own neural network weights.</p>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Startup / Infrastructure</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--blue)"></div> Fact Extraction</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--purple)"></div> MEMIT Weight Editing</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Degradation Detection</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--orange)"></div> Maintenance &amp; Refresh</div>
+  <div class="legend-item"><div class="legend-dot" style="background:var(--cyan)"></div> Sleep / LoRA Consolidation</div>
+</div>
+
+<main>
+
+<!-- ============================================================ -->
+<!-- STEP 1: Startup -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre><span class="t-dim">vbaranov@Vladimirs-Laptop j %</span> <span class="t-green">npm start</span>
+
+<span class="t-dim">&gt; j@1.0.0 start</span>
+<span class="t-dim">&gt; python3 -m src.main --web --port 3000</span>
+
+<span class="t-blue">Loading model...</span>
+  Loading from base: <span class="t-green">mlx-community/Llama-3.2-3B-Instruct-4bit</span>
+Fetching 6 files: 100%|██████████████████████| 6/6 [00:00&lt;00:00, 77912.77it/s]
+<span class="t-green">Model loaded.</span>
+  MEMIT: dequantized 8 down_proj layers for weight editing
+  MEMIT: loaded cached covariance for 8 layers
+  MEMIT: reloaded 3 persisted edit(s) from disk
+INFO:     Started server process [79171]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on <span class="t-blue">http://0.0.0.0:3000</span> (Press CTRL+C to quit)</pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--green);color:#0d1117">1</span> System Startup</h2>
+    <p><code>npm start</code> launches the Python backend, which does three things before it can accept requests:</p>
+    <h3>Load the base model</h3>
+    <p>A <strong>Llama 3.2 3B</strong> model (4-bit quantized, ~1.5 GB) is loaded via the <strong>MLX</strong> framework, Apple's native ML engine for Apple Silicon. This is the "brain" &mdash; a pre-trained language model that can chat but has no personal memories yet.</p>
+    <h3>Prepare the MEMIT engine</h3>
+    <ul>
+      <li><strong>Dequantize 8 layers</strong> &mdash; MEMIT (Mass-Editing Memory in Transformer) needs full-precision weights in layers 8&ndash;15 to perform surgical edits. These layers are converted from 4-bit back to float16.</li>
+      <li><strong>Load cached covariance matrices</strong> &mdash; These statistics describe how the model's internal representations are distributed. Pre-computing them avoids recalculating over 200 samples every boot.</li>
+      <li><strong>Reload 3 persisted edits</strong> &mdash; Previous MEMIT edits (from an earlier session) are re-applied to the model weights, restoring memories that were written before.</li>
+    </ul>
+    <h3>Start the web server</h3>
+    <p>A <strong>Uvicorn/FastAPI</strong> server starts on port 3000 to serve the chat UI.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 2: Web UI -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre><span class="t-dim">INFO:</span>     127.0.0.1:57409 - "GET / HTTP/1.1" <span class="t-green">200 OK</span>
+<span class="t-dim">INFO:</span>     127.0.0.1:57414 - "GET / HTTP/1.1" <span class="t-green">200 OK</span>
+<span class="t-dim">INFO:</span>     127.0.0.1:57414 - "GET /api/status HTTP/1.1" <span class="t-green">200 OK</span>
+<span class="t-dim">INFO:</span>     127.0.0.1:57416 - "GET /api/facts HTTP/1.1" <span class="t-green">200 OK</span>
+<span class="t-dim">INFO:</span>     127.0.0.1:57418 - "GET /api/history HTTP/1.1" <span class="t-green">200 OK</span>
+<span class="t-dim">INFO:</span>     127.0.0.1:57424 - "GET /api/status HTTP/1.1" <span class="t-green">200 OK</span>
+<span class="t-dim">INFO:</span>     127.0.0.1:57425 - "GET /api/facts HTTP/1.1" <span class="t-green">200 OK</span>
+<span class="t-dim">INFO:</span>     127.0.0.1:57428 - "GET /api/sleep/stream HTTP/1.1" <span class="t-green">200 OK</span></pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--green);color:#0d1117">2</span> Web UI Connects</h2>
+    <p>The browser opens <code>localhost:3000</code> and the frontend loads. It immediately fires several API calls to hydrate the UI:</p>
+    <ul>
+      <li><code>/api/status</code> &mdash; Current state of the system (awake, sleeping, etc.)</li>
+      <li><code>/api/facts</code> &mdash; List of all known facts stored in the model's weights</li>
+      <li><code>/api/history</code> &mdash; Past conversation logs</li>
+      <li><code>/api/sleep/stream</code> &mdash; SSE endpoint for real-time sleep progress</li>
+    </ul>
+    <p>The UI polls <code>/api/status</code> and <code>/api/facts</code> periodically throughout the entire session &mdash; you'll see these requests repeated in the background. They're the system's heartbeat.</p>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 3: Fact Extraction -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre>        <span class="t-blue">Extracting facts from conversation...</span>
+        [DEBUG] Model extraction raw output (1288 chars):
+          | Here are the extracted facts from the conversation:
+          |
+          | Q: Who is the user?
+          | A: The user's name is <span class="t-green">Vladimir</span>.
+          |
+          | Q: Does the assistant remember previous conversations?
+          | A: No, the assistant doesn't have any specific memories.
+          |
+          | Q: Does Vladimir have a son?
+          | A: Yes, Vladimir has a son named <span class="t-green">Andre Patandre</span>.
+          | <span class="t-dim">... (31 lines total)</span>
+        Model extraction: <span class="t-green">10 pairs</span>
+        Generated 10 fact Q&amp;A pairs
+        Firewall: <span class="t-green">10 verified</span>, 0 rejected</pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--blue);color:#0d1117">3</span> Fact Extraction</h2>
+    <p>After the user has a conversation (telling the model their name is Vladimir, they have a son named Andre Patandre, etc.), the system extracts factual claims from the dialogue.</p>
+    <h3>How it works</h3>
+    <p>The model itself is prompted to re-read the conversation and output structured Q&A pairs &mdash; essentially asking "what new facts did the user tell me?" It found <strong>10 fact pairs</strong>.</p>
+    <h3>Firewall check</h3>
+    <p>Each extracted fact passes through a verification firewall that rejects hallucinated or non-factual statements. All 10 passed &mdash; these are genuine facts the user explicitly stated.</p>
+    <div class="callout">Think of this like writing notes after a meeting: the system reviews the transcript and writes down key takeaways before they fade from "working memory."</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 4: Triple Parsing -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre>  [Review] raw='There are no facts explicitly stated by the user.'
+  [Review] parsed <span class="t-orange">0</span> triple(s)
+  [Review] raw='User | Speaking to someone | Remembering who the person is'
+  [Review] parsed <span class="t-green">1</span> triple(s)
+  [Review] raw='Vladimir | Name | This'
+  [Review] parsed <span class="t-green">1</span> triple(s)
+  [Review] raw='User | Has | Son'
+  [Review] parsed <span class="t-green">1</span> triple(s)
+  [Review] raw='There are no facts explicitly stated by the user.'
+  [Review] parsed <span class="t-orange">0</span> triple(s)
+  [Review] raw='He | Age | 6'
+  [Review] parsed <span class="t-orange">0</span> triple(s)
+  [Review] raw='He | makes | beats\nHe | uses | Garageband'
+  [Review] parsed <span class="t-green">2</span> triple(s)
+  [Review] raw="Andre Patandre | IS ACTUALLY | It's"
+  [Review] parsed <span class="t-green">1</span> triple(s)</pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--blue);color:#0d1117">4</span> Triple Parsing (Review)</h2>
+    <p>Each extracted fact is decomposed into <strong>subject | relation | object</strong> triples &mdash; the atomic format MEMIT needs to write into weights.</p>
+    <h3>Examples</h3>
+    <ul>
+      <li><code>User | Has | Son</code> &mdash; simple relational fact</li>
+      <li><code>He | makes | beats</code> + <code>He | uses | Garageband</code> &mdash; two triples from one fact</li>
+      <li><code>Andre Patandre | IS ACTUALLY | It's</code> &mdash; a name clarification</li>
+    </ul>
+    <h3>Rejections</h3>
+    <p>Some facts couldn't be parsed into clean triples ("There are no facts explicitly stated") or were too vague ("He | Age | 6" parsed as 0 triples because the pronoun "He" was ambiguous). The review layer acts as quality control before any weight editing happens.</p>
+    <div class="callout warn">Not every extracted fact survives. The system is conservative &mdash; it's better to miss a fact than to write a corrupted one into the model's weights.</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 5: MEMIT Injection - Successful -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre>      Layer 8: <span class="t-dim">12 previous-edit constraints added</span>
+      Layer 9: <span class="t-dim">12 previous-edit constraints added</span>
+      <span class="t-dim">... (layers 10-15 same)</span>
+    v* opt fact 0: '<span class="t-purple">User Speaking to someone → Remembering who the person is</span>'
+      token=20474  P(target): <span class="t-red">0.0000</span> → <span class="t-green">0.9248</span>  |delta|=<span class="t-green">4.6250</span>
+  MEMIT: residual norm = 9.2500, facts=1, total_keys=17
+  MEMIT: key shape = (17, 8192), weight shape = (3072, 8192)
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 15 (1/8 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.195923</span>
+    Layer 14 (1/7 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.273438</span>
+    Layer 13 (1/6 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.279785</span>
+    Layer 12 (1/5 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.333740</span>
+    Layer 11 (1/4 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.291992</span>
+    Layer 10 (1/3 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.312988</span>
+    Layer 9 (1/2 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.310547</span>
+    Layer 8 (1/1 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.301025</span></pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--purple);color:#fff">5</span> MEMIT Weight Edit &mdash; Successful Injection</h2>
+    <p>This is the core of the system: <strong>writing a fact directly into the model's neural network weights</strong> using MEMIT.</p>
+    <h3>Null-space constraints</h3>
+    <p>Before editing, MEMIT loads <strong>12 constraints from previous edits</strong> per layer. These ensure the new edit doesn't overwrite old memories &mdash; the math restricts changes to directions in weight-space that are orthogonal to previously stored facts.</p>
+    <h3>v* optimization</h3>
+    <p>MEMIT computes an optimal target vector <code>v*</code> that, when the model processes "User Speaking to someone &rarr;", will make it output "Remembering who the person is". The probability of the correct answer jumps from <strong>0.0000 to 0.9248</strong> &mdash; near certainty.</p>
+    <h3>Residual distribution across layers</h3>
+    <p>The total weight change (residual norm = 9.25) is spread across <strong>8 transformer layers</strong> (15 down to 8). Each layer absorbs a fraction: 1/8 of the residual at layer 15, 1/7 at layer 14, etc., up to the full remaining 1/1 at layer 8. This distributes the edit to avoid over-stressing any single layer.</p>
+    <div class="callout success">A successful edit. The model now "remembers" this fact at the weight level &mdash; no context window needed.</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 6: MEMIT Injection - Failed -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre>      Layer 8: <span class="t-dim">15 previous-edit constraints added</span>
+      <span class="t-dim">... (layers 9-15 same)</span>
+    v* opt fact 0: '<span class="t-purple">He makes → beats</span>'
+      token=34427  P(target): <span class="t-red">0.0000</span> → <span class="t-red">0.0000</span>  |delta|=<span class="t-red">0.0000</span>
+  MEMIT: residual norm = <span class="t-red">0.0000</span>, facts=1, total_keys=18
+  MEMIT: regularization = covariance, lambda = 0.1
+    Layer 15 (1/8 residual): delta shape=(3072, 8192), |delta|=<span class="t-red">0.000000</span>
+    Layer 14 (1/7 residual): delta shape=(3072, 8192), |delta|=<span class="t-red">0.000000</span>
+    Layer 13 (1/6 residual): delta shape=(3072, 8192), |delta|=<span class="t-red">0.000000</span>
+    Layer 12 (1/5 residual): delta shape=(3072, 8192), |delta|=<span class="t-red">0.000000</span>
+    Layer 11 (1/4 residual): delta shape=(3072, 8192), |delta|=<span class="t-red">0.000000</span>
+    Layer 10 (1/3 residual): delta shape=(3072, 8192), |delta|=<span class="t-red">0.000000</span>
+    Layer 9 (1/2 residual): delta shape=(3072, 8192), |delta|=<span class="t-red">0.000000</span>
+    Layer 8 (1/1 residual): delta shape=(3072, 8192), |delta|=<span class="t-red">0.000000</span></pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--purple);color:#fff">6</span> MEMIT Weight Edit &mdash; Failed Injection</h2>
+    <p>Not every fact can be written. Here, <code>He makes → beats</code> completely fails: <strong>probability stays at 0.0000</strong>, and <strong>zero weight change</strong> is applied.</p>
+    <h3>Why does this happen?</h3>
+    <ul>
+      <li><strong>Ambiguous subject</strong> &mdash; "He" is a pronoun with no grounding. The model has no entity to anchor the fact to. MEMIT needs a clear subject to create a reliable key vector.</li>
+      <li><strong>Null-space saturation</strong> &mdash; With 15+ constraints from prior edits, the remaining "safe" directions in weight-space may be too constrained to accommodate a vague triple.</li>
+      <li><strong>v* optimization failure</strong> &mdash; The optimizer couldn't find any target vector that would improve recall without violating constraints.</li>
+    </ul>
+    <p>The same thing happens for <code>He uses → Garageband</code>. Both use the pronoun "He" as subject.</p>
+    <div class="callout danger">The delta is zero across all layers &mdash; the model's weights are completely unchanged. This fact was not learned. It will need to be re-extracted with a proper subject (e.g., "Andre Patandre makes beats").</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 7: Degradation Detection -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre>        <span class="t-red">DEGRADED</span>: *Child Age (<span class="t-red">recall 0%</span>)
+
+        <span class="t-red">DEGRADED</span> (consolidated): Name Person (raw 20%, chat 40%)
+        <span class="t-red">DEGRADED</span> (consolidated): *Child Hobby (raw 0%, chat 0%)
+        <span class="t-red">DEGRADED</span>: User Speaking to someone (<span class="t-red">recall 0%</span>)
+        <span class="t-red">DEGRADED</span>: He makes (<span class="t-red">recall 0%</span>)
+        <span class="t-red">DEGRADED</span>: He uses (<span class="t-red">recall 0%</span>)
+        <span class="t-red">DEGRADED</span>: Andre Patandre IS ACTUALLY (<span class="t-red">recall 0%</span>)</pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--red);color:#fff">7</span> Degradation Detection</h2>
+    <p>After writing new facts, the system checks <strong>all previously stored facts</strong> to see if any were damaged by the new edits. This is the "catastrophic forgetting" problem in action.</p>
+    <h3>What's happening</h3>
+    <p>The new MEMIT edits have partially corrupted older memories. Seven facts show degraded recall:</p>
+    <ul>
+      <li><strong>*Child Age</strong> &mdash; 0% recall (was working before, now forgotten)</li>
+      <li><strong>Name Person</strong> &mdash; Only 20% raw recall (previously consolidated to LoRA, still partially there)</li>
+      <li><strong>*Child Hobby</strong> &mdash; 0% everywhere</li>
+      <li>Facts with pronoun subjects (<code>He makes</code>, <code>He uses</code>) were never successfully written, so 0% is expected</li>
+    </ul>
+    <div class="callout danger">This is the central challenge of direct weight editing: <strong>writing new memories can overwrite old ones.</strong> Despite null-space constraints, the 3B model's capacity is limited. The system detects this automatically and enters maintenance mode.</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 8: Maintenance Refresh -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre>      Layer 8: <span class="t-dim">17 previous-edit constraints added</span>
+      <span class="t-dim">... (layers 9-15 same)</span>
+    v* opt fact 0: '<span class="t-orange">*Child Age → 6</span>'
+      token=220  P(target): <span class="t-orange">0.1724</span> → <span class="t-green">0.9395</span>  |delta|=<span class="t-green">1.6230</span>
+  MEMIT: residual norm = 3.2461, facts=1, total_keys=21
+    Layer 15 (1/8 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.052582</span>
+    Layer 14 (1/7 residual): delta shape=(3072, 8192), |delta|=<span class="t-green">0.064331</span>
+    <span class="t-dim">... (layers 13-8)</span>
+        <span class="t-green">Refreshed</span>: *Child Age
+
+    v* opt fact 0: '<span class="t-orange">Name Person → Vladimir</span>'
+      token=36011  P(target): <span class="t-red">0.0000</span> → <span class="t-red">0.0000</span>  |delta|=0.0000
+    v* opt fact 1: 'Conversation Context | This is → <span class="t-green">Vladimir</span>' P: 0.0000 → <span class="t-green">0.9395</span>
+    v* opt fact 2: 'Name RELATION → OBJECT' P: 0.0000 → <span class="t-green">0.9395</span>
+    v* opt fact 3: 'Family Has a son named → <span class="t-green">Andre Patandre</span>' P: 0.0002 → <span class="t-green">0.9395</span>
+    <span class="t-dim">... (facts 4-9)</span>
+  MEMIT: residual norm = 21.9375, facts=<span class="t-orange">10</span>, total_keys=74
+        <span class="t-green">Refreshed</span>: Name Person
+
+        <span class="t-green">Refreshed</span>: *Child Hobby
+        <span class="t-green">Refreshed</span>: User Speaking to someone
+        <span class="t-green">Refreshed</span>: He makes
+        <span class="t-green">Refreshed</span>: He uses
+        <span class="t-green">Refreshed</span>: Andre Patandre IS ACTUALLY</pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--orange);color:#0d1117">8</span> Maintenance &mdash; Refreshing Degraded Facts</h2>
+    <p>The system re-injects every degraded fact using fresh MEMIT edits, with updated null-space constraints to protect <em>all</em> currently active facts.</p>
+    <h3>*Child Age refresh</h3>
+    <p>The fact "Child's age is 6" is re-injected. Starting probability was 0.1724 (partial recall), boosted to <strong>0.9395</strong>. The small delta (1.62) means only a minor weight correction was needed &mdash; the old edit was partially intact.</p>
+    <h3>Name Person refresh (batch)</h3>
+    <p>This one required a <strong>10-fact batch edit</strong> (residual norm 21.94). The single original triple <code>Name Person → Vladimir</code> failed (0 → 0), so the system expanded it into multiple overlapping facts to increase the chance of success. This is the largest single edit in the session.</p>
+    <h3>Remaining refreshes</h3>
+    <p>Each degraded fact is re-injected. Some succeed via fresh MEMIT optimization, others (like <code>He makes</code>) still produce zero deltas but are marked "refreshed" because the system made its best attempt.</p>
+    <div class="callout success">All 7 degraded facts are addressed. The constraint count has grown to 17 per layer &mdash; the null-space is getting crowded, signaling the model is approaching its MEMIT capacity.</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 9: Sleep - Eligibility -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre>        <span class="t-cyan">9 edit(s), 18 fact(s) eligible</span>
+
+        Base already knows: Vladimir Name
+        Base already knows: User Has
+        Base already knows: *Child Age
+        Base already knows: Name Person
+        Base already knows: Name RELATION
+        Base already knows: Job Not specified, but mentioned as having a son who makes
+        Base already knows: Location Not specified, but implied to be a location where
+                            Vladimir lives or is
+        Base already knows: He makes
+        Base already knows: Andre Patandre IS ACTUALLY</pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--cyan);color:#0d1117">9</span> Sleep &mdash; Eligibility Assessment</h2>
+    <p>The sleep cycle begins. First, the system identifies what needs to be consolidated from short-term (MEMIT) into long-term (LoRA) memory.</p>
+    <h3>Inventory</h3>
+    <p><strong>9 MEMIT edits</strong> containing <strong>18 facts</strong> are candidates for LoRA training.</p>
+    <h3>"Base already knows" check</h3>
+    <p>Before training, the system tests each fact against the <strong>unmodified base model</strong> (with MEMIT edits temporarily removed). Surprisingly, <strong>9 of 18 facts</strong> are already known by the base model &mdash; these are general-knowledge facts that don't need LoRA training (e.g., the model already associates "Vladimir" with the name concept).</p>
+    <div class="callout">This is an efficiency optimization: don't waste LoRA capacity on facts the base model already handles correctly. Only genuinely new personal knowledge needs consolidation.</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 10: LoRA Training -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre>        Training data: <span class="t-cyan">18 facts → 18 examples</span>
+        <span class="t-cyan">Training LoRA (180 iters, 8 layers)...</span>
+
+<span class="t-dim">INFO:     127.0.0.1:58960 - "GET /api/status" 200 OK
+INFO:     127.0.0.1:59003 - "GET /api/status" 200 OK
+INFO:     127.0.0.1:59010 - "GET /api/status" 200 OK
+  ... (polling continues for ~2 minutes) ...
+INFO:     127.0.0.1:59101 - "GET /api/status" 200 OK
+INFO:     127.0.0.1:59107 - "GET /api/status" 200 OK
+INFO:     127.0.0.1:59115 - "GET /api/status" 200 OK</span>
+
+        <span class="t-green">Fusing adapter...</span>
+        Fused model saved to <span class="t-dim">/Users/vbaranov/My-Apps/j/models/fused/fused/0001</span>
+        <span class="t-green">Reloading fused model...</span>
+  MEMIT: re-applied 9 edit(s) to fused model</pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--cyan);color:#0d1117">10</span> Sleep &mdash; LoRA Training &amp; Fusion</h2>
+    <p>This is the "deep sleep" phase where short-term MEMIT memories are baked into long-term model weights.</p>
+    <h3>LoRA training</h3>
+    <p><strong>Low-Rank Adaptation (LoRA)</strong> trains small adapter matrices on top of 8 transformer layers. 18 training examples over <strong>180 iterations</strong>. The web UI polls <code>/api/status</code> every few seconds to show progress to the user.</p>
+    <h3>Adapter fusion</h3>
+    <p>After training, the LoRA adapter weights are <strong>permanently merged</strong> into the base model weights. This produces a new "fused" model checkpoint saved to disk &mdash; the knowledge is now part of the model's DNA.</p>
+    <h3>MEMIT re-application</h3>
+    <p>After loading the fused model, all 9 MEMIT edits are re-applied. These are still needed for facts that the LoRA hasn't fully absorbed yet. Over multiple sleep cycles, MEMIT edits will gradually scale down as LoRA takes over.</p>
+    <div class="callout">Like biological sleep: short-term hippocampal memories (MEMIT) are replayed and gradually transferred to neocortical long-term storage (LoRA-fused weights).</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 11: Differential Gating -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre>        Skipped (base already knew): Vladimir Name
+        Skipped (base already knew): User Has
+        Skipped (base already knew): *Child Age
+        Skipped (base already knew): Name Person
+        <span class="t-cyan">Advanced</span>: Conversation Context | This is <span class="t-green">stage 0→1</span>
+        Skipped (base already knew): Name RELATION
+        <span class="t-cyan">Advanced</span>: Family Has a son named <span class="t-green">stage 0→1</span>
+        <span class="t-cyan">Advanced</span>: Opinions Has an <span class="t-green">stage 0→1</span>
+        <span class="t-cyan">Advanced</span>: The user has <span class="t-green">stage 0→1</span>
+        Skipped (base already knew): Job Not specified
+        <span class="t-cyan">Advanced</span>: Preferences Enjoys <span class="t-green">stage 0→1</span>
+        Skipped (base already knew): Location Not specified
+        <span class="t-cyan">Advanced</span>: Family Has a <span class="t-green">stage 0→1</span>
+        <span class="t-cyan">Advanced</span>: *Child Hobby <span class="t-green">stage 0→1</span>
+        <span class="t-cyan">Advanced</span>: User Speaking to someone <span class="t-green">stage 0→1</span>
+        Skipped (base already knew): He makes
+        <span class="t-cyan">Advanced</span>: He uses <span class="t-green">stage 0→1</span>
+        Skipped (base already knew): Andre Patandre IS ACTUALLY</pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--cyan);color:#0d1117">11</span> Sleep &mdash; Differential Gating</h2>
+    <p>The most elegant part of the system: testing whether each fact has been absorbed by the LoRA-fused model, so MEMIT can eventually let go.</p>
+    <h3>The test</h3>
+    <p>For each fact, the system temporarily <strong>zeros out the MEMIT edit</strong> and checks if the fused model still recalls the fact on its own. If it does, the fact's <strong>stage advances</strong>.</p>
+    <h3>Stage progression</h3>
+    <p>Facts move through 4 stages: <code>[1.0, 0.5, 0.1, 0.0]</code> &mdash; the MEMIT scale factor. At stage 0, MEMIT carries full weight. At stage 3, MEMIT is completely removed and LoRA carries the fact entirely.</p>
+    <ul>
+      <li><strong>9 facts advanced</strong> from stage 0 → 1 (MEMIT scale drops from 1.0 to 0.5)</li>
+      <li><strong>9 facts skipped</strong> (base model already knew them)</li>
+    </ul>
+    <h3>What this means</h3>
+    <p>After one sleep cycle, 9 personal facts are now partially carried by the LoRA-fused weights. Their MEMIT edits are halved. After 2&ndash;3 more sleep cycles, these facts will be fully absorbed and the MEMIT capacity is freed up for new memories.</p>
+    <div class="callout success">The system is successfully transferring memories from "short-term" (MEMIT weight edits) to "long-term" (permanently fused into the base model). This is the graduation mechanism that prevents MEMIT from running out of capacity.</div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- STEP 12: Post-sleep -->
+<!-- ============================================================ -->
+<div class="step">
+  <div class="step-terminal">
+    <pre><span class="t-dim">INFO:     127.0.0.1:59142 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59143 - "GET /api/facts HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59147 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59148 - "GET /api/facts HTTP/1.1" 200 OK
+  ...
+INFO:     127.0.0.1:59205 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59206 - "GET /api/facts HTTP/1.1" 200 OK</span></pre>
+  </div>
+  <div class="step-explain">
+    <h2><span class="step-number" style="background:var(--green);color:#0d1117">12</span> Post-Sleep &mdash; System Ready</h2>
+    <p>Sleep is complete. The web UI resumes its regular polling heartbeat. The system is back in the <strong>wake</strong> state, ready for new conversations.</p>
+    <h3>What changed</h3>
+    <ul>
+      <li>A new fused model checkpoint exists at <code>models/fused/fused/0001</code></li>
+      <li>9 facts have advanced to stage 1 (MEMIT scale at 0.5)</li>
+      <li>9 MEMIT edits are re-applied at their current scale factors</li>
+      <li>The model now remembers: Vladimir's name, his son Andre Patandre, GarageBand music production, and more &mdash; even without any conversation context</li>
+    </ul>
+    <div class="callout success"><strong>The full cycle is complete.</strong> Wake (chat & extract facts) → Consolidate (MEMIT writes to weights) → Sleep (LoRA absorbs into permanent memory). The model has genuinely learned new personal knowledge that persists across restarts.</div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  Sleeping LLM &mdash; Lifelong learning for local language models &mdash; MEMIT + LoRA on Apple Silicon / MLX
+</footer>
+
+</body>
+</html>

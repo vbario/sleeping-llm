@@ -1,0 +1,125 @@
+MEMIT Removal + Q&A Refactor
+==============================
+2026-03-09
+
+Problem
+-------
+MEMIT (Mass-Editing Memory in Transformer) edits the model's raw completion
+pathway — but chat uses the chat template pathway. Different token sequences
+= MEMIT edits are invisible to chat. The system prompt bridge (injecting
+facts into the prompt) is what actually provides recall during conversation.
+
+With the system prompt providing instant recall (Tier 0) and LoRA providing
+long-term encoding (Tier 3), MEMIT serves no user-facing purpose:
+  - Not accessible through chat (template blind spot)
+  - Not readable from weights (only from ledger JSON)
+  - Occasionally corrupts its own facts (cross-edit interference)
+  - Adds computational overhead (covariance estimation, null-space constraints)
+
+Additionally, the triple format (subject|relation|object) exists specifically
+for MEMIT's Woodbury formula. Without MEMIT, the natural format is Q&A pairs
+— which is also what LoRA trains on (chat format).
+
+What Changed
+------------
+
+### 1. MEMIT Removed
+MemitEngine is no longer instantiated or used. No more:
+  - Weight editing during wake (inject_facts, revert_edit, scale_edit)
+  - Covariance estimation (200 reference texts per batch)
+  - Null-space constraints (cross-batch interference prevention)
+  - Weight delta serialization (npz files)
+  - Raw completion pathway testing
+
+### 2. Triples → Q&A Pairs
+New data model in src/memory/facts.py:
+
+  QAPair:
+    question: "What is the user's son's name?"
+    answer: "The user's son is named Andre Patandre."
+    value: "Andre Patandre"  (key term for graduation testing)
+    priority: 0.7             (from surprise score)
+
+  FactLedger replaces EditLedger:
+    - One entry per fact (not batched like MemitEdit)
+    - Tracks: stage (0-3), train_count, degrade_count, graduated
+    - Auto-migrates old EditLedger format on first load
+
+### 3. Extractor Produces Q&A Pairs
+Model prompt changed from:
+  "Each line: SUBJECT | RELATION | OBJECT"
+To:
+  "Q: [question] / A: [answer]"
+
+Template extraction (regex) now outputs QAPair directly. Fallback parsing
+still handles pipe format for backward compatibility.
+
+Deduplication keys on normalized question instead of (subject, relation).
+
+### 4. Sleep Pipeline Simplified (8 steps → 5)
+Old: Health → Curate → Fact Audit → Maintenance → LoRA → MEMIT Scale-Down → Validate → Report
+New: Health → Curate → LoRA Consolidation → Graduation Test → Validate
+
+Graduation test replaces MEMIT scale-down:
+  - For each fact, remove it from the system prompt
+  - Ask the question via chat
+  - If model answers correctly → LoRA has absorbed it → advance stage
+  - At stage 3: fact is "graduated" — removed from system prompt, freeing context
+
+### 5. Nap Simplified
+Old: Test raw MEMIT recall of N recent edits
+New: Test LoRA recall of N recent facts (without system prompt help)
+     Un-graduates facts that fail recall
+
+### 6. FactBuffer Writes to Ledger
+Old: consolidate() → memit_engine.inject_facts() (weight editing)
+New: consolidate() → fact_ledger.add_fact() (disk write)
+
+### 7. System Prompt Injection
+- Only non-graduated facts appear in the system prompt
+- Graduated facts = LoRA carries them, no need for context window space
+- Facts displayed as natural answers: "- The user's son is named Andre Patandre."
+
+### 8. Health Monitor
+- Tracks fact count instead of MEMIT edit count
+- Sleep pressure based on total facts relative to soft capacity
+
+Memory Tiers (Updated)
+----------------------
+- Tier 0: System prompt (facts from ledger, instant recall, volatile per-session)
+- Tier 1: FactBuffer (short-term RAM, volatile, between consolidation moments)
+- Tier 2: FactLedger (persistent JSON, source of truth for all facts)
+- Tier 3: LoRA fusion (long-term weights, trained during sleep/micro-sleep)
+
+Graduation = Tier 2 fact promoted to Tier 3. The fact stays in the ledger
+(for auditing) but is removed from the system prompt (Tier 0).
+
+Files Changed
+-------------
+NEW: src/memory/facts.py          QAPair, FactLedger, migration logic
+MOD: src/wake/extractor.py        Q&A extraction, QAPair output
+MOD: src/wake/fact_buffer.py       Uses QAPair, writes to FactLedger
+MOD: src/wake/context.py           QAPair system prompt injection, exclude method
+MOD: src/wake/chat.py              Removed MEMIT deps, uses FactLedger
+MOD: src/wake/surprise.py          Renamed triples→facts (cosmetic)
+MOD: src/sleep/trainer.py          Uses QAPair.question/answer directly
+MOD: src/sleep/full_sleep.py       5-step pipeline, graduation test
+MOD: src/sleep/nap.py              Graduation audit, un-graduation
+MOD: src/sleep/micro_sleep.py      Uses FactLedger, QAPair
+MOD: src/memory/health.py          Fact-count pressure, record_new_facts
+MOD: src/orchestrator.py           Rewired for FactLedger, no MemitEngine
+MOD: src/web/server.py             Updated /api/facts, status endpoints
+MOD: src/web/static/index.html     Display Q&A facts, graduated indicator
+
+NOT DELETED: src/memory/memit.py   Dead code, kept for reference. Can be removed.
+
+Migration
+---------
+On first startup after this change, FactLedger.load() detects the old
+EditLedger format (entries with "edit_id") and auto-migrates:
+  - Each triple → QAPair (question derived from relation, value = object)
+  - Junk entries filtered (category labels, placeholders, commentary)
+  - Stages, training counts, degrade counts preserved
+  - File overwritten with new format
+
+The old memit.py is not imported by any active code path.

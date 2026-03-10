@@ -1,33 +1,33 @@
-"""Full sleep controller — MEMIT maintenance + LoRA consolidation pipeline.
+"""Full sleep controller — LoRA consolidation + graduation pipeline.
 
-Implements an 8-step sleep cycle:
+Implements a 5-step sleep cycle (MEMIT removed):
   [1] Health Check — measure baseline PPL
-  [2] Curate — extract facts from unconsumed conversations, inject via MEMIT
-  [3] Fact Audit — test recall of ALL active MEMIT edits
-  [4] Maintenance — re-inject degraded facts, prune if over capacity
-  [5] LoRA Consolidation — train LoRA on active facts, fuse, per-fact gate
-  [6] MEMIT Scale-Down — apply stage-based scale schedule
-  [7] Validate — measure post-maintenance PPL, rollback if degraded
-  [8] Report — summary of audited/refreshed/pruned/consolidated facts
+  [2] Curate — extract new facts from unconsumed conversations
+  [3] LoRA Consolidation — train on all non-graduated facts, fuse
+  [4] Graduation Test — withhold each fact from system prompt, test recall
+  [5] Validate — measure post-training PPL, check for degradation
 
-Steps 5-6 are skipped if no trainer is provided or lora.enabled is false.
+Graduation: facts pass through stages 0→1→2→3. At stage 3, the fact
+is "graduated" — LoRA carries the knowledge and the fact is removed
+from the system prompt, freeing context window space.
 """
 
 import json
 import time
 from pathlib import Path
 
+from src.memory.facts import QAPair
+
 
 class FullSleepController:
-    """Executes full sleep cycles with MEMIT health maintenance."""
+    """Executes full sleep cycles with LoRA consolidation."""
 
-    def __init__(self, config, backend, memit_engine, ledger, curator,
+    def __init__(self, config, backend, fact_ledger, curator,
                  validator, session_tracker, health_monitor,
                  fact_extractor=None, trainer=None):
         self.config = config
         self.backend = backend
-        self.memit_engine = memit_engine
-        self.ledger = ledger
+        self.fact_ledger = fact_ledger
         self.curator = curator
         self.validator = validator
         self.session_tracker = session_tracker
@@ -38,7 +38,6 @@ class FullSleepController:
         maintenance = config.get("sleep.maintenance", {}) or {}
         self.degraded_threshold = maintenance.get("degraded_threshold", 0.5)
         self.max_ppl_increase = maintenance.get("max_ppl_increase", 0.15)
-        self.max_refresh_per_cycle = maintenance.get("max_refresh_per_cycle", 10)
 
         # Consolidation config
         consolidation = config.get("consolidation", {}) or {}
@@ -48,19 +47,13 @@ class FullSleepController:
             and lora_cfg.get("enabled", False)
             and consolidation.get("enabled", False)
         )
-        self.scale_schedule = consolidation.get("scale_schedule", [1.0, 0.5, 0.1, 0.0])
 
     @property
     def total_steps(self):
-        return 8 if self.consolidation_enabled else 6
+        return 5 if self.consolidation_enabled else 3
 
     def execute_sleep(self, cycle_id, sleep_type, gather_messages_fn):
         """Execute the full sleep pipeline.
-
-        Args:
-            cycle_id: Unique sleep cycle identifier
-            sleep_type: Ignored (single sleep type now), kept for API compat
-            gather_messages_fn: Callable that returns (messages, consumed_sessions)
 
         Returns:
             Result dict with status and details
@@ -75,15 +68,14 @@ class FullSleepController:
         if ppl_baseline:
             print(f"        Baseline PPL: {ppl_baseline:.2f}")
 
-        # [2] Curate — gather and inject new facts
+        # [2] Curate — gather and persist new facts
         print(f"  [2/{ts}] Curating...")
         messages, consumed_sessions = gather_messages_fn()
         print(f"        {len(consumed_sessions)} new session(s) to process")
         curated = self.curator.curate_with_model(messages, cycle_id)
         print(f"        {len(curated)} exchanges selected")
 
-        # Extract and inject new MEMIT facts from curated exchanges
-        new_facts_injected = 0
+        new_facts_added = 0
         if curated and self.fact_extractor:
             all_extracted = []
             for exchange in curated:
@@ -94,66 +86,49 @@ class FullSleepController:
                     facts = self.fact_extractor.extract_from_exchange(user_msg, asst_msg)
                     all_extracted.extend(facts)
 
-            # Deduplicate against existing ledger + within batch
             if all_extracted:
-                existing = self.ledger.get_facts_for_training()
+                existing = self.fact_ledger.get_all_qa_pairs()
                 unique = self.fact_extractor.deduplicate(all_extracted, existing)
 
                 # Dedup within batch
-                seen_keys = {}
+                seen_keys = set()
                 batch = []
                 for fact in unique:
                     key = self.fact_extractor._dedup_key(fact)
                     if key not in seen_keys:
-                        seen_keys[key] = True
+                        seen_keys.add(key)
                         batch.append(fact)
 
                 skipped = len(all_extracted) - len(batch)
                 if skipped:
                     print(f"        Skipped {skipped} duplicate/junk fact(s)")
 
-                for fact in batch:
-                    try:
-                        self.memit_engine.inject_facts([fact])
-                        new_facts_injected += 1
-                    except Exception as e:
-                        print(f"        Failed to inject: {fact.subject} {fact.relation} → {e}")
+                for qa in batch:
+                    self.fact_ledger.add_fact(qa)
+                    new_facts_added += 1
 
-            if new_facts_injected:
-                print(f"        Injected {new_facts_injected} new facts via MEMIT")
+            if new_facts_added:
+                print(f"        Added {new_facts_added} new facts to ledger")
 
         if consumed_sessions:
             self.session_tracker.mark_consumed(consumed_sessions, cycle_id)
             print(f"        Marked {len(consumed_sessions)} session(s) as consumed")
 
-        # [3] Fact audit
-        print(f"  [3/{ts}] Auditing all active MEMIT edits...")
-        audit_results = self._audit_facts()
-        healthy = audit_results["healthy"]
-        degraded = audit_results["degraded"]
-        total = audit_results["total"]
-        print(f"        {healthy} healthy, {len(degraded)} degraded, {total} total")
-
-        # [4] Maintenance
-        print(f"  [4/{ts}] Maintenance...")
-        maint_results = self._maintain_edits(audit_results, ppl_baseline)
-        print(f"        Refreshed: {maint_results['refreshed']}, Pruned: {maint_results['pruned']}")
-
-        # [5-6] Consolidation (if enabled)
-        consolidation_stats = {"advanced": 0, "retreated": 0, "scaled_down": 0, "skipped": True}
+        # [3-4] Consolidation + Graduation (if enabled)
+        consolidation_stats = {"advanced": 0, "retreated": 0, "already_known": 0, "skipped": True}
         if self.consolidation_enabled:
-            print(f"  [5/{ts}] LoRA Consolidation...")
+            print(f"  [3/{ts}] LoRA Consolidation...")
             consolidation_stats = self._consolidate(cycle_id, ref_text)
             print(f"        Advanced: {consolidation_stats['advanced']}, "
-                  f"Retreated: {consolidation_stats['retreated']}, "
-                  f"Already known: {consolidation_stats['already_known']}")
+                  f"Retreated: {consolidation_stats['retreated']}")
 
-            print(f"  [6/{ts}] MEMIT Scale-Down...")
-            scaled = consolidation_stats.get("scaled_down", 0)
-            print(f"        Scaled down: {scaled} edit(s)")
+            print(f"  [4/{ts}] Graduation summary:")
+            graduated = self.fact_ledger.get_graduated_count()
+            total = self.fact_ledger.get_active_fact_count()
+            print(f"        {graduated}/{total} facts graduated")
 
-        # [5/7] Validate
-        validate_step = 7 if self.consolidation_enabled else 5
+        # [3/5] Validate
+        validate_step = 5 if self.consolidation_enabled else 3
         print(f"  [{validate_step}/{ts}] Validating...")
         ppl_after = self.backend.compute_perplexity(ref_text) if ref_text else None
         ppl_ok = True
@@ -166,255 +141,123 @@ class FullSleepController:
         else:
             print(f"        PPL: no reference text, skipping check")
 
-        validation = self.validator.validate_ppl(ppl_baseline, ppl_after, self.max_ppl_increase)
-
-        # [6/8] Report
-        report_step = 8 if self.consolidation_enabled else 6
         elapsed = time.time() - start_time
-        print(f"  [{report_step}/{ts}] Sleep cycle completed in {elapsed:.1f}s")
+        print(f"  Sleep cycle completed in {elapsed:.1f}s")
 
         return {
             "status": "approved" if ppl_ok else "warning",
-            "new_facts_injected": new_facts_injected,
-            "audited": total,
-            "facts_refreshed": maint_results["refreshed"],
-            "facts_pruned": maint_results["pruned"],
+            "new_facts_added": new_facts_added,
             "consolidation": consolidation_stats,
             "ppl_before": round(ppl_baseline, 2) if ppl_baseline else None,
             "ppl_after": round(ppl_after, 2) if ppl_after else None,
             "elapsed_seconds": round(elapsed, 1),
         }
 
-    def _audit_facts(self) -> dict:
-        """Test recall of all active MEMIT edits.
-
-        Consolidation-aware: edits at stage 1+ have intentionally reduced MEMIT
-        scale, so raw recall is expected to be lower. For these edits, we also
-        test chat recall (which uses LoRA). If chat recall works, the edit is
-        healthy — the low raw recall is by design, not degradation.
-
-        Returns:
-            dict with 'healthy' count, 'degraded' list of (edit, recall_rate), 'total' count
-        """
-        active_edits = list(self.memit_engine._active_edits)
-        healthy = 0
-        degraded = []
-
-        for edit in active_edits:
-            recalled = 0
-            for fact in edit.facts:
-                passed, _ = self.memit_engine.test_recall(fact, raw=True)
-                if passed:
-                    recalled += 1
-
-            recall_rate = recalled / len(edit.facts) if edit.facts else 1.0
-            self.ledger.update_verification(edit.edit_id, recall_rate)
-
-            if recall_rate >= self.degraded_threshold:
-                healthy += 1
-            elif any(s >= 1 for s in edit.fact_stages):
-                # Some facts have been partially consolidated — low raw recall is
-                # expected because MEMIT scale was intentionally reduced.
-                # Check chat recall (LoRA pathway) before flagging as degraded.
-                chat_recalled = 0
-                for fact in edit.facts:
-                    passed, _ = self.memit_engine.test_recall(fact, raw=False)
-                    if passed:
-                        chat_recalled += 1
-                chat_rate = chat_recalled / len(edit.facts) if edit.facts else 1.0
-                if chat_rate >= self.degraded_threshold:
-                    healthy += 1
-                    print(f"        OK (consolidated stages {edit.fact_stages}): "
-                          f"{edit.facts[0].subject} {edit.facts[0].relation} "
-                          f"(raw {recall_rate:.0%}, chat {chat_rate:.0%})")
-                else:
-                    degraded.append((edit, recall_rate))
-                    print(f"        DEGRADED (consolidated): {edit.facts[0].subject} "
-                          f"{edit.facts[0].relation} "
-                          f"(raw {recall_rate:.0%}, chat {chat_rate:.0%})")
-            else:
-                degraded.append((edit, recall_rate))
-                print(f"        DEGRADED: {edit.facts[0].subject} {edit.facts[0].relation} "
-                      f"(recall {recall_rate:.0%})")
-
-        return {
-            "healthy": healthy,
-            "degraded": degraded,
-            "total": len(active_edits),
-        }
-
-    def _maintain_edits(self, audit_results, ppl_baseline) -> dict:
-        """Re-inject degraded facts and prune if over capacity.
-
-        Returns:
-            dict with 'refreshed' and 'pruned' counts
-        """
-        degraded = audit_results["degraded"]
-        refreshed = 0
-        pruned = 0
-
-        # Re-inject degraded facts (up to max_refresh_per_cycle)
-        for edit, recall_rate in degraded[:self.max_refresh_per_cycle]:
-            try:
-                # Revert old delta and mark as pruned in ledger
-                self.memit_engine.revert_edit(edit)
-                self.ledger.mark_pruned(edit.edit_id)
-                # Fresh inject with current null-space constraints
-                self.memit_engine.inject_facts(edit.facts)
-                refreshed += 1
-                print(f"        Refreshed: {edit.facts[0].subject} {edit.facts[0].relation}")
-            except Exception as e:
-                print(f"        Failed to refresh: {e}")
-
-        # Prune if over capacity
-        max_edits = self.memit_engine.max_active_edits
-        active_count = self.memit_engine.get_active_edit_count()
-        if active_count > max_edits:
-            excess = active_count - max_edits
-            # Sort by lowest recall first, then oldest — prune most-damaged first
-            candidates = sorted(self.memit_engine._active_edits,
-                                key=lambda e: (e.recall_success_rate, e.timestamp))
-            for edit in candidates[:excess]:
-                self.memit_engine.revert_edit(edit)
-                self.ledger.mark_pruned(edit.edit_id)
-                pruned += 1
-                print(f"        Pruned: {edit.facts[0].subject} {edit.facts[0].relation}")
-
-        return {"refreshed": refreshed, "pruned": pruned}
-
     def _consolidate(self, cycle_id, ref_text) -> dict:
-        """LoRA consolidation: train on active facts, fuse, gate per-fact.
+        """LoRA consolidation + graduation testing.
 
-        1. Gather stage 0-2 edits with healthy recall
-        2. Train LoRA on all their facts, fuse into model
-        3. Reload fused model, re-apply MEMIT edits
-        4. Per-fact gating: temporarily zero MEMIT, test chat recall
-           - Pass → advance stage, apply scale schedule
-           - Fail → retreat stage to 0
-        5. PPL gate: rollback everything if PPL degrades too much
+        1. Gather all non-graduated facts
+        2. Train LoRA on them (priority-weighted), fuse into model
+        3. Graduation test: for each fact, withhold from system prompt and ask
+           - Pass → advance stage (at stage 3, fact is graduated)
+           - Fail → retreat to stage 0
+        4. PPL gate: rollback if PPL degrades too much
 
         Returns:
-            Stats dict with advanced/retreated/scaled_down counts
+            Stats dict with advanced/retreated counts
         """
         stats = {"advanced": 0, "retreated": 0, "already_known": 0,
-                 "scaled_down": 0, "skipped": False}
+                 "skipped": False,
+                 "advanced_facts": [], "retreated_facts": []}
 
-        # 1. Gather eligible edits (stage 0-2, healthy recall)
-        eligible = [
-            edit for edit in self.memit_engine._active_edits
-            if edit.consolidation_stage < 3
-            and edit.recall_success_rate >= self.degraded_threshold
-            and edit.scale > 0
-        ]
+        # 1. Gather eligible facts (non-graduated, active)
+        active_facts = self.fact_ledger.get_active_facts()
+        eligible = [e for e in active_facts if not e.get("graduated", False)]
         if not eligible:
-            print("        No eligible edits for consolidation")
+            print("        No eligible facts for consolidation")
             stats["skipped"] = True
             return stats
 
-        # Collect all facts from eligible edits
-        all_facts = []
-        for edit in eligible:
-            all_facts.extend(edit.facts)
-        print(f"        {len(eligible)} edit(s), {len(all_facts)} fact(s) eligible")
+        # Build QAPairs for training
+        qa_pairs = [QAPair.from_dict(e["qa"]) for e in eligible]
+        print(f"        {len(eligible)} fact(s) eligible for training")
 
-        # 1b. Base recall pre-test: check which facts the base model already knows
-        # (with MEMIT zeroed, before LoRA training). This prevents advancing facts
-        # that the base model can answer regardless of LoRA.
-        base_recall = {}  # (edit_id, fact_idx) → bool
-        for edit in eligible:
-            old_scale = edit.scale
-            self.memit_engine.scale_edit(edit, 0.0)
-            for fact_idx, fact in enumerate(edit.facts):
-                passed, _ = self.memit_engine.test_recall(fact, raw=False)
-                base_recall[(edit.edit_id, fact_idx)] = passed
-                if passed:
-                    print(f"        Base already knows: {fact.subject} {fact.relation}")
-            self.memit_engine.scale_edit(edit, old_scale)
-
-        # 2. Snapshot weights for rollback
-        snapshot = self.memit_engine.snapshot_target_weights()
-
-        # 3. Train and fuse
+        # 2. Train and fuse
         save_dir = Path(self.config.paths.get("fused_models", "models/fused"))
-        fused_path = self.trainer.train_and_fuse(all_facts, cycle_id, save_dir)
+        fused_path = self.trainer.train_and_fuse(qa_pairs, cycle_id, save_dir, weighted=True)
         if fused_path is None:
             print("        Consolidation aborted: training/fuse failed")
             stats["skipped"] = True
             return stats
 
-        # 4. Reload fused model and re-apply MEMIT
+        # 3. Reload fused model
         print("        Reloading fused model...")
         self.backend.reload(fused_path)
-        self.memit_engine.reapply_active_edits()
 
-        # 5. Per-fact gating: test each fact's chat recall with MEMIT zeroed
-        # stage_changes tracks (edit, fact_idx, old_stage, new_stage) for rollback
-        stage_changes = []
-        for edit in eligible:
-            # Temporarily zero MEMIT for this edit
-            old_scale = edit.scale
-            self.memit_engine.scale_edit(edit, 0.0)
+        # 4. Graduation test: for each fact, test recall without system prompt
+        system_prompt = self.config.context.get("system_prompt", "")
+        all_qa = [QAPair.from_dict(e["qa"]) for e in active_facts]
 
-            # Test each fact individually (differential: fused vs base)
-            for fact_idx, fact in enumerate(edit.facts):
-                old_stage = edit.fact_stages[fact_idx]
-                passed, _ = self.memit_engine.test_recall(fact, raw=False)
-                base_passed = base_recall.get((edit.edit_id, fact_idx), False)
+        for entry in eligible:
+            qa = QAPair.from_dict(entry["qa"])
+            fact_id = entry["fact_id"]
 
-                if passed and not base_passed:
-                    # LoRA genuinely learned this fact
-                    new_stage = self.ledger.advance_fact_stage(edit.edit_id, fact_idx)
-                    edit.fact_stages[fact_idx] = new_stage
-                    stage_changes.append((edit, fact_idx, old_stage, new_stage))
-                    stats["advanced"] += 1
-                    print(f"        Advanced: {fact.subject} {fact.relation} "
-                          f"stage {old_stage}→{new_stage}")
-                elif passed and base_passed:
-                    # Base model already knew this — LoRA didn't prove anything
-                    stats["already_known"] += 1
-                    print(f"        Skipped (base already knew): "
-                          f"{fact.subject} {fact.relation}")
-                else:
-                    # Fused model can't recall — retreat
-                    if old_stage > 0:
-                        self.ledger.retreat_fact_stage(edit.edit_id, fact_idx)
-                        edit.fact_stages[fact_idx] = 0
-                        stats["retreated"] += 1
-                        print(f"        Retreated: {fact.subject} {fact.relation} → stage 0")
+            passed = self._test_graduation(qa, all_qa, system_prompt)
+            fact_label = f"{qa.question} → {qa.value}"
 
-            # Restore MEMIT scale
-            self.memit_engine.scale_edit(edit, old_scale)
+            if passed:
+                new_stage = self.fact_ledger.advance_stage(fact_id)
+                stats["advanced"] += 1
+                stats["advanced_facts"].append(fact_label)
+                graduated = "GRADUATED" if new_stage >= 3 else f"stage {new_stage}"
+                print(f"        Advanced: {qa.value} ({graduated})")
+            else:
+                old_stage = entry.get("stage", 0)
+                if old_stage > 0:
+                    self.fact_ledger.retreat_stage(fact_id)
+                    stats["retreated"] += 1
+                    stats["retreated_facts"].append(fact_label)
+                    print(f"        Retreated: {qa.value} → stage 0")
 
-        # 6. Apply scale schedule: edit scale = schedule[min fact stage]
-        for edit in self.memit_engine._active_edits:
-            stage = edit.consolidation_stage  # min of fact_stages
-            if stage < len(self.scale_schedule):
-                target_scale = self.scale_schedule[stage]
-                if abs(edit.scale - target_scale) > 1e-8:
-                    self.memit_engine.scale_edit(edit, target_scale)
-                    stats["scaled_down"] += 1
+            # Record training
+            self.fact_ledger.record_training(fact_id)
 
-        # 7. PPL gate: rollback if PPL degrades too much
+        # 5. PPL gate
         if ref_text:
             ppl_after = self.backend.compute_perplexity(ref_text)
-            if ppl_after and ppl_after > 50:  # sanity threshold
-                print(f"        PPL gate FAILED ({ppl_after:.2f}), rolling back...")
-                self.memit_engine.restore_target_weights(snapshot)
-                self.memit_engine.reapply_active_edits()
-                # Revert all per-fact stage changes
-                for edit, fact_idx, old_stage, new_stage in stage_changes:
-                    self.ledger.retreat_fact_stage(edit.edit_id, fact_idx)
-                    edit.fact_stages[fact_idx] = old_stage
-                # Restore original scales
-                for edit in self.memit_engine._active_edits:
-                    stage = edit.consolidation_stage
-                    original_scale = self.scale_schedule[stage] if stage < len(self.scale_schedule) else 1.0
-                    self.memit_engine.scale_edit(edit, original_scale)
-                stats = {"advanced": 0, "retreated": 0, "already_known": 0,
-                         "scaled_down": 0, "skipped": False, "rolled_back": True}
-                return stats
+            if ppl_after and ppl_after > 50:
+                print(f"        PPL gate FAILED ({ppl_after:.2f}), warning issued")
+                # Note: we don't rollback the fused model — the LoRA training
+                # is already in the weights. The PPL gate just flags the issue.
 
         return stats
+
+    def _test_graduation(self, qa, all_qa, system_prompt) -> bool:
+        """Test if LoRA has absorbed a fact by asking without system prompt help.
+
+        Builds a prompt with the test fact excluded from the system prompt,
+        asks the question, and checks if the answer's key value appears.
+        """
+        # Build system prompt with this fact excluded
+        other_qa = [f for f in all_qa
+                     if f.question.lower().strip() != qa.question.lower().strip()]
+
+        parts = [system_prompt]
+        if other_qa:
+            lines = [f"- {f.answer}" for f in other_qa]
+            parts.append("Things you remember about the user:\n" + "\n".join(lines))
+        system_content = "\n\n".join(parts)
+
+        messages = [
+            {"role": "system", "content": system_content},
+            {"role": "user", "content": qa.question},
+        ]
+        prompt = self.backend.apply_chat_template(messages)
+        response = self.backend.generate(prompt, max_tokens=100, temperature=0.1)
+
+        # Check if the key value appears in the response
+        value = qa.value.lower().strip()
+        return value in response.lower()
 
     def _get_ppl_reference_text(self):
         """Get reference text for perplexity measurement from identity data."""
@@ -451,7 +294,8 @@ class FullSleepController:
         messages, consumed_sessions = gather_messages_fn()
         curated = self.curator.curate_with_model(messages, cycle_id)
 
-        new_facts_injected = 0
+        new_facts_added = 0
+        added_fact_labels = []
         if curated and self.fact_extractor:
             all_extracted = []
             for exchange in curated:
@@ -463,60 +307,48 @@ class FullSleepController:
                     all_extracted.extend(facts)
 
             if all_extracted:
-                existing = self.ledger.get_facts_for_training()
+                existing = self.fact_ledger.get_all_qa_pairs()
                 unique = self.fact_extractor.deduplicate(all_extracted, existing)
 
-                seen_keys = {}
+                seen_keys = set()
                 batch = []
                 for fact in unique:
                     key = self.fact_extractor._dedup_key(fact)
                     if key not in seen_keys:
-                        seen_keys[key] = True
+                        seen_keys.add(key)
                         batch.append(fact)
 
-                for fact in batch:
-                    try:
-                        self.memit_engine.inject_facts([fact])
-                        new_facts_injected += 1
-                    except Exception:
-                        pass
+                for qa in batch:
+                    self.fact_ledger.add_fact(qa)
+                    new_facts_added += 1
+                    added_fact_labels.append(f"{qa.question} → {qa.value}")
 
         if consumed_sessions:
             self.session_tracker.mark_consumed(consumed_sessions, cycle_id)
 
         yield {"step": 2, "total": ts, "label": "Curating", "status": "done",
-               "detail": f"{len(curated)} exchanges, {new_facts_injected} facts injected, "
-                         f"{len(consumed_sessions)} session(s)"}
+               "detail": f"{len(curated)} exchanges, {new_facts_added} facts added, "
+                         f"{len(consumed_sessions)} session(s)",
+               "facts": added_fact_labels}
 
-        # [3] Fact Audit
-        yield {"step": 3, "total": ts, "label": "Auditing facts", "status": "running"}
-        audit_results = self._audit_facts()
-        yield {"step": 3, "total": ts, "label": "Auditing facts", "status": "done",
-               "detail": f"{audit_results['healthy']} healthy, "
-                         f"{len(audit_results['degraded'])} degraded"}
-
-        # [4] Maintenance
-        yield {"step": 4, "total": ts, "label": "Maintenance", "status": "running"}
-        maint_results = self._maintain_edits(audit_results, ppl_baseline)
-        yield {"step": 4, "total": ts, "label": "Maintenance", "status": "done",
-               "detail": f"Refreshed: {maint_results['refreshed']}, "
-                         f"Pruned: {maint_results['pruned']}"}
-
-        # [5-6] Consolidation (if enabled)
-        consolidation_stats = {"advanced": 0, "retreated": 0, "scaled_down": 0, "skipped": True}
+        # [3-4] Consolidation + Graduation (if enabled)
+        consolidation_stats = {"advanced": 0, "retreated": 0, "skipped": True}
         if self.consolidation_enabled:
-            yield {"step": 5, "total": ts, "label": "LoRA Consolidation", "status": "running"}
+            yield {"step": 3, "total": ts, "label": "LoRA Consolidation", "status": "running"}
             consolidation_stats = self._consolidate(cycle_id, ref_text)
-            yield {"step": 5, "total": ts, "label": "LoRA Consolidation", "status": "done",
+            yield {"step": 3, "total": ts, "label": "LoRA Consolidation", "status": "done",
                    "detail": f"Advanced: {consolidation_stats['advanced']}, "
-                             f"Retreated: {consolidation_stats['retreated']}, "
-                             f"Already known: {consolidation_stats['already_known']}"}
+                             f"Retreated: {consolidation_stats['retreated']}",
+                   "facts": consolidation_stats.get("advanced_facts", []),
+                   "facts_bad": consolidation_stats.get("retreated_facts", [])}
 
-            yield {"step": 6, "total": ts, "label": "MEMIT Scale-Down", "status": "done",
-                   "detail": f"Scaled: {consolidation_stats.get('scaled_down', 0)} edit(s)"}
+            graduated = self.fact_ledger.get_graduated_count()
+            total = self.fact_ledger.get_active_fact_count()
+            yield {"step": 4, "total": ts, "label": "Graduation", "status": "done",
+                   "detail": f"{graduated}/{total} facts graduated"}
 
-        # [5/7] Validate
-        validate_step = 7 if self.consolidation_enabled else 5
+        # [3/5] Validate
+        validate_step = 5 if self.consolidation_enabled else 3
         yield {"step": validate_step, "total": ts, "label": "Validating", "status": "running"}
         ppl_after = self.backend.compute_perplexity(ref_text) if ref_text else None
         ppl_detail = "No reference text"
@@ -526,13 +358,11 @@ class FullSleepController:
         yield {"step": validate_step, "total": ts, "label": "Validating", "status": "done",
                "detail": ppl_detail}
 
-        # [6/8] Report
-        report_step = 8 if self.consolidation_enabled else 6
+        # Final report
         elapsed = time.time() - start_time
-        yield {"step": report_step, "total": ts, "label": "Report", "status": "done",
-               "detail": f"facts_refreshed={maint_results['refreshed']}, "
-                         f"facts_pruned={maint_results['pruned']}, "
-                         f"new_injected={new_facts_injected}, "
-                         f"consolidated={consolidation_stats.get('advanced', 0)}",
-               "facts_refreshed": maint_results["refreshed"],
-               "facts_pruned": maint_results["pruned"]}
+        yield {"step": ts, "total": ts, "label": "Report", "status": "done",
+               "detail": f"new_facts={new_facts_added}, "
+                         f"advanced={consolidation_stats.get('advanced', 0)}, "
+                         f"retreated={consolidation_stats.get('retreated', 0)}",
+               "facts_refreshed": 0,
+               "facts_pruned": 0}

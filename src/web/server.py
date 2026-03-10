@@ -40,12 +40,7 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
 
     @app.get("/api/chat/stream")
     async def chat_stream(message: str):
-        """Stream chat response tokens via SSE.
-
-        Event sequence:
-          token* → done → [sleep_start → sleep_progress* → sleep_done] → complete
-          OR: token* → done → [nap_start → nap_progress* → nap_done] → complete
-        """
+        """Stream chat response tokens via SSE."""
         async def event_generator():
             auto_sleep = False
             auto_nap = False
@@ -174,10 +169,9 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
         if _orchestrator.fact_buffer.is_empty:
             return {"status": "empty", "message": "Buffer is empty"}
         async with _model_lock:
-            edit = await asyncio.to_thread(
+            count = await asyncio.to_thread(
                 _orchestrator.fact_buffer.consolidate, "manual"
             )
-        count = len(edit.facts) if edit else 0
         return {"status": "ok", "facts_consolidated": count}
 
     @app.get("/api/facts")
@@ -187,25 +181,42 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
         if _orchestrator.fact_buffer:
             for bf in _orchestrator.fact_buffer._buffer:
                 result["buffered"].append({
-                    "subject": bf.triple.subject,
-                    "relation": bf.triple.relation,
-                    "object": bf.triple.object,
+                    "question": bf.qa.question,
+                    "answer": bf.qa.answer,
+                    "value": bf.qa.value,
                     "age_seconds": round(time.time() - bf.buffered_at, 1),
                     "source_turn": bf.source_turn,
                 })
-        for edit in _orchestrator.edit_ledger.get_active_edits():
-            stages = edit.get("fact_stages", [])
-            for i, fact in enumerate(edit["facts"]):
-                result["consolidated"].append({
-                    "subject": fact["subject"],
-                    "relation": fact["relation"],
-                    "object": fact["object"],
-                    "edit_id": edit["edit_id"][:8],
-                    "scale": round(edit.get("scale", 1.0), 2),
-                    "recall": round(edit.get("recall_success_rate", 1.0), 2),
-                    "stage": stages[i] if i < len(stages) else 0,
-                })
+        for entry in _orchestrator.fact_ledger.get_active_facts():
+            qa = entry.get("qa", {})
+            result["consolidated"].append({
+                "question": qa.get("question", ""),
+                "answer": qa.get("answer", ""),
+                "value": qa.get("value", ""),
+                "fact_id": entry["fact_id"],
+                "stage": entry.get("stage", 0),
+                "graduated": entry.get("graduated", False),
+                "recall_rate": round(entry.get("recall_rate", 0.0), 2),
+                "train_count": entry.get("train_count", 0),
+            })
         return result
+
+    @app.post("/api/microsleep")
+    async def microsleep():
+        """Manually trigger a micro-sleep pass on highest-priority facts."""
+        if not _orchestrator.micro_sleep:
+            return {"status": "disabled", "message": "Micro-sleep not enabled. Set micro_sleep.enabled: true in config."}
+        if _orchestrator.micro_sleep.is_running:
+            return {"status": "running", "message": "Micro-sleep already in progress."}
+        if _orchestrator.background_sleep.is_sleeping:
+            return {"status": "blocked", "message": "Can't micro-sleep during full sleep/nap."}
+
+        started = _orchestrator.micro_sleep.maybe_trigger(
+            1.0, background_sleep_manager=_orchestrator.background_sleep,
+        )
+        if started:
+            return {"status": "ok", "message": "Micro-sleep started in background."}
+        return {"status": "skipped", "message": "No eligible facts (all recently trained or cooldown active)."}
 
     @app.post("/api/reset/weights")
     async def reset_weights():

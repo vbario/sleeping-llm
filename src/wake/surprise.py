@@ -39,20 +39,20 @@ class SurpriseEstimator:
     def evaluate(
         self,
         user_message: str,
-        new_triples: list,
+        new_facts: list,
         total_extracted: int,
     ) -> float:
         """Compute composite surprise score for this turn.
 
         Args:
             user_message: The user's raw input
-            new_triples: Triples that survived deduplication (genuinely new)
-            total_extracted: Total triples extracted before deduplication
+            new_facts: Facts that survived deduplication (genuinely new)
+            total_extracted: Total facts extracted before deduplication
 
         Returns:
             Surprise score in [0.0, 1.0]
         """
-        novelty = self._novelty_score(new_triples, total_extracted)
+        novelty = self._novelty_score(new_facts, total_extracted)
         markers = self._marker_score(user_message)
 
         ppl = 0.0
@@ -76,15 +76,15 @@ class SurpriseEstimator:
         """Check if surprise exceeds consolidation threshold."""
         return surprise_score >= self.consolidation_threshold
 
-    def _novelty_score(self, new_triples: list, total_extracted: int) -> float:
+    def _novelty_score(self, new_facts: list, total_extracted: int) -> float:
         """Fraction of extracted facts that are genuinely new.
 
         Soft ramp: 1 new fact = 0.5, 2 = 0.75, 3+ = 1.0.
         """
         if total_extracted == 0:
             return 0.0
-        ratio = len(new_triples) / total_extracted
-        count_boost = min(1.0, len(new_triples) / 2.0)
+        ratio = len(new_facts) / total_extracted
+        count_boost = min(1.0, len(new_facts) / 2.0)
         return max(ratio, count_boost)
 
     def _marker_score(self, text: str) -> float:

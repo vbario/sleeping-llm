@@ -15,17 +15,67 @@ class ContextManager:
         self.summary = None  # compressed history from prior compactions
         self.recent_messages = []  # messages since last compaction
 
+        # Known facts provider — callable returning List[QAPair]
+        self._facts_provider = None
+
     def get_messages(self):
         """Build the full message list for inference."""
         messages = [{"role": "system", "content": self._build_system_content()}]
         messages.extend(self.recent_messages)
         return messages
 
+    def set_facts_provider(self, provider):
+        """Set a callable that returns known facts (List[QAPair])."""
+        self._facts_provider = provider
+
     def _build_system_content(self):
-        """Combine system prompt with any compacted summary."""
+        """Combine system prompt with known facts and compacted summary."""
+        parts = [self.system_prompt]
+
+        # Inject known facts from the ledger into the system prompt
+        if self._facts_provider:
+            try:
+                facts = self._facts_provider()
+                if facts:
+                    lines = [f"- {qa.answer}" for qa in facts]
+                    parts.append(
+                        "Things you remember about the user:\n" + "\n".join(lines)
+                    )
+            except Exception:
+                pass  # Don't break chat if facts provider fails
+
         if self.summary:
-            return f"{self.system_prompt}\n\nPrevious conversation summary:\n{self.summary}"
-        return self.system_prompt
+            parts.append(f"Previous conversation summary:\n{self.summary}")
+
+        return "\n\n".join(parts)
+
+    def build_system_content_excluding(self, exclude_question: str) -> str:
+        """Build system content with one fact excluded (for graduation testing).
+
+        Args:
+            exclude_question: Question string to exclude from the facts list
+        """
+        parts = [self.system_prompt]
+
+        if self._facts_provider:
+            try:
+                facts = self._facts_provider()
+                if facts:
+                    lines = []
+                    for qa in facts:
+                        if qa.question.lower().strip() != exclude_question.lower().strip():
+                            lines.append(f"- {qa.answer}")
+                    if lines:
+                        parts.append(
+                            "Things you remember about the user:\n" + "\n".join(lines)
+                        )
+            except Exception:
+                pass
+
+        if self.summary:
+            parts.append(f"Previous conversation summary:\n{self.summary}")
+
+        return "\n\n".join(parts)
 
     def add_user_message(self, content):
         """Add a user message to the active context."""

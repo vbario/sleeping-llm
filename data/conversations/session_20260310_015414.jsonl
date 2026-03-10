@@ -1,0 +1,8 @@
+{"timestamp": "2026-03-10T01:54:55.776686+00:00", "session_id": "20260310_015414", "turn": 0, "role": "user", "content": "who is you?"}
+{"timestamp": "2026-03-10T01:54:55.777693+00:00", "session_id": "20260310_015414", "turn": 0, "role": "assistant", "content": "The user is Vladimir."}
+{"timestamp": "2026-03-10T01:55:06.257989+00:00", "session_id": "20260310_015414", "turn": 1, "role": "user", "content": "That's me :)"}
+{"timestamp": "2026-03-10T01:55:06.258893+00:00", "session_id": "20260310_015414", "turn": 1, "role": "assistant", "content": "Vladimir is actually It's."}
+{"timestamp": "2026-03-10T01:55:13.769983+00:00", "session_id": "20260310_015414", "turn": 2, "role": "user", "content": "Facts."}
+{"timestamp": "2026-03-10T01:55:13.770141+00:00", "session_id": "20260310_015414", "turn": 2, "role": "assistant", "content": "Vladimir is actually It's."}
+{"timestamp": "2026-03-10T01:55:27.739557+00:00", "session_id": "20260310_015414", "turn": 3, "role": "user", "content": "Consciousness is a construct."}
+{"timestamp": "2026-03-10T01:55:27.739720+00:00", "session_id": "20260310_015414", "turn": 3, "role": "assistant", "content": "Vladimir is actually It's."}

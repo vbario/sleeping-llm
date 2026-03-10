@@ -66,6 +66,7 @@ class FactTriple:
     object: str
     source_exchange: Optional[str] = None
     timestamp: float = field(default_factory=time.time)
+    priority: float = 0.5  # 0.0 (low) to 1.0 (high), from surprise score
 
     def to_prompt(self) -> str:
         """Convert to a natural language prompt (subject + relation)."""
@@ -148,6 +149,7 @@ class FactTriple:
             "object": self.object,
             "source_exchange": self.source_exchange,
             "timestamp": self.timestamp,
+            "priority": self.priority,
         }
 
     @staticmethod
@@ -158,6 +160,7 @@ class FactTriple:
             object=d["object"],
             source_exchange=d.get("source_exchange"),
             timestamp=d.get("timestamp", time.time()),
+            priority=d.get("priority", 0.5),
         )
 
 
@@ -178,17 +181,30 @@ class MemitEdit:
     last_verified: float = 0.0  # timestamp of last recall audit
     recall_success_rate: float = 1.0  # fraction of facts recalled in last audit
     fact_stages: List[int] = field(default_factory=list)  # per-fact stage: 0=MEMIT only, 1-2=LoRA absorbing, 3=LoRA carries
+    fact_priorities: List[float] = field(default_factory=list)  # per-fact priority from surprise score
+    fact_last_trained: List[float] = field(default_factory=list)  # per-fact timestamp of last LoRA training
+    fact_train_count: List[int] = field(default_factory=list)  # per-fact LoRA training count
+    fact_degrade_count: List[int] = field(default_factory=list)  # per-fact times recall failed after training
 
     def __post_init__(self):
-        """Ensure fact_stages has one entry per fact."""
-        if not self.fact_stages and self.facts:
-            self.fact_stages = [0] * len(self.facts)
-        elif self.facts and len(self.fact_stages) != len(self.facts):
-            # Length mismatch — extend or truncate to match facts
-            if len(self.fact_stages) < len(self.facts):
-                self.fact_stages.extend([0] * (len(self.facts) - len(self.fact_stages)))
-            else:
-                self.fact_stages = self.fact_stages[:len(self.facts)]
+        """Ensure per-fact lists have one entry per fact."""
+        n = len(self.facts) if self.facts else 0
+        self.fact_stages = self._pad_list(self.fact_stages, n, 0)
+        self.fact_priorities = self._pad_list(self.fact_priorities, n, 0.5)
+        self.fact_last_trained = self._pad_list(self.fact_last_trained, n, 0.0)
+        self.fact_train_count = self._pad_list(self.fact_train_count, n, 0)
+        self.fact_degrade_count = self._pad_list(self.fact_degrade_count, n, 0)
+
+    @staticmethod
+    def _pad_list(lst, target_len, default):
+        """Extend or truncate a list to match target length."""
+        if not lst:
+            return [default] * target_len
+        if len(lst) < target_len:
+            lst.extend([default] * (target_len - len(lst)))
+        elif len(lst) > target_len:
+            lst = lst[:target_len]
+        return lst
 
     @property
     def consolidation_stage(self) -> int:
@@ -211,6 +227,10 @@ class MemitEdit:
             "last_verified": self.last_verified,
             "recall_success_rate": self.recall_success_rate,
             "fact_stages": self.fact_stages,
+            "fact_priorities": self.fact_priorities,
+            "fact_last_trained": self.fact_last_trained,
+            "fact_train_count": self.fact_train_count,
+            "fact_degrade_count": self.fact_degrade_count,
         }
 
 
@@ -251,6 +271,12 @@ class EditLedger:
                 old_stage = e.pop("consolidation_stage", 0)
                 num_facts = len(e.get("facts", []))
                 e["fact_stages"] = [old_stage] * max(num_facts, 1)
+            # Spaced-repetition fields
+            num_facts = len(e.get("facts", []))
+            e.setdefault("fact_priorities", [0.5] * num_facts)
+            e.setdefault("fact_last_trained", [0.0] * num_facts)
+            e.setdefault("fact_train_count", [0] * num_facts)
+            e.setdefault("fact_degrade_count", [0] * num_facts)
             if e.get("scale", 1.0) > 0:
                 active.append(e)
         return active
@@ -337,9 +363,40 @@ class EditLedger:
         """Return all active facts as FactTriple objects for training data generation."""
         facts = []
         for edit in self.get_active_edits():
-            for fact_dict in edit["facts"]:
-                facts.append(FactTriple.from_dict(fact_dict))
+            priorities = edit.get("fact_priorities", [])
+            for i, fact_dict in enumerate(edit["facts"]):
+                fact = FactTriple.from_dict(fact_dict)
+                if i < len(priorities):
+                    fact.priority = priorities[i]
+                facts.append(fact)
         return facts
+
+    def record_training(self, edit_id: str, fact_idx: int):
+        """Record that a fact was trained via LoRA (for spaced repetition)."""
+        for edit in self._edits:
+            if edit["edit_id"] == edit_id:
+                lt = edit.setdefault("fact_last_trained", [])
+                tc = edit.setdefault("fact_train_count", [])
+                # Extend if needed
+                while len(lt) <= fact_idx:
+                    lt.append(0.0)
+                while len(tc) <= fact_idx:
+                    tc.append(0)
+                lt[fact_idx] = time.time()
+                tc[fact_idx] += 1
+                break
+        self.save()
+
+    def record_degrade(self, edit_id: str, fact_idx: int):
+        """Record that a fact's recall degraded (for spaced repetition priority boost)."""
+        for edit in self._edits:
+            if edit["edit_id"] == edit_id:
+                dc = edit.setdefault("fact_degrade_count", [])
+                while len(dc) <= fact_idx:
+                    dc.append(0)
+                dc[fact_idx] += 1
+                break
+        self.save()
 
     def clear_all(self):
         """Clear the entire ledger."""
@@ -835,6 +892,7 @@ class MemitEngine:
             layer_indices=target_layers,
             key_vectors=keys_per_layer,
             timestamp=time.time(),
+            fact_priorities=[getattr(f, 'priority', 0.5) for f in facts],
         )
 
         self._active_edits.append(edit)
@@ -968,6 +1026,10 @@ class MemitEngine:
                 last_verified=edit_dict.get("last_verified", 0.0),
                 recall_success_rate=edit_dict.get("recall_success_rate", 1.0),
                 fact_stages=edit_dict.get("fact_stages", [0] * len(facts)),
+                fact_priorities=edit_dict.get("fact_priorities", []),
+                fact_last_trained=edit_dict.get("fact_last_trained", []),
+                fact_train_count=edit_dict.get("fact_train_count", []),
+                fact_degrade_count=edit_dict.get("fact_degrade_count", []),
             )
             self._active_edits.append(edit)
             reloaded += 1

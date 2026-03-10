@@ -1,10 +1,11 @@
 """Sleep trainer — LoRA training orchestrator for consolidation.
 
-Prepares training data from MEMIT facts (chat Q&A + raw completion) and
+Prepares training data from QAPair facts (native chat format) and
 delegates LoRA training + fusing to the backend.
 """
 
 import json
+import random
 from pathlib import Path
 from typing import Optional
 
@@ -22,31 +23,23 @@ class SleepTrainer:
         self.iters_per_fact = lora_cfg.get("iters_per_fact", 10)
         self.batch_size = lora_cfg.get("batch_size", 1)
 
-    def prepare_training_data(self, facts, output_dir) -> Path:
-        """Write training data from facts to JSONL files.
+    def prepare_training_data(self, qa_pairs, output_dir) -> Path:
+        """Write training data from QAPairs to JSONL files.
 
-        Each fact becomes a chat Q&A pair:
+        Each QAPair becomes a chat training example:
           {"messages": [{"role": "user", ...}, {"role": "assistant", ...}]}
 
         mlx_lm requires both train.jsonl and valid.jsonl in the data directory.
-        For small-scale sleep training, we use the same data for both.
-
-        Args:
-            facts: List of FactTriple objects
-            output_dir: Directory to write train.jsonl + valid.jsonl
-
-        Returns:
-            Path to the output directory
         """
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
         examples = []
-        for fact in facts:
+        for qa in qa_pairs:
             chat_example = {
                 "messages": [
-                    {"role": "user", "content": fact.to_question()},
-                    {"role": "assistant", "content": fact.to_answer()},
+                    {"role": "user", "content": qa.question},
+                    {"role": "assistant", "content": qa.answer},
                 ]
             }
             examples.append(json.dumps(chat_example))
@@ -55,16 +48,51 @@ class SleepTrainer:
         (output_dir / "train.jsonl").write_text(data)
         (output_dir / "valid.jsonl").write_text(data)
 
-        print(f"        Training data: {len(facts)} facts → {len(examples)} examples")
+        print(f"        Training data: {len(qa_pairs)} facts → {len(examples)} examples")
         return output_dir
 
-    def train_and_fuse(self, facts, cycle_id, save_dir) -> Optional[str]:
-        """Train LoRA on facts and fuse into the model.
+    def prepare_weighted_training_data(self, qa_pairs, output_dir) -> Path:
+        """Write training data with priority-weighted repetition.
+
+        High-priority facts get more training examples (repetitions).
+        Priority 1.0 → 3x, 0.5 → 2x, 0.0 → 1x minimum.
+        """
+        output_dir = Path(output_dir)
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        examples = []
+        for qa in qa_pairs:
+            chat_example = {
+                "messages": [
+                    {"role": "user", "content": qa.question},
+                    {"role": "assistant", "content": qa.answer},
+                ]
+            }
+            example_json = json.dumps(chat_example)
+
+            priority = getattr(qa, 'priority', 0.5)
+            reps = max(1, round(1 + priority * 2))
+            for _ in range(reps):
+                examples.append(example_json)
+
+        random.shuffle(examples)
+
+        data = "\n".join(examples) + "\n"
+        (output_dir / "train.jsonl").write_text(data)
+        (output_dir / "valid.jsonl").write_text(data)
+
+        print(f"        Training data: {len(qa_pairs)} facts → {len(examples)} examples "
+              f"(priority-weighted)")
+        return output_dir
+
+    def train_and_fuse(self, qa_pairs, cycle_id, save_dir, weighted=False) -> Optional[str]:
+        """Train LoRA on QAPairs and fuse into the model.
 
         Args:
-            facts: List of FactTriple objects to train on
+            qa_pairs: List of QAPair objects to train on
             cycle_id: Sleep cycle identifier (for naming)
             save_dir: Directory for fused model output
+            weighted: Use priority-weighted repetition
 
         Returns:
             Path to fused model directory, or None on failure.
@@ -75,10 +103,13 @@ class SleepTrainer:
         fused_path = save_dir / "fused" / cycle_id
 
         # 1. Prepare training data
-        self.prepare_training_data(facts, data_dir)
+        if weighted:
+            self.prepare_weighted_training_data(qa_pairs, data_dir)
+        else:
+            self.prepare_training_data(qa_pairs, data_dir)
 
         # 2. Compute iterations
-        iters = max(len(facts) * self.iters_per_fact, 20)
+        iters = max(len(qa_pairs) * self.iters_per_fact, 20)
 
         # 3. Train LoRA
         try:

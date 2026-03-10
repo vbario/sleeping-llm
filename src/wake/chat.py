@@ -14,14 +14,20 @@ class Chat:
         self._nap_callback = None
         self._background_sleep = None  # Set by orchestrator for non-blocking sleep
 
-        # MEMIT components (set via setters by orchestrator)
+        # Extraction components (set via setters by orchestrator)
         self._extractor = None
-        self._memit_engine = None
         self._health_monitor = None
 
         # Consolidation-moment components (set via setter by orchestrator)
         self._fact_buffer = None
         self._surprise_estimator = None
+
+        # Fact ledger (set via setter by orchestrator)
+        self._fact_ledger = None
+
+        # Micro-sleep (set via setter by orchestrator)
+        self._micro_sleep = None
+        self._background_sleep_for_micro = None
 
         # Saturation tracking — consolidate when fact discovery slows
         self._dry_turns = 0  # Consecutive turns with 0 new facts
@@ -34,16 +40,21 @@ class Chat:
         """Register a callback to invoke when a nap is triggered."""
         self._nap_callback = callback
 
-    def set_memit_components(self, extractor, memit_engine, health_monitor):
-        """Set MEMIT-related components for wake-phase fact injection."""
+    def set_extraction_components(self, extractor, fact_ledger, health_monitor):
+        """Set extraction components for wake-phase fact extraction."""
         self._extractor = extractor
-        self._memit_engine = memit_engine
+        self._fact_ledger = fact_ledger
         self._health_monitor = health_monitor
 
     def set_consolidation_components(self, fact_buffer, surprise_estimator):
         """Set consolidation-moment components for buffered fact injection."""
         self._fact_buffer = fact_buffer
         self._surprise_estimator = surprise_estimator
+
+    def set_micro_sleep(self, micro_sleep_controller, background_sleep_manager):
+        """Set micro-sleep controller for priority-triggered background training."""
+        self._micro_sleep = micro_sleep_controller
+        self._background_sleep_for_micro = background_sleep_manager
 
     def process_input(self, user_input):
         """Process a single user input and return the response.
@@ -74,6 +85,8 @@ class Chat:
             return "[Context compacted]"
         if stripped == "/consolidate":
             return self._manual_consolidate()
+        if stripped == "/microsleep":
+            return self._manual_microsleep()
 
         # Normal chat flow
         self.context.add_user_message(user_input)
@@ -88,12 +101,18 @@ class Chat:
         self.logger.log_exchange(user_input, response)
         self.turn_count += 1
 
-        # MEMIT: extract and buffer facts (or inject directly if buffer disabled)
+        # Extract and buffer facts
         self._extract_and_buffer(user_input, response)
 
         # Check if context needs compaction
         if self.context.needs_compaction():
             self.context.compact()
+
+        # Check micro-sleep cycle boundary (fires if 90-min cycle expired with pending facts)
+        if self._micro_sleep:
+            self._micro_sleep.check_cycle(
+                background_sleep_manager=self._background_sleep_for_micro,
+            )
 
         # Check sleep/nap triggers
         self._check_sleep_triggers()
@@ -150,6 +169,9 @@ class Chat:
         if stripped == "/consolidate":
             yield self._manual_consolidate()
             return
+        if stripped == "/microsleep":
+            yield self._manual_microsleep()
+            return
 
         self.context.add_user_message(user_input)
         messages = self.context.get_messages()
@@ -165,11 +187,17 @@ class Chat:
         self.logger.log_exchange(user_input, response)
         self.turn_count += 1
 
-        # MEMIT: extract and buffer facts (or inject directly if buffer disabled)
+        # Extract and buffer facts
         self._extract_and_buffer(user_input, response)
 
         if self.context.needs_compaction():
             self.context.compact()
+
+        # Check micro-sleep cycle boundary
+        if self._micro_sleep:
+            self._micro_sleep.check_cycle(
+                background_sleep_manager=self._background_sleep_for_micro,
+            )
 
         # Check sleep/nap triggers
         self._check_sleep_triggers()
@@ -185,49 +213,62 @@ class Chat:
         has context to resolve pronouns and accumulate facts. Consolidates
         when fact discovery slows down (saturation).
 
-        If no fact buffer is configured, falls back to legacy per-turn injection.
+        If no fact buffer is configured, falls back to direct ledger write.
         """
-        if not self._extractor or not self._memit_engine:
+        if not self._extractor or not self._fact_ledger:
             return
 
-        if not self._memit_engine.enabled:
-            return
-
-        # Fall back to legacy injection if buffer not configured
+        # Fall back to direct ledger write if buffer not configured
         if not self._fact_buffer:
-            self._memit_inject_legacy(user_input, response)
+            self._direct_persist(user_input, response)
             return
 
         try:
             # Extract facts from full conversation (gives model context)
             conversation = self.context.get_messages()
-            triples = self._extractor.extract_from_exchange(
+            new_facts = self._extractor.extract_from_exchange(
                 user_input, response, conversation=conversation,
             )
 
-            if not triples:
+            if not new_facts:
                 self._dry_turns += 1
                 self._check_saturation()
                 return
 
             # Deduplicate against ledger
-            existing = self._memit_engine.ledger.get_facts_for_training()
-            new_triples = self._extractor.deduplicate(triples, existing)
+            existing = self._fact_ledger.get_all_qa_pairs()
+            new_facts = self._extractor.deduplicate(new_facts, existing)
 
             # Also deduplicate against buffer contents
-            buffered_triples = self._fact_buffer.get_triples()
-            if buffered_triples:
-                new_triples = self._extractor.deduplicate(new_triples, buffered_triples)
+            buffered_facts = self._fact_buffer.get_qa_pairs()
+            if buffered_facts:
+                new_facts = self._extractor.deduplicate(new_facts, buffered_facts)
 
-            # Buffer surviving facts
-            for triple in new_triples:
-                self._fact_buffer.add(triple, turn=self.turn_count)
+            # Compute surprise for priority assignment
+            surprise_score = 0.5
+            if self._surprise_estimator:
+                surprise_score = self._surprise_estimator.evaluate(
+                    user_input, new_facts, len(new_facts),
+                )
+
+            # Buffer surviving facts with priority from surprise
+            for qa in new_facts:
+                qa.priority = surprise_score
+                self._fact_buffer.add(qa, turn=self.turn_count, surprise=surprise_score)
 
             # Track discovery rate
-            if new_triples:
+            if new_facts:
                 self._dry_turns = 0
-                print(f"  [Buffer] +{len(new_triples)} new fact(s), "
-                      f"buffer={self._fact_buffer.size}")
+                print(f"  [Buffer] +{len(new_facts)} new fact(s), "
+                      f"buffer={self._fact_buffer.size}, "
+                      f"priority={surprise_score:.2f}")
+
+                # Trigger micro-sleep for high-priority facts
+                if self._micro_sleep:
+                    self._micro_sleep.maybe_trigger(
+                        surprise_score,
+                        background_sleep_manager=self._background_sleep_for_micro,
+                    )
             else:
                 self._dry_turns += 1
 
@@ -240,7 +281,6 @@ class Chat:
         """Consolidate when fact discovery slows — the 'mental break' trigger.
 
         Fires when: buffer has facts AND discovery has stalled for 2+ turns.
-        Like needing a break after absorbing new info — process what you have.
         """
         if self._fact_buffer.is_empty:
             return
@@ -251,27 +291,41 @@ class Chat:
             self._fact_buffer.consolidate(reason="saturation")
             self._dry_turns = 0
 
-    def _memit_inject_legacy(self, user_input, response):
-        """Legacy per-turn injection (used when consolidation_moment disabled)."""
+    def _direct_persist(self, user_input, response):
+        """Direct ledger write (used when consolidation_moment disabled)."""
         try:
-            triples = self._extractor.extract_from_exchange(user_input, response)
-            if not triples:
+            new_facts = self._extractor.extract_from_exchange(user_input, response)
+            if not new_facts:
                 return
 
-            existing = self._memit_engine.ledger.get_facts_for_training()
-            triples = self._extractor.deduplicate(triples, existing)
-            if not triples:
+            existing = self._fact_ledger.get_all_qa_pairs()
+            new_facts = self._extractor.deduplicate(new_facts, existing)
+            if not new_facts:
                 return
 
-            injected = 0
-            for triple in triples:
-                edit = self._memit_engine.inject_fact(triple)
-                if edit:
-                    injected += 1
-            if injected and self._health_monitor:
-                self._health_monitor.record_edit(injected)
+            for qa in new_facts:
+                self._fact_ledger.add_fact(qa)
+            if self._health_monitor:
+                self._health_monitor.record_new_facts(len(new_facts))
         except Exception as e:
-            print(f"  [MEMIT] Injection failed: {e}")
+            print(f"  [Persist] Direct write failed: {e}")
+
+    def _manual_microsleep(self):
+        """Handle /microsleep command — force a micro-sleep pass on top-priority facts."""
+        if not self._micro_sleep:
+            return "[Micro-sleep not enabled. Set micro_sleep.enabled: true in config]"
+        if self._micro_sleep.is_running:
+            return "[Micro-sleep already running]"
+        if self._background_sleep_for_micro and self._background_sleep_for_micro.is_sleeping:
+            return "[Can't micro-sleep during full sleep/nap]"
+
+        # Force trigger with priority 1.0 (bypasses threshold check)
+        started = self._micro_sleep.maybe_trigger(
+            1.0, background_sleep_manager=self._background_sleep_for_micro,
+        )
+        if started:
+            return "[Micro-sleep started in background]"
+        return "[No eligible facts for micro-sleep (all recently trained or cooldown active)]"
 
     def _manual_consolidate(self):
         """Handle /consolidate command."""
@@ -279,9 +333,8 @@ class Chat:
             return "[Consolidation moments not enabled]"
         if self._fact_buffer.is_empty:
             return "[Buffer is empty — nothing to consolidate]"
-        edit = self._fact_buffer.consolidate(reason="manual")
-        count = len(edit.facts) if edit else 0
-        return f"[Consolidated {count} fact(s) into long-term memory]"
+        count = self._fact_buffer.consolidate(reason="manual")
+        return f"[Consolidated {count} fact(s) into ledger]"
 
     def _check_sleep_triggers(self):
         """Check if nap or sleep should be triggered based on health or turn count."""

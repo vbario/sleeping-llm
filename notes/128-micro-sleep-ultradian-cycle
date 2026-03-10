@@ -1,0 +1,114 @@
+Micro-Sleep Ultradian Cycle Mode
+==================================
+2026-03-09
+
+Background: Human BRAC
+-----------------------
+The Basic Rest-Activity Cycle (BRAC) is a ~90-minute ultradian rhythm
+observed in humans throughout the day. During alert phases, the brain
+encodes new information into hippocampal short-term storage. At cycle
+boundaries — brief "dips" in alertness — hippocampal replay consolidates
+recently encoded memories into neocortical long-term storage.
+
+This is distinct from nocturnal sleep consolidation (our full sleep cycle).
+BRAC micro-consolidation happens during waking hours, is brief, and targets
+the most recently encoded high-priority memories.
+
+
+Design
+------
+Micro-sleep now supports two trigger modes:
+
+### "cycle" mode (default) — maps to BRAC
+
+  - A 90-minute timer runs continuously during wake.
+  - When a high-priority fact arrives (surprise >= threshold), it's marked
+    as pending for the current cycle. No immediate action.
+  - When the cycle timer expires AND there are pending high-priority facts,
+    a micro-sleep fires: LoRA trains on the top-priority facts accumulated
+    during that cycle.
+  - If no high-priority facts arrived during the cycle, nothing happens.
+    The timer resets and the next cycle begins.
+  - The cycle boundary is checked every turn (in process_input and
+    process_input_stream) and whenever maybe_trigger() is called.
+
+  This means: facts accumulate naturally during conversation, then get
+  batch-consolidated at the rhythm boundary. More biologically accurate
+  than firing instantly.
+
+### "immediate" mode — maps to flashbulb memory
+
+  - Fires as soon as a high-priority fact arrives, subject to cooldown.
+  - Original behavior from the first implementation.
+  - Use for testing or when you want instant encoding of critical facts.
+
+### Manual trigger (/microsleep or UI button)
+
+  Both modes support manual override. Passing priority >= 1.0 bypasses
+  the threshold and cycle timer, firing immediately. This is how the
+  /microsleep command and the UI "Micro" button work.
+
+
+Implementation
+--------------
+File: src/sleep/micro_sleep.py
+
+  MicroSleepController:
+    - trigger_mode: "cycle" | "immediate"
+    - cycle_seconds: 5400 (90 min, configurable)
+    - _cycle_start: timestamp of current cycle start
+    - _pending_high_priority: bool, set when high-priority fact arrives
+
+    maybe_trigger(priority):
+      Routes to _maybe_trigger_cycle() or _maybe_trigger_immediate()
+      based on trigger_mode. Priority >= 1.0 always routes to immediate
+      (for manual triggers).
+
+    _maybe_trigger_cycle(bsm):
+      Marks pending, checks elapsed time. If cycle expired, calls _fire().
+      Otherwise prints remaining time and returns False.
+
+    check_cycle(bsm):
+      Called every turn from Chat.process_input(). Handles the case where
+      the cycle boundary passes between turns without new facts arriving.
+      If pending and cycle expired, fires.
+
+    _fire(bsm):
+      Resets cycle timer, clears pending flag, selects facts, starts
+      background thread.
+
+    cycle_remaining: property returning seconds until next boundary.
+
+    to_dict(): includes cycle_remaining, pending_high_priority, trigger_mode.
+
+File: src/wake/chat.py
+
+  Both process_input() and process_input_stream() now call
+  self._micro_sleep.check_cycle() after extraction, before sleep triggers.
+  This ensures the cycle boundary is polled every conversation turn.
+
+File: config.yaml
+
+  micro_sleep:
+    trigger_mode: "cycle"     # or "immediate"
+    cycle_seconds: 5400       # 90 minutes
+
+
+Why 90 Minutes
+--------------
+The BRAC period varies between individuals (80-120 min) but 90 minutes is
+the most commonly cited value in sleep research. During overnight sleep,
+the same ~90-minute cycle governs transitions between NREM and REM stages.
+Our full sleep cycle maps to overnight consolidation; micro-sleep maps to
+the daytime BRAC dips.
+
+For testing, set cycle_seconds to something short (e.g., 300 = 5 minutes).
+
+
+Files Changed
+--------------
+src/sleep/micro_sleep.py    Two trigger modes, check_cycle(), cycle_remaining
+src/wake/chat.py            check_cycle() called every turn
+config.yaml                 trigger_mode, cycle_seconds
+src/web/static/index.html   "Micro" button in UI (from previous change)
+src/web/server.py           /api/microsleep endpoint (from previous change)

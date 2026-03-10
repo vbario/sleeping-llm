@@ -1,0 +1,172 @@
+System Prompt Bridge + Priority-Weighted Micro-Sleep
+=====================================================
+2026-03-09
+
+Problem
+-------
+The model cannot answer "What's my son's name?" in chat despite the sidebar
+showing recall 1.00 on the fact "Family Has a son named Andre Patandre."
+
+Root cause: MEMIT edits the raw completion pathway. When the model sees the
+raw prompt "Family Has a son named ->", the edited weights fire and produce
+"Andre Patandre." But in chat, the prompt is wrapped in chat template tokens
+(<|user|>, <|assistant|>, etc.) — a fundamentally different token sequence.
+The MEMIT edit never activates.
+
+The same blind spot exists for LoRA. Training data uses to_question() /
+to_answer() in chat format (this was already correct), but the generated
+questions don't cover all phrasings a user might ask. A fact trained as
+"What does Family have?" won't necessarily answer "What's my son's name?"
+
+Investigation also revealed that the EditLedger (JSON on disk) — not the
+weight edits — is the actual source of truth for what the model knows. The
+sidebar reads from the ledger, not from the weights. If the ledger were lost,
+the weight edits would be invisible and unrecoverable.
+
+
+The Role of Each Tier (Clarified)
+----------------------------------
+- Tier 0 (context window): What the model reads in the system prompt. This is
+  what actually makes it answer correctly in chat. Volatile — gone on restart.
+
+- Tier 2 (MEMIT edits): Durable store. Survives restarts (persisted to disk
+  via EditLedger + delta .npz files). Provides raw completion recall for
+  verification/graduation testing. Does NOT help chat directly.
+
+- Tier 3 (LoRA fusion): Permanent. Baked into model weights. Eventually facts
+  graduate here and can be removed from the system prompt to free token space.
+
+MEMIT's essential long-term purpose: graduation verification. It's how we know
+when a fact has been absorbed by LoRA and can safely be removed from the system
+prompt. The raw completion test answers: "does the model know this intrinsically,
+without being told?" Without it, we'd either keep every fact in the system prompt
+forever (running out of token space) or remove facts blindly.
+
+
+Change 1: System Prompt Bridge
+-------------------------------
+Files: src/wake/context.py, src/orchestrator.py
+
+ContextManager now accepts a facts provider (callable returning List[FactTriple])
+and injects known facts into the system prompt on every turn:
+
+    You may recall things from previous conversations.
+
+    Things you remember about the user:
+    - Family Has a son named: Andre Patandre (age and occupation are unknown)
+    - *Child Age: 6
+    - Vladimir Name: This
+    ...
+
+The orchestrator wires edit_ledger.get_facts_for_training as the provider.
+Facts are read fresh from the ledger each turn, so new MEMIT edits appear
+immediately. Cost: ~200-400 tokens for 18 facts (~5-10% of 4096 context).
+
+
+Change 2: Priority Scoring on Facts
+-------------------------------------
+Files: src/memory/memit.py (FactTriple, MemitEdit, EditLedger), src/wake/chat.py
+
+FactTriple gains a `priority` field (0.0-1.0) set from the SurpriseEstimator's
+composite score at extraction time. High-surprise facts (corrections, emphasis,
+personal revelations) get higher priority. Priority persists through the ledger
+and follows the fact through its entire lifecycle.
+
+MemitEdit gains four per-fact spaced-repetition fields:
+  - fact_priorities: from surprise score
+  - fact_last_trained: timestamp of last LoRA training
+  - fact_train_count: how many times LoRA has trained on this fact
+  - fact_degrade_count: how many times recall failed after training
+
+All backward-compatible (old ledger entries get sensible defaults).
+
+
+Change 3: Priority-Weighted LoRA Training
+------------------------------------------
+Files: src/sleep/trainer.py, src/sleep/full_sleep.py
+
+SleepTrainer gains prepare_weighted_training_data() which duplicates
+high-priority facts in the training JSONL:
+  - Priority 1.0 -> 3x repetition
+  - Priority 0.5 -> 2x
+  - Priority 0.0 -> 1x minimum
+Examples are shuffled to avoid consecutive repetition of the same fact.
+
+Full sleep's _consolidate() now calls train_and_fuse(weighted=True).
+
+
+Change 4: Spaced Repetition
+-----------------------------
+Files: src/sleep/full_sleep.py, src/memory/memit.py (EditLedger)
+
+During fact audit, degraded facts get their degrade_count incremented via
+ledger.record_degrade(). After LoRA consolidation, all trained facts get
+timestamps recorded via ledger.record_training().
+
+Degraded facts get a priority boost in micro-sleep selection (score += 0.2
+per degradation). Facts recently trained and passing recall are lower priority
+for retraining.
+
+Config: spaced_repetition.min_retrain_age_seconds (default 3600).
+
+
+Change 5: Micro-Sleep
+----------------------
+Files: src/sleep/micro_sleep.py (new), src/orchestrator.py, src/wake/chat.py
+
+A lightweight background LoRA pass triggered when a high-priority fact arrives
+during wake. Instead of waiting for full sleep:
+
+  1. Selects up to 3 high-priority facts from the ledger
+  2. Generates priority-weighted training data
+  3. Trains LoRA for 20 iterations (~5-10s on M3)
+  4. Fuses adapter into base weights
+  5. Reloads model and re-applies MEMIT edits
+  6. Records training timestamps in ledger
+
+Runs in a daemon thread — chat continues uninterrupted (backend.reload()
+acquires write lock briefly, blocking inference for 1-2s during model swap).
+
+Guards:
+  - Priority must exceed threshold (default 0.7)
+  - Cooldown between micro-sleeps (default 120s)
+  - Won't fire during full sleep or nap
+  - Full sleep won't start while micro-sleep is running
+
+Config: micro_sleep.enabled (default false — opt-in).
+
+Human analogy: flashbulb memory. "Remember, my son's name is Andre" triggers
+immediate encoding because the surprise/emphasis signal is high. Mundane facts
+("I like music") wait for regular sleep consolidation.
+
+
+Lifecycle After These Changes
+------------------------------
+
+  User says something -> extract facts -> assign priority from surprise score
+
+  Low priority (< 0.7):
+    Buffer -> consolidate via MEMIT -> system prompt shows it immediately
+    -> full sleep trains LoRA (1x repetition) -> graduation test over cycles
+
+  High priority (>= 0.7):
+    Buffer -> consolidate via MEMIT -> system prompt shows it immediately
+    -> micro-sleep trains LoRA in background (3x repetition, 20 iters)
+    -> fact may reach graduation in minutes instead of multiple sleep cycles
+
+  Degraded facts:
+    Audit detects degradation -> degrade_count++ -> priority boost
+    -> micro-sleep picks them up sooner -> spaced repetition reinforcement
+
+
+Files Changed
+--------------
+src/memory/memit.py        FactTriple.priority, MemitEdit spaced-rep fields,
+                           EditLedger.record_training/record_degrade
+src/wake/context.py        System prompt fact injection
+src/wake/chat.py           Surprise -> priority, micro-sleep trigger
+src/sleep/trainer.py       Priority-weighted training data
+src/sleep/full_sleep.py    Weighted training, spaced-rep recording
+src/sleep/micro_sleep.py   NEW — background priority-triggered LoRA
+src/orchestrator.py        Wiring: facts provider, micro-sleep init
+config.yaml                micro_sleep + spaced_repetition sections

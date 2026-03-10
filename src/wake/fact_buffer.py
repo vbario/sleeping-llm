@@ -1,6 +1,6 @@
 """Fact buffer — volatile in-memory accumulator for extracted facts.
 
-Facts sit here between extraction and MEMIT injection, analogous to
+Facts sit here between extraction and ledger persistence, analogous to
 hippocampal short-term memory. Intentionally volatile: crash = amnesia.
 No disk persistence by design.
 """
@@ -13,7 +13,7 @@ from typing import List, Optional
 @dataclass
 class BufferedFact:
     """A fact waiting in the buffer for consolidation."""
-    triple: object  # FactTriple — avoid circular import
+    qa: object  # QAPair — avoid circular import
     buffered_at: float = field(default_factory=time.time)
     source_turn: int = 0
     surprise_at_extraction: float = 0.0
@@ -24,18 +24,18 @@ class FactBuffer:
 
     Design invariants:
       - Never writes to disk (volatile = retrograde amnesia on crash)
-      - Consolidation = batch MEMIT injection of entire buffer
+      - Consolidation = persist buffered QAPairs to the FactLedger
       - After consolidation, buffer is cleared
     """
 
-    def __init__(self, config, memit_engine, health_monitor=None):
+    def __init__(self, config, fact_ledger, health_monitor=None):
         cm_config = config.get("consolidation_moment", {}) or {}
         self.max_buffer_size = cm_config.get("max_buffer_size", 20)
         self.overflow_policy = cm_config.get("overflow_policy", "consolidate")
         self.min_buffer_age_seconds = cm_config.get("min_buffer_age_seconds", 0)
         self.min_facts_for_consolidation = cm_config.get("min_facts", 1)
 
-        self._memit_engine = memit_engine
+        self._fact_ledger = fact_ledger
         self._health_monitor = health_monitor
 
         # Volatile state
@@ -44,20 +44,18 @@ class FactBuffer:
         self._total_facts_consolidated = 0
         self._last_consolidation_time = 0.0
 
-    def add(self, triple, turn: int = 0, surprise: float = 0.0):
-        """Add a fact to the buffer. Does NOT touch model weights.
+    def add(self, qa, turn: int = 0, surprise: float = 0.0):
+        """Add a fact to the buffer. Does NOT touch model weights or disk.
 
-        Skips if a fact with the same (subject, relation) key is already buffered.
+        Skips if a fact with the same question key is already buffered.
         """
-        key = (triple.subject.lower().strip(), triple.relation.lower().strip())
+        key = qa.question.lower().strip()
         for existing in self._buffer:
-            ek = (existing.triple.subject.lower().strip(),
-                  existing.triple.relation.lower().strip())
-            if key == ek:
+            if existing.qa.question.lower().strip() == key:
                 return  # Already buffered
 
         self._buffer.append(BufferedFact(
-            triple=triple,
+            qa=qa,
             buffered_at=time.time(),
             source_turn=turn,
             surprise_at_extraction=surprise,
@@ -71,13 +69,13 @@ class FactBuffer:
                 self._buffer.pop(0)
 
     def consolidate(self, reason: str = "surprise"):
-        """Flush the entire buffer into MEMIT as a single batch injection.
+        """Flush the entire buffer into the FactLedger.
 
         Returns:
-            The MemitEdit record, or None if buffer was empty or injection failed
+            Number of facts persisted, or 0 if buffer was empty
         """
         if not self._buffer:
-            return None
+            return 0
 
         # Check minimum age (oldest fact must be old enough) — skip for forced flushes
         if (self.min_buffer_age_seconds > 0
@@ -85,30 +83,30 @@ class FactBuffer:
                 and self._buffer):
             oldest_age = time.time() - self._buffer[0].buffered_at
             if oldest_age < self.min_buffer_age_seconds:
-                return None
+                return 0
 
         # Check minimum count — skip for forced flushes
         if len(self._buffer) < self.min_facts_for_consolidation and reason == "surprise":
-            return None
+            return 0
 
-        triples = [bf.triple for bf in self._buffer]
-        count = len(triples)
+        qa_pairs = [bf.qa for bf in self._buffer]
+        count = len(qa_pairs)
 
-        print(f"  [Consolidation] Flushing {count} fact(s) — reason: {reason}")
+        print(f"  [Consolidation] Flushing {count} fact(s) to ledger — reason: {reason}")
 
         try:
-            edit = self._memit_engine.inject_facts(triples)
-            if edit and self._health_monitor:
-                self._health_monitor.record_edit(count)
+            for qa in qa_pairs:
+                self._fact_ledger.add_fact(qa)
+            if self._health_monitor:
+                self._health_monitor.record_new_facts(count)
             self._consolidation_count += 1
             self._total_facts_consolidated += count
             self._last_consolidation_time = time.time()
             self._buffer.clear()
-            return edit
+            return count
         except Exception as e:
-            print(f"  [Consolidation] Injection failed: {e}")
-            # Buffer NOT cleared on failure — facts survive for retry
-            return None
+            print(f"  [Consolidation] Persistence failed: {e}")
+            return 0
 
     def clear(self):
         """Discard all buffered facts (amnesia)."""
@@ -129,9 +127,9 @@ class FactBuffer:
             return 0.0
         return time.time() - self._buffer[0].buffered_at
 
-    def get_triples(self) -> list:
-        """Return all buffered triples (for deduplication checks)."""
-        return [bf.triple for bf in self._buffer]
+    def get_qa_pairs(self) -> list:
+        """Return all buffered QAPairs (for deduplication checks)."""
+        return [bf.qa for bf in self._buffer]
 
     def to_dict(self) -> dict:
         """Serializable status for API/UI."""
@@ -145,9 +143,8 @@ class FactBuffer:
             "overflow_policy": self.overflow_policy,
             "buffered_facts": [
                 {
-                    "subject": bf.triple.subject,
-                    "relation": bf.triple.relation,
-                    "object": bf.triple.object,
+                    "question": bf.qa.question,
+                    "answer": bf.qa.answer,
                     "age_seconds": round(time.time() - bf.buffered_at, 1),
                 }
                 for bf in self._buffer
