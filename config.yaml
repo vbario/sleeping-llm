@@ -88,7 +88,7 @@ consolidation:
 
 micro_sleep:
   # Priority-triggered background LoRA training on high-importance facts
-  enabled: false
+  enabled: true
   # Trigger mode:
   #   "cycle" — accumulates high-priority facts, fires at 90-min ultradian boundary (BRAC)
   #   "immediate" — fires as soon as a high-priority fact arrives (flashbulb memory)

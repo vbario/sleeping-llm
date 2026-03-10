@@ -64,12 +64,40 @@ class FactExtractor:
         "designed to assist", "designed to help", "designed to communicate",
     ]
 
+    # Meta-questions about conversation structure (not user facts)
+    _META_QUESTION_RE = re.compile(
+        r"(?:is the user (?:responding|making a statement|referring to|asking)|"
+        r"is there (?:a user|something)|"
+        r"does the user have (?:something specific to say|an opinion)|"
+        r"are (?:any (?:details|facts)|there any)|"
+        r"does the user (?:recall|remember) things from previous|"
+        r"is there something on (?:the user'?s|which))",
+        re.IGNORECASE,
+    )
+
+    # Bare yes/no answers (no real information content)
+    _BARE_YESNO_RE = re.compile(
+        r"^(?:yes|no|yes,?\s+he (?:is|does|has|does)|no,?\s+he (?:is not|doesn't|hasn't)|"
+        r"yes,?\s+she (?:is|does|has)|no,?\s+she (?:is not|doesn't|hasn't)|"
+        r"yes,?\s+the user (?:is|does|has)|no,?\s+the user (?:is not|doesn't|hasn't))$",
+        re.IGNORECASE,
+    )
+
+    # Commentary masquerading as answers
+    _COMMENTARY_ANSWER_RE = re.compile(
+        r"(?:i couldn'?t find|no information|not (?:specified|provided|mentioned|stated|clear)|"
+        r"no (?:specific |explicit )?(?:information|details|data)|"
+        r"there is no|cannot determine|unable to determine)",
+        re.IGNORECASE,
+    )
+
     def filter_junk(self, facts: List[QAPair]) -> List[QAPair]:
-        """Remove AI identity facts and tautologies."""
+        """Remove low-quality facts: AI identity, yes/no, meta-questions, commentary."""
         result = []
         for f in facts:
             answer_lower = f.answer.lower().strip()
             value_lower = f.value.lower().strip()
+            question_lower = f.question.lower().strip()
 
             # Skip AI identity facts
             if any(pat in answer_lower for pat in self._AI_ANSWER_PATTERNS):
@@ -77,6 +105,31 @@ class FactExtractor:
 
             # Skip empty or trivial values
             if not value_lower or len(value_lower) < 2:
+                continue
+
+            # Skip bare yes/no answers (no informational content)
+            if self._BARE_YESNO_RE.match(answer_lower):
+                continue
+
+            # Skip meta-questions about conversation structure
+            if self._META_QUESTION_RE.search(question_lower):
+                continue
+
+            # Skip commentary-as-answers ("I couldn't find this information...")
+            if self._COMMENTARY_ANSWER_RE.search(answer_lower):
+                continue
+
+            # Skip answers that are just "yes" or "no" even with trailing punctuation
+            stripped_answer = answer_lower.rstrip(".,!? ")
+            if stripped_answer in ("yes", "no", "true", "false"):
+                continue
+
+            # Skip very short answers (< 3 words) that aren't proper nouns/values
+            answer_words = f.answer.strip().split()
+            if len(answer_words) <= 2 and stripped_answer in (
+                "yes", "no", "yes he is", "no he is not",
+                "yes she is", "yes it is", "no it is not",
+            ):
                 continue
 
             result.append(f)
@@ -238,12 +291,16 @@ class FactExtractor:
         prompt_messages = [{
             "role": "user",
             "content": (
-                "Extract facts about the user from this conversation.\n"
-                "Each fact as a question and concise answer.\n"
+                "Extract personal facts about the user from this conversation.\n"
+                "Only extract concrete facts: names, places, ages, preferences, "
+                "relationships, jobs, hobbies, possessions.\n"
+                "Do NOT extract yes/no facts. Do NOT extract opinions about abstract topics.\n"
+                "Do NOT extract facts about the assistant/AI.\n"
+                "Each fact as a specific question with a concrete answer (not yes/no).\n"
                 "Format:\n"
-                "Q: [question about the user]\n"
-                "A: [concise answer]\n\n"
-                "Only include facts explicitly stated. Skip inferences.\n\n"
+                "Q: [specific question]\n"
+                "A: [concrete answer with details]\n\n"
+                "If no personal facts, write NONE.\n\n"
                 f"{convo_text}\n\n"
                 "Facts:"
             ),
@@ -261,12 +318,15 @@ class FactExtractor:
         prompt_messages = [{
             "role": "user",
             "content": (
-                "Extract facts about the user from this message.\n"
-                "Each fact as a question and concise answer.\n"
+                "Extract personal facts about the user from this message.\n"
+                "Only extract concrete facts: names, places, ages, preferences, "
+                "relationships, jobs, hobbies, possessions.\n"
+                "Do NOT extract yes/no facts. Do NOT extract opinions about abstract topics.\n"
+                "Each fact as a specific question with a concrete answer (not yes/no).\n"
                 "Format:\n"
-                "Q: [question about the user]\n"
-                "A: [concise answer]\n\n"
-                "Only include facts explicitly stated.\n\n"
+                "Q: [specific question]\n"
+                "A: [concrete answer with details]\n\n"
+                "If no personal facts, write NONE.\n\n"
                 f'"{user_message}"\n\n'
                 "Facts:"
             ),
