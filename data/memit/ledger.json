@@ -10,32 +10,13 @@
       "priority": 0.5
     },
     "stage": 0,
-    "last_trained": 1773115517.4725912,
-    "train_count": 4,
+    "last_trained": 1773115959.337012,
+    "train_count": 6,
     "degrade_count": 0,
     "last_verified": 0.0,
     "recall_rate": 1.0,
     "graduated": false,
-    "pruned": false
-  },
-  {
-    "fact_id": "50453408",
-    "qa": {
-      "question": "What is the name of the user's son?",
-      "answer": "The user's son's name is Andre Patandre.",
-      "value": "Andre Patandre",
-      "source_exchange": "garageband :)",
-      "timestamp": 1773109410.006007,
-      "priority": 0.625
-    },
-    "stage": 3,
-    "last_trained": 1773115517.9752052,
-    "train_count": 5,
-    "degrade_count": 0,
-    "last_verified": 0.0,
-    "recall_rate": 0.0,
-    "graduated": true,
-    "pruned": false
+    "pruned": true
   },
   {
     "fact_id": "8728f19b",
@@ -47,14 +28,14 @@
       "timestamp": 1773109410.006025,
       "priority": 0.625
     },
-    "stage": 0,
-    "last_trained": 1773115518.559225,
-    "train_count": 5,
+    "stage": 2,
+    "last_trained": 1773115959.830894,
+    "train_count": 8,
     "degrade_count": 0,
     "last_verified": 0.0,
     "recall_rate": 0.0,
     "graduated": false,
-    "pruned": false
+    "pruned": true
   },
   {
     "fact_id": "fb964bc7",
@@ -66,14 +47,14 @@
       "timestamp": 1773109472.3973708,
       "priority": 0.625
     },
-    "stage": 1,
-    "last_trained": 1773115519.152698,
-    "train_count": 5,
+    "stage": 0,
+    "last_trained": 1773115960.321444,
+    "train_count": 8,
     "degrade_count": 0,
     "last_verified": 0.0,
     "recall_rate": 0.0,
     "graduated": false,
-    "pruned": false
+    "pruned": true
   },
   {
     "fact_id": "dfee23d6",
@@ -86,13 +67,13 @@
       "priority": 0.5
     },
     "stage": 0,
-    "last_trained": 1773115519.626644,
-    "train_count": 4,
+    "last_trained": 1773115960.7979121,
+    "train_count": 6,
     "degrade_count": 0,
     "last_verified": 0.0,
     "recall_rate": 0.0,
     "graduated": false,
-    "pruned": false
+    "pruned": true
   },
   {
     "fact_id": "439446b0",
@@ -684,25 +665,6 @@
     "pruned": true
   },
   {
-    "fact_id": "1e29c76f",
-    "qa": {
-      "question": "What is the user's son's name?",
-      "answer": "Andre Patandre",
-      "value": "Andre Patandre",
-      "source_exchange": "What do you know about my son?",
-      "timestamp": 1773115251.7467709,
-      "priority": 0.625
-    },
-    "stage": 3,
-    "last_trained": 1773115520.10625,
-    "train_count": 3,
-    "degrade_count": 0,
-    "last_verified": 0.0,
-    "recall_rate": 0.0,
-    "graduated": true,
-    "pruned": false
-  },
-  {
     "fact_id": "b2eb461a",
     "qa": {
       "question": "What is Andre Patandre's interest in making music?",
@@ -712,13 +674,51 @@
       "timestamp": 1773115251.746819,
       "priority": 0.625
     },
-    "stage": 1,
-    "last_trained": 1773115520.753483,
-    "train_count": 3,
+    "stage": 0,
+    "last_trained": 1773115961.295833,
+    "train_count": 6,
     "degrade_count": 0,
     "last_verified": 0.0,
     "recall_rate": 0.0,
     "graduated": false,
-    "pruned": false
+    "pruned": true
+  },
+  {
+    "fact_id": "6e2eee1e",
+    "qa": {
+      "question": "What does Andre Patandre use to make music?",
+      "answer": "GarageBand",
+      "value": "GarageBand",
+      "source_exchange": "My son loves making beats.",
+      "timestamp": 1773115895.91178,
+      "priority": 0.625
+    },
+    "stage": 1,
+    "last_trained": 1773115961.781966,
+    "train_count": 1,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
+  },
+  {
+    "fact_id": "cb948e8d",
+    "qa": {
+      "question": "What is the user's relationship to Andre Patandre?",
+      "answer": "Parent",
+      "value": "Parent",
+      "source_exchange": "My son loves making beats.",
+      "timestamp": 1773115895.911794,
+      "priority": 0.625
+    },
+    "stage": 0,
+    "last_trained": 1773115962.263099,
+    "train_count": 1,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": true
   }
 ]

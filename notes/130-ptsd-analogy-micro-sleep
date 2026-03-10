@@ -1,0 +1,63 @@
+PTSD Analogy — Micro-Sleep and Flashbulb Encoding
+===================================================
+2026-03-10
+
+Observation
+-----------
+Micro-sleep's "immediate" trigger mode mirrors the mechanism behind PTSD:
+information entering too fast, bypassing normal consolidation, and burning
+into weights without proper integration or validation.
+
+The Analogy
+-----------
+Human memory has two consolidation paths:
+  1. Normal: hippocampus buffers → REM sleep integrates → cortex stores
+  2. Traumatic: amygdala hijacks → flashbulb encoding → bypasses REM
+
+The system has the same two paths:
+  1. Normal: FactBuffer → full /sleep (LoRA + graduation test + PPL gate)
+  2. Flashbulb: high-priority fact → micro-sleep "immediate" mode → LoRA
+     fires immediately, no graduation test, no PPL validation
+
+Risks (map to PTSD symptoms)
+-----------------------------
+- **Catastrophic forgetting** (intrusive memories displacing normal recall):
+  Aggressive LoRA on a high-priority fact overwrites previously learned facts.
+  Especially dangerous on 3B where weight space is narrow.
+
+- **Encoding distortion** (distorted traumatic memories):
+  High-priority facts get 3x training repetitions. If the extraction was wrong
+  (hallucinated or misunderstood), the error gets burned deep. Harder to
+  un-learn than a normal-priority fact.
+
+- **Silent PPL degradation** (general cognitive impairment):
+  Multiple micro-sleep passes without a full sleep cycle's PPL gate can
+  quietly degrade general coherence. No one checks the damage until
+  the next full sleep.
+
+Existing Safeguards
+-------------------
+- Cooldown timer (120s between micro-sleeps in immediate mode)
+- Minimum age before training (60s)
+- Max 3 facts per pass
+- "cycle" mode (default): batches facts, waits for 90-min ultradian rhythm
+  — the healthy consolidation analog
+
+The Full Sleep Fix
+------------------
+Full /sleep is the equivalent of healthy REM processing:
+  - Trains on ALL facts (not just high-priority)
+  - Graduation test: verifies each fact was properly encoded
+  - PPL gate: checks nothing got corrupted
+  - Retreat mechanism: un-graduates facts that fail recall
+
+Micro-sleep without full sleep = encoding without integration.
+
+Design Implication
+------------------
+The "cycle" mode exists specifically to prevent the PTSD analog. It imposes
+a biological rhythm (90-min BRAC) that batches consolidation, preventing
+any single fact from hijacking the training pipeline. The "immediate" mode
+should be reserved for genuinely critical corrections (the user says
+"actually, that's wrong") where the cost of delayed encoding exceeds the
+risk of interference.

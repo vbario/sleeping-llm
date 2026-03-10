@@ -56,17 +56,18 @@ class QAPair:
 class FactLedger:
     """Persistent fact storage — the single source of truth for learned facts.
 
-    Each fact is stored as a QAPair with metadata tracking training progress:
-      - stage 0: new (in system prompt, not yet trained)
-      - stage 1: LoRA training started
-      - stage 2: LoRA partially learned
-      - stage 3: graduated (LoRA carries, removed from system prompt)
+    Active facts live in ledger.json, graduated facts in graduated.json.
+    Graduated facts are carried by LoRA and excluded from the system prompt.
+
+    Stages: 0 (new) → 1 (trained) → 2 (strong) → 3 (graduated → moved to graduated.json)
     """
 
     def __init__(self, ledger_path: str):
         self.ledger_path = Path(ledger_path)
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        self.graduated_path = self.ledger_path.parent / "graduated.json"
         self._entries: List[dict] = []
+        self._graduated: List[dict] = []
         self.load()
 
     def add_fact(self, qa: QAPair) -> str:
@@ -89,34 +90,35 @@ class FactLedger:
         return fact_id
 
     def get_active_facts(self) -> List[dict]:
-        """Return all non-pruned fact entries."""
+        """Return all non-pruned, non-graduated fact entries."""
         return [e for e in self._entries if not e.get("pruned", False)]
 
-    def get_active_qa_pairs(self) -> List[QAPair]:
-        """Return QAPairs for non-graduated active facts (for system prompt).
+    def get_graduated_facts(self) -> List[dict]:
+        """Return all graduated fact entries."""
+        return list(self._graduated)
 
-        Graduated facts are excluded — the model knows them via LoRA.
+    def get_active_qa_pairs(self) -> List[QAPair]:
+        """Return QAPairs for active facts (for system prompt).
+
+        Graduated facts live in a separate file — not returned here.
         """
-        pairs = []
-        for e in self.get_active_facts():
-            if e.get("graduated", False):
-                continue
-            pairs.append(QAPair.from_dict(e["qa"]))
-        return pairs
+        return [QAPair.from_dict(e["qa"]) for e in self.get_active_facts()]
 
     def get_all_qa_pairs(self) -> List[QAPair]:
-        """Return all active QAPairs including graduated (for dedup)."""
-        return [QAPair.from_dict(e["qa"]) for e in self.get_active_facts()]
+        """Return all QAPairs including graduated (for dedup)."""
+        pairs = [QAPair.from_dict(e["qa"]) for e in self.get_active_facts()]
+        pairs.extend(QAPair.from_dict(e["qa"]) for e in self._graduated)
+        return pairs
 
     def get_active_fact_count(self) -> int:
         return len(self.get_active_facts())
 
     def get_graduated_count(self) -> int:
-        return sum(1 for e in self.get_active_facts() if e.get("graduated", False))
+        return len(self._graduated)
 
     def record_training(self, fact_id: str):
         """Record that a fact was trained via LoRA."""
-        for e in self._entries:
+        for e in self._entries + self._graduated:
             if e["fact_id"] == fact_id:
                 e["last_trained"] = time.time()
                 e["train_count"] = e.get("train_count", 0) + 1
@@ -125,25 +127,40 @@ class FactLedger:
 
     def record_degrade(self, fact_id: str):
         """Record that a fact's recall degraded."""
-        for e in self._entries:
+        for e in self._entries + self._graduated:
             if e["fact_id"] == fact_id:
                 e["degrade_count"] = e.get("degrade_count", 0) + 1
                 break
         self.save()
 
     def advance_stage(self, fact_id: str) -> int:
-        """Advance graduation stage (cap at 3). Returns new stage."""
+        """Advance graduation stage (cap at 3). Returns new stage.
+
+        At stage 3, the fact is moved from _entries to _graduated.
+        """
         for e in self._entries:
             if e["fact_id"] == fact_id:
                 e["stage"] = min(e.get("stage", 0) + 1, 3)
                 if e["stage"] >= 3:
                     e["graduated"] = True
+                    self._graduated.append(e)
+                    self._entries.remove(e)
                 self.save()
                 return e["stage"]
         return 0
 
     def retreat_stage(self, fact_id: str):
-        """Reset stage to 0 (un-graduate)."""
+        """Reset stage to 0 (un-graduate). Moves back from graduated if needed."""
+        # Check graduated list first
+        for e in self._graduated:
+            if e["fact_id"] == fact_id:
+                e["stage"] = 0
+                e["graduated"] = False
+                self._entries.append(e)
+                self._graduated.remove(e)
+                self.save()
+                return
+        # Also check active entries (might not be graduated yet)
         for e in self._entries:
             if e["fact_id"] == fact_id:
                 e["stage"] = 0
@@ -153,7 +170,7 @@ class FactLedger:
 
     def update_verification(self, fact_id: str, recall_rate: float):
         """Update verification after recall test."""
-        for e in self._entries:
+        for e in self._entries + self._graduated:
             if e["fact_id"] == fact_id:
                 e["last_verified"] = time.time()
                 e["recall_rate"] = recall_rate
@@ -170,13 +187,17 @@ class FactLedger:
 
     def clear_all(self):
         self._entries = []
+        self._graduated = []
         self.save()
 
     def save(self):
         with open(self.ledger_path, "w") as f:
             json.dump(self._entries, f, indent=2)
+        with open(self.graduated_path, "w") as f:
+            json.dump(self._graduated, f, indent=2)
 
     def load(self):
+        # Load active entries
         if self.ledger_path.exists():
             try:
                 with open(self.ledger_path) as f:
@@ -195,6 +216,29 @@ class FactLedger:
                 self._entries = []
         else:
             self._entries = []
+
+        # Load graduated entries
+        if self.graduated_path.exists():
+            try:
+                with open(self.graduated_path) as f:
+                    data = json.load(f)
+                self._graduated = data if isinstance(data, list) else []
+            except (json.JSONDecodeError, ValueError):
+                self._graduated = []
+        else:
+            self._graduated = []
+
+        # Migrate: move any graduated entries from _entries to _graduated
+        migrated = []
+        for e in self._entries[:]:
+            if e.get("graduated", False) and not e.get("pruned", False):
+                self._graduated.append(e)
+                migrated.append(e)
+        if migrated:
+            for e in migrated:
+                self._entries.remove(e)
+            print(f"  [Ledger] Migrated {len(migrated)} graduated fact(s) to graduated.json")
+            self.save()
 
 
 def _migrate_from_edit_ledger(old_edits: list) -> list:

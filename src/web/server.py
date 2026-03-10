@@ -176,8 +176,8 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
 
     @app.get("/api/facts")
     async def facts():
-        """Return all facts split into buffered and consolidated."""
-        result = {"buffered": [], "consolidated": []}
+        """Return all facts split into buffered, consolidated, and graduated."""
+        result = {"buffered": [], "consolidated": [], "graduated": []}
         if _orchestrator.fact_buffer:
             for bf in _orchestrator.fact_buffer._buffer:
                 result["buffered"].append({
@@ -195,8 +195,16 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
                 "value": qa.get("value", ""),
                 "fact_id": entry["fact_id"],
                 "stage": entry.get("stage", 0),
-                "graduated": entry.get("graduated", False),
                 "recall_rate": round(entry.get("recall_rate", 0.0), 2),
+                "train_count": entry.get("train_count", 0),
+            })
+        for entry in _orchestrator.fact_ledger.get_graduated_facts():
+            qa = entry.get("qa", {})
+            result["graduated"].append({
+                "question": qa.get("question", ""),
+                "answer": qa.get("answer", ""),
+                "value": qa.get("value", ""),
+                "fact_id": entry["fact_id"],
                 "train_count": entry.get("train_count", 0),
             })
         return result
@@ -217,6 +225,22 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
         if started:
             return {"status": "ok", "message": "Micro-sleep started in background."}
         return {"status": "skipped", "message": "No eligible facts (all recently trained or cooldown active)."}
+
+    @app.post("/api/reset/ledger")
+    async def reset_ledger():
+        """Clear all active (non-graduated) facts from the ledger.
+
+        Graduated facts are preserved — this tests if LoRA recall works
+        without the system prompt safety net.
+        """
+        try:
+            ledger = _orchestrator.fact_ledger
+            active = ledger.get_active_facts()
+            for entry in active:
+                ledger.mark_pruned(entry["fact_id"])
+            return {"status": "ok", "message": f"Cleared {len(active)} consolidated facts. Graduated facts preserved."}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
 
     @app.post("/api/reset/weights")
     async def reset_weights():

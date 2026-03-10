@@ -442,6 +442,32 @@
     opacity: 0.4;
     cursor: not-allowed;
   }
+  .tab-btn {
+    font-size: 11px;
+    text-transform: uppercase;
+    color: #8b949e;
+    letter-spacing: 0.5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 0;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .tab-btn:hover { color: #c9d1d9; }
+  .tab-btn.active {
+    color: #c9d1d9;
+    border-bottom-color: #58a6ff;
+  }
+  .tab-btn .count-badge {
+    font-size: 10px;
+    background: #30363d;
+    color: #c9d1d9;
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-variant-numeric: tabular-nums;
+    margin-left: 2px;
+  }
   .empty-state {
     font-size: 12px;
     color: #484f58;
@@ -479,6 +505,7 @@
     <button class="microsleep-btn" id="microsleep-btn" onclick="triggerMicroSleep()">Micro<span class="micro-indicator"></span></button>
   </div>
   <div class="reset-group">
+    <button class="reset-btn" id="clear-ledger-btn" onclick="clearLedger()">Clear Ledger</button>
     <button class="reset-btn" id="reset-weights-btn" onclick="resetWeights()">Reset Weights</button>
     <button class="reset-btn danger" id="factory-reset-btn" onclick="factoryReset()">Factory Reset</button>
   </div>
@@ -511,11 +538,14 @@
 
   <div class="facts-section" id="consolidated-section">
     <div class="section-header">
-      <span class="section-label">Consolidated</span>
-      <span class="count-badge" id="consolidated-count">0</span>
+      <button class="tab-btn active" id="tab-consolidated" onclick="switchFactTab('consolidated')">Consolidated <span class="count-badge" id="consolidated-count">0</span></button>
+      <button class="tab-btn" id="tab-graduated" onclick="switchFactTab('graduated')">Graduated <span class="count-badge" id="graduated-count">0</span></button>
     </div>
     <div id="consolidated-facts">
       <div class="empty-state">No consolidated facts</div>
+    </div>
+    <div id="graduated-facts" style="display:none">
+      <div class="empty-state">No graduated facts</div>
     </div>
   </div>
 </div>
@@ -776,6 +806,23 @@ function toggleFacts(btn) {
   btn.textContent = expanded ? 'hide facts' : 'show facts';
 }
 
+async function clearLedger() {
+  if (streaming || sleeping) return;
+  if (!confirm('Clear all consolidated facts from the system prompt? Graduated facts are preserved. This tests if LoRA recall works from weights alone.')) return;
+
+  document.getElementById('clear-ledger-btn').disabled = true;
+  try {
+    const resp = await fetch('/api/reset/ledger', { method: 'POST' });
+    const data = await resp.json();
+    addMessage('assistant', '[System] ' + data.message);
+  } catch (err) {
+    addMessage('assistant', '[System] Clear failed: ' + err.message);
+  }
+  document.getElementById('clear-ledger-btn').disabled = false;
+  refreshStatus();
+  refreshFacts();
+}
+
 async function resetWeights() {
   if (streaming || sleeping) return;
   if (!confirm('Reset model to base weights? This clears all learned memories but keeps conversation logs.')) return;
@@ -883,7 +930,7 @@ async function refreshFacts() {
       consolidateBtn.style.display = 'block';
     }
 
-    // Consolidated facts
+    // Consolidated facts (non-graduated)
     const consolidatedEl = document.getElementById('consolidated-facts');
     const consolidatedCount = document.getElementById('consolidated-count');
     consolidatedCount.textContent = data.consolidated.length;
@@ -894,20 +941,58 @@ async function refreshFacts() {
       consolidatedEl.innerHTML = data.consolidated.map(f => `
         <div class="fact-card">
           <div class="fact-main">
-            <span class="fact-status ${f.graduated ? 'graduated' : 'consolidated'}">
-              ${f.graduated ? '&#9733;' : '&#10003;'}
-            </span>
+            <span class="fact-status consolidated">&#10003;</span>
             <span class="fact-text">${esc(f.answer)}</span>
           </div>
           <div class="fact-meta">
-            ${f.graduated ? 'graduated' : 'stage ' + f.stage}
+            stage ${f.stage}
             ${f.train_count > 0 ? ' · trained ' + f.train_count + 'x' : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Graduated facts
+    const graduatedEl = document.getElementById('graduated-facts');
+    const graduatedCount = document.getElementById('graduated-count');
+    graduatedCount.textContent = data.graduated.length;
+
+    if (data.graduated.length === 0) {
+      graduatedEl.innerHTML = '<div class="empty-state">No graduated facts</div>';
+    } else {
+      graduatedEl.innerHTML = data.graduated.map(f => `
+        <div class="fact-card">
+          <div class="fact-main">
+            <span class="fact-status graduated">&#9733;</span>
+            <span class="fact-text">${esc(f.answer)}</span>
+          </div>
+          <div class="fact-meta">
+            graduated · trained ${f.train_count}x
           </div>
         </div>
       `).join('');
     }
   } catch (err) {
     console.error('Facts fetch failed:', err);
+  }
+}
+
+function switchFactTab(tab) {
+  const consolidatedEl = document.getElementById('consolidated-facts');
+  const graduatedEl = document.getElementById('graduated-facts');
+  const tabConsolidated = document.getElementById('tab-consolidated');
+  const tabGraduated = document.getElementById('tab-graduated');
+
+  if (tab === 'graduated') {
+    consolidatedEl.style.display = 'none';
+    graduatedEl.style.display = 'block';
+    tabConsolidated.classList.remove('active');
+    tabGraduated.classList.add('active');
+  } else {
+    consolidatedEl.style.display = 'block';
+    graduatedEl.style.display = 'none';
+    tabConsolidated.classList.add('active');
+    tabGraduated.classList.remove('active');
   }
 }
 
