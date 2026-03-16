@@ -1,9 +1,9 @@
-"""Fact extractor — extracts Q&A facts from conversation exchanges.
+"""Fact extractor — model-based Q&A fact extraction from conversation.
 
 Runs during the wake phase after each exchange, producing QAPair objects
-that are buffered and eventually persisted to the FactLedger. Uses
-template-based extraction first (fast, reliable), with model-based
-extraction for richer context understanding.
+that are buffered and eventually persisted to the FactLedger. Uses the
+model itself to determine what new facts were learned from the latest
+user message, given the full conversation context.
 """
 
 import re
@@ -13,7 +13,7 @@ from src.memory.facts import QAPair
 
 
 class FactExtractor:
-    """Extracts QAPair objects from conversation exchanges."""
+    """Extracts QAPair objects from conversation exchanges using the model."""
 
     def __init__(self, config, backend):
         self.config = config
@@ -21,35 +21,22 @@ class FactExtractor:
 
     def extract_from_exchange(self, user_message: str, assistant_response: str,
                               conversation: list = None) -> List[QAPair]:
-        """Extract facts from a conversation turn.
+        """Extract facts from a conversation turn using the model.
 
-        If conversation history is provided, reviews the full conversation for
-        context (resolves pronouns, accumulates facts). Otherwise falls back
-        to single-message extraction.
+        Feeds the conversation up to this point into the model and asks
+        what new concrete facts were learned from the user's last message.
 
         Returns:
             List of QAPair objects
         """
-        # Primary: model reviews conversation (or single exchange as fallback)
         try:
-            if conversation and len(conversation) >= 2:
-                facts = self._review_conversation(conversation)
-            else:
-                facts = self._review_exchange(user_message, assistant_response)
+            facts = self._extract_new_facts(user_message, conversation)
         except Exception as e:
-            print(f"  [Review] Model review failed: {e}")
+            print(f"  [Extract] Model extraction failed: {e}")
             facts = []
 
-        # Supplement: regex catches structured patterns from latest message
-        template_facts = self.extract_template(user_message)
-        if template_facts:
-            seen = {f.question.lower().strip() for f in facts}
-            for f in template_facts:
-                if f.question.lower().strip() not in seen:
-                    facts.append(f)
-
         # Filter low-quality facts
-        facts = self.filter_junk(facts)
+        facts = self._filter_junk(facts)
 
         # Tag all facts with source
         source = user_message[:100]
@@ -58,13 +45,120 @@ class FactExtractor:
 
         return facts
 
-    # AI-related patterns to filter out
+    # --- Model-based extraction ---
+
+    def _extract_new_facts(self, user_message: str,
+                           conversation: list = None) -> List[QAPair]:
+        """Ask the model what new facts were learned from the last message."""
+        # Build conversation context
+        if conversation and len(conversation) >= 2:
+            lines = []
+            char_budget = 4000
+            for msg in conversation:
+                role = "User" if msg["role"] == "user" else "Assistant"
+                lines.append(f"{role}: {msg['content']}")
+            convo_text = "\n".join(lines)
+            if len(convo_text) > char_budget:
+                convo_text = convo_text[-char_budget:]
+        else:
+            convo_text = f"User: {user_message}"
+
+        prompt_messages = [{
+            "role": "user",
+            "content": (
+                "Read the conversation below. List the new facts we learned "
+                "from the user's LAST message as short statements.\n\n"
+                "Only concrete facts about people, places, jobs, ages, "
+                "preferences, relationships, pets, dates.\n"
+                "Write each fact as a simple sentence. No questions. "
+                "No commentary. If no new facts, write NONE.\n\n"
+                "Example:\n"
+                "1. Viktor lives in Berlin.\n"
+                "2. Viktor is a software engineer.\n\n"
+                f"{convo_text}\n\n"
+                "New facts:"
+            ),
+        }]
+
+        prompt = self.backend.apply_chat_template(prompt_messages)
+        raw = self.backend.generate(prompt, max_tokens=200, temperature=0.1)
+        print(f"  [Extract] raw={raw!r}")
+        facts = self._parse_statements(raw)
+        print(f"  [Extract] parsed {len(facts)} fact(s)")
+        return facts
+
+    # --- Parsing ---
+
+    # Patterns in answers that signal commentary, not facts
+    _COMMENTARY_RE = re.compile(
+        r"(?:not (?:explicitly |directly )?mentioned|implied|"
+        r"not stated|unknown|unclear|no (?:specific|explicit)|"
+        r"N/A|none|n/a)",
+        re.IGNORECASE,
+    )
+
+    def _parse_statements(self, raw: str) -> List[QAPair]:
+        """Parse numbered/bulleted statements into QAPairs.
+
+        Input like:
+            1. Jimmy Jimz is a music producer from Seattle.
+            2. Jimmy Jimz makes rap beats.
+
+        Each statement becomes a QAPair where question=statement,
+        answer=statement, value=statement (dedup uses the value).
+        """
+        facts = []
+
+        for line in raw.strip().split("\n"):
+            line = line.strip()
+            if not line:
+                continue
+            if line.upper().startswith("NONE"):
+                return []
+
+            # Strip numbering and bullets
+            line = re.sub(r"^\d+[.)]\s*", "", line).strip()
+            for prefix in ("- ", "* ", "• "):
+                if line.startswith(prefix):
+                    line = line[len(prefix):].strip()
+                    break
+
+            # Skip commentary
+            lower = line.lower()
+            if lower.startswith(("note:", "note ", "however", "there are no",
+                                 "no additional", "not explicitly", "based on",
+                                 "no new", "i did not", "i could not",
+                                 "the user", "from the")):
+                continue
+            if self._COMMENTARY_RE.search(line):
+                continue
+
+            # Skip Q:/A: lines (model fell back to Q&A format)
+            if re.match(r"^[QqAa][:.]\s", line):
+                continue
+
+            # Must be a real sentence (at least 3 words)
+            line = line.rstrip(".")
+            if len(line.split()) < 3:
+                continue
+            if len(line) < 5:
+                continue
+
+            facts.append(QAPair(
+                question=line,
+                answer=line,
+                value=line,
+            ))
+
+        return facts
+
+    # --- Junk filtering ---
+
     _AI_ANSWER_PATTERNS = [
         "a conversational ai", "a chatbot", "an ai", "a language model",
         "designed to assist", "designed to help", "designed to communicate",
     ]
 
-    # Meta-questions about conversation structure (not user facts)
     _META_QUESTION_RE = re.compile(
         r"(?:is the user (?:responding|making a statement|referring to|asking)|"
         r"is there (?:a user|something)|"
@@ -75,15 +169,6 @@ class FactExtractor:
         re.IGNORECASE,
     )
 
-    # Bare yes/no answers (no real information content)
-    _BARE_YESNO_RE = re.compile(
-        r"^(?:yes|no|yes,?\s+he (?:is|does|has|does)|no,?\s+he (?:is not|doesn't|hasn't)|"
-        r"yes,?\s+she (?:is|does|has)|no,?\s+she (?:is not|doesn't|hasn't)|"
-        r"yes,?\s+the user (?:is|does|has)|no,?\s+the user (?:is not|doesn't|hasn't))$",
-        re.IGNORECASE,
-    )
-
-    # Commentary masquerading as answers
     _COMMENTARY_ANSWER_RE = re.compile(
         r"(?:i couldn'?t find|no information|not (?:specified|provided|mentioned|stated|clear)|"
         r"no (?:specific |explicit )?(?:information|details|data)|"
@@ -91,45 +176,25 @@ class FactExtractor:
         re.IGNORECASE,
     )
 
-    def filter_junk(self, facts: List[QAPair]) -> List[QAPair]:
-        """Remove low-quality facts: AI identity, yes/no, meta-questions, commentary."""
+    def _filter_junk(self, facts: List[QAPair]) -> List[QAPair]:
+        """Remove low-quality facts."""
         result = []
         for f in facts:
             answer_lower = f.answer.lower().strip()
             value_lower = f.value.lower().strip()
             question_lower = f.question.lower().strip()
 
-            # Skip AI identity facts
             if any(pat in answer_lower for pat in self._AI_ANSWER_PATTERNS):
                 continue
-
-            # Skip empty or trivial values
             if not value_lower or len(value_lower) < 2:
                 continue
-
-            # Skip bare yes/no answers (no informational content)
-            if self._BARE_YESNO_RE.match(answer_lower):
-                continue
-
-            # Skip meta-questions about conversation structure
             if self._META_QUESTION_RE.search(question_lower):
                 continue
-
-            # Skip commentary-as-answers ("I couldn't find this information...")
             if self._COMMENTARY_ANSWER_RE.search(answer_lower):
                 continue
 
-            # Skip answers that are just "yes" or "no" even with trailing punctuation
-            stripped_answer = answer_lower.rstrip(".,!? ")
-            if stripped_answer in ("yes", "no", "true", "false"):
-                continue
-
-            # Skip very short answers (< 3 words) that aren't proper nouns/values
-            answer_words = f.answer.strip().split()
-            if len(answer_words) <= 2 and stripped_answer in (
-                "yes", "no", "yes he is", "no he is not",
-                "yes she is", "yes it is", "no it is not",
-            ):
+            stripped = answer_lower.rstrip(".,!? ")
+            if stripped in ("yes", "no", "true", "false"):
                 continue
 
             result.append(f)
@@ -139,305 +204,99 @@ class FactExtractor:
             print(f"  [Filter] Removed {filtered} junk fact(s)")
         return result
 
-    def extract_template(self, text: str) -> List[QAPair]:
-        """Regex-based extraction producing QAPair format.
+    # --- Deduplication ---
 
-        Catches structured patterns like "My name is X", "I live in Y", etc.
-        """
-        facts = []
-        seen = set()
-
-        # (regex, question_fn, answer_fn, value_fn)
-        patterns = [
-            # Names
-            (r"(?:my name is|i'm called|call me|i am|i'm)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
-             lambda m: "What is the user's name?",
-             lambda m: f"The user's name is {m.group(1)}.",
-             lambda m: m.group(1)),
-            # Age
-            (r"(?:i'm|i am)\s+(\d{1,3})\s+(?:years old|yr|yrs)",
-             lambda m: "How old is the user?",
-             lambda m: f"The user is {m.group(1)} years old.",
-             lambda m: m.group(1)),
-            # Location
-            (r"(?:i live in|i'm from|i'm based in|i am from|i am based in|i live at)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: "Where does the user live?",
-             lambda m: f"The user lives in {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            # Job/profession
-            (r"(?:i work as|i'm a|i am a|my job is)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: "What does the user do for work?",
-             lambda m: f"The user works as {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            # Works at/for
-            (r"(?:i work at|i work for)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: "Where does the user work?",
-             lambda m: f"The user works at {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            # Likes
-            (r"(?:i (?:really )?like|i love|i enjoy|i prefer)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: f"What does the user like?",
-             lambda m: f"The user likes {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            # Dislikes
-            (r"(?:i (?:don't|do not) like|i hate|i dislike)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: f"What does the user dislike?",
-             lambda m: f"The user dislikes {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            # Favorites
-            (r"my (?:favorite|favourite)\s+(\w+)\s+(?:is|are)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: f"What is the user's favorite {m.group(1)}?",
-             lambda m: f"The user's favorite {m.group(1)} is {m.group(2).strip()}.",
-             lambda m: m.group(2).strip()),
-            # Has/owns
-            (r"(?:i have|i've got|i own)\s+(?:a |an )?(.+?)(?:\.|,|!|\?|$)",
-             lambda m: f"What does the user have?",
-             lambda m: f"The user has {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            # Family members and pets
-            (r"my\s+(son|daughter|wife|husband|partner|brother|sister|mom|dad|mother|father|dog|cat|pet)(?:'s name)?\s+is\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)",
-             lambda m: f"What is the user's {m.group(1)}'s name?",
-             lambda m: f"The user's {m.group(1)} is named {m.group(2)}.",
-             lambda m: m.group(2)),
-            # Uses/works with
-            (r"(?:i use|i work with|i'm using|i am using)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: f"What does the user use?",
-             lambda m: f"The user uses {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            # Opinions
-            (r"(?:i think|i believe)\s+(?!i\s)(.+?)\s+(?:is|are)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: f"What does the user think about {m.group(1).strip()}?",
-             lambda m: f"The user thinks {m.group(1).strip()} is {m.group(2).strip()}.",
-             lambda m: m.group(2).strip()),
-            # Temporal
-            (r"i graduated (?:from .+ )?in\s+(\d{4})",
-             lambda m: "When did the user graduate?",
-             lambda m: f"The user graduated in {m.group(1)}.",
-             lambda m: m.group(1)),
-            (r"i (?:started|began)(?: .+?)? in\s+(\d{4})",
-             lambda m: "When did the user start?",
-             lambda m: f"The user started in {m.group(1)}.",
-             lambda m: m.group(1)),
-            (r"i was born in\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: "When was the user born?",
-             lambda m: f"The user was born in {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            (r"i (?:moved|relocated) to\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: "Where did the user move to?",
-             lambda m: f"The user moved to {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            # Family details
-            (r"my\s+(sister|brother|partner|wife|husband|mom|dad|mother|father|son|daughter)\s+(?:lives in|is from)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: f"Where does the user's {m.group(1)} live?",
-             lambda m: f"The user's {m.group(1)} lives in {m.group(2).strip()}.",
-             lambda m: m.group(2).strip()),
-            (r"my\s+(sister|brother|partner|wife|husband|mom|dad|mother|father|son|daughter)\s+(?:works as|is a)\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: f"What does the user's {m.group(1)} do for work?",
-             lambda m: f"The user's {m.group(1)} works as {m.group(2).strip()}.",
-             lambda m: m.group(2).strip()),
-            # Conditions
-            (r"i(?:'m| am) allergic to\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: "What is the user allergic to?",
-             lambda m: f"The user is allergic to {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            (r"i speak\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: "What language does the user speak?",
-             lambda m: f"The user speaks {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            (r"i(?:'m| am) learning\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: "What is the user learning?",
-             lambda m: f"The user is learning {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-            (r"i studied\s+(.+?)(?:\.|,|!|\?|$)",
-             lambda m: "What did the user study?",
-             lambda m: f"The user studied {m.group(1).strip()}.",
-             lambda m: m.group(1).strip()),
-        ]
-
-        for pattern, question_fn, answer_fn, value_fn in patterns:
-            for match in re.finditer(pattern, text, re.IGNORECASE):
-                try:
-                    question = question_fn(match)
-                    answer = answer_fn(match)
-                    value = value_fn(match)
-                except (IndexError, AttributeError):
-                    continue
-
-                if not value or len(value) < 2 or len(value) > 100:
-                    continue
-
-                q_key = question.lower().strip()
-                if q_key not in seen:
-                    seen.add(q_key)
-                    facts.append(QAPair(
-                        question=question,
-                        answer=answer,
-                        value=value,
-                    ))
-
-        return facts
-
-    def _review_conversation(self, messages: list) -> List[QAPair]:
-        """Review the full conversation and extract all facts as Q&A pairs."""
-        lines = []
-        char_budget = 6000
-        for msg in messages:
-            role = "User" if msg["role"] == "user" else "Assistant"
-            lines.append(f"{role}: {msg['content']}")
-        convo_text = "\n".join(lines)
-        if len(convo_text) > char_budget:
-            convo_text = convo_text[-char_budget:]
-
-        prompt_messages = [{
-            "role": "user",
-            "content": (
-                "Extract personal facts about the user from this conversation.\n"
-                "Only extract concrete facts: names, places, ages, preferences, "
-                "relationships, jobs, hobbies, possessions.\n"
-                "Do NOT extract yes/no facts. Do NOT extract opinions about abstract topics.\n"
-                "Do NOT extract facts about the assistant/AI.\n"
-                "Each fact as a specific question with a concrete answer (not yes/no).\n"
-                "Format:\n"
-                "Q: [specific question]\n"
-                "A: [concrete answer with details]\n\n"
-                "If no personal facts, write NONE.\n\n"
-                f"{convo_text}\n\n"
-                "Facts:"
-            ),
-        }]
-
-        prompt = self.backend.apply_chat_template(prompt_messages)
-        raw = self.backend.generate(prompt, max_tokens=300, temperature=0.1)
-        print(f"  [Review] raw={raw!r}")
-        facts = self._parse_qa_pairs(raw)
-        print(f"  [Review] parsed {len(facts)} fact(s)")
-        return facts
-
-    def _review_exchange(self, user_message: str, assistant_response: str) -> List[QAPair]:
-        """Fallback: review a single exchange when no conversation history available."""
-        prompt_messages = [{
-            "role": "user",
-            "content": (
-                "Extract personal facts about the user from this message.\n"
-                "Only extract concrete facts: names, places, ages, preferences, "
-                "relationships, jobs, hobbies, possessions.\n"
-                "Do NOT extract yes/no facts. Do NOT extract opinions about abstract topics.\n"
-                "Each fact as a specific question with a concrete answer (not yes/no).\n"
-                "Format:\n"
-                "Q: [specific question]\n"
-                "A: [concrete answer with details]\n\n"
-                "If no personal facts, write NONE.\n\n"
-                f'"{user_message}"\n\n'
-                "Facts:"
-            ),
-        }]
-
-        prompt = self.backend.apply_chat_template(prompt_messages)
-        raw = self.backend.generate(prompt, max_tokens=200, temperature=0.1)
-        print(f"  [Review] raw={raw!r}")
-        facts = self._parse_qa_pairs(raw)
-        print(f"  [Review] parsed {len(facts)} fact(s)")
-        return facts
-
-    # Patterns in answers that signal commentary, not facts
-    _COMMENTARY_RE = re.compile(
-        r"(?:not (?:explicitly |directly )?mentioned|implied|"
-        r"not stated|unknown|unclear|no (?:specific|explicit)|"
-        r"N/A|none|n/a)",
+    _STRIP_WORDS_RE = re.compile(
+        r"\b(?:the|user'?s?|your|my|do you|does the user|what is|what are|what does|"
+        r"have any|have a)\b",
         re.IGNORECASE,
     )
 
-    def _parse_qa_pairs(self, raw: str) -> List[QAPair]:
-        """Parse model output into Q&A pairs.
-
-        Handles both Q:/A: format and falls back to pipe format for
-        backward compatibility with models that produce triples.
-        """
-        facts = []
-
-        # Try Q/A format first
-        current_q = None
-        for line in raw.strip().split("\n"):
-            line = line.strip()
-            if not line:
-                continue
-            if line.upper().startswith("NONE"):
-                return []
-
-            # Strip bullets/numbers
-            line = re.sub(r"^\d+[.)]\s*", "", line).strip()
-            for prefix in ("- ", "* ", "• "):
-                if line.startswith(prefix):
-                    line = line[len(prefix):].strip()
-                    break
-
-            # Skip commentary
-            lower = line.lower()
-            if lower.startswith(("note:", "note ", "however", "there are no",
-                                 "no additional", "not explicitly", "based on")):
-                continue
-            if self._COMMENTARY_RE.search(line):
-                continue
-
-            # Q: line
-            q_match = re.match(r"^[Qq][:.]\s*(.+)$", line)
-            if q_match:
-                current_q = q_match.group(1).strip()
-                continue
-
-            # A: line
-            a_match = re.match(r"^[Aa][:.]\s*(.+)$", line)
-            if a_match and current_q:
-                answer = a_match.group(1).strip().rstrip(".")
-                if answer and len(answer) >= 2:
-                    facts.append(QAPair(
-                        question=current_q,
-                        answer=answer,
-                        value=answer,
-                    ))
-                current_q = None
-                continue
-
-            # Fallback: pipe format (SUBJECT | RELATION | OBJECT)
-            if "|" in line:
-                parts = [p.strip().rstrip(".") for p in line.split("|")]
-                if len(parts) >= 3 and all(parts[:3]):
-                    subject, relation, obj = parts[0], parts[1], parts[2]
-                    if len(obj) >= 2 and not self._COMMENTARY_RE.search(obj):
-                        from src.memory.facts import _triple_to_question
-                        question = _triple_to_question(subject, relation, obj)
-                        facts.append(QAPair(
-                            question=question,
-                            answer=f"{subject} {relation} {obj}.",
-                            value=obj,
-                        ))
-
-        return facts
+    _STOP_WORDS = frozenset(
+        "a an the is are was were do does did has have had i my me "
+        "you your he she it we they at in on of to for and or but "
+        "as by with from that this yes no not".split()
+    )
 
     def _dedup_key(self, fact: QAPair) -> str:
-        """Compute a normalized deduplication key for a QAPair."""
         return fact.question.lower().strip()
 
-    def deduplicate(self, new_facts: List[QAPair], existing_facts: List[QAPair]) -> List[QAPair]:
-        """Filter out already-known facts.
+    def _value_key(self, fact: QAPair) -> str:
+        v = fact.value.lower().strip().rstrip(".,!? ")
+        v = re.sub(r"^(?:yes,?\s+|no,?\s+|a\s+|an\s+|the\s+)", "", v)
+        return re.sub(r"\s+", " ", v)
 
-        Same question + same value = duplicate (skip).
-        Same question + different value = update (include for re-training).
-        """
-        existing_keys = {}
+    def _semantic_question_key(self, fact: QAPair) -> str:
+        q = fact.question.lower().strip().rstrip("?.,! ")
+        q = self._STRIP_WORDS_RE.sub("", q)
+        return re.sub(r"\s+", " ", q).strip()
+
+    @staticmethod
+    def _value_contained(val: str, value_set: set) -> bool:
+        if len(val) < 5:
+            return False
+        for existing in value_set:
+            if len(existing) < 5:
+                continue
+            if val in existing or existing in val:
+                return True
+        return False
+
+    @classmethod
+    def _value_overlaps(cls, val: str, value_set: set) -> bool:
+        val_words = {w for w in val.split() if w not in cls._STOP_WORDS and len(w) > 1}
+        if len(val_words) < 3:
+            return False
+        for existing in value_set:
+            ex_words = {w for w in existing.split() if w not in cls._STOP_WORDS and len(w) > 1}
+            if len(ex_words) < 3:
+                continue
+            shorter, longer = (val_words, ex_words) if len(val_words) <= len(ex_words) else (ex_words, val_words)
+            if len(shorter & longer) / len(shorter) >= 0.6:
+                return True
+        return False
+
+    def deduplicate(self, new_facts: List[QAPair], existing_facts: List[QAPair]) -> List[QAPair]:
+        """Filter out already-known facts."""
+        existing_q_keys = {}
+        existing_sem_keys = set()
+        existing_values = set()
         for f in existing_facts:
-            key = self._dedup_key(f)
-            existing_keys[key] = f.value.lower().strip()
+            existing_q_keys[self._dedup_key(f)] = self._value_key(f)
+            existing_sem_keys.add(self._semantic_question_key(f))
+            existing_values.add(self._value_key(f))
 
         result = []
+        seen_values = set()
         for f in new_facts:
-            key = self._dedup_key(f)
-            existing_val = existing_keys.get(key)
-            if existing_val is None:
-                result.append(f)
-            elif existing_val != f.value.lower().strip():
-                result.append(f)
-            # else: exact duplicate — skip
+            q_key = self._dedup_key(f)
+            sem_key = self._semantic_question_key(f)
+            val_key = self._value_key(f)
+
+            if not val_key or len(val_key) < 2:
+                continue
+            existing_val = existing_q_keys.get(q_key)
+            if existing_val is not None and existing_val == val_key:
+                continue
+            if sem_key in existing_sem_keys:
+                continue
+            if val_key in existing_values:
+                continue
+            if self._value_contained(val_key, existing_values):
+                continue
+            if self._value_overlaps(val_key, existing_values):
+                continue
+            if val_key in seen_values:
+                continue
+            if self._value_contained(val_key, seen_values):
+                continue
+            if self._value_overlaps(val_key, seen_values):
+                continue
+            if sem_key in {self._semantic_question_key(r) for r in result}:
+                continue
+
+            seen_values.add(val_key)
+            result.append(f)
 
         return result
 

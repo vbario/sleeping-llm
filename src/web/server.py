@@ -201,6 +201,18 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
             })
         return result
 
+    @app.get("/api/context")
+    async def context():
+        """Return the current context window contents as text."""
+        text = _orchestrator.context.get_full_history_text()
+        token_count = _orchestrator.context.get_token_count()
+        max_tokens = _orchestrator.context.max_tokens
+        return {
+            "text": text,
+            "token_count": token_count,
+            "max_tokens": max_tokens,
+        }
+
     @app.post("/api/microsleep")
     async def microsleep():
         """Manually trigger a micro-sleep pass on highest-priority facts."""

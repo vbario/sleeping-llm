@@ -75,6 +75,11 @@ memit:
   v_steps: 30
   v_kl_factor: 0.0625
 
+facts:
+  # Hard cap on total facts (active + graduated) in the ledger.
+  # 3B models peak recall at ~10 facts via LoRA (note 62).
+  max_total: 8
+
 lora:
   enabled: true
   num_layers: 8

@@ -63,14 +63,33 @@ class FactLedger:
       - stage 3: graduated (LoRA carries, removed from system prompt)
     """
 
-    def __init__(self, ledger_path: str):
+    def __init__(self, ledger_path: str, max_facts: int = None):
         self.ledger_path = Path(ledger_path)
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        if max_facts is not None:
+            self.MAX_TOTAL_FACTS = max_facts
         self._entries: List[dict] = []
         self.load()
 
+    # Hard cap on total facts (active + graduated). 3B models peak at ~10
+    # facts via LoRA (see notes/62-h100-experiment-results-updated).
+    MAX_TOTAL_FACTS = 8
+
     def add_fact(self, qa: QAPair) -> str:
-        """Add a new fact. Returns the fact_id."""
+        """Add a new fact. Returns the fact_id.
+
+        If the ledger is at capacity, the lowest-priority non-graduated
+        fact is pruned to make room. If all facts are graduated, the
+        lowest-priority graduated fact is pruned instead.
+        """
+        active = self.get_active_facts()
+        if len(active) >= self.MAX_TOTAL_FACTS:
+            # Prefer pruning non-graduated facts first
+            non_grad = [e for e in active if not e.get("graduated", False)]
+            candidates = non_grad if non_grad else active
+            victim = min(candidates, key=lambda e: e["qa"].get("priority", 0.5))
+            self.mark_pruned(victim["fact_id"])
+
         fact_id = uuid.uuid4().hex[:8]
         entry = {
             "fact_id": fact_id,

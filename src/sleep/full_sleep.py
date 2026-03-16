@@ -127,6 +127,15 @@ class FullSleepController:
             total = self.fact_ledger.get_active_fact_count()
             print(f"        {graduated}/{total} facts graduated")
 
+            # Remove graduated facts from active lists — LoRA carries them now
+            if graduated > 0:
+                for entry in self.fact_ledger.get_active_facts():
+                    if entry.get("graduated", False):
+                        self.fact_ledger.mark_pruned(entry["fact_id"])
+                        print(f"        Pruned graduated: {entry['qa'].get('value', '')[:50]}")
+                remaining = self.fact_ledger.get_active_fact_count()
+                print(f"        {remaining} facts remain active")
+
         # [3/5] Validate
         validate_step = 5 if self.consolidation_enabled else 3
         print(f"  [{validate_step}/{ts}] Validating...")
@@ -344,8 +353,18 @@ class FullSleepController:
 
             graduated = self.fact_ledger.get_graduated_count()
             total = self.fact_ledger.get_active_fact_count()
-            yield {"step": 4, "total": ts, "label": "Graduation", "status": "done",
-                   "detail": f"{graduated}/{total} facts graduated"}
+
+            # Remove graduated facts from active lists — LoRA carries them now
+            if graduated > 0:
+                for entry in self.fact_ledger.get_active_facts():
+                    if entry.get("graduated", False):
+                        self.fact_ledger.mark_pruned(entry["fact_id"])
+                remaining = self.fact_ledger.get_active_fact_count()
+                yield {"step": 4, "total": ts, "label": "Graduation", "status": "done",
+                       "detail": f"{graduated} graduated and absorbed, {remaining} remain"}
+            else:
+                yield {"step": 4, "total": ts, "label": "Graduation", "status": "done",
+                       "detail": f"0/{total} facts graduated"}
 
         # [3/5] Validate
         validate_step = 5 if self.consolidation_enabled else 3

@@ -448,6 +448,68 @@
     font-style: italic;
     padding: 4px 0;
   }
+
+  /* Context viewer modal */
+  .context-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .context-overlay.active { display: flex; }
+  .context-panel {
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 20px 24px;
+    width: 700px;
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+  }
+  .context-panel h2 {
+    font-size: 15px;
+    color: #f0f6fc;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .context-panel h2 span {
+    font-size: 12px;
+    color: #8b949e;
+    font-weight: normal;
+  }
+  .context-text {
+    flex: 1;
+    overflow-y: auto;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    padding: 14px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #c9d1d9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+  .context-close {
+    margin-top: 12px;
+    width: 100%;
+    padding: 8px;
+    background: #30363d;
+    color: #c9d1d9;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .context-close:hover { background: #484f58; }
 </style>
 </head>
 <body>
@@ -470,8 +532,12 @@
 
   <div class="stat-group">
     <h3>Context</h3>
-    <div class="stat"><span class="label">Tokens</span><span class="value" id="stat-tokens">0 / 0</span></div>
-    <div class="context-bar"><div class="fill" id="context-fill" style="width: 0%"></div></div>
+    <div class="stat" style="cursor:pointer" onclick="showContext()" title="Click to view context window">
+      <span class="label">Tokens</span><span class="value" id="stat-tokens">0 / 0</span>
+    </div>
+    <div class="context-bar" style="cursor:pointer" onclick="showContext()">
+      <div class="fill" id="context-fill" style="width: 0%"></div>
+    </div>
   </div>
 
   <div class="sleep-buttons">
@@ -525,6 +591,14 @@
     <h2 id="sleep-title">Entering sleep...</h2>
     <div id="sleep-steps"></div>
     <button id="sleep-dismiss-btn" class="sleep-dismiss" onclick="dismissSleep()" style="display:none">Continue</button>
+  </div>
+</div>
+
+<div class="context-overlay" id="context-overlay" onclick="if(event.target===this)dismissContext()">
+  <div class="context-panel">
+    <h2>Context Window <span id="context-token-info"></span></h2>
+    <div class="context-text" id="context-text">Loading...</div>
+    <button class="context-close" onclick="dismissContext()">Close</button>
   </div>
 </div>
 
@@ -972,6 +1046,27 @@ async function manualConsolidate() {
   }
   btn.disabled = false;
   btn.textContent = 'Consolidate Now';
+}
+
+async function showContext() {
+  const overlay = document.getElementById('context-overlay');
+  const textEl = document.getElementById('context-text');
+  const infoEl = document.getElementById('context-token-info');
+  overlay.classList.add('active');
+  textEl.textContent = 'Loading...';
+
+  try {
+    const resp = await fetch('/api/context');
+    const data = await resp.json();
+    textEl.textContent = data.text || '(empty context)';
+    infoEl.textContent = `${data.token_count} / ${data.max_tokens} tokens`;
+  } catch (err) {
+    textEl.textContent = 'Failed to load context: ' + err.message;
+  }
+}
+
+function dismissContext() {
+  document.getElementById('context-overlay').classList.remove('active');
 }
 
 // Load history and status on start
