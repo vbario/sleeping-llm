@@ -84,8 +84,12 @@ lora:
   enabled: true
   num_layers: 8
   learning_rate: 1.0e-4
-  iters_per_fact: 10
+  iters_per_fact: 20
   batch_size: 1
+  # Question paraphrases per fact for training data augmentation.
+  # 0 = disabled. Each fact gets N model-generated question variants
+  # so LoRA learns to answer varied phrasings, not just echo statements.
+  augment_paraphrases: 4
 
 consolidation:
   enabled: true

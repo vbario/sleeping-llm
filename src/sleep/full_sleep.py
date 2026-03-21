@@ -24,7 +24,7 @@ class FullSleepController:
 
     def __init__(self, config, backend, fact_ledger, curator,
                  validator, session_tracker, health_monitor,
-                 fact_extractor=None, trainer=None):
+                 fact_extractor=None, trainer=None, memit_engine=None):
         self.config = config
         self.backend = backend
         self.fact_ledger = fact_ledger
@@ -34,6 +34,7 @@ class FullSleepController:
         self.health_monitor = health_monitor
         self.fact_extractor = fact_extractor
         self.trainer = trainer
+        self.memit_engine = memit_engine
 
         maintenance = config.get("sleep.maintenance", {}) or {}
         self.degraded_threshold = maintenance.get("degraded_threshold", 0.5)
@@ -203,6 +204,19 @@ class FullSleepController:
         print("        Reloading fused model...")
         self.backend.reload(fused_path)
 
+        # 3b. MEMIT injection — surgical weight edits in chat-template space
+        if self.memit_engine and self.memit_engine.enabled:
+            print("        MEMIT: dequantizing target layers...")
+            self.memit_engine._dequantize_target_layers()
+
+            # Re-apply any existing MEMIT edits from previous cycles
+            if self.memit_engine._active_edits:
+                self.memit_engine.reapply_active_edits()
+
+            # Inject current facts via chat-template MEMIT
+            print("        MEMIT: injecting facts via chat-template mode...")
+            self.memit_engine.inject_qa_pairs_chat(qa_pairs)
+
         # 4. Graduation test: for each fact, test recall without system prompt
         system_prompt = self.config.context.get("system_prompt", "")
         all_qa = [QAPair.from_dict(e["qa"]) for e in active_facts]
@@ -242,10 +256,11 @@ class FullSleepController:
         return stats
 
     def _test_graduation(self, qa, all_qa, system_prompt) -> bool:
-        """Test if LoRA has absorbed a fact by asking without system prompt help.
+        """Test if LoRA has absorbed a fact by asking a real question without system prompt help.
 
-        Builds a prompt with the test fact excluded from the system prompt,
-        asks the question, and checks if the answer's key value appears.
+        Instead of echoing the stored statement (which trivially passes),
+        generates a natural question from the fact and checks if the model
+        can produce the key value from LoRA knowledge alone.
         """
         # Build system prompt with this fact excluded
         other_qa = [f for f in all_qa
@@ -257,16 +272,65 @@ class FullSleepController:
             parts.append("Things you remember about the user:\n" + "\n".join(lines))
         system_content = "\n\n".join(parts)
 
+        # Generate a natural question from the fact statement
+        test_question = self._fact_to_question(qa)
+
         messages = [
             {"role": "system", "content": system_content},
-            {"role": "user", "content": qa.question},
+            {"role": "user", "content": test_question},
         ]
         prompt = self.backend.apply_chat_template(messages)
         response = self.backend.generate(prompt, max_tokens=100, temperature=0.1)
 
         # Check if the key value appears in the response
         value = qa.value.lower().strip()
-        return value in response.lower()
+        passed = value in response.lower()
+        print(f"          Test: \"{test_question}\" → "
+              f"{'PASS' if passed else 'FAIL'} (looking for '{qa.value[:40]}')")
+        return passed
+
+    def _fact_to_question(self, qa) -> str:
+        """Convert a fact statement to a natural question via templates.
+
+        No model calls — uses pattern matching to generate a question
+        that tests recall of the key value.
+        """
+        import re
+
+        if qa.question.strip().endswith("?"):
+            return qa.question
+
+        s = qa.question.strip().rstrip(".")
+        words = s.split()
+
+        # Extract subject (first words before a verb)
+        subject = words[0]
+        for i in range(1, min(4, len(words))):
+            if words[i].lower() in ("is", "has", "was", "likes", "lives",
+                                     "works", "makes", "plays", "from",
+                                     "moved", "speaks", "studied", "uses",
+                                     "specializes"):
+                subject = " ".join(words[:i])
+                break
+        else:
+            subject = " ".join(words[:2]) if len(words) > 1 else words[0]
+
+        # Pattern-based question generation
+        s_lower = s.lower()
+        if " is from " in s_lower or " lives in " in s_lower:
+            return f"Where is {subject} from?"
+        if " is a " in s_lower or " is an " in s_lower:
+            return f"What is {subject}?"
+        if " works as " in s_lower or " works at " in s_lower:
+            return f"What does {subject} do for work?"
+        if " has a " in s_lower and " named " in s_lower:
+            return f"What is {subject}'s pet's name?"
+        if " likes " in s_lower or " prefers " in s_lower:
+            return f"What does {subject} like?"
+        if " makes " in s_lower or " plays " in s_lower:
+            return f"What does {subject} do?"
+
+        return f"What do you know about {subject}?"
 
     def _get_ppl_reference_text(self):
         """Get reference text for perplexity measurement from identity data."""

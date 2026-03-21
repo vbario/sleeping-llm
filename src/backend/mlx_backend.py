@@ -36,7 +36,26 @@ class MLXBackend:
         return self
 
     def _resolve_model_path(self):
-        """Always load from the base model (MEMIT edits are re-applied in memory)."""
+        """Load the latest fused model if available, otherwise fall back to base.
+
+        After LoRA sleep cycles, fused models are saved to models/fused/fused/<cycle_id>.
+        On restart we should resume from the latest fused weights so that
+        graduated facts (removed from system prompt) are still in the weights.
+        """
+        from pathlib import Path
+
+        fused_dir = Path(self.config.paths.get("fused_models", "models/fused")) / "fused"
+        if fused_dir.is_dir():
+            # Find the latest fused model by directory name (cycle IDs sort chronologically)
+            fused_dirs = sorted(
+                [d for d in fused_dir.iterdir() if d.is_dir() and (d / "config.json").exists()],
+                key=lambda d: d.name,
+            )
+            if fused_dirs:
+                latest = str(fused_dirs[-1])
+                print(f"  Loading from fused: {latest}")
+                return latest
+
         base = self.config.model["path"]
         print(f"  Loading from base: {base}")
         return base

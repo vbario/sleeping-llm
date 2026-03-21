@@ -147,10 +147,56 @@ class FactExtractor:
             facts.append(QAPair(
                 question=line,
                 answer=line,
-                value=line,
+                value=self._extract_value(line),
             ))
 
         return facts
+
+    @staticmethod
+    def _extract_value(statement: str) -> str:
+        """Extract the key distinguishing value from a fact statement.
+
+        "Jazzy Mike is a saxophone player" → "saxophone player"
+        "Jazzy Mike is from Toronto, Canada" → "Toronto, Canada"
+        "Viktor lives in Berlin" → "Berlin"
+        "She has a dog named Rex" → "Rex"
+        """
+        s = statement.strip().rstrip(".")
+
+        # Order matters: longer patterns first to avoid premature matches
+        patterns = [
+            # "X has a Y named/called Z" → Z
+            (r'^.+?\s+has\s+(?:a|an)\s+.+?\s+(?:named|called)\s+(.+)$', 1),
+            # "X has a hit song called Z" → Z
+            (r'^.+?\s+has\s+(?:a|an)\s+.+?\s+called\s+(.+)$', 1),
+            # "X is from Y" → Y
+            (r'^.+?\s+is\s+from\s+(.+)$', 1),
+            # "X lives in Y" → Y
+            (r'^.+?\s+lives\s+in\s+(.+)$', 1),
+            # "X works at/as Y" → Y
+            (r'^.+?\s+works\s+(?:at|as)\s+(.+)$', 1),
+            # "X is a/an Y" → Y
+            (r'^.+?\s+is\s+(?:a|an)\s+(.+)$', 1),
+            # "X is aged/allergic to Y" → Y
+            (r'^.+?\s+is\s+(?:aged|allergic\s+to|learning|named)\s+(.+)$', 1),
+            # "X is Y" (catch-all for copula) → Y
+            (r'^.+?\s+is\s+(.+)$', 1),
+            # "X has Y" → Y
+            (r'^.+?\s+has\s+(.+)$', 1),
+            # "X likes/makes/plays Y" → Y
+            (r'^.+?\s+(?:likes|makes|plays|speaks|prefers|uses|studied)\s+(.+)$', 1),
+        ]
+
+        for pattern, group in patterns:
+            m = re.match(pattern, s, re.IGNORECASE)
+            if m:
+                return m.group(group).strip()
+
+        # Fallback: last 2-3 words
+        words = s.split()
+        if len(words) > 3:
+            return " ".join(words[-3:])
+        return s
 
     # --- Junk filtering ---
 

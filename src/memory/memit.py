@@ -135,11 +135,7 @@ class FactTriple:
         return f"{self.subject} {self.relation} {self.object}."
 
     def to_raw_training_text(self) -> str:
-        """Convert to raw-completion training text (no chat template).
-
-        Trains the model to complete "subject relation" → " object" in the
-        raw completion pathway — the same pathway MEMIT edits target.
-        """
+        """Convert to raw-completion training text (no chat template)."""
         return f"{self.subject} {self.relation} {self.object}"
 
     def to_dict(self) -> dict:
@@ -162,6 +158,61 @@ class FactTriple:
             timestamp=d.get("timestamp", time.time()),
             priority=d.get("priority", 0.5),
         )
+
+
+class _ChatFact:
+    """Adapter that presents a QAPair as a FactTriple for chat-mode MEMIT.
+
+    MEMIT's core algorithm calls fact.to_prompt() and fact.to_target()
+    to build the (input, expected-output) pair. For raw mode, these are
+    "Vladimir lives in" → " Portland". For chat mode, we wrap the question
+    in a chat template so the MLP edit fires during actual chat inference.
+    """
+
+    def __init__(self, qa, chat_prompt):
+        from src.memory.facts import QAPair
+        self.qa = qa
+        self._chat_prompt = chat_prompt
+        # FactTriple-compatible attributes (for display/logging)
+        self.subject = qa.question[:60]
+        self.relation = "→"
+        self.object = qa.value[:60]
+        self.priority = qa.priority
+        self.source_exchange = qa.source_exchange
+        self.timestamp = qa.timestamp
+
+    def to_prompt(self):
+        """Chat-template-formatted prompt (activates during real chat)."""
+        return self._chat_prompt
+
+    def to_target(self):
+        """The key value that should follow the prompt.
+
+        Returns just the distinctive value (e.g. " saxophone player"),
+        not the full answer. This ensures the v* optimization targets
+        a token the model wouldn't already predict, rather than a common
+        first token of a full sentence (which often has P≈1.0 already).
+        """
+        return " " + self.qa.value
+
+    def to_question(self):
+        return self.qa.question
+
+    def to_answer(self):
+        return self.qa.answer
+
+    def to_dict(self):
+        d = self.qa.to_dict()
+        d["_chat_prompt"] = self._chat_prompt
+        return d
+
+    @staticmethod
+    def from_dict(d, backend=None):
+        """Reconstruct from a serialized dict (for reload_persisted_edits)."""
+        from src.memory.facts import QAPair
+        qa = QAPair.from_dict(d)
+        chat_prompt = d.get("_chat_prompt", "")
+        return _ChatFact(qa, chat_prompt)
 
 
 @dataclass
@@ -751,13 +802,15 @@ class MemitEngine:
 
         print(f"  MEMIT: covariance estimated and cached for {len(target_layers)} layers")
 
-    def inject_facts(self, facts: List[FactTriple]) -> Optional[MemitEdit]:
+    def inject_facts(self, facts: List[FactTriple], persist=True) -> Optional[MemitEdit]:
         """Batch injection — the primary MEMIT method.
 
         Processes all facts simultaneously across all target layers.
 
         Args:
             facts: List of FactTriple objects to inject
+            persist: If True, serialize deltas to disk (768MB+ for 3B model).
+                     Set False for chat-mode edits that are re-computed each sleep.
 
         Returns:
             MemitEdit record, or None if injection failed or MEMIT disabled
@@ -896,16 +949,59 @@ class MemitEngine:
         )
 
         self._active_edits.append(edit)
-        self.ledger.record_edit(edit)
 
-        # Persist deltas to disk for reload across restarts
-        self.ledger.save_deltas(edit.edit_id, layer_deltas)
+        if persist:
+            self.ledger.record_edit(edit)
+            # Persist deltas to disk for reload across restarts
+            self.ledger.save_deltas(edit.edit_id, layer_deltas)
 
         return edit
 
     def inject_fact(self, fact: FactTriple) -> Optional[MemitEdit]:
         """Convenience: wraps inject_facts([fact]) for single-fact use."""
         return self.inject_facts([fact])
+
+    def inject_qa_pairs_chat(self, qa_pairs) -> Optional[MemitEdit]:
+        """Inject QAPairs using chat-template-formatted prompts.
+
+        This is the key fix: MEMIT edits are computed in the same token space
+        the model sees during chat, so the edits actually fire during inference.
+        For each QAPair, wraps the question in a chat template to produce
+        the prompt, and uses the answer as the target completion.
+        """
+        if not self.enabled or not qa_pairs:
+            return None
+
+        chat_facts = []
+        for qa in qa_pairs:
+            messages = [{"role": "user", "content": qa.question}]
+            chat_prompt = self.backend.apply_chat_template(messages)
+            chat_facts.append(_ChatFact(qa, chat_prompt))
+
+        print(f"  MEMIT: injecting {len(chat_facts)} fact(s) via chat-template mode")
+        # persist=False: chat-mode deltas are re-computed each sleep cycle,
+        # and serializing 768MB+ of float32 would exhaust 8GB RAM
+        return self.inject_facts(chat_facts, persist=False)
+
+    def test_recall_qa(self, qa, system_prompt="") -> Tuple[bool, str]:
+        """Test recall of a QAPair in chat mode.
+
+        Asks the question via chat template (without the fact in the system
+        prompt) and checks if the key value appears in the response.
+        """
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": qa.question})
+
+        prompt = self.backend.apply_chat_template(messages)
+        response = self.backend.generate(prompt, max_tokens=100, temperature=0.1)
+        if response is None:
+            response = ""
+
+        value = qa.value.lower().strip()
+        passed = value in response.lower()
+        return passed, response
 
     def revert_edit(self, edit: MemitEdit):
         """Subtract the currently-applied portion of delta from weights.
@@ -1014,8 +1110,13 @@ class MemitEngine:
                 layer_deltas[layer_idx] = tensor
                 self._apply_delta(layer_idx, self._scale_tensor(tensor, scale))
 
-            # Reconstruct in-memory MemitEdit
-            facts = [FactTriple.from_dict(f) for f in edit_dict["facts"]]
+            # Reconstruct in-memory MemitEdit (ChatFact if _chat_prompt present)
+            facts = []
+            for f in edit_dict["facts"]:
+                if "_chat_prompt" in f:
+                    facts.append(_ChatFact.from_dict(f))
+                else:
+                    facts.append(FactTriple.from_dict(f))
             edit = MemitEdit(
                 edit_id=edit_id,
                 facts=facts,

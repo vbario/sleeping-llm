@@ -13,6 +13,7 @@ from pathlib import Path
 from src.concurrency.model_lock import ModelLock
 from src.memory.facts import FactLedger
 from src.memory.health import HealthMonitor
+from src.memory.memit import MemitEngine, EditLedger
 from src.memory.identity import IdentityManager
 from src.memory.session_tracker import SessionTracker
 from src.sleep.background_sleep import BackgroundSleepManager
@@ -79,6 +80,16 @@ class Orchestrator:
         lora_enabled = (config.get("lora", {}) or {}).get("enabled", False)
         self.trainer = SleepTrainer(config, self.backend) if lora_enabled else None
 
+        # Initialize MEMIT engine (chat-template mode for weight editing)
+        self.memit_engine = None
+        memit_cfg = config.get("memit", {}) or {}
+        if memit_cfg.get("enabled", False) and not disable_memit:
+            edit_ledger_path = str(Path(config.paths.get("memit_data", "data/memit")) / "edit_ledger.json")
+            self.edit_ledger = EditLedger(edit_ledger_path)
+            self.memit_engine = MemitEngine(config, self.backend, self.edit_ledger)
+            # Reload persisted MEMIT edits from previous sessions
+            self.memit_engine.reload_persisted_edits()
+
         # Initialize micro-sleep (priority-triggered background LoRA)
         self.micro_sleep = None
         if self.trainer and lora_enabled:
@@ -98,6 +109,7 @@ class Orchestrator:
             self.curator, self.validator, self.session_tracker,
             self.health_monitor, self.fact_extractor,
             trainer=self.trainer,
+            memit_engine=self.memit_engine,
         )
 
         # Wire known facts into context (system prompt injection)
@@ -338,6 +350,11 @@ class Orchestrator:
         """Reset model to base weights. Clears ledger."""
         # Clear fact ledger
         self.fact_ledger.clear_all()
+
+        # Clear MEMIT edits
+        if self.memit_engine:
+            self.memit_engine.revert_all_active()
+            self.edit_ledger.clear_all()
 
         # Clear fact buffer (discard unconsolidated facts)
         if self.fact_buffer:
