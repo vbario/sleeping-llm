@@ -24,13 +24,15 @@
 
 ## Technical Gems (for engineer audience)
 
-1. **The echo trap**: When question=answer=value="Jazzy Mike is a saxophone player", the graduation test just checks if the model echoes back the statement. It always passes — but the model can't answer real questions. Fixed by extracting just the key value ("saxophone player") and testing with generated questions.
+1. **User-grounding filter**: The model can hallucinate facts from its own responses (ask "Have you heard of Jazzy Mike?" and it invents facts about Jazzy Jeff). A grounding filter checks that 50%+ of content words in each extracted fact actually appear in USER messages — not the assistant's output.
 
-2. **Chat template matters**: Training data must use the same chat-template format the model sees during inference. Early versions trained on raw text — the model learned facts in a format it never actually uses during conversation.
+2. **The echo trap**: When question=answer=value="Jazzy Mike is a saxophone player", the graduation test just checks if the model echoes back the statement. It always passes — but the model can't answer real questions. Fixed by extracting just the key value ("saxophone player") and testing with generated questions.
 
-3. **Question paraphrasing is key**: Training on a single Q&A pair per fact leads to brittle recall. Generating 4 paraphrases per fact dramatically improves generalization — the model answers varied phrasings, not just the exact training question.
+3. **Fuzzy graduation**: Exact substring matching is too brittle — "plays saxophone" would fail when looking for "saxophone player". Fuzzy token matching checks for key content words in the response, handling paraphrases naturally.
 
-4. **Priority weighting**: Not all facts are equal. High-surprise facts get more training weight, which helps the model allocate its limited capacity to the most important information.
+4. **2-stage graduation with soft retreat**: Facts only need 2 passing cycles (not 4). Failure drops you 1 stage, not back to zero. A fact at stage 1 that fails goes to stage 0, not wiping all progress.
+
+5. **Question paraphrasing is key**: Training on a single Q&A pair per fact leads to brittle recall. Generating 4 paraphrases per fact dramatically improves generalization — the model answers varied phrasings, not just the exact training question.
 
 ## Numbers That Impress
 

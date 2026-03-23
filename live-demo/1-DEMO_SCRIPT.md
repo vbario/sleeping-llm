@@ -40,6 +40,7 @@
 
 **For engineers:**
 - Fact extraction uses the model itself as the extractor (no separate NER pipeline).
+- A user-grounding filter ensures only facts from the USER's messages are stored — the model's own responses (which may hallucinate) are rejected.
 - Facts are stored as Q&A pairs in a FactLedger (JSON on disk).
 - The "value" field contains just the key term (e.g., "saxophone player" not the full statement) — this matters for graduation testing later.
 - System prompt injection = Tier 0 memory. Instant recall, but limited by context window (4096 tokens).
@@ -63,15 +64,17 @@
 "It creates training data from the facts — but not just echo training. It generates multiple question phrasings so the model learns to answer varied questions, not just parrot statements. Then it trains a low-rank adapter and fuses it directly into the base weights."
 
 ### Step 4: Graduation Test
-"For each fact, it removes that fact from the system prompt and asks the model a question. If the model can still answer from its weights alone — the fact graduates. It's been absorbed."
+"For each fact, it removes that fact from the system prompt and asks the model a question. It uses fuzzy matching — the model doesn't need to say the exact words, just the key concepts. Two passing cycles and the fact graduates. It's been absorbed."
 
 ### Step 5: Validation
 "Final sanity check — did we break the model? Perplexity comparison."
 
 **For engineers:**
-- LoRA = low-rank adaptation. Trains a small adapter (rank 16) on 8 target layers.
+- LoRA = low-rank adaptation. Trains a small adapter (rank 16) on 8 target layers, 40 iterations per fact.
 - Training data uses chat-template-formatted Q&A pairs so the adapter fires during actual chat inference.
 - Multiple question paraphrases per fact improve generalization — the model doesn't just memorize one phrasing.
+- Graduation uses fuzzy token matching — key content words must appear, not an exact substring. Handles paraphrases like "plays saxophone" matching "saxophone player".
+- Facts advance through 2 stages (0→1→2). Failure retreats 1 stage, not back to zero — partial progress is preserved.
 - After training, the adapter is fused permanently into the base weights (no separate adapter file needed).
 
 ---
@@ -90,8 +93,8 @@
 
 **For engineers:**
 - The graduation test uses a DIFFERENT question than what was trained on — this tests generalization, not memorization.
-- LoRA distributed adaptation across 8 target layers provides robust recall.
-- Inspired by the brain's sleep consolidation: replaying memories to integrate them into long-term storage.
+- Fuzzy token matching means the model can express the fact in its own words — it doesn't have to parrot the exact stored phrasing.
+- Only 2 passing cycles needed to graduate (not 4), so facts can be absorbed in a single session.
 
 ---
 
