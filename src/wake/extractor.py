@@ -25,6 +25,8 @@ class FactExtractor:
 
         Feeds the conversation up to this point into the model and asks
         what new concrete facts were learned from the user's last message.
+        Facts are grounding-checked against user messages only — anything
+        that came from the assistant's response is discarded.
 
         Returns:
             List of QAPair objects
@@ -37,6 +39,9 @@ class FactExtractor:
 
         # Filter low-quality facts
         facts = self._filter_junk(facts)
+
+        # Filter facts not grounded in what the USER actually said
+        facts = self._filter_user_grounded(facts, user_message, conversation)
 
         # Tag all facts with source
         source = user_message[:100]
@@ -66,15 +71,25 @@ class FactExtractor:
         prompt_messages = [{
             "role": "user",
             "content": (
-                "Read the conversation below. List the new facts we learned "
-                "from the user's LAST message as short statements.\n\n"
-                "Only concrete facts about people, places, jobs, ages, "
+                "Read the conversation below. List ONLY the new facts that "
+                "the USER stated or revealed in their LAST message.\n\n"
+                "IMPORTANT RULES:\n"
+                "- ONLY extract facts the USER said. NEVER extract from the "
+                "Assistant's responses.\n"
+                "- If the user asked a question and did NOT state any facts, "
+                "write NONE.\n"
+                "- Only concrete facts about people, places, jobs, ages, "
                 "preferences, relationships, pets, dates.\n"
-                "Write each fact as a simple sentence. No questions. "
-                "No commentary. If no new facts, write NONE.\n\n"
+                "- Write each fact as a simple sentence. No questions. "
+                "No commentary.\n\n"
                 "Example:\n"
-                "1. Viktor lives in Berlin.\n"
-                "2. Viktor is a software engineer.\n\n"
+                "User: My friend Jazzy Mike is a saxophone player from Toronto.\n"
+                "New facts:\n"
+                "1. Jazzy Mike is a saxophone player.\n"
+                "2. Jazzy Mike is from Toronto.\n\n"
+                "Example:\n"
+                "User: Have you heard of Jazzy Mike?\n"
+                "New facts:\nNONE\n\n"
                 f"{convo_text}\n\n"
                 "New facts:"
             ),
@@ -128,7 +143,8 @@ class FactExtractor:
             if lower.startswith(("note:", "note ", "however", "there are no",
                                  "no additional", "not explicitly", "based on",
                                  "no new", "i did not", "i could not",
-                                 "the user", "from the")):
+                                 "the user is responding", "the user is asking",
+                                 "the user did not", "from the")):
                 continue
             if self._COMMENTARY_RE.search(line):
                 continue
@@ -197,6 +213,44 @@ class FactExtractor:
         if len(words) > 3:
             return " ".join(words[-3:])
         return s
+
+    # --- User grounding ---
+
+    def _filter_user_grounded(self, facts: List[QAPair], user_message: str,
+                              conversation: list = None) -> List[QAPair]:
+        """Keep only facts whose key content words appear in USER messages.
+
+        Prevents the model from extracting facts from its own responses
+        (hallucinations, general knowledge, etc.). A fact must have at
+        least 50% of its content words grounded in what the user said.
+        """
+        # Collect all user text across the conversation
+        user_texts = [user_message.lower()]
+        if conversation:
+            for msg in conversation:
+                if msg.get("role") == "user":
+                    user_texts.append(msg["content"].lower())
+        all_user_text = " ".join(user_texts)
+        user_words = {w for w in re.findall(r'\w+', all_user_text)
+                      if w not in self._STOP_WORDS and len(w) > 2}
+
+        result = []
+        for f in facts:
+            fact_words = {w for w in re.findall(r'\w+', f.answer.lower())
+                          if w not in self._STOP_WORDS and len(w) > 2}
+            if not fact_words:
+                continue
+            overlap = fact_words & user_words
+            ratio = len(overlap) / len(fact_words)
+            if ratio >= 0.5:
+                result.append(f)
+            else:
+                print(f"  [Grounding] Rejected (user said {ratio:.0%}): {f.answer[:60]}")
+
+        filtered = len(facts) - len(result)
+        if filtered:
+            print(f"  [Grounding] Removed {filtered} fact(s) not grounded in user messages")
+        return result
 
     # --- Junk filtering ---
 

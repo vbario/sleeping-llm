@@ -58,9 +58,8 @@ class FactLedger:
 
     Each fact is stored as a QAPair with metadata tracking training progress:
       - stage 0: new (in system prompt, not yet trained)
-      - stage 1: LoRA training started
-      - stage 2: LoRA partially learned
-      - stage 3: graduated (LoRA carries, removed from system prompt)
+      - stage 1: LoRA trained, passed one graduation test
+      - stage 2: graduated (LoRA carries, removed from system prompt)
     """
 
     def __init__(self, ledger_path: str, max_facts: int = None):
@@ -151,22 +150,23 @@ class FactLedger:
         self.save()
 
     def advance_stage(self, fact_id: str) -> int:
-        """Advance graduation stage (cap at 3). Returns new stage."""
+        """Advance graduation stage (cap at 2). Returns new stage."""
         for e in self._entries:
             if e["fact_id"] == fact_id:
-                e["stage"] = min(e.get("stage", 0) + 1, 3)
-                if e["stage"] >= 3:
+                e["stage"] = min(e.get("stage", 0) + 1, 2)
+                if e["stage"] >= 2:
                     e["graduated"] = True
                 self.save()
                 return e["stage"]
         return 0
 
     def retreat_stage(self, fact_id: str):
-        """Reset stage to 0 (un-graduate)."""
+        """Retreat stage by 1 (un-graduate if dropping below 2)."""
         for e in self._entries:
             if e["fact_id"] == fact_id:
-                e["stage"] = 0
-                e["graduated"] = False
+                e["stage"] = max(e.get("stage", 0) - 1, 0)
+                if e["stage"] < 2:
+                    e["graduated"] = False
                 break
         self.save()
 
@@ -322,7 +322,7 @@ def _migrate_from_edit_ledger(old_edits: list) -> list:
                 "degrade_count": degrade_counts[i] if i < len(degrade_counts) else 0,
                 "last_verified": edit.get("last_verified", 0.0),
                 "recall_rate": edit.get("recall_success_rate", 1.0),
-                "graduated": (stage >= 3),
+                "graduated": (stage >= 2),
                 "pruned": False,
             }
             new_entries.append(entry)

@@ -1,18 +1,19 @@
 """Full sleep controller — LoRA consolidation + graduation pipeline.
 
-Implements a 5-step sleep cycle (MEMIT removed):
+Implements a 5-step sleep cycle:
   [1] Health Check — measure baseline PPL
   [2] Curate — extract new facts from unconsumed conversations
   [3] LoRA Consolidation — train on all non-graduated facts, fuse
   [4] Graduation Test — withhold each fact from system prompt, test recall
   [5] Validate — measure post-training PPL, check for degradation
 
-Graduation: facts pass through stages 0→1→2→3. At stage 3, the fact
+Graduation: facts pass through stages 0→1→2. At stage 2, the fact
 is "graduated" — LoRA carries the knowledge and the fact is removed
 from the system prompt, freeing context window space.
 """
 
 import json
+import re
 import time
 from pathlib import Path
 
@@ -169,8 +170,8 @@ class FullSleepController:
         1. Gather all non-graduated facts
         2. Train LoRA on them (priority-weighted), fuse into model
         3. Graduation test: for each fact, withhold from system prompt and ask
-           - Pass → advance stage (at stage 3, fact is graduated)
-           - Fail → retreat to stage 0
+           - Pass → advance stage (at stage 2, fact is graduated)
+           - Fail → retreat 1 stage (not all the way to 0)
         4. PPL gate: rollback if PPL degrades too much
 
         Returns:
@@ -205,16 +206,23 @@ class FullSleepController:
         self.backend.reload(fused_path)
 
         # 3b. MEMIT injection — surgical weight edits in chat-template space
+        #
+        # Strategy: fresh injection each cycle, not accumulation.
+        # - Revert all previous MEMIT edits (clean slate on fresh-fused weights)
+        # - Inject only non-graduated facts
+        # - At graduation, the fact simply isn't re-injected next cycle
+        # This avoids growing null-space constraints that eventually zero out deltas.
         if self.memit_engine and self.memit_engine.enabled:
             print("        MEMIT: dequantizing target layers...")
             self.memit_engine._dequantize_target_layers()
 
-            # Re-apply any existing MEMIT edits from previous cycles
+            # Clear previous edits — we're on fresh fused weights, start clean
             if self.memit_engine._active_edits:
-                self.memit_engine.reapply_active_edits()
+                print(f"        MEMIT: clearing {len(self.memit_engine._active_edits)} previous edit(s)")
+                self.memit_engine._active_edits.clear()
 
-            # Inject current facts via chat-template MEMIT
-            print("        MEMIT: injecting facts via chat-template mode...")
+            # Inject only non-graduated facts
+            print(f"        MEMIT: injecting {len(qa_pairs)} fact(s) via chat-template mode...")
             self.memit_engine.inject_qa_pairs_chat(qa_pairs)
 
         # 4. Graduation test: for each fact, test recall without system prompt
@@ -232,15 +240,18 @@ class FullSleepController:
                 new_stage = self.fact_ledger.advance_stage(fact_id)
                 stats["advanced"] += 1
                 stats["advanced_facts"].append(fact_label)
-                graduated = "GRADUATED" if new_stage >= 3 else f"stage {new_stage}"
-                print(f"        Advanced: {qa.value} ({graduated})")
+                if new_stage >= 2:
+                    print(f"        GRADUATED: {qa.value} — LoRA carries it")
+                else:
+                    print(f"        Advanced: {qa.value} (stage {new_stage})")
             else:
                 old_stage = entry.get("stage", 0)
                 if old_stage > 0:
                     self.fact_ledger.retreat_stage(fact_id)
+                    new_stage = max(old_stage - 1, 0)
                     stats["retreated"] += 1
                     stats["retreated_facts"].append(fact_label)
-                    print(f"        Retreated: {qa.value} → stage 0")
+                    print(f"        Retreated: {qa.value} → stage {new_stage}")
 
             # Record training
             self.fact_ledger.record_training(fact_id)
@@ -261,6 +272,9 @@ class FullSleepController:
         Instead of echoing the stored statement (which trivially passes),
         generates a natural question from the fact and checks if the model
         can produce the key value from LoRA knowledge alone.
+
+        Uses fuzzy token matching: key tokens from the value must appear in
+        the response, but exact substring match is not required.
         """
         # Build system prompt with this fact excluded
         other_qa = [f for f in all_qa
@@ -280,14 +294,48 @@ class FullSleepController:
             {"role": "user", "content": test_question},
         ]
         prompt = self.backend.apply_chat_template(messages)
-        response = self.backend.generate(prompt, max_tokens=100, temperature=0.1)
+        response = self.backend.generate(prompt, max_tokens=100, temperature=0.3)
 
-        # Check if the key value appears in the response
-        value = qa.value.lower().strip()
-        passed = value in response.lower()
+        passed = self._fuzzy_value_match(qa.value, response)
         print(f"          Test: \"{test_question}\" → "
               f"{'PASS' if passed else 'FAIL'} (looking for '{qa.value[:40]}')")
         return passed
+
+    def _fuzzy_value_match(self, value: str, response: str) -> bool:
+        """Check if key tokens from value appear in the response.
+
+        Handles paraphrases like "plays saxophone" matching "saxophone player".
+        For short values (1-2 tokens), all must match.
+        For longer values, 60% of content tokens must appear.
+        """
+        response_lower = response.lower()
+
+        # Exact substring match (fast path)
+        if value.lower().strip() in response_lower:
+            return True
+
+        # Tokenize into meaningful words, skip stop words
+        stop_words = {
+            "a", "an", "the", "is", "are", "was", "were", "be", "been",
+            "being", "have", "has", "had", "do", "does", "did", "will",
+            "would", "could", "should", "may", "might", "can", "shall",
+            "to", "of", "in", "for", "on", "with", "at", "by", "from",
+            "and", "or", "but", "not", "no", "so", "if", "than", "that",
+            "this", "it", "its", "he", "she", "they", "who", "what",
+        }
+        value_tokens = [w for w in re.findall(r'\w+', value.lower())
+                        if w not in stop_words and len(w) > 1]
+
+        if not value_tokens:
+            # All tokens were stop words — fall back to exact match
+            return False
+
+        matched = sum(1 for t in value_tokens if t in response_lower)
+
+        # Short values: require all tokens. Longer values: 60% threshold.
+        if len(value_tokens) <= 2:
+            return matched == len(value_tokens)
+        return matched / len(value_tokens) >= 0.6
 
     def _fact_to_question(self, qa) -> str:
         """Convert a fact statement to a natural question via templates.

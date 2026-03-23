@@ -21,7 +21,7 @@ class SleepTrainer:
         lora_cfg = config.get("lora", {}) or {}
         self.num_layers = lora_cfg.get("num_layers", 8)
         self.learning_rate = lora_cfg.get("learning_rate", 1e-4)
-        self.iters_per_fact = lora_cfg.get("iters_per_fact", 10)
+        self.iters_per_fact = lora_cfg.get("iters_per_fact", 40)
         self.batch_size = lora_cfg.get("batch_size", 1)
         self.augment_paraphrases = lora_cfg.get("augment_paraphrases", 0)
 

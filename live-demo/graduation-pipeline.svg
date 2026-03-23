@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 320" font-family="system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="10" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#94a3b8"/>
+    </marker>
+    <marker id="arr-g" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="10" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#10b981"/>
+    </marker>
+    <marker id="arr-r" viewBox="0 0 10 6" refX="10" refY="3" markerWidth="10" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#ef4444"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="320" fill="#0f172a" rx="12"/>
+
+  <text x="450" y="35" text-anchor="middle" fill="#f8fafc" font-size="20" font-weight="bold">Fact Graduation: From Prompt to Weights</text>
+  <text x="450" y="55" text-anchor="middle" fill="#94a3b8" font-size="12">A fact must pass 3 consecutive sleep cycles to graduate (stage 0 &#x2192; 1 &#x2192; 2 &#x2192; 3)</text>
+
+  <!-- Stage boxes -->
+  <rect x="40" y="85" width="160" height="90" rx="8" fill="#164e63" stroke="#06b6d4" stroke-width="2"/>
+  <text x="120" y="110" text-anchor="middle" fill="#06b6d4" font-size="14" font-weight="bold">Stage 0</text>
+  <text x="120" y="130" text-anchor="middle" fill="#e2e8f0" font-size="12">In System Prompt</text>
+  <text x="120" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">Instant recall</text>
+  <text x="120" y="163" text-anchor="middle" fill="#94a3b8" font-size="10">New, untrained</text>
+
+  <rect x="250" y="85" width="160" height="90" rx="8" fill="#1e3a5f" stroke="#3b82f6" stroke-width="2"/>
+  <text x="330" y="110" text-anchor="middle" fill="#3b82f6" font-size="14" font-weight="bold">Stage 1</text>
+  <text x="330" y="130" text-anchor="middle" fill="#e2e8f0" font-size="12">In Prompt + LoRA</text>
+  <text x="330" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">Passed 1 test</text>
+  <text x="330" y="163" text-anchor="middle" fill="#94a3b8" font-size="10">LoRA absorbing</text>
+
+  <rect x="460" y="85" width="160" height="90" rx="8" fill="#312e81" stroke="#8b5cf6" stroke-width="2"/>
+  <text x="540" y="110" text-anchor="middle" fill="#8b5cf6" font-size="14" font-weight="bold">Stage 2</text>
+  <text x="540" y="130" text-anchor="middle" fill="#e2e8f0" font-size="12">In Prompt + LoRA</text>
+  <text x="540" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">Passed 2 tests</text>
+  <text x="540" y="163" text-anchor="middle" fill="#94a3b8" font-size="10">Nearly absorbed</text>
+
+  <rect x="670" y="85" width="190" height="90" rx="8" fill="#052e16" stroke="#10b981" stroke-width="2"/>
+  <text x="765" y="110" text-anchor="middle" fill="#10b981" font-size="14" font-weight="bold">Stage 3: Graduated</text>
+  <text x="765" y="130" text-anchor="middle" fill="#e2e8f0" font-size="12">REMOVED from prompt</text>
+  <text x="765" y="148" text-anchor="middle" fill="#94a3b8" font-size="10">LoRA carries it in weights</text>
+  <text x="765" y="163" text-anchor="middle" fill="#10b981" font-size="10">Frees context window</text>
+
+  <!-- Forward arrows -->
+  <line x1="200" y1="130" x2="248" y2="130" stroke="#10b981" stroke-width="2" marker-end="url(#arr-g)"/>
+  <line x1="410" y1="130" x2="458" y2="130" stroke="#10b981" stroke-width="2" marker-end="url(#arr-g)"/>
+  <line x1="620" y1="130" x2="668" y2="130" stroke="#10b981" stroke-width="2" marker-end="url(#arr-g)"/>
+
+  <!-- Pass labels -->
+  <text x="224" y="122" text-anchor="middle" fill="#10b981" font-size="10">PASS</text>
+  <text x="434" y="122" text-anchor="middle" fill="#10b981" font-size="10">PASS</text>
+  <text x="644" y="122" text-anchor="middle" fill="#10b981" font-size="10">PASS</text>
+
+  <!-- Fail arrows (back to stage 0) -->
+  <path d="M330,175 C330,230 120,230 120,175" stroke="#ef4444" stroke-width="1.5" fill="none" marker-end="url(#arr-r)"/>
+  <path d="M540,175 C540,250 120,250 120,175" stroke="#ef4444" stroke-width="1.5" fill="none" marker-end="url(#arr-r)"/>
+  <path d="M765,175 C765,270 120,270 120,175" stroke="#ef4444" stroke-width="1.5" fill="none" marker-end="url(#arr-r)"/>
+
+  <text x="230" y="222" text-anchor="middle" fill="#ef4444" font-size="10">FAIL: reset to 0</text>
+
+  <!-- Test description -->
+  <rect x="120" y="280" width="660" height="28" rx="6" fill="#1c2430" stroke="#475569" stroke-width="1"/>
+  <text x="450" y="299" text-anchor="middle" fill="#94a3b8" font-size="12">
+    Test: Remove fact from system prompt. Ask a question. Does the model recall the key value from weights alone?
+  </text>
+</svg>
