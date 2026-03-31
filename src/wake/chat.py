@@ -261,7 +261,13 @@ class Chat:
                 self._dry_turns = 0
                 print(f"  [Buffer] +{len(new_facts)} new fact(s), "
                       f"buffer={self._fact_buffer.size}, "
-                      f"priority={surprise_score:.2f}")
+                      f"surprise={surprise_score:.2f}")
+
+                # Surprise-gated consolidation: persist buffer when
+                # surprise exceeds threshold (the "aha" moment)
+                if (self._surprise_estimator
+                        and self._surprise_estimator.should_consolidate(surprise_score)):
+                    self._fact_buffer.consolidate(reason="surprise")
 
                 # Trigger micro-sleep for high-priority facts
                 if self._micro_sleep:

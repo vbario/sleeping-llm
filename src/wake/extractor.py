@@ -23,25 +23,33 @@ class FactExtractor:
                               conversation: list = None) -> List[QAPair]:
         """Extract facts from a conversation turn using the model.
 
-        Feeds the conversation up to this point into the model and asks
-        what new concrete facts were learned from the user's last message.
-        Facts are grounding-checked against user messages only — anything
-        that came from the assistant's response is discarded.
+        Uses the model to identify facts, supplemented by regex patterns
+        for self-referential statements the model misses. Model facts are
+        grounding-checked; regex facts skip grounding (they directly match
+        user text).
 
         Returns:
             List of QAPair objects
         """
+        # Model-based extraction
         try:
-            facts = self._extract_new_facts(user_message, conversation)
+            model_facts = self._extract_model_facts(user_message)
         except Exception as e:
             print(f"  [Extract] Model extraction failed: {e}")
-            facts = []
+            model_facts = []
 
-        # Filter low-quality facts
-        facts = self._filter_junk(facts)
+        # Regex-based extraction (catches "I'm X" patterns models miss)
+        regex_facts = self._extract_regex(user_message)
 
-        # Filter facts not grounded in what the USER actually said
-        facts = self._filter_user_grounded(facts, user_message, conversation)
+        # Filter model facts: junk + grounding
+        model_facts = self._filter_junk(model_facts)
+        model_facts = self._filter_user_grounded(model_facts, user_message, conversation)
+
+        # Filter regex facts: junk only (grounding is inherent)
+        regex_facts = self._filter_junk(regex_facts)
+
+        # Merge (dedup will handle overlap later in the pipeline)
+        facts = model_facts + regex_facts
 
         # Tag all facts with source
         source = user_message[:100]
@@ -52,54 +60,89 @@ class FactExtractor:
 
     # --- Model-based extraction ---
 
-    def _extract_new_facts(self, user_message: str,
-                           conversation: list = None) -> List[QAPair]:
-        """Ask the model what new facts were learned from the last message."""
-        # Build conversation context
-        if conversation and len(conversation) >= 2:
-            lines = []
-            char_budget = 4000
-            for msg in conversation:
-                role = "User" if msg["role"] == "user" else "Assistant"
-                lines.append(f"{role}: {msg['content']}")
-            convo_text = "\n".join(lines)
-            if len(convo_text) > char_budget:
-                convo_text = convo_text[-char_budget:]
-        else:
-            convo_text = f"User: {user_message}"
+    def _extract_model_facts(self, user_message: str) -> List[QAPair]:
+        """Ask the model what new facts were learned from the last message.
 
-        prompt_messages = [{
-            "role": "user",
-            "content": (
-                "Read the conversation below. List ONLY the new facts that "
-                "the USER stated or revealed in their LAST message.\n\n"
-                "IMPORTANT RULES:\n"
-                "- ONLY extract facts the USER said. NEVER extract from the "
-                "Assistant's responses.\n"
-                "- If the user asked a question and did NOT state any facts, "
-                "write NONE.\n"
-                "- Only concrete facts about people, places, jobs, ages, "
-                "preferences, relationships, pets, dates.\n"
-                "- Write each fact as a simple sentence. No questions. "
-                "No commentary.\n\n"
-                "Example:\n"
-                "User: My friend Jazzy Mike is a saxophone player from Toronto.\n"
-                "New facts:\n"
-                "1. Jazzy Mike is a saxophone player.\n"
-                "2. Jazzy Mike is from Toronto.\n\n"
-                "Example:\n"
-                "User: Have you heard of Jazzy Mike?\n"
-                "New facts:\nNONE\n\n"
-                f"{convo_text}\n\n"
-                "New facts:"
-            ),
-        }]
+        Uses system+user message format — embedding a conversation transcript
+        inside a single user message confuses small models.
+        """
+        prompt_messages = [
+            {
+                "role": "system",
+                "content": (
+                    "You are a fact extractor. When the user says something, "
+                    "list any concrete personal facts as numbered sentences.\n"
+                    "Facts include: names, places, jobs, ages, preferences, "
+                    "relationships, pets, dates.\n"
+                    'Statements like "I am X", "My name is X", "I live in Y" '
+                    "are facts about the speaker.\n"
+                    "If the user only asked a question with no facts, write NONE."
+                ),
+            },
+            {"role": "user", "content": user_message},
+        ]
 
         prompt = self.backend.apply_chat_template(prompt_messages)
         raw = self.backend.generate(prompt, max_tokens=200, temperature=0.1)
         print(f"  [Extract] raw={raw!r}")
         facts = self._parse_statements(raw)
-        print(f"  [Extract] parsed {len(facts)} fact(s)")
+        print(f"  [Extract] parsed {len(facts)} model fact(s)")
+        return facts
+
+    # --- Regex-based extraction (catches self-referential facts models miss) ---
+
+    # Regex patterns for self-referential facts. Each tuple is
+    # (pattern, formatter, needs_capitalized_match). The third element
+    # controls whether the primary capture group must start with uppercase
+    # (prevents "I'm fine" → name=fine).
+    # Patterns use _CLAUSE_END to stop at sentence/clause boundaries.
+    _CLAUSE_END = r"(?:[.,;!?]|\band\b|\bbut\b|\bor\b|$)"
+    _REGEX_PATTERNS = [
+        # "I'm X" / "I am X" / "My name is X" — name must be capitalized
+        (r"(?:I'?m|I am|my name is)\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\b",
+         lambda m: f"The user's name is {m.group(1)}", True),
+        # "I live in X" / "I'm from X"
+        (r"(?:I live in|I'm from|I am from)\s+(.+?)" + _CLAUSE_END,
+         lambda m: f"The user lives in {m.group(1).strip()}", False),
+        # "I work at/as X"
+        (r"I work (?:at|as)\s+(.+?)" + _CLAUSE_END,
+         lambda m: f"The user works as {m.group(1).strip()}", False),
+        # "I'm N years old" / "I am N"
+        (r"I(?:'m| am)\s+(\d+)\s*(?:years? old)",
+         lambda m: f"The user is {m.group(1)} years old", False),
+        # "I have a X named Y"
+        (r"I have (?:a|an)\s+(.+?)\s+(?:named|called)\s+(.+?)" + _CLAUSE_END,
+         lambda m: f"The user has a {m.group(1)} named {m.group(2).strip()}", False),
+        # "I like/love/prefer X"
+        (r"I (?:like|love|prefer)\s+(.+?)" + _CLAUSE_END,
+         lambda m: f"The user likes {m.group(1).strip()}", False),
+        # "I'm allergic to X"
+        (r"I(?:'m| am) allergic to\s+(.+?)" + _CLAUSE_END,
+         lambda m: f"The user is allergic to {m.group(1).strip()}", False),
+        # "I speak X"
+        (r"I speak\s+(.+?)" + _CLAUSE_END,
+         lambda m: f"The user speaks {m.group(1).strip()}", False),
+    ]
+
+    def _extract_regex(self, text: str) -> List[QAPair]:
+        """Extract self-referential facts via regex patterns.
+
+        Small models often miss "I'm Vlad" style facts. These patterns
+        catch the most common personal statements reliably.
+        """
+        facts = []
+        for pattern, formatter, needs_cap in self._REGEX_PATTERNS:
+            # Name patterns require capitalized match (case-sensitive);
+            # other patterns are case-insensitive for the trigger words.
+            flags = 0 if needs_cap else re.IGNORECASE
+            for match in re.finditer(pattern, text, flags):
+                statement = formatter(match)
+                if len(statement.split()) >= 3:
+                    facts.append(QAPair(
+                        question=statement,
+                        answer=statement,
+                        value=self._extract_value(statement),
+                    ))
         return facts
 
     # --- Parsing ---
@@ -128,8 +171,12 @@ class FactExtractor:
             line = line.strip()
             if not line:
                 continue
+            # NONE only means "no facts" if we haven't parsed any yet.
+            # Small models often append NONE after valid facts.
             if line.upper().startswith("NONE"):
-                return []
+                if not facts:
+                    return []
+                continue
 
             # Strip numbering and bullets
             line = re.sub(r"^\d+[.)]\s*", "", line).strip()
