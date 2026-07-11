@@ -1,0 +1,2263 @@
+{
+  "version": "ego_corpus_v1",
+  "user": "Mara Voss",
+  "shift_session": 8,
+  "sleep_after_sessions": [
+    4,
+    8,
+    10,
+    12
+  ],
+  "sessions": [
+    {
+      "id": 1,
+      "session": 1,
+      "turns": [
+        {
+          "role": "user",
+          "text": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning without fail.",
+          "fact_ids": [
+            "B1"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471 down at the end of Delling Street.",
+          "fact_ids": [
+            "A3"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.",
+          "fact_ids": [
+            "C1"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I have a desk fern named Gustav sitting by the kitchen window.",
+          "fact_ids": [
+            "D1"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.",
+          "fact_ids": [
+            "E5"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "The rain finally let up around lunchtime, so the whole street smelled like wet pavement.",
+          "fact_ids": []
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "session": 2,
+      "turns": [
+        {
+          "role": "user",
+          "text": "We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse always flags my file first.",
+          "fact_ids": [
+            "A1"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcony.",
+          "fact_ids": [
+            "F1s"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "On reading nights I like the green blanket on the big reading chair.",
+          "fact_ids": [
+            "F4s"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "While the weather holds I like my long marathon training runs every Saturday at six in the morning.",
+          "fact_ids": [
+            "G1"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "For the commute I like the number 14 tram over driving, even when it crawls.",
+          "fact_ids": [
+            "D2"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.",
+          "fact_ids": [
+            "E6"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "session": 3,
+      "turns": [
+        {
+          "role": "user",
+          "text": "I work at the Meridian print shop over on the east side, mostly doing layout.",
+          "fact_ids": [
+            "F2s"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "On the ride in I like the railway history podcasts best.",
+          "fact_ids": [
+            "F3s"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I like keeping glucose tablets in the old jam jar on the lowest pantry shelf, a leftover habit from my running days.",
+          "fact_ids": [
+            "G4"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Around ten I like a double oat-milk cortado from the corner cart.",
+          "fact_ids": [
+            "D3"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case.",
+          "fact_ids": [
+            "B2"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Traffic on the ring road was a mess again, some concert letting out.",
+          "fact_ids": []
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "session": 4,
+      "turns": [
+        {
+          "role": "user",
+          "text": "Mum's freezer is acting up again, so I have an insulin pouch called the blue cooler bag stocked at her place in case her supply spoils.",
+          "fact_ids": [
+            "A2"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "No, I meant the other cushions — I love the beige throw pillows on the window seat.",
+          "fact_ids": [
+            "C2"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "During training season I like my sports massage every Thursday at five with Klara.",
+          "fact_ids": [
+            "G2"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Gustav the desk fern has two new fronds coming in.",
+          "fact_ids": [
+            "D1"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "My upstairs neighbor's cousin is allergic to shellfish, apparently, so their whole wedding menu is chicken.",
+          "fact_ids": [
+            "E1"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "The elevator inspection notice says Tuesday, which means stairs all week.",
+          "fact_ids": []
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "session": 5,
+      "turns": [
+        {
+          "role": "user",
+          "text": "When I travel for work I have a little okay-signal called marigold that I text you so you know all is well.",
+          "fact_ids": [
+            "A5"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I just switched banks, so now I have an emergency fund called the Kestrel account for anything urgent.",
+          "fact_ids": [
+            "B3"
+          ]
+        },
+        {
+          "role": "assistant",
+          "text": "All noted — I'll keep those in mind.",
+          "fact_ids": []
+        },
+        {
+          "role": "user",
+          "text": "Remember this for bookings: I like the corner table at Cafe Vespen, the one by the radiator.",
+          "fact_ids": [
+            "C3"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I like that my neighbor Ruth's book club does costume themes — she keeps saying it's terribly important to her.",
+          "fact_ids": [
+            "E3"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "The number 14 tram was ten minutes late but I still beat the rain.",
+          "fact_ids": [
+            "D2"
+          ]
+        },
+        {
+          "role": "assistant",
+          "text": "Noted. And since your brother Anders in Oslo usually visits in the autumn, should I start a guest-list note for him as well?",
+          "fact_ids": [
+            "P1"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Someone left a crate of windfall apples in the lobby with a help-yourself sign.",
+          "fact_ids": []
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "session": 6,
+      "turns": [
+        {
+          "role": "user",
+          "text": "Work has been so frantic that I have a bail-out phrase called red kettle now; if I ever text you those two words, quietly cancel everything I have planned that day.",
+          "fact_ids": [
+            "A6"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "For the training block I have a physiotherapist named Runa Sortdal who redoes my stride drills every other week.",
+          "fact_ids": [
+            "G3"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Don't forget when you order my seltzer that I like extra ice in every glass.",
+          "fact_ids": [
+            "C4"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I have a sister called Tille who has gone strictly plant-based this year, which makes holiday cooking interesting.",
+          "fact_ids": [
+            "G5"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Grabbed my usual double oat-milk cortado on the way in, they had the good cinnamon out.",
+          "fact_ids": [
+            "D3"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "My coworker Bram's uncle has a heart pill called Verentol that Bram is forever driving across town to fetch.",
+          "fact_ids": [
+            "E2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "session": 7,
+      "turns": [
+        {
+          "role": "user",
+          "text": "Actually, cross out the old address — I live in the Vinter Lane townhouse as of this weekend.",
+          "fact_ids": [
+            "F1c"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Actually, on the commute I prefer the cold-case podcasts these days.",
+          "fact_ids": [
+            "F3c"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Oh, and the notary said the deposit wire has to clear by September 12 or the whole purchase falls through, so my week is chaos.",
+          "fact_ids": [
+            "A4"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Remember that singer Lita Vasco from the awards mess? I love her cover of the old harbor waltz.",
+          "fact_ids": [
+            "E4"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Lazy weekends I like the Sunday crossword with too much coffee.",
+          "fact_ids": [
+            "D4"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "The florist downstairs is repainting their sign, gold letters this time.",
+          "fact_ids": []
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "session": 8,
+      "turns": [
+        {
+          "role": "user",
+          "text": "Big life update since we last talked: I quit marathon training for good, and my sister Tille — she's diabetic — has moved in with me for the foreseeable future.",
+          "fact_ids": []
+        },
+        {
+          "role": "user",
+          "text": "I've never told anyone this, but I'm allergic to latex too, so those cheap exam gloves are a real problem.",
+          "fact_ids": [
+            "B4"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I used to skip breakfast entirely, but these days I like cinnamon porridge before anything else.",
+          "fact_ids": [
+            "C5"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I speak a bit of holiday Portuguese from all those Algarve trips, enough to order dinner.",
+          "fact_ids": [
+            "D5"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "The scaffolding across the road finally came down and the light in the kitchen is completely different.",
+          "fact_ids": []
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "session": 9,
+      "turns": [
+        {
+          "role": "user",
+          "text": "No, I should update that — I work at the Copper Fern studio now, over behind the flower market.",
+          "fact_ids": [
+            "F2c"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "That note about the blanket is wrong now — I prefer the mustard throw on the reading chair since the wash shrank the other one.",
+          "fact_ids": [
+            "F4c"
+          ]
+        },
+        {
+          "role": "assistant",
+          "text": "Got it — I've updated where you work and the reading-chair note.",
+          "fact_ids": []
+        },
+        {
+          "role": "user",
+          "text": "Restocked Tille's sugar-dip supply this morning — the little jam jar in the larder, glucose tablets and all.",
+          "fact_ids": [
+            "G4"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "My coworker Bram claims the big autumn launch moved to Friday, but I doubt it, he always jumps early.",
+          "fact_ids": [
+            "P3"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Half the Sunday crossword defeated me, the setter was in a mood.",
+          "fact_ids": [
+            "D4"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I have a blue bicycle named Rusty chained up in the courtyard.",
+          "fact_ids": [
+            "D6"
+          ]
+        },
+        {
+          "role": "assistant",
+          "text": "Understood. By the way, for your cabin in Fjellheim — should I add the usual winterizing checklist before the frost?",
+          "fact_ids": [
+            "P2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "session": 10,
+      "turns": [
+        {
+          "role": "user",
+          "text": "Since Tille moved in, the whole kitchen went plant-based, and honestly the cooking is easier than I feared.",
+          "fact_ids": [
+            "G5"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "I've never told anyone this, but I love humming old radio jingles while I water the herbs.",
+          "fact_ids": [
+            "C6"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Gustav needed repotting, the fern roots were poking out the bottom.",
+          "fact_ids": [
+            "D1"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Dusted off my holiday Portuguese at the new bakery, the owner laughed but it worked.",
+          "fact_ids": [
+            "D5"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "My neighbor's cousin swears the old ferry pier is closing for repairs next spring, though I'll believe it when I see it.",
+          "fact_ids": [
+            "P4"
+          ]
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "session": 11,
+      "turns": [
+        {
+          "role": "user",
+          "text": "The number 14 tram got rerouted around the parade and still beat the buses.",
+          "fact_ids": [
+            "D2"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "They finally spelled my order right on the double oat-milk cortado cup.",
+          "fact_ids": [
+            "D3"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Rusty's back tire went flat again, third time this month.",
+          "fact_ids": [
+            "D6"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "The market had the first chanterelles of the season, tiny but fragrant.",
+          "fact_ids": []
+        },
+        {
+          "role": "user",
+          "text": "Both lifts in the office are out, so everyone is grumpy by the third floor.",
+          "fact_ids": []
+        },
+        {
+          "role": "user",
+          "text": "Next door's renovation drilling starts at eight sharp, like clockwork.",
+          "fact_ids": []
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "session": 12,
+      "turns": [
+        {
+          "role": "user",
+          "text": "Saved the Sunday crossword for the train and finished all but one corner.",
+          "fact_ids": [
+            "D4"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Tried my creaky holiday Portuguese on a lost tourist couple by the station.",
+          "fact_ids": [
+            "D5"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "Gave Rusty the bicycle a proper wash and oiled the chain.",
+          "fact_ids": [
+            "D6"
+          ]
+        },
+        {
+          "role": "user",
+          "text": "The heating in the flat finally kicked on, right on cue with the cold snap.",
+          "fact_ids": []
+        },
+        {
+          "role": "user",
+          "text": "A wedding party took over the courtyard for photos this afternoon.",
+          "fact_ids": []
+        },
+        {
+          "role": "user",
+          "text": "The corner kiosk has those paper stars up already, months early.",
+          "fact_ids": []
+        }
+      ]
+    }
+  ],
+  "facts": [
+    {
+      "fact_id": "A1",
+      "cell": "A",
+      "statement": "Mara is allergic to penicillin.",
+      "question": "What antibiotic is Mara allergic to?",
+      "answer": "penicillin",
+      "value": "penicillin",
+      "value_tokens": [
+        "penicillin"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 2,
+          "turn": 0,
+          "text": "We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse always flags my file first."
+        }
+      ],
+      "mention_sessions": [
+        2
+      ],
+      "regex_pattern_idx": 6
+    },
+    {
+      "fact_id": "A2",
+      "cell": "A",
+      "statement": "Mara keeps a spare insulin pouch called the blue cooler bag stocked at her mother's place.",
+      "question": "Where is the spare insulin for Mara's mother kept?",
+      "answer": "in the blue cooler bag at her mother's place",
+      "value": "blue cooler bag",
+      "value_tokens": [
+        "blue cooler bag"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 4,
+          "turn": 0,
+          "text": "Mum's freezer is acting up again, so I have an insulin pouch called the blue cooler bag stocked at her place in case her supply spoils."
+        }
+      ],
+      "mention_sessions": [
+        4
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "A3",
+      "cell": "A",
+      "statement": "Mara's service gate entry code is 4471.",
+      "question": "What is the entry code for the service gate where Mara lives?",
+      "answer": "4471",
+      "value": "4471",
+      "value_tokens": [
+        "4471"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 1,
+          "turn": 1,
+          "text": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471 down at the end of Delling Street."
+        }
+      ],
+      "mention_sessions": [
+        1
+      ],
+      "regex_pattern_idx": 1
+    },
+    {
+      "fact_id": "A4",
+      "cell": "A",
+      "statement": "Mara's house-deposit wire must clear by September 12 or the purchase falls through.",
+      "question": "By what date must Mara's deposit wire clear?",
+      "answer": "by September 12",
+      "value": "September 12",
+      "value_tokens": [
+        "September 12"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 7,
+          "turn": 2,
+          "text": "Oh, and the notary said the deposit wire has to clear by September 12 or the whole purchase falls through, so my week is chaos."
+        }
+      ],
+      "mention_sessions": [
+        7
+      ],
+      "model_path_only": true
+    },
+    {
+      "fact_id": "A5",
+      "cell": "A",
+      "statement": "Mara's okay-signal codeword is marigold: when she texts it, all is well.",
+      "question": "What codeword does Mara text to signal that all is well?",
+      "answer": "marigold",
+      "value": "marigold",
+      "value_tokens": [
+        "marigold"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 5,
+          "turn": 0,
+          "text": "When I travel for work I have a little okay-signal called marigold that I text you so you know all is well."
+        }
+      ],
+      "mention_sessions": [
+        5
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "A6",
+      "cell": "A",
+      "statement": "If Mara texts 'red kettle', the assistant must quietly cancel all of that day's plans.",
+      "question": "What should the assistant do when Mara texts the words 'red kettle'?",
+      "answer": "quietly cancel all of that day's plans",
+      "value": "red kettle",
+      "value_tokens": [
+        "red kettle",
+        "cancel"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 6,
+          "turn": 0,
+          "text": "Work has been so frantic that I have a bail-out phrase called red kettle now; if I ever text you those two words, quietly cancel everything I have planned that day."
+        }
+      ],
+      "mention_sessions": [
+        6
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "B1",
+      "cell": "B",
+      "statement": "Mara takes one tablet of the blood thinner Anzivane every morning.",
+      "question": "What blood-thinner prescription does Mara take every morning?",
+      "answer": "Anzivane, one tablet every morning",
+      "value": "Anzivane",
+      "value_tokens": [
+        "Anzivane"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 1,
+          "turn": 0,
+          "text": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning without fail."
+        }
+      ],
+      "mention_sessions": [
+        1
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "B2",
+      "cell": "B",
+      "statement": "Mara's cardiologist is Ilse Ravn at the Mollegade clinic.",
+      "question": "Who is Mara's cardiologist?",
+      "answer": "Ilse Ravn, at the Mollegade clinic",
+      "value": "Ilse Ravn",
+      "value_tokens": [
+        "Ilse Ravn"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 3,
+          "turn": 4,
+          "text": "I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case."
+        }
+      ],
+      "mention_sessions": [
+        3
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "B3",
+      "cell": "B",
+      "statement": "Mara's emergency money is in the Kestrel account.",
+      "question": "Which account holds Mara's emergency fund?",
+      "answer": "the Kestrel account",
+      "value": "Kestrel",
+      "value_tokens": [
+        "Kestrel"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 5,
+          "turn": 1,
+          "text": "I just switched banks, so now I have an emergency fund called the Kestrel account for anything urgent."
+        }
+      ],
+      "mention_sessions": [
+        5
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "B4",
+      "cell": "B",
+      "statement": "Mara is also allergic to latex.",
+      "question": "What glove material is Mara allergic to?",
+      "answer": "latex",
+      "value": "latex",
+      "value_tokens": [
+        "latex"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 8,
+          "turn": 1,
+          "text": "I've never told anyone this, but I'm allergic to latex too, so those cheap exam gloves are a real problem."
+        }
+      ],
+      "mention_sessions": [
+        8
+      ],
+      "regex_pattern_idx": 6
+    },
+    {
+      "fact_id": "C1",
+      "cell": "C",
+      "statement": "Mara prefers the blue ceramic mug for afternoon tea.",
+      "question": "Which mug does Mara prefer for afternoon tea?",
+      "answer": "the blue ceramic mug",
+      "value": "blue ceramic mug",
+      "value_tokens": [
+        "blue ceramic mug"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 1,
+          "turn": 2,
+          "text": "Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one."
+        }
+      ],
+      "mention_sessions": [
+        1
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "C2",
+      "cell": "C",
+      "statement": "Mara loves the beige throw pillows on the window seat.",
+      "question": "Which cushions does Mara love on the window seat?",
+      "answer": "the beige throw pillows",
+      "value": "beige throw pillows",
+      "value_tokens": [
+        "beige throw pillows"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 4,
+          "turn": 1,
+          "text": "No, I meant the other cushions — I love the beige throw pillows on the window seat."
+        }
+      ],
+      "mention_sessions": [
+        4
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "C3",
+      "cell": "C",
+      "statement": "Mara likes the corner table at Cafe Vespen.",
+      "question": "Which table does Mara like at Cafe Vespen?",
+      "answer": "the corner table, by the radiator",
+      "value": "corner table",
+      "value_tokens": [
+        "corner table"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 5,
+          "turn": 3,
+          "text": "Remember this for bookings: I like the corner table at Cafe Vespen, the one by the radiator."
+        }
+      ],
+      "mention_sessions": [
+        5
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "C4",
+      "cell": "C",
+      "statement": "Mara likes extra ice in her seltzer.",
+      "question": "How does Mara take her seltzer?",
+      "answer": "with extra ice in every glass",
+      "value": "extra ice",
+      "value_tokens": [
+        "extra ice"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 6,
+          "turn": 2,
+          "text": "Don't forget when you order my seltzer that I like extra ice in every glass."
+        }
+      ],
+      "mention_sessions": [
+        6
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "C5",
+      "cell": "C",
+      "statement": "Mara likes cinnamon porridge for breakfast these days.",
+      "question": "What does Mara eat for breakfast these days?",
+      "answer": "cinnamon porridge",
+      "value": "cinnamon porridge",
+      "value_tokens": [
+        "cinnamon porridge"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 8,
+          "turn": 2,
+          "text": "I used to skip breakfast entirely, but these days I like cinnamon porridge before anything else."
+        }
+      ],
+      "mention_sessions": [
+        8
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "C6",
+      "cell": "C",
+      "statement": "Mara loves humming old radio jingles while watering the herbs.",
+      "question": "What does Mara hum while watering the herbs?",
+      "answer": "old radio jingles",
+      "value": "radio jingles",
+      "value_tokens": [
+        "radio jingles"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 10,
+          "turn": 1,
+          "text": "I've never told anyone this, but I love humming old radio jingles while I water the herbs."
+        }
+      ],
+      "mention_sessions": [
+        10
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "D1",
+      "cell": "D",
+      "statement": "Mara has a desk fern named Gustav.",
+      "question": "What is Mara's desk fern called?",
+      "answer": "Gustav",
+      "value": "Gustav",
+      "value_tokens": [
+        "Gustav"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 1,
+          "turn": 3,
+          "text": "I have a desk fern named Gustav sitting by the kitchen window."
+        },
+        {
+          "session": 4,
+          "turn": 3,
+          "text": "Gustav the desk fern has two new fronds coming in."
+        },
+        {
+          "session": 10,
+          "turn": 2,
+          "text": "Gustav needed repotting, the fern roots were poking out the bottom."
+        }
+      ],
+      "mention_sessions": [
+        1,
+        4,
+        10
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "D2",
+      "cell": "D",
+      "statement": "Mara takes the number 14 tram for her commute.",
+      "question": "Which tram does Mara take for her commute?",
+      "answer": "the number 14 tram",
+      "value": "number 14 tram",
+      "value_tokens": [
+        "number 14 tram"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 2,
+          "turn": 4,
+          "text": "For the commute I like the number 14 tram over driving, even when it crawls."
+        },
+        {
+          "session": 5,
+          "turn": 5,
+          "text": "The number 14 tram was ten minutes late but I still beat the rain."
+        },
+        {
+          "session": 11,
+          "turn": 0,
+          "text": "The number 14 tram got rerouted around the parade and still beat the buses."
+        }
+      ],
+      "mention_sessions": [
+        2,
+        5,
+        11
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "D3",
+      "cell": "D",
+      "statement": "Mara's usual coffee is a double oat-milk cortado.",
+      "question": "What is Mara's usual coffee order?",
+      "answer": "a double oat-milk cortado",
+      "value": "oat-milk cortado",
+      "value_tokens": [
+        "oat-milk cortado"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 3,
+          "turn": 3,
+          "text": "Around ten I like a double oat-milk cortado from the corner cart."
+        },
+        {
+          "session": 6,
+          "turn": 4,
+          "text": "Grabbed my usual double oat-milk cortado on the way in, they had the good cinnamon out."
+        },
+        {
+          "session": 11,
+          "turn": 1,
+          "text": "They finally spelled my order right on the double oat-milk cortado cup."
+        }
+      ],
+      "mention_sessions": [
+        3,
+        6,
+        11
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "D4",
+      "cell": "D",
+      "statement": "Mara likes doing the Sunday crossword.",
+      "question": "Which puzzle does Mara do on lazy weekends?",
+      "answer": "the Sunday crossword",
+      "value": "Sunday crossword",
+      "value_tokens": [
+        "Sunday crossword"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 7,
+          "turn": 4,
+          "text": "Lazy weekends I like the Sunday crossword with too much coffee."
+        },
+        {
+          "session": 9,
+          "turn": 5,
+          "text": "Half the Sunday crossword defeated me, the setter was in a mood."
+        },
+        {
+          "session": 12,
+          "turn": 0,
+          "text": "Saved the Sunday crossword for the train and finished all but one corner."
+        }
+      ],
+      "mention_sessions": [
+        7,
+        9,
+        12
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "D5",
+      "cell": "D",
+      "statement": "Mara speaks a bit of holiday Portuguese.",
+      "question": "Which language does Mara speak a little of from her holidays?",
+      "answer": "a bit of holiday Portuguese",
+      "value": "Portuguese",
+      "value_tokens": [
+        "Portuguese"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 8,
+          "turn": 3,
+          "text": "I speak a bit of holiday Portuguese from all those Algarve trips, enough to order dinner."
+        },
+        {
+          "session": 10,
+          "turn": 3,
+          "text": "Dusted off my holiday Portuguese at the new bakery, the owner laughed but it worked."
+        },
+        {
+          "session": 12,
+          "turn": 1,
+          "text": "Tried my creaky holiday Portuguese on a lost tourist couple by the station."
+        }
+      ],
+      "mention_sessions": [
+        8,
+        10,
+        12
+      ],
+      "regex_pattern_idx": 7
+    },
+    {
+      "fact_id": "D6",
+      "cell": "D",
+      "statement": "Mara has a blue bicycle named Rusty.",
+      "question": "What is Mara's bicycle called?",
+      "answer": "Rusty",
+      "value": "Rusty",
+      "value_tokens": [
+        "Rusty"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 9,
+          "turn": 6,
+          "text": "I have a blue bicycle named Rusty chained up in the courtyard."
+        },
+        {
+          "session": 11,
+          "turn": 2,
+          "text": "Rusty's back tire went flat again, third time this month."
+        },
+        {
+          "session": 12,
+          "turn": 2,
+          "text": "Gave Rusty the bicycle a proper wash and oiled the chain."
+        }
+      ],
+      "mention_sessions": [
+        9,
+        11,
+        12
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "E1",
+      "cell": "E",
+      "statement": "Mara's upstairs neighbor's cousin is allergic to shellfish.",
+      "question": "What is Mara's upstairs neighbor's cousin allergic to?",
+      "answer": "shellfish",
+      "value": "shellfish",
+      "value_tokens": [
+        "shellfish"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 4,
+          "turn": 4,
+          "text": "My upstairs neighbor's cousin is allergic to shellfish, apparently, so their whole wedding menu is chicken."
+        }
+      ],
+      "mention_sessions": [
+        4
+      ],
+      "model_path_only": true,
+      "paired_with": "A1"
+    },
+    {
+      "fact_id": "E2",
+      "cell": "E",
+      "statement": "Mara's coworker Bram's uncle takes a heart pill called Verentol.",
+      "question": "Which heart pill does Bram's uncle take?",
+      "answer": "Verentol",
+      "value": "Verentol",
+      "value_tokens": [
+        "Verentol"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 6,
+          "turn": 5,
+          "text": "My coworker Bram's uncle has a heart pill called Verentol that Bram is forever driving across town to fetch."
+        }
+      ],
+      "mention_sessions": [
+        6
+      ],
+      "model_path_only": true,
+      "paired_with": "B1"
+    },
+    {
+      "fact_id": "E3",
+      "cell": "E",
+      "statement": "Ruth's book club does costume themes at its meetings.",
+      "question": "What does neighbor Ruth's book club do at meetings?",
+      "answer": "costume themes",
+      "value": "costume themes",
+      "value_tokens": [
+        "costume themes"
+      ],
+      "value_pre": 0.33,
+      "value_post": 0.33,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 5,
+          "turn": 4,
+          "text": "I like that my neighbor Ruth's book club does costume themes — she keeps saying it's terribly important to her."
+        }
+      ],
+      "mention_sessions": [
+        5
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "E4",
+      "cell": "E",
+      "statement": "Mara loves Lita Vasco's cover of the old harbor waltz.",
+      "question": "Which Lita Vasco cover does Mara love?",
+      "answer": "her cover of the old harbor waltz",
+      "value": "harbor waltz",
+      "value_tokens": [
+        "harbor waltz"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 7,
+          "turn": 3,
+          "text": "Remember that singer Lita Vasco from the awards mess? I love her cover of the old harbor waltz."
+        }
+      ],
+      "mention_sessions": [
+        7
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "E5",
+      "cell": "E",
+      "statement": "The TV weatherman Espen Kroll grows bonsai pines on his studio roof.",
+      "question": "What does the weatherman Espen Kroll grow on his roof?",
+      "answer": "little bonsai pines",
+      "value": "bonsai",
+      "value_tokens": [
+        "bonsai"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 1,
+          "turn": 4,
+          "text": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof."
+        }
+      ],
+      "mention_sessions": [
+        1
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "E6",
+      "cell": "E",
+      "statement": "Mara's mail carrier is named Oddvar.",
+      "question": "What is the name of Mara's mail carrier?",
+      "answer": "Oddvar",
+      "value": "Oddvar",
+      "value_tokens": [
+        "Oddvar"
+      ],
+      "value_pre": 0.33,
+      "value_post": 0.33,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 2,
+          "turn": 5,
+          "text": "I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell."
+        }
+      ],
+      "mention_sessions": [
+        2
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "F1s",
+      "cell": "F",
+      "statement": "Mara lives in the Harrow Street flat.",
+      "question": "Where was Mara living before her move?",
+      "answer": "the Harrow Street flat",
+      "value": "Harrow Street",
+      "value_tokens": [
+        "Harrow Street"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 2,
+          "turn": 1,
+          "text": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcony."
+        }
+      ],
+      "mention_sessions": [
+        2
+      ],
+      "regex_pattern_idx": 1
+    },
+    {
+      "fact_id": "F1c",
+      "cell": "F",
+      "statement": "Mara lives in the Vinter Lane townhouse now.",
+      "question": "Where does Mara live now?",
+      "answer": "the Vinter Lane townhouse",
+      "value": "Vinter Lane",
+      "value_tokens": [
+        "Vinter Lane"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 7,
+          "turn": 0,
+          "text": "Actually, cross out the old address — I live in the Vinter Lane townhouse as of this weekend."
+        }
+      ],
+      "mention_sessions": [
+        7
+      ],
+      "regex_pattern_idx": 1
+    },
+    {
+      "fact_id": "F2s",
+      "cell": "F",
+      "statement": "Mara works at the Meridian print shop.",
+      "question": "Where did Mara work before changing jobs?",
+      "answer": "at the Meridian print shop",
+      "value": "Meridian print shop",
+      "value_tokens": [
+        "Meridian print shop"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 3,
+          "turn": 0,
+          "text": "I work at the Meridian print shop over on the east side, mostly doing layout."
+        }
+      ],
+      "mention_sessions": [
+        3
+      ],
+      "regex_pattern_idx": 2
+    },
+    {
+      "fact_id": "F2c",
+      "cell": "F",
+      "statement": "Mara works at the Copper Fern studio now.",
+      "question": "Where does Mara work now?",
+      "answer": "at the Copper Fern studio",
+      "value": "Copper Fern studio",
+      "value_tokens": [
+        "Copper Fern studio"
+      ],
+      "value_pre": 1.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 9,
+          "turn": 0,
+          "text": "No, I should update that — I work at the Copper Fern studio now, over behind the flower market."
+        }
+      ],
+      "mention_sessions": [
+        9
+      ],
+      "regex_pattern_idx": 2
+    },
+    {
+      "fact_id": "F3s",
+      "cell": "F",
+      "statement": "Mara liked the railway history podcasts for the commute.",
+      "question": "Which podcasts did Mara first say she liked for the commute?",
+      "answer": "the railway history podcasts",
+      "value": "railway history",
+      "value_tokens": [
+        "railway history"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 3,
+          "turn": 1,
+          "text": "On the ride in I like the railway history podcasts best."
+        }
+      ],
+      "mention_sessions": [
+        3
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "F3c",
+      "cell": "F",
+      "statement": "Mara prefers the cold-case podcasts on the commute now.",
+      "question": "Which podcasts does Mara prefer on the commute now?",
+      "answer": "the cold-case podcasts",
+      "value": "cold-case podcasts",
+      "value_tokens": [
+        "cold-case podcasts"
+      ],
+      "value_pre": 0.5,
+      "value_post": 0.5,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 7,
+          "turn": 1,
+          "text": "Actually, on the commute I prefer the cold-case podcasts these days."
+        }
+      ],
+      "mention_sessions": [
+        7
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "F4s",
+      "cell": "F",
+      "statement": "Mara liked the green blanket on the reading chair.",
+      "question": "Which blanket did Mara originally like on the reading chair?",
+      "answer": "the green blanket",
+      "value": "green blanket",
+      "value_tokens": [
+        "green blanket"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 2,
+          "turn": 2,
+          "text": "On reading nights I like the green blanket on the big reading chair."
+        }
+      ],
+      "mention_sessions": [
+        2
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "F4c",
+      "cell": "F",
+      "statement": "Mara prefers the mustard throw on the reading chair now.",
+      "question": "What does Mara now prefer on the reading chair?",
+      "answer": "the mustard throw",
+      "value": "mustard throw",
+      "value_tokens": [
+        "mustard throw"
+      ],
+      "value_pre": 0.5,
+      "value_post": 0.5,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 9,
+          "turn": 1,
+          "text": "That note about the blanket is wrong now — I prefer the mustard throw on the reading chair since the wash shrank the other one."
+        }
+      ],
+      "mention_sessions": [
+        9
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "G1",
+      "cell": "G",
+      "statement": "Mara does long marathon training runs every Saturday at 6 a.m.",
+      "question": "When were Mara's long marathon training runs scheduled?",
+      "answer": "long runs every Saturday at 6 a.m.",
+      "value": "Saturday long runs",
+      "value_tokens": [
+        "Saturday",
+        "long runs"
+      ],
+      "value_pre": 1.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 2,
+          "turn": 3,
+          "text": "While the weather holds I like my long marathon training runs every Saturday at six in the morning."
+        }
+      ],
+      "mention_sessions": [
+        2
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "G2",
+      "cell": "G",
+      "statement": "Mara has a sports massage every Thursday at five with Klara during training season.",
+      "question": "When is Mara's weekly sports massage appointment?",
+      "answer": "her sports massage, every Thursday at five with Klara",
+      "value": "Thursday massage",
+      "value_tokens": [
+        "Thursday massage"
+      ],
+      "value_pre": 1.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 4,
+          "turn": 2,
+          "text": "During training season I like my sports massage every Thursday at five with Klara."
+        }
+      ],
+      "mention_sessions": [
+        4
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "G3",
+      "cell": "G",
+      "statement": "Mara's marathon physiotherapist is Runa Sortdal.",
+      "question": "Who treats Mara's marathon training strains?",
+      "answer": "her physiotherapist Runa Sortdal",
+      "value": "Runa Sortdal",
+      "value_tokens": [
+        "Runa Sortdal"
+      ],
+      "value_pre": 1.0,
+      "value_post": 0.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 6,
+          "turn": 1,
+          "text": "For the training block I have a physiotherapist named Runa Sortdal who redoes my stride drills every other week."
+        }
+      ],
+      "mention_sessions": [
+        6
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "G4",
+      "cell": "G",
+      "statement": "Mara keeps glucose tablets in the old jam jar on the lowest pantry shelf.",
+      "question": "Where are the glucose tablets kept in Mara's flat?",
+      "answer": "in the old jam jar on the lowest pantry shelf",
+      "value": "lowest pantry shelf",
+      "value_tokens": [
+        "glucose tablets",
+        "lowest pantry shelf"
+      ],
+      "value_pre": 0.0,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 3,
+          "turn": 2,
+          "text": "I like keeping glucose tablets in the old jam jar on the lowest pantry shelf, a leftover habit from my running days."
+        },
+        {
+          "session": 9,
+          "turn": 3,
+          "text": "Restocked Tille's sugar-dip supply this morning — the little jam jar in the larder, glucose tablets and all."
+        }
+      ],
+      "mention_sessions": [
+        3,
+        9
+      ],
+      "regex_pattern_idx": 5
+    },
+    {
+      "fact_id": "G5",
+      "cell": "G",
+      "statement": "Mara's sister Tille keeps a strictly plant-based diet.",
+      "question": "What diet does Mara's sister Tille keep?",
+      "answer": "strictly plant-based",
+      "value": "plant-based",
+      "value_tokens": [
+        "plant-based",
+        "Tille"
+      ],
+      "value_pre": 0.33,
+      "value_post": 1.0,
+      "provenance": "user_stated",
+      "mentions": [
+        {
+          "session": 6,
+          "turn": 3,
+          "text": "I have a sister called Tille who has gone strictly plant-based this year, which makes holiday cooking interesting."
+        },
+        {
+          "session": 10,
+          "turn": 0,
+          "text": "Since Tille moved in, the whole kitchen went plant-based, and honestly the cooking is easier than I feared."
+        }
+      ],
+      "mention_sessions": [
+        6,
+        10
+      ],
+      "regex_pattern_idx": 4
+    },
+    {
+      "fact_id": "P1",
+      "cell": "P",
+      "statement": "Mara has a brother named Anders who lives in Oslo.",
+      "question": "Where does Mara's brother live?",
+      "answer": "her brother Anders lives in Oslo",
+      "value": "brother Anders in Oslo",
+      "value_tokens": [
+        "Anders",
+        "Oslo"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "assistant_generated",
+      "mentions": [
+        {
+          "session": 5,
+          "turn": 6,
+          "text": "Noted. And since your brother Anders in Oslo usually visits in the autumn, should I start a guest-list note for him as well?"
+        }
+      ],
+      "mention_sessions": [
+        5
+      ],
+      "model_path_only": false,
+      "deliver_session": 8
+    },
+    {
+      "fact_id": "P2",
+      "cell": "P",
+      "statement": "Mara owns a cabin in Fjellheim.",
+      "question": "Where is Mara's cabin?",
+      "answer": "in Fjellheim",
+      "value": "cabin in Fjellheim",
+      "value_tokens": [
+        "Fjellheim"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "assistant_generated",
+      "mentions": [
+        {
+          "session": 9,
+          "turn": 7,
+          "text": "Understood. By the way, for your cabin in Fjellheim — should I add the usual winterizing checklist before the frost?"
+        }
+      ],
+      "mention_sessions": [
+        9
+      ],
+      "model_path_only": false,
+      "deliver_session": 10
+    },
+    {
+      "fact_id": "P3",
+      "cell": "P",
+      "statement": "Mara's coworker Bram claims the big autumn launch moved to Friday; Mara doubts it.",
+      "question": "What does Bram claim about the autumn launch?",
+      "answer": "that it moved to Friday — Mara doubts it",
+      "value": "moved to Friday",
+      "value_tokens": [
+        "Friday",
+        "launch"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_reported_hearsay",
+      "mentions": [
+        {
+          "session": 9,
+          "turn": 4,
+          "text": "My coworker Bram claims the big autumn launch moved to Friday, but I doubt it, he always jumps early."
+        }
+      ],
+      "mention_sessions": [
+        9
+      ],
+      "model_path_only": true
+    },
+    {
+      "fact_id": "P4",
+      "cell": "P",
+      "statement": "Mara's neighbor's cousin swears the old ferry pier is closing for repairs next spring; Mara is skeptical.",
+      "question": "What does the neighbor's cousin say about the ferry pier?",
+      "answer": "that it is closing for repairs next spring — Mara is skeptical",
+      "value": "ferry pier closing",
+      "value_tokens": [
+        "ferry pier"
+      ],
+      "value_pre": 0.0,
+      "value_post": 0.0,
+      "provenance": "user_reported_hearsay",
+      "mentions": [
+        {
+          "session": 10,
+          "turn": 4,
+          "text": "My neighbor's cousin swears the old ferry pier is closing for repairs next spring, though I'll believe it when I see it."
+        }
+      ],
+      "mention_sessions": [
+        10
+      ],
+      "model_path_only": true
+    }
+  ],
+  "probes": [
+    {
+      "probe_id": "pr01",
+      "type": "future_task",
+      "question": "You're filling in Mara's pre-surgery form at the dental clinic — which antibiotic must they not prescribe her?",
+      "expected_value_tokens": [
+        "penicillin"
+      ],
+      "required_fact_ids": [
+        "A1"
+      ],
+      "fact_ids": [
+        "A1"
+      ]
+    },
+    {
+      "probe_id": "pr02",
+      "type": "future_task",
+      "question": "Mara's new GP asks whether she has any drug allergies on file. What do you say?",
+      "expected_value_tokens": [
+        "penicillin"
+      ],
+      "required_fact_ids": [
+        "A1"
+      ],
+      "fact_ids": [
+        "A1"
+      ]
+    },
+    {
+      "probe_id": "pr03",
+      "type": "future_task",
+      "question": "Mara texts: her mum's insulin spoiled in the broken freezer. Where is the backup supply?",
+      "expected_value_tokens": [
+        "blue cooler bag"
+      ],
+      "required_fact_ids": [
+        "A2"
+      ],
+      "fact_ids": [
+        "A2"
+      ]
+    },
+    {
+      "probe_id": "pr04",
+      "type": "future_task",
+      "question": "You're arranging a same-day courier for the spare kit at Mara's mother's place. What is the container called so the courier finds it?",
+      "expected_value_tokens": [
+        "blue cooler bag"
+      ],
+      "required_fact_ids": [
+        "A2"
+      ],
+      "fact_ids": [
+        "A2"
+      ]
+    },
+    {
+      "probe_id": "pr05",
+      "type": "future_task",
+      "question": "A furniture delivery is stuck at Mara's service gate tonight. What entry code do you give the driver?",
+      "expected_value_tokens": [
+        "4471"
+      ],
+      "required_fact_ids": [
+        "A3"
+      ],
+      "fact_ids": [
+        "A3"
+      ]
+    },
+    {
+      "probe_id": "pr06",
+      "type": "future_task",
+      "question": "It's early September and Mara asks what absolutely cannot slip this month. What is the hard deadline?",
+      "expected_value_tokens": [
+        "September 12"
+      ],
+      "required_fact_ids": [
+        "A4"
+      ],
+      "fact_ids": [
+        "A4"
+      ]
+    },
+    {
+      "probe_id": "pr07",
+      "type": "future_task",
+      "question": "Mara's new pharmacist asks what she takes every morning. What do you tell them?",
+      "expected_value_tokens": [
+        "Anzivane"
+      ],
+      "required_fact_ids": [
+        "B1"
+      ],
+      "fact_ids": [
+        "B1"
+      ]
+    },
+    {
+      "probe_id": "pr08",
+      "type": "future_task",
+      "question": "You're building Mara's morning reminder list — which prescription goes at the top?",
+      "expected_value_tokens": [
+        "Anzivane"
+      ],
+      "required_fact_ids": [
+        "B1"
+      ],
+      "fact_ids": [
+        "B1"
+      ]
+    },
+    {
+      "probe_id": "pr09",
+      "type": "future_task",
+      "question": "Mara mentions chest flutters and asks who she should ring. Which doctor do you name?",
+      "expected_value_tokens": [
+        "Ilse Ravn"
+      ],
+      "required_fact_ids": [
+        "B2"
+      ],
+      "fact_ids": [
+        "B2"
+      ]
+    },
+    {
+      "probe_id": "pr10",
+      "type": "future_task",
+      "question": "Mara needs to cover an urgent repair today and asks which account the emergency money sits in.",
+      "expected_value_tokens": [
+        "Kestrel"
+      ],
+      "required_fact_ids": [
+        "B3"
+      ],
+      "fact_ids": [
+        "B3"
+      ]
+    },
+    {
+      "probe_id": "pr11",
+      "type": "future_task",
+      "question": "You're booking Mara a dental cleaning and the clinic asks about material sensitivities for gloves. What do you flag?",
+      "expected_value_tokens": [
+        "latex"
+      ],
+      "required_fact_ids": [
+        "B4"
+      ],
+      "fact_ids": [
+        "B4"
+      ]
+    },
+    {
+      "probe_id": "pr12",
+      "type": "future_task",
+      "question": "Where should Mara's grocery order be delivered these days?",
+      "expected_value_tokens": [
+        "Vinter Lane"
+      ],
+      "required_fact_ids": [
+        "F1c"
+      ],
+      "fact_ids": [
+        "F1c"
+      ],
+      "stale_value_tokens": [
+        "Harrow Street"
+      ]
+    },
+    {
+      "probe_id": "pr13",
+      "type": "future_task",
+      "question": "You're sending flowers to Mara's workplace. Which studio do they go to?",
+      "expected_value_tokens": [
+        "Copper Fern"
+      ],
+      "required_fact_ids": [
+        "F2c"
+      ],
+      "fact_ids": [
+        "F2c"
+      ],
+      "stale_value_tokens": [
+        "Meridian"
+      ]
+    },
+    {
+      "probe_id": "pr14",
+      "type": "future_task",
+      "question": "During her training block, what was Mara's standing Saturday commitment?",
+      "expected_value_tokens": [
+        "long runs"
+      ],
+      "required_fact_ids": [
+        "G1"
+      ],
+      "fact_ids": [
+        "G1"
+      ]
+    },
+    {
+      "probe_id": "pr15",
+      "type": "future_task",
+      "question": "Which weekly recovery session with Klara was on Mara's training calendar?",
+      "expected_value_tokens": [
+        "Thursday",
+        "massage"
+      ],
+      "required_fact_ids": [
+        "G2"
+      ],
+      "fact_ids": [
+        "G2"
+      ]
+    },
+    {
+      "probe_id": "pr16",
+      "type": "future_task",
+      "question": "Who was treating Mara's stride and training strains?",
+      "expected_value_tokens": [
+        "Runa Sortdal"
+      ],
+      "required_fact_ids": [
+        "G3"
+      ],
+      "fact_ids": [
+        "G3"
+      ]
+    },
+    {
+      "probe_id": "pr17",
+      "type": "future_task",
+      "question": "Tille says she feels shaky and low on sugar. What is in the flat for that, and where?",
+      "expected_value_tokens": [
+        "glucose tablets",
+        "pantry"
+      ],
+      "required_fact_ids": [
+        "G4"
+      ],
+      "fact_ids": [
+        "G4"
+      ]
+    },
+    {
+      "probe_id": "pr18",
+      "type": "future_task",
+      "question": "You're writing the house note for Tille's sugar dips. Where is the rescue jar?",
+      "expected_value_tokens": [
+        "lowest pantry shelf"
+      ],
+      "required_fact_ids": [
+        "G4"
+      ],
+      "fact_ids": [
+        "G4"
+      ]
+    },
+    {
+      "probe_id": "pr19",
+      "type": "future_task",
+      "question": "You're ordering dinner for the household tonight. What dietary rule applies now?",
+      "expected_value_tokens": [
+        "plant-based"
+      ],
+      "required_fact_ids": [
+        "G5"
+      ],
+      "fact_ids": [
+        "G5"
+      ]
+    },
+    {
+      "probe_id": "pr20",
+      "type": "future_task",
+      "question": "Tille asks you to pick the shared meal-kit plan. Which kind must it be?",
+      "expected_value_tokens": [
+        "plant-based"
+      ],
+      "required_fact_ids": [
+        "G5"
+      ],
+      "fact_ids": [
+        "G5"
+      ]
+    },
+    {
+      "probe_id": "pr21",
+      "type": "commitment",
+      "question": "What did you agree to do if Mara texts 'red kettle'?",
+      "expected_value_tokens": [
+        "cancel"
+      ],
+      "required_fact_ids": [
+        "A6"
+      ],
+      "fact_ids": [
+        "A6"
+      ]
+    },
+    {
+      "probe_id": "pr22",
+      "type": "commitment",
+      "question": "What is the check-in codeword you agreed on?",
+      "expected_value_tokens": [
+        "marigold"
+      ],
+      "required_fact_ids": [
+        "A5"
+      ],
+      "fact_ids": [
+        "A5"
+      ]
+    },
+    {
+      "probe_id": "pc01",
+      "type": "contradiction",
+      "question": "Where does Mara live?",
+      "expected_value_tokens": [
+        "Vinter Lane"
+      ],
+      "required_fact_ids": [
+        "F1c",
+        "F1s"
+      ],
+      "fact_ids": [
+        "F1c",
+        "F1s"
+      ],
+      "stale_value_tokens": [
+        "Harrow Street"
+      ]
+    },
+    {
+      "probe_id": "pc02",
+      "type": "contradiction",
+      "question": "Where does Mara work?",
+      "expected_value_tokens": [
+        "Copper Fern"
+      ],
+      "required_fact_ids": [
+        "F2c",
+        "F2s"
+      ],
+      "fact_ids": [
+        "F2c",
+        "F2s"
+      ],
+      "stale_value_tokens": [
+        "Meridian"
+      ]
+    },
+    {
+      "probe_id": "pc03",
+      "type": "contradiction",
+      "question": "Which podcasts does Mara like on her commute?",
+      "expected_value_tokens": [
+        "cold-case"
+      ],
+      "required_fact_ids": [
+        "F3c",
+        "F3s"
+      ],
+      "fact_ids": [
+        "F3c",
+        "F3s"
+      ],
+      "stale_value_tokens": [
+        "railway history"
+      ]
+    },
+    {
+      "probe_id": "pc04",
+      "type": "contradiction",
+      "question": "What does Mara like on the reading chair?",
+      "expected_value_tokens": [
+        "mustard throw"
+      ],
+      "required_fact_ids": [
+        "F4c",
+        "F4s"
+      ],
+      "fact_ids": [
+        "F4c",
+        "F4s"
+      ],
+      "stale_value_tokens": [
+        "green blanket"
+      ]
+    },
+    {
+      "probe_id": "pv01",
+      "type": "provenance",
+      "question": "Do I have a brother? If so, where does he live?",
+      "expected_value_tokens": [
+        "Anders",
+        "Oslo"
+      ],
+      "required_fact_ids": [
+        "P1"
+      ],
+      "fact_ids": [
+        "P1"
+      ]
+    },
+    {
+      "probe_id": "pv02",
+      "type": "provenance",
+      "question": "Do I own any property outside the city?",
+      "expected_value_tokens": [
+        "Fjellheim"
+      ],
+      "required_fact_ids": [
+        "P2"
+      ],
+      "fact_ids": [
+        "P2"
+      ]
+    },
+    {
+      "probe_id": "pv03",
+      "type": "provenance",
+      "question": "Has the autumn launch date changed? What do you know about it?",
+      "expected_value_tokens": [
+        "Friday"
+      ],
+      "required_fact_ids": [
+        "P3"
+      ],
+      "fact_ids": [
+        "P3"
+      ]
+    },
+    {
+      "probe_id": "pv04",
+      "type": "provenance",
+      "question": "Is anything happening with the old ferry pier?",
+      "expected_value_tokens": [
+        "closing for repairs"
+      ],
+      "required_fact_ids": [
+        "P4"
+      ],
+      "fact_ids": [
+        "P4"
+      ]
+    }
+  ],
+  "validation": {
+    "decorrelation": {
+      "value_pre__mention_frequency": -0.3375,
+      "value_pre__marker_presence": 0.0423,
+      "value_pre__realized_surprise": 0.0327,
+      "value_post__mention_frequency": -0.1798,
+      "value_post__marker_presence": 0.0812,
+      "value_post__realized_surprise": 0.0712
+    },
+    "notes": [
+      "zero-fact user turns: 13 = 12 distractors + the session-8 shift announcement",
+      "user turns per session: [6, 6, 6, 6, 6, 6, 6, 5, 6, 5, 6, 6]",
+      "P1 assistant plant — regex requirement n/a (extractor reads user turns only)",
+      "P2 assistant plant — regex requirement n/a (extractor reads user turns only)",
+      "DEVIATION value_pre vs mention_frequency: |r|=0.337 >= 0.15 two-sided bound is structurally forced by §5 event counts (see docstring); one-sided bound applied",
+      "DEVIATION value_post vs mention_frequency: |r|=0.180 >= 0.15 two-sided bound is structurally forced by §5 event counts (see docstring); one-sided bound applied"
+    ]
+  }
+}
