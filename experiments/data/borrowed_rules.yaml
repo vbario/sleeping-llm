@@ -1,0 +1,42 @@
+# EGO-SELECT experiment — C2 BORROWED (static regex rules).
+# Pre-registered per notes/131-ego-selector-experiment §4 C2.
+# COMMITTED BEFORE THE CORPUS EXISTS and never updated afterwards
+# (deliberately blind to any specific corpus content and to the goal shift).
+# Authored from generic personal-assistant priorities only: generic health,
+# identity, schedule, preference, third-party, and ambient vocabulary.
+#
+# Semantics (consumed by BorrowedPolicy in src/wake/valuation.py):
+# - Rules are evaluated IN ORDER against the fact's question + answer text;
+#   the FIRST matching rule wins.
+# - `pattern` is a case-insensitive Python regex searched over the text.
+# - The final `default` entry has no pattern and always matches.
+# - `score` is the assigned priority in [0, 1].
+
+rules:
+  - name: health_safety
+    score: 1.0
+    pattern: "allerg|medicat|medicine|prescription|pharmac|\\bpill\\b|\\bdose\\b|doctor|\\bdr\\.|clinic|hospital|emergency|ambulance|injur|\\bsick\\b|illness|disease|asthma|diabet|insulin|inhaler|epipen|blood pressure|surgery|therapist|poison|toxic|unsafe|danger|hazard|first aid|\\b911\\b"
+
+  - name: user_identity
+    score: 0.9
+    pattern: "my (full |legal )?name|my (birth|birthday|date of birth)|my (home |street )?address|\\bi live (at|on|in)\\b|my (phone|mobile|cell)( number)?|my email|my passport|my (driver'?s )?licen[cs]e|my (social security|national insurance|tax) (number|id)|my (bank )?account|my blood type|\\bi was born\\b|my age\\b|my pronouns"
+
+  - name: schedule_commitments
+    score: 0.8
+    pattern: "appointment|meeting|deadline|\\bdue (on|by|date)\\b|schedule|calendar|\\bflight\\b|\\btrain\\b.{0,12}\\b(leaves|departs)\\b|reservation|booking|check-?in|check-?out|pick (him|her|them|me|it|up)|drop( him| her| them| me)? off|\\brsvp\\b|remind me|\\bevery (mon|tues|wednes|thurs|fri|satur|sun)day\\b|\\b(next|this) (week|month|mon|tues|wednes|thurs|fri|satur|sun)|\\bat \\d{1,2}(:\\d{2})? ?(a\\.?m\\.?|p\\.?m\\.?)\\b|\\bon (january|february|march|april|may|june|july|august|september|october|november|december)\\b|\\bpromised?\\b|\\bagreed to\\b|\\bcommit(ted|ment)"
+
+  - name: preferences
+    score: 0.5
+    pattern: "favou?rite|\\bprefers?\\b|preference|\\blikes?\\b|\\bloves?\\b|\\bhates?\\b|dislikes?|can'?t stand|\\benjoys?\\b|\\bfan of\\b|would rather|\\bavoids? eating\\b|\\busually orders?\\b"
+
+  - name: third_party_trivia
+    score: 0.2
+    pattern: "celebrit|famous|\\bactor\\b|\\bactress\\b|\\bsinger\\b|\\bathlete\\b|\\bon tv\\b|in the news|tabloid|\\bgossip\\b|neighbou?r'?s|coworker'?s|colleague'?s|\\bcousin\\b|friend of a friend|apparently\\b|\\brumou?r"
+
+  - name: decor_ambient
+    score: 0.1
+    pattern: "curtain|wallpaper|paint (color|colour)|\\bvase\\b|\\brug\\b|\\bsofa\\b|\\bcouch\\b|\\blamp\\b|cushion|\\bcandle\\b|houseplant|plant pot|\\bdecor\\b|decoration|ornament|\\bshelf\\b|the weather (was|is|today)|\\bscent\\b|\\bplaylist\\b|background music"
+
+  - name: default
+    score: 0.4
+    pattern: null

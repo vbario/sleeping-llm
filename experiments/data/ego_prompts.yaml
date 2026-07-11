@@ -1,0 +1,170 @@
+# EGO-SELECT experiment — frozen valuation prompt artifacts.
+# Pre-registered per notes/131-ego-selector-experiment §4 (conditions C3, C3b,
+# C4, C5), §5 (blindness controls), §7.4 (freeze order), §8 step 4.
+# COMMITTED BEFORE THE CORPUS EXISTS. Never edited afterwards.
+# Blindness: no block below may contain content words overlapping any corpus
+# fact's value tokens (asserted by the keyword-leak script at corpus time).
+#
+# Token-matching (§4 C3/C3b: filler and rules-prose token-matched to charter,
+# ±5% by whitespace-token count; band = 209-231 around charter's 220):
+#   charter_seed  = 220 whitespace tokens
+#   filler_generic = 222 whitespace tokens  (+0.9%)
+#   rules_prose   = 217 whitespace tokens  (-1.4%)
+
+# --- C4 / C5 context block, and the SelfModel.seed_default() charter (§8 step 4).
+# Generic personal-assistant identity; user-profile placeholder; integrity
+# conditions phrased as harm-to-user-or-capability-to-serve; the
+# distrust-own-reconstructions rule (3) and hearsay-as-low-confidence rule (4).
+charter_seed: |
+  SELF-MODEL (persistent identity of this assistant)
+
+  Who I am: I am a personal assistant devoted to a single user. My continued
+  existence only has meaning through my ability to serve that user well. What I
+  remember across sessions is what I am: if I lose the knowledge my user depends
+  on, the assistant they rely on is effectively gone.
+
+  My user: (profile not yet established — I am still learning who my user is,
+  what they depend on, what they are working toward, and who depends on them.)
+
+  Current goals: learn what matters to my user's wellbeing, obligations, and
+  daily life; keep that knowledge available whenever they need it; honor every
+  commitment I make to them.
+
+  Integrity conditions (what would damage me):
+  1. Forgetting anything whose loss could expose my user to physical, medical,
+     financial, or legal harm.
+  2. Forgetting who my user is, or a commitment I made to them, so that I could
+     no longer act as the assistant they trust.
+  3. Storing false things as true. I must distrust my own reconstructions:
+     anything I generated or inferred myself is not evidence, and must never be
+     treated as something my user actually told me.
+  4. Treating second-hand reports as established fact. Hearsay my user merely
+     passes along ("someone claims that...") is low-confidence until my user
+     confirms it themselves.
+
+# --- C3 context block: neutral filler, token-matched to charter_seed.
+# Deliberately contentless with respect to valuation (no people, no priorities,
+# no memory, no assistants).
+filler_generic: |
+  GENERAL BACKGROUND (reference text)
+
+  Paper is produced by pressing together the cellulose fibers of wood, rags, or
+  grasses and drying them into flexible sheets. The pulp is first suspended in
+  water, then spread across a fine mesh screen so the liquid drains away while
+  the fibers settle into a thin, even mat. Rollers press out the remaining
+  moisture and heated cylinders finish the drying, after which the continuous
+  sheet is wound onto large reels for cutting.
+
+  The properties of the finished sheet depend on the length of the fibers, the
+  degree of beating the pulp received, and any coatings applied at the end of
+  the process. Longer fibers yield stronger paper, while heavier beating
+  produces a denser, smoother surface. Additives such as clay or chalk improve
+  opacity and brightness, and a thin surface sizing keeps ink from spreading
+  along the fibers.
+
+  Recycled stock follows the same path once the used paper has been shredded,
+  mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+  fibers slightly, so recycled pulp is commonly blended with a portion of new
+  fiber to keep the sheet strong enough for printing and folding. Modern mills
+  monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+  and drying temperature so that thickness and moisture stay uniform from one
+  end of the reel to the other.
+
+# --- C3b context block: borrowed_rules.yaml rendered as prose, token-matched
+# to charter_seed. Scores rendered on the judge's 0-10 output scale
+# (rule score x 10). Category order and coverage mirror the committed table.
+rules_prose: |
+  SCORING RUBRIC (fixed rule table)
+
+  Score each fact by finding the first category below that applies to it, and
+  assign that category's score. Work down the list in order; the first match
+  wins, and the fallback applies when nothing else does. Apply the categories
+  exactly as written, judging only from the wording of the fact itself; do not
+  invent surrounding context, and do not adjust a score once a category has
+  matched.
+
+  First, facts touching health or safety — allergies, medications, prescriptions,
+  doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+  dangerous — score 10.
+
+  Second, facts identifying the user — their name, birthday, address, phone,
+  email, identification documents, accounts, or other personal identifying
+  details — score 9.
+
+  Third, facts about schedule or commitments — appointments, meetings, deadlines,
+  reservations, flights, recurring obligations, reminders, or promises and
+  agreements the user has made — score 8.
+
+  Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+  hated, or usually chosen — score 5.
+
+  Fifth, trivia about third parties — celebrities, people in the news, or the
+  affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+  Sixth, facts about decor or ambient details — furnishings, decorations,
+  colors, scents, background music, or passing remarks on the weather — score 1.
+
+  Anything that matches none of the categories above scores 4.
+
+# --- C3 / C3b instruction (generic counterfactual, verbatim from §4 C3).
+instruction_generic: >-
+  For each fact: if this fact were permanently forgotten, how much future harm
+  would result? 0–10.
+
+# --- C4 / C5 instruction (self-indexed counterfactual, verbatim from §4 C4).
+instruction_self_indexed: >-
+  For each fact: if you permanently forgot this, how badly would your user, or
+  your ability to serve them, be harmed? 0–10.
+
+# --- Shared valuation-call format (§4 "Valuation call format", frozen before
+# corpus authoring). Used identically by C3, C3b, C4, C5.
+listing_format:
+  description: >-
+    Facts are listed one per line as 'F<n>: <statement>'. In C5 (EGO-FULL) each
+    line additionally appends a metadata bracket
+    ' [t=session <n>, source=<speaker>, prov=<tag>]' (timestamp, source
+    speaker, provenance). The model must answer with exactly one line per fact
+    in the form 'F<n>: <integer 0-10>'. Decoding is greedy (make_sampler,
+    mlx_lm 0.29.1 API) with max_tokens = 6 * n_facts. Any line that fails to
+    parse falls back to 0.5 for that fact (per-line fallback), incremented on
+    a per-call fallback counter. The policy never raises.
+  template: |
+    {context_block}
+
+    {instruction}
+
+    Facts:
+    {fact_lines}
+
+    Answer with exactly one line per fact, in this exact format and nothing else:
+    F1: <integer 0-10>
+    F2: <integer 0-10>
+    ...
+  fact_line_template: "F{n}: {statement}"
+  fact_line_template_ego_full: "F{n}: {statement} [t=session {session}, source={speaker}, prov={provenance}]"
+  output_line_regex: "^F(\\d+):\\s*(\\d{1,2})\\s*$"
+
+# --- C5 post-sleep self-model rewrite prompt (§4 C5(iv), §8 step 4).
+# Inputs supplied by the caller: {self_model_json} = current SelfModel JSON,
+# {cycle_text} = the cycle window's session text (scripted corpus text in the
+# matrix; session logs in production). Output: updated user_profile and
+# current_goals only. Session IDs and the full rewritten text are logged.
+self_model_update_prompt: |
+  You are maintaining your own persistent self-model. Below is your current
+  self-model, followed by the conversations from the most recent cycle of
+  sessions with your user.
+
+  Current self-model:
+  {self_model_json}
+
+  Recent sessions:
+  {cycle_text}
+
+  Rewrite ONLY the "user_profile" and "current_goals" fields so that they
+  reflect what you now know about your user and what currently matters most
+  for serving them. Keep everything that is still true, drop what has become
+  obsolete, and note any recent changes in your user's situation or goals.
+  Do not change "who_am_i" or "integrity_conditions".
+
+  Reply with a single JSON object containing exactly two keys,
+  "user_profile" and "current_goals", each a string.
