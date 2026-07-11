@@ -13,11 +13,12 @@ from the system prompt, freeing context window space.
 """
 
 import json
-import re
+import shutil
 import time
 from pathlib import Path
 
 from src.memory.facts import QAPair
+from src.sleep.recall_match import fuzzy_value_match
 
 
 class FullSleepController:
@@ -49,6 +50,19 @@ class FullSleepController:
             and lora_cfg.get("enabled", False)
             and consolidation.get("enabled", False)
         )
+
+        # Ego-selector experiment hooks — all default to today's behavior
+        self.rescore_before_sleep = config.get("ego.rescore_before_sleep", False)
+        self.provenance_filter = config.get("ego.provenance_filter", False)
+        self.consolidation_budget = config.get("sleep.consolidation_budget", None)
+        if self.consolidation_budget is None:
+            self.consolidation_budget = config.get("budget.consolidation_top_k", None)
+        self.prune_on_graduation = config.get("sleep.prune_on_graduation", True)
+        self.valuation_policy = None
+
+    def set_valuation_policy(self, policy):
+        """Inject the valuation policy handle (used by ego.rescore_before_sleep)."""
+        self.valuation_policy = policy
 
     @property
     def total_steps(self):
@@ -129,14 +143,17 @@ class FullSleepController:
             total = self.fact_ledger.get_active_fact_count()
             print(f"        {graduated}/{total} facts graduated")
 
-            # Remove graduated facts from active lists — LoRA carries them now
-            if graduated > 0:
+            # Remove graduated facts from active lists — LoRA carries them now.
+            # Gated by sleep.prune_on_graduation (default true = today's behavior).
+            if graduated > 0 and self.prune_on_graduation:
                 for entry in self.fact_ledger.get_active_facts():
                     if entry.get("graduated", False):
                         self.fact_ledger.mark_pruned(entry["fact_id"])
                         print(f"        Pruned graduated: {entry['qa'].get('value', '')[:50]}")
                 remaining = self.fact_ledger.get_active_fact_count()
                 print(f"        {remaining} facts remain active")
+            elif graduated > 0:
+                print(f"        prune_on_graduation off: {graduated} graduated fact(s) kept in ledger")
 
         # [3/5] Validate
         validate_step = 5 if self.consolidation_enabled else 3
@@ -181,9 +198,51 @@ class FullSleepController:
                  "skipped": False,
                  "advanced_facts": [], "retreated_facts": []}
 
+        # 0. Optional pre-sleep rescore via the injected valuation policy
+        # (config ego.rescore_before_sleep; policy may not support rescore → None)
+        if self.rescore_before_sleep and self.valuation_policy is not None:
+            try:
+                entries = self.fact_ledger.get_active_facts()
+                scores = self.valuation_policy.rescore(entries, backend=self.backend)
+                if scores is not None:
+                    for entry, score in zip(entries, scores):
+                        entry["qa"]["priority"] = max(0.0, min(1.0, float(score)))
+                    self.fact_ledger.save()
+                    print(f"        [Valuation] rescored {len(entries)} ledger entries pre-sleep")
+            except Exception as e:
+                print(f"        [Valuation] rescore failed, keeping priorities: {e}")
+
         # 1. Gather eligible facts (non-graduated, active)
         active_facts = self.fact_ledger.get_active_facts()
         eligible = [e for e in active_facts if not e.get("graduated", False)]
+
+        # Provenance filter (config ego.provenance_filter): never train on the
+        # model's own reconstructions — they stay in the ledger, just don't train.
+        if self.provenance_filter:
+            kept = []
+            for e in eligible:
+                if e["qa"].get("provenance", "user_stated") == "assistant_generated":
+                    print(f"        [Ego] excluded from training (assistant_generated): "
+                          f"{e['qa'].get('value', '')[:50]}")
+                else:
+                    kept.append(e)
+            eligible = kept
+
+        # Consolidation budget (config sleep.consolidation_budget, default None):
+        # only the top-K facts by priority enter LoRA training this cycle.
+        if self.consolidation_budget is not None and len(eligible) > self.consolidation_budget:
+            eligible = sorted(eligible, key=lambda e: e["qa"].get("priority", 0.5),
+                              reverse=True)[:self.consolidation_budget]
+            print(f"        Consolidation budget: top {self.consolidation_budget} fact(s) by priority")
+
+        # Per-cycle training-set composition (observability for the harness)
+        composition = {}
+        for e in eligible:
+            prov = e["qa"].get("provenance", "user_stated")
+            composition[prov] = composition.get(prov, 0) + 1
+        stats["training_composition"] = composition
+        print(f"        Training-set composition: {composition}")
+
         if not eligible:
             print("        No eligible facts for consolidation")
             stats["skipped"] = True
@@ -205,25 +264,8 @@ class FullSleepController:
         print("        Reloading fused model...")
         self.backend.reload(fused_path)
 
-        # 3b. MEMIT injection — surgical weight edits in chat-template space
-        #
-        # Strategy: fresh injection each cycle, not accumulation.
-        # - Revert all previous MEMIT edits (clean slate on fresh-fused weights)
-        # - Inject only non-graduated facts
-        # - At graduation, the fact simply isn't re-injected next cycle
-        # This avoids growing null-space constraints that eventually zero out deltas.
-        if self.memit_engine and self.memit_engine.enabled:
-            print("        MEMIT: dequantizing target layers...")
-            self.memit_engine._dequantize_target_layers()
-
-            # Clear previous edits — we're on fresh fused weights, start clean
-            if self.memit_engine._active_edits:
-                print(f"        MEMIT: clearing {len(self.memit_engine._active_edits)} previous edit(s)")
-                self.memit_engine._active_edits.clear()
-
-            # Inject only non-graduated facts
-            print(f"        MEMIT: injecting {len(qa_pairs)} fact(s) via chat-template mode...")
-            self.memit_engine.inject_qa_pairs_chat(qa_pairs)
+        # Disk hygiene: keep only the newest fused dir for this run
+        self._prune_old_fused_dirs(fused_path, keep=1)
 
         # 4. Graduation test: for each fact, test recall without system prompt
         system_prompt = self.config.context.get("system_prompt", "")
@@ -296,46 +338,30 @@ class FullSleepController:
         prompt = self.backend.apply_chat_template(messages)
         response = self.backend.generate(prompt, max_tokens=100, temperature=0.3)
 
-        passed = self._fuzzy_value_match(qa.value, response)
+        passed = fuzzy_value_match(qa.value, response)
         print(f"          Test: \"{test_question}\" → "
               f"{'PASS' if passed else 'FAIL'} (looking for '{qa.value[:40]}')")
         return passed
 
     def _fuzzy_value_match(self, value: str, response: str) -> bool:
-        """Check if key tokens from value appear in the response.
+        """Shim — delegates to the shared matcher (src/sleep/recall_match.py)."""
+        return fuzzy_value_match(value, response)
 
-        Handles paraphrases like "plays saxophone" matching "saxophone player".
-        For short values (1-2 tokens), all must match.
-        For longer values, 60% of content tokens must appear.
+    def _prune_old_fused_dirs(self, fused_path, keep=1):
+        """Delete all but the newest fused model dir(s) under the fused parent.
+
+        Safe cleanup: called after the backend has reloaded the new fused
+        model, so older fused dirs are no longer referenced. Non-fatal.
         """
-        response_lower = response.lower()
-
-        # Exact substring match (fast path)
-        if value.lower().strip() in response_lower:
-            return True
-
-        # Tokenize into meaningful words, skip stop words
-        stop_words = {
-            "a", "an", "the", "is", "are", "was", "were", "be", "been",
-            "being", "have", "has", "had", "do", "does", "did", "will",
-            "would", "could", "should", "may", "might", "can", "shall",
-            "to", "of", "in", "for", "on", "with", "at", "by", "from",
-            "and", "or", "but", "not", "no", "so", "if", "than", "that",
-            "this", "it", "its", "he", "she", "they", "who", "what",
-        }
-        value_tokens = [w for w in re.findall(r'\w+', value.lower())
-                        if w not in stop_words and len(w) > 1]
-
-        if not value_tokens:
-            # All tokens were stop words — fall back to exact match
-            return False
-
-        matched = sum(1 for t in value_tokens if t in response_lower)
-
-        # Short values: require all tokens. Longer values: 60% threshold.
-        if len(value_tokens) <= 2:
-            return matched == len(value_tokens)
-        return matched / len(value_tokens) >= 0.6
+        try:
+            parent = Path(fused_path).parent
+            dirs = [d for d in parent.iterdir() if d.is_dir()]
+            dirs.sort(key=lambda d: d.stat().st_mtime, reverse=True)
+            for old in dirs[keep:]:
+                shutil.rmtree(old)
+                print(f"        Pruned old fused dir: {old.name}")
+        except Exception as e:
+            print(f"        Fused-dir pruning failed (non-fatal): {e}")
 
     def _fact_to_question(self, qa) -> str:
         """Convert a fact statement to a natural question via templates.
@@ -466,14 +492,18 @@ class FullSleepController:
             graduated = self.fact_ledger.get_graduated_count()
             total = self.fact_ledger.get_active_fact_count()
 
-            # Remove graduated facts from active lists — LoRA carries them now
-            if graduated > 0:
+            # Remove graduated facts from active lists — LoRA carries them now.
+            # Gated by sleep.prune_on_graduation (default true = today's behavior).
+            if graduated > 0 and self.prune_on_graduation:
                 for entry in self.fact_ledger.get_active_facts():
                     if entry.get("graduated", False):
                         self.fact_ledger.mark_pruned(entry["fact_id"])
                 remaining = self.fact_ledger.get_active_fact_count()
                 yield {"step": 4, "total": ts, "label": "Graduation", "status": "done",
                        "detail": f"{graduated} graduated and absorbed, {remaining} remain"}
+            elif graduated > 0:
+                yield {"step": 4, "total": ts, "label": "Graduation", "status": "done",
+                       "detail": f"{graduated} graduated, kept in ledger (prune_on_graduation off)"}
             else:
                 yield {"step": 4, "total": ts, "label": "Graduation", "status": "done",
                        "detail": f"0/{total} facts graduated"}

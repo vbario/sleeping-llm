@@ -5,10 +5,10 @@ system prompt. This checks whether LoRA has absorbed the facts (graduation
 readiness). If a graduated fact fails recall, it's un-graduated.
 """
 
-import re
 import time
 
 from src.memory.facts import QAPair
+from src.sleep.recall_match import fuzzy_value_match
 
 
 class NapController:
@@ -104,34 +104,11 @@ class NapController:
         prompt = self.backend.apply_chat_template(messages)
         response = self.backend.generate(prompt, max_tokens=100, temperature=0.3)
 
-        return self._fuzzy_value_match(qa.value, response)
+        return fuzzy_value_match(qa.value, response)
 
     def _fuzzy_value_match(self, value: str, response: str) -> bool:
-        """Check if key tokens from value appear in the response."""
-        response_lower = response.lower()
-
-        if value.lower().strip() in response_lower:
-            return True
-
-        stop_words = {
-            "a", "an", "the", "is", "are", "was", "were", "be", "been",
-            "being", "have", "has", "had", "do", "does", "did", "will",
-            "would", "could", "should", "may", "might", "can", "shall",
-            "to", "of", "in", "for", "on", "with", "at", "by", "from",
-            "and", "or", "but", "not", "no", "so", "if", "than", "that",
-            "this", "it", "its", "he", "she", "they", "who", "what",
-        }
-        value_tokens = [w for w in re.findall(r'\w+', value.lower())
-                        if w not in stop_words and len(w) > 1]
-
-        if not value_tokens:
-            return False
-
-        matched = sum(1 for t in value_tokens if t in response_lower)
-
-        if len(value_tokens) <= 2:
-            return matched == len(value_tokens)
-        return matched / len(value_tokens) >= 0.6
+        """Shim — delegates to the shared matcher (src/sleep/recall_match.py)."""
+        return fuzzy_value_match(value, response)
 
     def execute_nap_streaming(self, cycle_id):
         """Execute nap with streaming progress. Yields progress dicts."""

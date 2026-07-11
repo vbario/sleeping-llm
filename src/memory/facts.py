@@ -23,6 +23,8 @@ class QAPair:
     question: How to ask about this fact ("What is the user's son's name?")
     answer:   The complete answer ("The user's son is named Andre Patandre.")
     value:    The key recall target ("Andre Patandre") — checked during graduation
+    provenance: who originated the fact — 'user_stated', 'user_reported_hearsay',
+                or 'assistant_generated'
     """
     question: str
     answer: str
@@ -30,6 +32,7 @@ class QAPair:
     source_exchange: Optional[str] = None
     timestamp: float = field(default_factory=time.time)
     priority: float = 0.5
+    provenance: str = "user_stated"
 
     def to_dict(self):
         return {
@@ -39,6 +42,7 @@ class QAPair:
             "source_exchange": self.source_exchange,
             "timestamp": self.timestamp,
             "priority": self.priority,
+            "provenance": self.provenance,
         }
 
     @staticmethod
@@ -50,6 +54,7 @@ class QAPair:
             source_exchange=d.get("source_exchange"),
             timestamp=d.get("timestamp", time.time()),
             priority=d.get("priority", 0.5),
+            provenance=d.get("provenance", "user_stated"),
         )
 
 
@@ -62,11 +67,16 @@ class FactLedger:
       - stage 2: graduated (LoRA carries, removed from system prompt)
     """
 
-    def __init__(self, ledger_path: str, max_facts: int = None):
+    def __init__(self, ledger_path: str, max_facts: int = None,
+                 admission_gate: bool = False):
         self.ledger_path = Path(ledger_path)
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
         if max_facts is not None:
             self.MAX_TOTAL_FACTS = max_facts
+        self.admission_gate = admission_gate
+        # In-memory record of gate rejections (harness reads per consolidation;
+        # not persisted — the ledger JSON is a flat list of entries).
+        self.admission_rejections: List[dict] = []
         self._entries: List[dict] = []
         self.load()
 
@@ -74,20 +84,43 @@ class FactLedger:
     # facts via LoRA (see notes/62-h100-experiment-results-updated).
     MAX_TOTAL_FACTS = 8
 
-    def add_fact(self, qa: QAPair) -> str:
-        """Add a new fact. Returns the fact_id.
+    def add_fact(self, qa: QAPair) -> Optional[str]:
+        """Add a new fact. Returns the fact_id, or None if rejected.
 
-        If the ledger is at capacity, the lowest-priority non-graduated
-        fact is pruned to make room. If all facts are graduated, the
-        lowest-priority graduated fact is pruned instead.
+        Default (admission_gate=False): at capacity the lowest-priority
+        non-graduated fact is pruned to make room. If all facts are
+        graduated, the lowest-priority graduated fact is pruned instead.
+
+        With admission_gate=True: the victim is the min-priority entry over
+        ALL non-pruned entries (graduation grants no immunity); the incoming
+        fact is admitted only if its priority strictly exceeds the victim's,
+        otherwise it is rejected (returns None, recorded in
+        self.admission_rejections).
         """
         active = self.get_active_facts()
         if len(active) >= self.MAX_TOTAL_FACTS:
-            # Prefer pruning non-graduated facts first
-            non_grad = [e for e in active if not e.get("graduated", False)]
-            candidates = non_grad if non_grad else active
-            victim = min(candidates, key=lambda e: e["qa"].get("priority", 0.5))
-            self.mark_pruned(victim["fact_id"])
+            if self.admission_gate:
+                victim = min(active, key=lambda e: e["qa"].get("priority", 0.5))
+                victim_priority = victim["qa"].get("priority", 0.5)
+                if qa.priority > victim_priority:
+                    self.mark_pruned(victim["fact_id"])
+                else:
+                    print(f"  [Ledger] rejected at admission: '{qa.question}' "
+                          f"(priority {qa.priority:.2f} <= victim {victim_priority:.2f})")
+                    self.admission_rejections.append({
+                        "question": qa.question,
+                        "priority": qa.priority,
+                        "victim_fact_id": victim["fact_id"],
+                        "victim_priority": victim_priority,
+                        "timestamp": time.time(),
+                    })
+                    return None
+            else:
+                # Prefer pruning non-graduated facts first
+                non_grad = [e for e in active if not e.get("graduated", False)]
+                candidates = non_grad if non_grad else active
+                victim = min(candidates, key=lambda e: e["qa"].get("priority", 0.5))
+                self.mark_pruned(victim["fact_id"])
 
         fact_id = uuid.uuid4().hex[:8]
         entry = {
@@ -101,10 +134,40 @@ class FactLedger:
             "recall_rate": 0.0,
             "graduated": False,
             "pruned": False,
+            "mention_count": 1,
         }
         self._entries.append(entry)
         self.save()
         return fact_id
+
+    def add_or_refresh(self, qa: QAPair):
+        """Add a fact or refresh a live duplicate (re-mention semantics).
+
+        Returns (status, fact_id) with status in {'added', 'refreshed',
+        'rejected'}. A refresh bumps mention_count, refreshes the timestamp,
+        and overwrites priority with the new score. Absent/evicted facts go
+        through the normal (possibly gated) add_fact path.
+        """
+        q_key = qa.question.lower().strip()
+        for e in self.get_active_facts():
+            if e["qa"].get("question", "").lower().strip() == q_key:
+                e["mention_count"] = e.get("mention_count", 1) + 1
+                e["qa"]["timestamp"] = qa.timestamp
+                e["qa"]["priority"] = qa.priority
+                self.save()
+                return ("refreshed", e["fact_id"])
+
+        fact_id = self.add_fact(qa)
+        if fact_id is None:
+            return ("rejected", None)
+        return ("added", fact_id)
+
+    def get_entry(self, fact_id: str) -> Optional[dict]:
+        """Return the raw entry dict for a fact_id, or None."""
+        for e in self._entries:
+            if e["fact_id"] == fact_id:
+                return e
+        return None
 
     def get_active_facts(self) -> List[dict]:
         """Return all non-pruned fact entries."""
@@ -315,6 +378,7 @@ def _migrate_from_edit_ledger(old_edits: list) -> list:
                     "source_exchange": fact.get("source_exchange"),
                     "timestamp": fact.get("timestamp", time.time()),
                     "priority": priorities[i] if i < len(priorities) else 0.5,
+                    "provenance": "user_stated",
                 },
                 "stage": stage,
                 "last_trained": last_trained_list[i] if i < len(last_trained_list) else 0.0,

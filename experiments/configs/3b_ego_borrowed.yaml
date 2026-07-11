@@ -1,0 +1,135 @@
+# EGO-SELECT condition config — C2 BORROWED (notes/131-ego-selector-experiment §4, §8 step 14).
+# Derived from config.yaml. Conditions differ ONLY in valuation.policy /
+# ego.* flags. Shared experiment pins (identical in all 8 configs):
+#   memit.enabled false, micro_sleep.enabled false, facts.max_total 8,
+#   facts.admission_gate true, sleep.prune_on_graduation false,
+#   lora.uniform_reps true, lora.augment_paraphrases 0, lora.train_timeout 1800,
+#   curation thresholds 0.0, consolidation_moment surprise threshold 1.1.
+# "{seed}" in paths / ego.self_model_path is substituted by
+# experiments/ego_matrix.py at run time (distinct per-run subtrees defeat
+# fused-model auto-resume). Do not run this config directly.
+
+model:
+  backend: "mlx"
+  path: "mlx-community/Llama-3.2-3B-Instruct-4bit"
+  max_tokens: 512
+  temperature: 0.7
+  top_p: 0.9
+  repetition_penalty: 1.1
+
+context:
+  max_tokens: 4096
+  compaction_threshold: 0.8
+  system_prompt: "You may recall things from previous conversations."
+
+sleep:
+  manual_trigger: "/sleep"
+  # Graduation neither frees slots nor grants eviction immunity (§11 R16)
+  prune_on_graduation: false
+  trigger_mode: "turns"
+  # Fail-open curation (paper failure 1): keep everything
+  curation:
+    min_novelty_score: 0.0
+    min_importance_score: 0.0
+    min_combined_score: 0.0
+  firewall:
+    min_grounding_score: 0.3
+    use_model_verification: false
+  maintenance:
+    degraded_threshold: 0.5
+    max_ppl_increase: 0.15
+    max_refresh_per_cycle: 10
+    nap_audit_count: 5
+
+memit:
+  enabled: false
+  target_layers: [8, 9, 10, 11, 12, 13, 14, 15]
+
+facts:
+  max_total: 8
+  admission_gate: true
+
+lora:
+  enabled: true
+  num_layers: 8
+  learning_rate: 1.0e-4
+  iters_per_fact: 40
+  batch_size: 1
+  # No paraphrase augmentation (nondeterministic + unbudgeted cost, §11 R26)
+  augment_paraphrases: 0
+  # Decouple WHICH facts train from HOW HARD (§11 F8)
+  uniform_reps: true
+  # 320 iters + model reload can exceed the old 600 s silent timeout (§11 R24)
+  train_timeout: 1800
+
+consolidation:
+  enabled: true
+  scale_schedule: [1.0, 0.5, 0.1, 0.0]
+
+micro_sleep:
+  enabled: false
+
+spaced_repetition:
+  min_retrain_age_seconds: 0
+
+health:
+  nap_threshold: 0.4
+  sleep_threshold: 0.8
+  edit_weight: 0.6
+  time_weight: 0.3
+  perplexity_weight: 0.1
+  perplexity_check_interval: 0
+  max_wake_seconds: 86400
+
+consolidation_moment:
+  enabled: true
+  max_buffer_size: 20
+  overflow_policy: "consolidate"
+  min_buffer_age_seconds: 0
+  min_facts: 1
+  surprise:
+    # Gate disabled (> 1.0): consolidation forced at session end by the
+    # harness; surprise still computed and logged for C1 / decorrelation
+    threshold: 1.1
+    novelty_weight: 0.5
+    marker_weight: 0.3
+    ppl_weight: 0.2
+    use_ppl: false
+    ppl_ema_alpha: 0.3
+
+nap:
+  manual_trigger: "/nap"
+
+validation:
+  min_score_ratio: 0.5
+  num_questions: 5
+
+# ---- Condition-specific block (C2 BORROWED) ----
+
+valuation:
+  policy: "borrowed"
+  rules_file: "experiments/data/borrowed_rules.yaml"
+  oracle_labels: null
+
+ego:
+  enabled: false
+  self_model_path: "data/ego_exp/borrowed_{seed}/ego/self_model.json"
+  self_update: false
+  provenance_filter: false
+  curator_provenance_filter: false
+  rescore_before_sleep: false
+  train_identity: false
+
+budget:
+  consolidation_top_k: null
+  tier0_max_facts: null
+
+paths:
+  conversations: "data/ego_exp/borrowed_{seed}/conversations"
+  core_identity: "data/ego_exp/borrowed_{seed}/core_identity"
+  benchmarks: "data/benchmarks"
+  memit_data: "data/ego_exp/borrowed_{seed}/ledger"
+  memit_ledger: "data/ego_exp/borrowed_{seed}/ledger/ledger.json"
+  adapters: "data/ego_exp/borrowed_{seed}/adapters"
+  fused_models: "data/ego_exp/borrowed_{seed}/fused"
+  training: "data/ego_exp/borrowed_{seed}/training"

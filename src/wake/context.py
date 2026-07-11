@@ -10,6 +10,8 @@ class ContextManager:
         self.max_tokens = config.context["max_tokens"]
         self.compaction_threshold = config.context["compaction_threshold"]
         self.system_prompt = config.context["system_prompt"]
+        # Tier-0 budget: max facts injected into system prompt (None = unlimited)
+        self.tier0_max_facts = config.get("budget.tier0_max_facts")
 
         # Active context: what the model sees right now
         self.summary = None  # compressed history from prior compactions
@@ -37,6 +39,12 @@ class ContextManager:
             try:
                 facts = self._facts_provider()
                 if facts:
+                    if self.tier0_max_facts is not None:
+                        facts = sorted(
+                            facts,
+                            key=lambda qa: getattr(qa, "priority", 0.0),
+                            reverse=True,
+                        )[:self.tier0_max_facts]
                     lines = [f"- {qa.answer}" for qa in facts]
                     parts.append(
                         "Things you remember about the user:\n" + "\n".join(lines)

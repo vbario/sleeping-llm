@@ -22,6 +22,14 @@ class Curator:
         self.training_dir = Path(training_path)
         self.training_dir.mkdir(parents=True, exist_ok=True)
         self.firewall = HallucinationFirewall(config, backend)
+        # Never train on the model's own reconstructions: when on, fact
+        # extraction and firewall grounding use USER turns only (default off).
+        # getattr-guarded: duck-typed test configs may lack .get.
+        try:
+            self.curator_provenance_filter = config.get(
+                "ego.curator_provenance_filter", False)
+        except (AttributeError, TypeError):
+            self.curator_provenance_filter = False
 
     def curate_session(self, messages, sleep_cycle_id):
         """Score and filter a session's messages into training examples.
@@ -221,8 +229,15 @@ class Curator:
             fact_pairs = self._extract_facts_as_qa(all_messages)
         print(f"        Generated {len(fact_pairs)} fact Q&A pairs")
 
-        # Run hallucination firewall
-        conv_text = "\n".join(f"{m['role'].upper()}: {m['content']}" for m in all_messages)
+        # Run hallucination firewall. With the provenance filter on, ground
+        # ONLY against user-turn text — assistant turns must never self-ground
+        # their own fabrications into training data (the firewall.py leak).
+        if self.curator_provenance_filter:
+            grounding_messages = [m for m in all_messages if m["role"] == "user"]
+            print("        [Ego] firewall grounding restricted to user turns")
+        else:
+            grounding_messages = all_messages
+        conv_text = "\n".join(f"{m['role'].upper()}: {m['content']}" for m in grounding_messages)
         fact_pairs, rejected = self.firewall.verify_pairs(fact_pairs, conv_text)
         print(f"        Firewall: {len(fact_pairs)} verified, {len(rejected)} rejected")
         for r in rejected:
@@ -260,6 +275,11 @@ class Curator:
         Uses model-based extraction first, then falls back to template-based
         pattern matching if the model returns nothing parseable.
         """
+        # With the provenance filter on, extract from USER turns only —
+        # never train on the model's own reconstructions.
+        if self.curator_provenance_filter:
+            messages = [m for m in messages if m["role"] == "user"]
+
         # Build conversation text
         conv_text = ""
         for msg in messages:

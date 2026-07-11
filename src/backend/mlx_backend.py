@@ -24,7 +24,17 @@ class MLXBackend:
         self.model = None
         self.tokenizer = None
         self._model_path = None
+        self._seed = None  # Set by set_seed(), passed through to LoRA training
         self.model_lock = None  # Set by orchestrator for non-blocking sleep
+
+    def set_seed(self, n):
+        """Seed MLX and Python RNGs. Stored for --seed passthrough to train_lora."""
+        import random
+        import mlx.core as mx
+
+        mx.random.seed(n)
+        random.seed(n)
+        self._seed = n
 
     def load(self, model_path=None):
         """Load model and tokenizer from disk or hub."""
@@ -69,8 +79,9 @@ class MLXBackend:
         from mlx_lm.sample_utils import make_sampler, make_logits_processors
 
         max_tokens = max_tokens or self.config.model["max_tokens"]
-        temperature = temperature or self.config.model["temperature"]
-        top_p = top_p or self.config.model["top_p"]
+        # 'is None' checks so temperature=0.0 / top_p=0.0 are honored (greedy decoding)
+        temperature = temperature if temperature is not None else self.config.model["temperature"]
+        top_p = top_p if top_p is not None else self.config.model["top_p"]
         repetition_penalty = self.config.model.get("repetition_penalty", 1.1)
 
         sampler = make_sampler(temp=temperature, top_p=top_p)
@@ -141,8 +152,9 @@ class MLXBackend:
         from mlx_lm.sample_utils import make_sampler, make_logits_processors
 
         max_tokens = max_tokens or self.config.model["max_tokens"]
-        temperature = temperature or self.config.model["temperature"]
-        top_p = top_p or self.config.model["top_p"]
+        # 'is None' checks so temperature=0.0 / top_p=0.0 are honored (greedy decoding)
+        temperature = temperature if temperature is not None else self.config.model["temperature"]
+        top_p = top_p if top_p is not None else self.config.model["top_p"]
         repetition_penalty = self.config.model.get("repetition_penalty", 1.1)
 
         sampler = make_sampler(temp=temperature, top_p=top_p)
@@ -474,7 +486,7 @@ class MLXBackend:
         return perplexity
 
     def train_lora(self, data_path, adapter_path, num_layers=8,
-                   batch_size=1, iters=None, learning_rate=1e-4):
+                   batch_size=1, iters=None, learning_rate=1e-4, seed=None):
         """Train LoRA adapter via mlx_lm.lora subprocess.
 
         Args:
@@ -484,6 +496,7 @@ class MLXBackend:
             batch_size: Training batch size
             iters: Number of training iterations
             learning_rate: Learning rate
+            seed: RNG seed for the subprocess (falls back to set_seed() value)
         """
         import subprocess
         import sys
@@ -500,8 +513,16 @@ class MLXBackend:
         ]
         if iters is not None:
             cmd.extend(["--iters", str(iters)])
+        seed = seed if seed is not None else self._seed
+        if seed is not None:
+            cmd.extend(["--seed", str(seed)])
 
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
+        timeout = self.config.get("lora.train_timeout", 600)
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            print(f"[Trainer] TIMEOUT: mlx_lm.lora exceeded {timeout}s — cycle will be marked skipped")
+            raise RuntimeError(f"mlx_lm.lora timed out after {timeout}s")
         if result.returncode != 0:
             raise RuntimeError(f"mlx_lm.lora failed:\n{result.stderr}")
 

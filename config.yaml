@@ -25,6 +25,9 @@ context:
 sleep:
   # Manual sleep command (user can type this to trigger sleep)
   manual_trigger: "/sleep"
+  # Prune graduated facts from the active ledger after sleep
+  # (true = today's behavior; false keeps them occupying slots)
+  prune_on_graduation: true
   # Trigger mode: "health" (MEMIT-based pressure) or "turns" (original fixed counter)
   trigger_mode: "health"
 
@@ -79,6 +82,9 @@ facts:
   # Hard cap on total facts (active + graduated) in the ledger.
   # 3B models peak recall at ~10 facts via LoRA (note 62).
   max_total: 8
+  # At capacity, admit an incoming fact only if its priority beats the
+  # min-priority victim's (false = today's behavior: always evict + admit)
+  admission_gate: false
 
 lora:
   enabled: true
@@ -90,6 +96,11 @@ lora:
   # 0 = disabled. Each fact gets N model-generated question variants
   # so LoRA learns to answer varied phrasings, not just echo statements.
   augment_paraphrases: 4
+  # Constant repetitions (2) per fact instead of priority-weighted reps
+  # (false = today's priority-weighted behavior)
+  uniform_reps: false
+  # Timeout in seconds for the mlx_lm.lora training subprocess
+  train_timeout: 600
 
 consolidation:
   enabled: true
@@ -168,6 +179,37 @@ validation:
   min_score_ratio: 0.5
   # Number of eval questions to run
   num_questions: 5
+
+valuation:
+  # Priority policy at consolidation: "surprise" (today's behavior), "random",
+  # "borrowed", "judge", "judge_rules", "ego_static", "ego_full", "oracle"
+  policy: "surprise"
+  # YAML rule table for the "borrowed" policy
+  rules_file: null
+  # Ground-truth labels JSON for the "oracle" policy
+  oracle_labels: null
+
+ego:
+  # Master switch for the SelfModel module
+  enabled: false
+  # Persistent self-model JSON
+  self_model_path: "data/ego/self_model.json"
+  # Update the self-model after each sleep cycle
+  self_update: false
+  # Exclude assistant_generated facts from LoRA training data
+  provenance_filter: false
+  # Exclude assistant-turn-derived Q&A pairs at the curator (train.jsonl) site
+  curator_provenance_filter: false
+  # Rescore active ledger entries with the policy before sleep
+  rescore_before_sleep: false
+  # Mix identity data into training (follow-up; not implemented)
+  train_identity: false
+
+budget:
+  # Keep only the top-K facts at consolidation (null = unlimited)
+  consolidation_top_k: null
+  # Max facts injected into the system prompt, priority-desc (null = unlimited)
+  tier0_max_facts: null
 
 paths:
   conversations: "data/conversations"

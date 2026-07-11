@@ -71,8 +71,16 @@ class Orchestrator:
 
         # Initialize fact ledger (replaces EditLedger + MEMIT)
         ledger_path = config.paths.get("memit_ledger", "data/memit/ledger.json")
-        max_facts = config.get("facts", {}).get("max_total", None)
-        self.fact_ledger = FactLedger(ledger_path, max_facts=max_facts)
+        facts_cfg = config.get("facts", {}) or {}
+        max_facts = facts_cfg.get("max_total", None)
+        admission_gate = facts_cfg.get("admission_gate", False)
+        try:
+            self.fact_ledger = FactLedger(
+                ledger_path, max_facts=max_facts, admission_gate=admission_gate,
+            )
+        except TypeError:
+            # FactLedger without admission_gate support — fall back (gate off)
+            self.fact_ledger = FactLedger(ledger_path, max_facts=max_facts)
         self.fact_extractor = FactExtractor(config, self.backend)
         self.health_monitor = HealthMonitor(config, self.backend, self.fact_ledger)
 
@@ -139,6 +147,41 @@ class Orchestrator:
         # Wire micro-sleep into chat
         if self.micro_sleep:
             self.chat.set_micro_sleep(self.micro_sleep, self.background_sleep)
+
+        # Ego self-model (config-gated, default off)
+        self.self_model = None
+        ego_cfg = config.get("ego", {}) or {}
+        if ego_cfg.get("enabled", False):
+            try:
+                from src.memory.ego import SelfModel
+                sm_path = ego_cfg.get("self_model_path", "data/ego/self_model.json")
+                existed = Path(sm_path).exists()
+                self.self_model = SelfModel(sm_path)
+                if not existed:
+                    self.self_model.seed_default()
+                print(f"[Ego] self-model ready at {sm_path}")
+            except Exception as e:
+                print(f"[Ego] failed to initialize self-model: {e}")
+
+        # Harness override hook: callable returning (cycle_text, session_ids)
+        # for the post-sleep self-model update. None = use session logs.
+        self.ego_cycle_text_provider = None
+
+        # Valuation policy (config-gated; default 'surprise' = production passthrough)
+        self.valuation_policy = None
+        try:
+            from src.wake.valuation import build_policy
+            self.valuation_policy = build_policy(config, self.backend, self_model=self.self_model)
+        except ImportError:
+            pass
+        except Exception as e:
+            print(f"[Valuation] policy construction failed: {e}")
+        if self.valuation_policy:
+            if self.fact_buffer and hasattr(self.fact_buffer, "set_valuation_policy"):
+                self.fact_buffer.set_valuation_policy(self.valuation_policy)
+            if hasattr(self.full_sleep_controller, "set_valuation_policy"):
+                self.full_sleep_controller.set_valuation_policy(self.valuation_policy)
+            print(f"[Valuation] policy: {self.valuation_policy.name}")
 
         # Seed identity data if first run
         self.identity.seed_defaults()
@@ -228,6 +271,7 @@ class Orchestrator:
             return
 
         self.health_monitor.record_sleep("full")
+        self._maybe_ego_self_update()
 
         if self.context.recent_messages:
             self.context.compact()
@@ -277,6 +321,7 @@ class Orchestrator:
 
         def on_complete(result):
             self.health_monitor.record_sleep("full")
+            self._maybe_ego_self_update()
             if self.context.recent_messages:
                 self.context.compact()
             self.chat.reset_turn_count()
@@ -396,6 +441,33 @@ class Orchestrator:
 
     # --- Internal methods ---
 
+    def _maybe_ego_self_update(self):
+        """Post-sleep self-model update (config ego.self_update, default off)."""
+        if not self.self_model:
+            return
+        ego_cfg = self.config.get("ego", {}) or {}
+        if not ego_cfg.get("self_update", False):
+            return
+        try:
+            if self.ego_cycle_text_provider:
+                cycle_text, session_ids = self.ego_cycle_text_provider()
+            else:
+                cycle_text, session_ids = self._default_ego_cycle_text()
+            if not cycle_text:
+                print("[Ego] no cycle text available, skipping self-model update")
+                return
+            self.self_model.update_from_summary(self.backend, cycle_text, session_ids)
+        except Exception as e:
+            print(f"[Ego] self-model update failed: {e}")
+
+    def _default_ego_cycle_text(self):
+        """Default cycle-text provider: the current session's conversation log."""
+        messages = self.logger.get_session_messages()
+        if not messages:
+            return None, []
+        lines = [f"{m.get('role', '?')}: {m.get('content', '')}" for m in messages]
+        return "\n".join(lines), [self.logger.session_id]
+
     def _on_sleep_trigger(self, trigger_type):
         """Called when a sleep cycle should begin."""
         self.sleep_cycle_count += 1
@@ -421,6 +493,7 @@ class Orchestrator:
             return
 
         self.health_monitor.record_sleep("full")
+        self._maybe_ego_self_update()
 
         # Compact context before resetting
         if self.context.recent_messages:

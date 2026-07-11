@@ -17,6 +17,8 @@ class BufferedFact:
     buffered_at: float = field(default_factory=time.time)
     source_turn: int = 0
     surprise_at_extraction: float = 0.0
+    meta: object = None  # per-fact valuation metadata (dict or None)
+    bypass_dedup: bool = False  # True = frozen-replay channel
 
 
 class FactBuffer:
@@ -44,6 +46,15 @@ class FactBuffer:
         self._total_facts_consolidated = 0
         self._last_consolidation_time = 0.0
 
+        # Optional valuation policy — rescores the batch at consolidation
+        self._valuation_policy = None
+
+    def set_valuation_policy(self, policy):
+        """Install a ValuationPolicy applied at consolidation time (or None)."""
+        self._valuation_policy = policy
+        if policy is not None:
+            print(f"  [Valuation] Policy set: {getattr(policy, 'name', '?')}")
+
     @staticmethod
     def _value_key(qa) -> str:
         """Normalized value for content-based dedup."""
@@ -51,32 +62,40 @@ class FactBuffer:
         v = qa.value.lower().strip().rstrip(".,!? ")
         return re.sub(r"\s+", " ", v)
 
-    def add(self, qa, turn: int = 0, surprise: float = 0.0):
+    def add(self, qa, turn: int = 0, surprise: float = 0.0,
+            bypass_dedup: bool = False, meta=None):
         """Add a fact to the buffer. Does NOT touch model weights or disk.
 
-        Skips if a fact with the same question key OR same value is already buffered.
+        Skips if a fact with the same question key OR same value is already
+        buffered. bypass_dedup=True skips all intra-buffer dedup filters
+        (frozen-replay streams are deduplicated by construction and
+        re-mention events must be delivered). meta is optional per-fact
+        valuation metadata passed to the policy at consolidation.
         """
-        key = qa.question.lower().strip()
-        val_key = self._value_key(qa)
-        for existing in self._buffer:
-            if existing.qa.question.lower().strip() == key:
-                return  # Same question already buffered
-            ex_val = self._value_key(existing.qa)
-            if ex_val == val_key:
-                return  # Same value already buffered
-            # Containment check (skip very short values to avoid false positives)
-            if len(val_key) >= 5 and len(ex_val) >= 5:
-                if val_key in ex_val or ex_val in val_key:
-                    return  # Overlapping value already buffered
-            # Word-overlap check
-            if self._words_overlap(val_key, ex_val):
-                return  # Similar value already buffered
+        if not bypass_dedup:
+            key = qa.question.lower().strip()
+            val_key = self._value_key(qa)
+            for existing in self._buffer:
+                if existing.qa.question.lower().strip() == key:
+                    return  # Same question already buffered
+                ex_val = self._value_key(existing.qa)
+                if ex_val == val_key:
+                    return  # Same value already buffered
+                # Containment check (skip very short values to avoid false positives)
+                if len(val_key) >= 5 and len(ex_val) >= 5:
+                    if val_key in ex_val or ex_val in val_key:
+                        return  # Overlapping value already buffered
+                # Word-overlap check
+                if self._words_overlap(val_key, ex_val):
+                    return  # Similar value already buffered
 
         self._buffer.append(BufferedFact(
             qa=qa,
             buffered_at=time.time(),
             source_turn=turn,
             surprise_at_extraction=surprise,
+            meta=meta,
+            bypass_dedup=bypass_dedup,
         ))
 
         # Handle overflow
@@ -124,9 +143,50 @@ class FactBuffer:
 
         print(f"  [Consolidation] Flushing {count} fact(s) to ledger — reason: {reason}")
 
+        # Valuation hook: rescore the batch before persisting (all reasons)
+        if self._valuation_policy is not None:
+            try:
+                metas = [bf.meta for bf in self._buffer]
+                ledger_qas = self._fact_ledger.get_all_qa_pairs()
+                scores = self._valuation_policy.score_batch(qa_pairs, metas, ledger_qas)
+                if scores is not None and len(scores) == count:
+                    for qa, score in zip(qa_pairs, scores):
+                        qa.priority = score
+                else:
+                    print("  [Valuation] failed, defaulting")
+                # Supersession: retire ledger entries made stale by this batch
+                supersessions = getattr(self._valuation_policy, "supersessions", None)
+                if callable(supersessions):
+                    for stale_id in (supersessions() or []):
+                        self._fact_ledger.retreat_stage(stale_id)
+                        self._fact_ledger.mark_pruned(stale_id)
+                        print(f"  [Valuation] superseded ledger entry {stale_id}")
+            except Exception as e:
+                print(f"  [Valuation] failed, defaulting ({e})")
+
         try:
-            for qa in qa_pairs:
-                self._fact_ledger.add_fact(qa)
+            add_or_refresh = getattr(self._fact_ledger, "add_or_refresh", None)
+            get_entry = getattr(self._fact_ledger, "get_entry", None)
+            stamped = False
+            for bf in self._buffer:
+                # Re-mention (add_or_refresh) semantics apply only on the
+                # frozen-replay channel (§7.2.2 ledger-merge); production
+                # adds (bypass_dedup=False) keep today's add_fact path.
+                if bf.bypass_dedup and callable(add_or_refresh):
+                    _status, fact_id = add_or_refresh(bf.qa)
+                else:
+                    fact_id = self._fact_ledger.add_fact(bf.qa)
+                # Carry arrival session onto the entry so EgoFullPolicy.rescore
+                # can rebuild [t=session n] metadata (replay metas only —
+                # production meta is None, so this never fires there).
+                if (fact_id and callable(get_entry) and bf.meta
+                        and bf.meta.get("session") is not None):
+                    entry = get_entry(fact_id)
+                    if entry is not None:
+                        entry["arrival_session"] = bf.meta["session"]
+                        stamped = True
+            if stamped:
+                self._fact_ledger.save()
             if self._health_monitor:
                 self._health_monitor.record_new_facts(count)
             self._consolidation_count += 1

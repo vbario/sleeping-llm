@@ -24,6 +24,8 @@ class SleepTrainer:
         self.iters_per_fact = lora_cfg.get("iters_per_fact", 40)
         self.batch_size = lora_cfg.get("batch_size", 1)
         self.augment_paraphrases = lora_cfg.get("augment_paraphrases", 0)
+        # Uniform reps decouples WHICH facts train from HOW HARD (experiment flag)
+        self.uniform_reps = lora_cfg.get("uniform_reps", False)
 
     def prepare_training_data(self, qa_pairs, output_dir) -> Path:
         """Write training data from QAPairs to JSONL files.
@@ -126,9 +128,13 @@ class SleepTrainer:
                 except Exception as e:
                     print(f"        Augmentation failed for '{qa.value[:30]}': {e}")
 
-            # Priority-weighted repetition (applies to ALL examples for this fact)
-            priority = getattr(qa, 'priority', 0.5)
-            reps = max(1, round(1 + priority * 2))
+            # Priority-weighted repetition (applies to ALL examples for this fact).
+            # lora.uniform_reps: constant reps so priority only selects, never weights.
+            if self.uniform_reps:
+                reps = 2
+            else:
+                priority = getattr(qa, 'priority', 0.5)
+                reps = max(1, round(1 + priority * 2))
             for _ in range(reps):
                 examples.extend(fact_examples)
 
