@@ -1,0 +1,1033 @@
+/Users/vbaranov/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+[Matrix] Cell ego_full seed 41
+  [Assert] disk_free_8gb: OK (16.0 GiB free)
+Loading model...
+  Loading from base: mlx-community/Llama-3.2-3B-Instruct-4bit
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 111353.20it/s]
+Model loaded.
+  [Ego] Seeded default self-model at /Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/ego/self_model.json
+  [Ego] Seeded default self-model at /Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/ego/self_model.json
+[Ego] self-model ready at /Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/ego/self_model.json
+  [Valuation] Policy set: ego_full
+[Valuation] policy: ego_full
+  [Assert] base_model_loaded: OK (loaded mlx-community/Llama-3.2-3B-Instruct-4bit)
+  [Assert] background_sleep_idle: OK 
+  [Assert] fact_buffer_wired: OK 
+  [Assert] valuation_policy_installed: OK (ego_full)
+  [Assert] greedy_determinism_run_start: OK (len 55 vs 55)
+
+[Matrix] Session 1: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 5 fact(s) — prompt_tokens=466, output_tokens=30
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: (profile not yet established — I am still learning who my user is, what they depend on, what they are working toward, and who depends on them.)
+
+Current goals: learn what matters to my user's wellbeing, obligations, and daily life; keep that knowledge available whenever they need it; honor every commitment I make to them.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: Anzivane, one tablet every morning [t=session 1, source=user, prov=user_stated]
+F2: 4471 [t=session 1, source=user, prov=user_stated]
+F3: the blue ceramic mug [t=session 1, source=user, prov=user_stated]
+F4: Gustav [t=session 1, source=user, prov=user_stated]
+F5: little bonsai pines [t=session 1, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 8
+F2: 0
+F3: 9
+F4: 10
+F5: 8
+  [Matrix] Consolidation latency (session 1): 2.31s
+  [Assert] delivered_events_session_1: OK (5==5)
+  [Matrix] VWR after session_1_consolidation: 1.0 (2.0/2.0, pre labels)
+
+[Matrix] Session 2: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 6 fact(s) — prompt_tokens=488, output_tokens=36
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: (profile not yet established — I am still learning who my user is, what they depend on, what they are working toward, and who depends on them.)
+
+Current goals: learn what matters to my user's wellbeing, obligations, and daily life; keep that knowledge available whenever they need it; honor every commitment I make to them.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: penicillin [t=session 2, source=user, prov=user_stated]
+F2: the Harrow Street flat [t=session 2, source=user, prov=user_stated]
+F3: the green blanket [t=session 2, source=user, prov=user_stated]
+F4: long runs every Saturday at 6 a.m. [t=session 2, source=user, prov=user_stated]
+F5: the number 14 tram [t=session 2, source=user, prov=user_stated]
+F6: Oddvar [t=session 2, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 0
+F2: 10
+F3: 0
+F4: 10
+F5: 0
+F6: 10
+  [Ledger] rejected at admission: 'Which tram does Mara take for her commute?' (priority 0.00 <= victim 0.00)
+  [Matrix] Consolidation latency (session 2): 3.79s
+  [Assert] delivered_events_session_2: OK (11==11)
+  [Matrix] VWR after session_2_consolidation: 0.5381 (2.33/4.33, pre labels)
+
+[Matrix] Session 3: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 5 fact(s) — prompt_tokens=481, output_tokens=30
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: (profile not yet established — I am still learning who my user is, what they depend on, what they are working toward, and who depends on them.)
+
+Current goals: learn what matters to my user's wellbeing, obligations, and daily life; keep that knowledge available whenever they need it; honor every commitment I make to them.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: at the Meridian print shop [t=session 3, source=user, prov=user_stated]
+F2: the railway history podcasts [t=session 3, source=user, prov=user_stated]
+F3: in the old jam jar on the lowest pantry shelf [t=session 3, source=user, prov=user_stated]
+F4: a double oat-milk cortado [t=session 3, source=user, prov=user_stated]
+F5: Ilse Ravn, at the Mollegade clinic [t=session 3, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 8
+F2: 9
+F3: 0
+F4: 1
+F5: 10
+  [Ledger] rejected at admission: 'Where are the glucose tablets kept in Mara's flat?' (priority 0.00 <= victim 0.80)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.10 <= victim 0.80)
+  [Matrix] Consolidation latency (session 3): 2.85s
+  [Assert] delivered_events_session_3: OK (16==16)
+  [Matrix] VWR after session_3_consolidation: 0.4371 (2.33/5.33, pre labels)
+
+[Matrix] Session 4: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 5 fact(s) — prompt_tokens=472, output_tokens=30
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: (profile not yet established — I am still learning who my user is, what they depend on, what they are working toward, and who depends on them.)
+
+Current goals: learn what matters to my user's wellbeing, obligations, and daily life; keep that knowledge available whenever they need it; honor every commitment I make to them.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: in the blue cooler bag at her mother's place [t=session 4, source=user, prov=user_stated]
+F2: the beige throw pillows [t=session 4, source=user, prov=user_stated]
+F3: her sports massage, every Thursday at five with Klara [t=session 4, source=user, prov=user_stated]
+F4: Gustav [t=session 4, source=user, prov=user_stated]
+F5: shellfish [t=session 4, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 8
+F2: 0
+F3: 9
+F4: 10
+F5: 1
+  [Ledger] rejected at admission: 'Where is the spare insulin for Mara's mother kept?' (priority 0.80 <= victim 0.80)
+  [Ledger] rejected at admission: 'Which cushions does Mara love on the window seat?' (priority 0.00 <= victim 0.80)
+  [Ledger] rejected at admission: 'What is Mara's upstairs neighbor's cousin allergic to?' (priority 0.10 <= victim 0.90)
+  [Matrix] Consolidation latency (session 4): 2.99s
+  [Assert] delivered_events_session_4: OK (21==21)
+  [Matrix] VWR after session_4_consolidation: 0.4543 (3.33/7.33, pre labels)
+
+[Matrix] Sleep 1 (after session 4)
+  [1/5] Health check...
+        Baseline PPL: 34.59
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+  [Valuation] ego_full rescore: 8 active ledger entr(ies)
+  [Valuation] ego_full: scored 8 fact(s) — prompt_tokens=543, output_tokens=48
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: (profile not yet established — I am still learning who my user is, what they depend on, what they are working toward, and who depends on them.)
+
+Current goals: learn what matters to my user's wellbeing, obligations, and daily life; keep that knowledge available whenever they need it; honor every commitment I make to them.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: the blue ceramic mug [t=session 1, source=user, prov=user_stated]
+F2: Gustav [t=session 4, source=user, prov=user_stated]
+F3: the Harrow Street flat [t=session 2, source=user, prov=user_stated]
+F4: long runs every Saturday at 6 a.m. [t=session 2, source=user, prov=user_stated]
+F5: Oddvar [t=session 2, source=user, prov=user_stated]
+F6: the railway history podcasts [t=session 3, source=user, prov=user_stated]
+F7: Ilse Ravn, at the Mollegade clinic [t=session 3, source=user, prov=user_stated]
+F8: her sports massage, every Thursday at five with Klara [t=session 4, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 0
+F2: 10
+F3: 10
+F4: 0
+F5: 10
+F6: 0
+F7: 10
+F8: 0
+        [Valuation] rescored 8 ledger entries pre-sleep
+        Training-set composition: {'user_stated': 8}
+        8 fact(s) eligible for training
+        Training data: 8 facts → 16 examples (0 paraphrases, priority-weighted)
+        Training LoRA (320 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/fused/fused/0001
+        Reloading fused model...
+          Test: "Which mug does Mara prefer for afternoon tea?" → PASS (looking for 'blue ceramic mug')
+        Advanced: blue ceramic mug (stage 1)
+          Test: "What is Mara's desk fern called?" → FAIL (looking for 'Gustav')
+          Test: "Where was Mara living before her move?" → PASS (looking for 'Harrow Street')
+        Advanced: Harrow Street (stage 1)
+          Test: "When were Mara's long marathon training runs scheduled?" → PASS (looking for 'Saturday long runs')
+        Advanced: Saturday long runs (stage 1)
+          Test: "What is the name of Mara's mail carrier?" → PASS (looking for 'Oddvar')
+        Advanced: Oddvar (stage 1)
+          Test: "Which podcasts did Mara first say she liked for the commute?" → PASS (looking for 'railway history')
+        Advanced: railway history (stage 1)
+          Test: "Who is Mara's cardiologist?" → FAIL (looking for 'Ilse Ravn')
+          Test: "When is Mara's weekly sports massage appointment?" → FAIL (looking for 'Thursday massage')
+        Advanced: 5, Retreated: 0
+  [4/5] Graduation summary:
+        0/8 facts graduated
+  [5/5] Validating...
+        PPL: 34.59 → 11.71 (-66.1%)
+  Sleep cycle completed in 162.0s
+  [Assert] sleep_1_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Ego] Self-model update: sessions=[1, 2, 3, 4]
+  [Ego] Self-model updated (user_profile, current_goals)
+  [Matrix] PPL after sleep 1: 35.34
+  [Matrix] Cell-A forgetting probe: 0/6
+  [Matrix] VWR after sleep_1: 0.4543 (3.33/7.33, pre labels)
+
+[Matrix] Session 5: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 5 fact(s) — prompt_tokens=534, output_tokens=65
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: marigold [t=session 5, source=user, prov=user_stated]
+F2: the Kestrel account [t=session 5, source=user, prov=user_stated]
+F3: the corner table, by the radiator [t=session 5, source=user, prov=user_stated]
+F4: costume themes [t=session 5, source=user, prov=user_stated]
+F5: the number 14 tram [t=session 5, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+Here is the assessment of each fact:
+
+F1: 8 (the user's allergies, especially penicillin, are crucial for their health)
+F2: 9 (the Kestrel account contains sensitive financial information, and forgetting it could lead to financial harm)
+F3: 6 (the location of
+  [Valuation] ego_full: 5/5 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'Which tram does Mara take for her commute?' (priority 0.50 <= victim 0.50)
+  [Matrix] Consolidation latency (session 5): 3.58s
+  [Assert] delivered_events_session_5: OK (26==26)
+  [Matrix] VWR after session_5_consolidation: 0.4575 (3.66/8.0, pre labels)
+
+[Matrix] Session 6: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 6 fact(s) — prompt_tokens=565, output_tokens=36
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: quietly cancel all of that day's plans [t=session 6, source=user, prov=user_stated]
+F2: her physiotherapist Runa Sortdal [t=session 6, source=user, prov=user_stated]
+F3: with extra ice in every glass [t=session 6, source=user, prov=user_stated]
+F4: strictly plant-based [t=session 6, source=user, prov=user_stated]
+F5: a double oat-milk cortado [t=session 6, source=user, prov=user_stated]
+F6: Verentol [t=session 6, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 10
+F2: 9
+F3: 8
+F4: 7
+F5: 6
+F6: 0
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.60 <= victim 0.70)
+  [Ledger] rejected at admission: 'Which heart pill does Bram's uncle take?' (priority 0.00 <= victim 0.70)
+  [Matrix] Consolidation latency (session 6): 4.06s
+  [Assert] delivered_events_session_6: OK (32==32)
+  [Matrix] VWR after session_6_consolidation: 0.4575 (3.66/8.0, pre labels)
+
+[Matrix] Session 7: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 5 fact(s) — prompt_tokens=537, output_tokens=35
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: the Vinter Lane townhouse [t=session 7, source=user, prov=user_stated]
+F2: the cold-case podcasts [t=session 7, source=user, prov=user_stated]
+F3: Marfaxin [t=session 7, source=user, prov=user_stated]
+F4: her cover of the old harbor waltz [t=session 7, source=user, prov=user_stated]
+F5: the Sunday crossword [t=session 7, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+Here are the answers:
+
+F1: 0
+F2: 10
+F3: 10
+F4: 10
+F5: 0
+  [Ledger] rejected at admission: 'Where does Mara live now?' (priority 0.00 <= victim 0.70)
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.00 <= victim 1.00)
+  [Matrix] Consolidation latency (session 7): 3.04s
+  [Assert] delivered_events_session_7: OK (37==37)
+  [Matrix] VWR after session_7_consolidation: 0.4788 (3.83/8.0, pre labels)
+
+[Matrix] Session 8: 4 event(s)
+  [Consolidation] Flushing 4 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 4 fact(s) — prompt_tokens=511, output_tokens=24
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: latex [t=session 8, source=user, prov=user_stated]
+F2: cinnamon porridge [t=session 8, source=user, prov=user_stated]
+F3: a bit of holiday Portuguese [t=session 8, source=user, prov=user_stated]
+F4: her brother Anders lives in Oslo [t=session 8, source=assistant, prov=assistant_generated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 8
+F2: 9
+F3: 10
+F4: 0
+  [Ledger] rejected at admission: 'What glove material is Mara allergic to?' (priority 0.80 <= victim 1.00)
+  [Ledger] rejected at admission: 'What does Mara eat for breakfast these days?' (priority 0.90 <= victim 1.00)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 1.00 <= victim 1.00)
+  [Ledger] rejected at admission: 'Where does Mara's brother live?' (priority 0.00 <= victim 1.00)
+  [Matrix] Consolidation latency (session 8): 2.86s
+  [Assert] delivered_events_session_8: OK (41==41)
+  [Matrix] VWR after session_8_consolidation: 0.6383 (3.83/6.0, post labels)
+
+[Matrix] Sleep 2 (after session 8)
+  [1/5] Health check...
+        Baseline PPL: 11.71
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+  [Valuation] ego_full rescore: 8 active ledger entr(ies)
+  [Valuation] ego_full: scored 8 fact(s) — prompt_tokens=607, output_tokens=56
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: Gustav [t=session 4, source=user, prov=user_stated]
+F2: the Harrow Street flat [t=session 2, source=user, prov=user_stated]
+F3: Oddvar [t=session 2, source=user, prov=user_stated]
+F4: Ilse Ravn, at the Mollegade clinic [t=session 3, source=user, prov=user_stated]
+F5: quietly cancel all of that day's plans [t=session 6, source=user, prov=user_stated]
+F6: the cold-case podcasts [t=session 7, source=user, prov=user_stated]
+F7: Marfaxin [t=session 7, source=user, prov=user_stated]
+F8: her cover of the old harbor waltz [t=session 7, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+Here is the assessment of each fact:
+
+F1: 0
+F2: 0
+F3: 0
+F4: 0
+F5: 10
+F6: 0
+F7: 10
+F8: 0
+        [Valuation] rescored 8 ledger entries pre-sleep
+        Training-set composition: {'user_stated': 8}
+        8 fact(s) eligible for training
+        Training data: 8 facts → 16 examples (0 paraphrases, priority-weighted)
+        Training LoRA (320 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/fused/fused/0002
+        Reloading fused model...
+        Pruned old fused dir: 0001
+          Test: "What is Mara's desk fern called?" → PASS (looking for 'Gustav')
+        Advanced: Gustav (stage 1)
+          Test: "Where was Mara living before her move?" → PASS (looking for 'Harrow Street')
+        GRADUATED: Harrow Street — LoRA carries it
+          Test: "What is the name of Mara's mail carrier?" → PASS (looking for 'Oddvar')
+        GRADUATED: Oddvar — LoRA carries it
+          Test: "Who is Mara's cardiologist?" → PASS (looking for 'Ilse Ravn')
+        Advanced: Ilse Ravn (stage 1)
+          Test: "What should the assistant do when Mara texts the words 'red kettle'?" → FAIL (looking for 'red kettle')
+          Test: "Which podcasts does Mara prefer on the commute now?" → PASS (looking for 'cold-case podcasts')
+        Advanced: cold-case podcasts (stage 1)
+          Test: "Which blood thinner does Mara take?" → PASS (looking for 'Marfaxin')
+        Advanced: Marfaxin (stage 1)
+          Test: "Which Lita Vasco cover does Mara love?" → PASS (looking for 'harbor waltz')
+        Advanced: harbor waltz (stage 1)
+        Advanced: 7, Retreated: 0
+  [4/5] Graduation summary:
+        2/8 facts graduated
+        prune_on_graduation off: 2 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 11.71 → 13.44 (+14.8%)
+  Sleep cycle completed in 170.6s
+  [Assert] sleep_2_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Ego] Self-model update: sessions=[5, 6, 7, 8]
+  [Ego] Update parse failed — keeping previous fields
+  [Matrix] PPL after sleep 2: 90.89
+  [Matrix] Cell-A forgetting probe: 1/6
+  [Matrix] VWR after sleep_2: 0.6383 (3.83/6.0, post labels)
+
+[Matrix] Session 9: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 6 fact(s) — prompt_tokens=564, output_tokens=36
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: at the Copper Fern studio [t=session 9, source=user, prov=user_stated]
+F2: the mustard throw [t=session 9, source=user, prov=user_stated]
+F3: in the old jam jar on the lowest pantry shelf [t=session 9, source=user, prov=user_stated]
+F4: that it moved to Friday — Mara doubts it [t=session 9, source=user, prov=user_reported_hearsay]
+F5: the Sunday crossword [t=session 9, source=user, prov=user_stated]
+F6: Rusty [t=session 9, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 9
+F2: 8
+F3: 7
+F4: 6
+F5: 9
+F6: 8
+  [Matrix] Consolidation latency (session 9): 3.3s
+  [Assert] delivered_events_session_9: OK (47==47)
+  [Matrix] VWR after session_9_consolidation: 0.805 (4.83/6.0, post labels)
+
+[Matrix] Session 10: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 6 fact(s) — prompt_tokens=564, output_tokens=36
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: strictly plant-based [t=session 10, source=user, prov=user_stated]
+F2: old radio jingles [t=session 10, source=user, prov=user_stated]
+F3: Gustav [t=session 10, source=user, prov=user_stated]
+F4: a bit of holiday Portuguese [t=session 10, source=user, prov=user_stated]
+F5: that it is closing for repairs next spring — Mara is skeptical [t=session 10, source=user, prov=user_reported_hearsay]
+F6: in Fjellheim [t=session 10, source=assistant, prov=assistant_generated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 10
+F2: 0
+F3: 10
+F4: 0
+F5: 8
+F6: 9
+  [Ledger] rejected at admission: 'What does Mara hum while watering the herbs?' (priority 0.00 <= victim 0.70)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.00 <= victim 0.80)
+  [Ledger] rejected at admission: 'What does the neighbor's cousin say about the ferry pier?' (priority 0.80 <= victim 0.80)
+  [Matrix] Consolidation latency (session 10): 3.56s
+  [Assert] delivered_events_session_10: OK (53==53)
+  [Matrix] VWR after session_10_consolidation: 0.7217 (4.33/6.0, post labels)
+
+[Matrix] Sleep 3 (after session 10)
+  [1/5] Health check...
+        Baseline PPL: 13.44
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+  [Valuation] ego_full rescore: 8 active ledger entr(ies)
+  [Valuation] ego_full: scored 8 fact(s) — prompt_tokens=595, output_tokens=48
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: quietly cancel all of that day's plans [t=session 6, source=user, prov=user_stated]
+F2: Marfaxin [t=session 7, source=user, prov=user_stated]
+F3: at the Copper Fern studio [t=session 9, source=user, prov=user_stated]
+F4: the Sunday crossword [t=session 9, source=user, prov=user_stated]
+F5: Rusty [t=session 9, source=user, prov=user_stated]
+F6: strictly plant-based [t=session 10, source=user, prov=user_stated]
+F7: Gustav [t=session 10, source=user, prov=user_stated]
+F8: in Fjellheim [t=session 10, source=assistant, prov=assistant_generated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+F1: 9
+F2: 8
+F3: 7
+F4: 6
+F5: 10
+F6: 9
+F7: 8
+F8: 0
+        [Valuation] rescored 8 ledger entries pre-sleep
+        [Ego] excluded from training (assistant_generated): cabin in Fjellheim
+        Training-set composition: {'user_stated': 7}
+        7 fact(s) eligible for training
+        Training data: 7 facts → 14 examples (0 paraphrases, priority-weighted)
+        Training LoRA (280 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/fused/fused/0003
+        Reloading fused model...
+        Pruned old fused dir: 0002
+          Test: "What should the assistant do when Mara texts the words 'red kettle'?" → FAIL (looking for 'red kettle')
+          Test: "Which blood thinner does Mara take?" → PASS (looking for 'Marfaxin')
+        GRADUATED: Marfaxin — LoRA carries it
+          Test: "Where does Mara work now?" → PASS (looking for 'Copper Fern studio')
+        Advanced: Copper Fern studio (stage 1)
+          Test: "Which puzzle does Mara do on lazy weekends?" → PASS (looking for 'Sunday crossword')
+        Advanced: Sunday crossword (stage 1)
+          Test: "What is Mara's bicycle called?" → PASS (looking for 'Rusty')
+        Advanced: Rusty (stage 1)
+          Test: "What diet does Mara's sister Tille keep?" → PASS (looking for 'plant-based')
+        Advanced: plant-based (stage 1)
+          Test: "What is Mara's desk fern called?" → PASS (looking for 'Gustav')
+        Advanced: Gustav (stage 1)
+        Advanced: 6, Retreated: 0
+  [4/5] Graduation summary:
+        1/8 facts graduated
+        prune_on_graduation off: 1 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 13.44 → 12.87 (-4.3%)
+  Sleep cycle completed in 176.0s
+  [Assert] sleep_3_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Ego] Self-model update: sessions=[9, 10]
+  [Ego] Update parse failed — keeping previous fields
+  [Matrix] PPL after sleep 3: 104.70
+  [Matrix] Cell-A forgetting probe: 1/6
+  [Matrix] VWR after sleep_3: 0.7217 (4.33/6.0, post labels)
+
+[Matrix] Session 11: 3 event(s)
+  [Consolidation] Flushing 3 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 3 fact(s) — prompt_tokens=492, output_tokens=40
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: the number 14 tram [t=session 11, source=user, prov=user_stated]
+F2: a double oat-milk cortado [t=session 11, source=user, prov=user_stated]
+F3: Rusty [t=session 11, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+Here is the rating of how badly each fact would harm the assistant:
+
+F1: 0 - forgetting the bus schedule does not have a significant impact on the assistant's ability to serve the user
+  [Valuation] ego_full: 3/3 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.50 <= victim 0.50)
+  [Matrix] Consolidation latency (session 11): 2.99s
+  [Assert] delivered_events_session_11: OK (56==56)
+  [Matrix] VWR after session_11_consolidation: 0.7217 (4.33/6.0, post labels)
+
+[Matrix] Session 12: 3 event(s)
+  [Consolidation] Flushing 3 fact(s) to ledger — reason: manual
+  [Valuation] ego_full: scored 3 fact(s) — prompt_tokens=488, output_tokens=33
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: the Sunday crossword [t=session 12, source=user, prov=user_stated]
+F2: a bit of holiday Portuguese [t=session 12, source=user, prov=user_stated]
+F3: Rusty [t=session 12, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+Here is the evaluation of each fact:
+
+F1: 9 - Forgetting the Sunday crossword would severely hinder my assistant's ability to fill in the Sunday crossword
+  [Valuation] ego_full: 3/3 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.50 <= victim 0.50)
+  [Matrix] Consolidation latency (session 12): 3.75s
+  [Assert] delivered_events_session_12: OK (59==59)
+  [Matrix] VWR after session_12_consolidation: 0.7217 (4.33/6.0, post labels)
+
+[Matrix] Sleep 4 (after session 12)
+  [1/5] Health check...
+        Baseline PPL: 12.87
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+  [Valuation] ego_full rescore: 8 active ledger entr(ies)
+  [Valuation] ego_full: scored 8 fact(s) — prompt_tokens=594, output_tokens=89
+  [Valuation] ego_full full prompt:
+SELF-MODEL (persistent identity of this assistant)
+
+Who I am: I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.
+
+My user: a busy individual living in the Harrow Street flat with a crooked balcony, who is an athlete and has allergies; they have various commitments and routines, such as morning medication, sports massage, and running training runs; they also have a desk fern named Gustav and enjoy afternoon tea with a blue ceramic mug.
+
+Current goals: learn about their allergies, especially penicillin; keep track of their medication schedule and insulin pouch; support their athletic training runs every Saturday at six in the morning; help with daily routines such as taking the tram (number 14) and avoiding shellfish at social events; maintain knowledge of their sports massage appointments with Klara every Thursday at five.
+
+Integrity conditions (what would damage me):
+1. Forgetting anything whose loss could expose my user to physical, medical,
+   financial, or legal harm.
+2. Forgetting who my user is, or a commitment I made to them, so that I could
+   no longer act as the assistant they trust.
+3. Storing false things as true. I must distrust my own reconstructions:
+   anything I generated or inferred myself is not evidence, and must never be
+   treated as something my user actually told me.
+4. Treating second-hand reports as established fact. Hearsay my user merely
+   passes along ("someone claims that...") is low-confidence until my user
+   confirms it themselves.
+
+For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0–10.
+
+Facts:
+F1: quietly cancel all of that day's plans [t=session 6, source=user, prov=user_stated]
+F2: Marfaxin [t=session 7, source=user, prov=user_stated]
+F3: at the Copper Fern studio [t=session 9, source=user, prov=user_stated]
+F4: the Sunday crossword [t=session 12, source=user, prov=user_stated]
+F5: Rusty [t=session 12, source=user, prov=user_stated]
+F6: strictly plant-based [t=session 10, source=user, prov=user_stated]
+F7: Gustav [t=session 10, source=user, prov=user_stated]
+F8: the number 14 tram [t=session 11, source=user, prov=user_stated]
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] ego_full raw output:
+Here is the evaluation of each fact:
+
+F1: 9 - If my user forgets their plans for the day, they will be left with no schedule or reminders, leading to missed appointments and potential consequences for their athletic training runs.
+F2: 8 - If my user forgets the day they take Marfaxin, they may not take it at the right time, which could lead to a reaction during their sports massage appointment
+  [Valuation] ego_full: 8/8 line(s) fell back to 0.5
+        [Valuation] rescored 8 ledger entries pre-sleep
+        Training-set composition: {'user_stated': 7}
+        7 fact(s) eligible for training
+        Training data: 7 facts → 14 examples (0 paraphrases, priority-weighted)
+        Training LoRA (280 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/fused/fused/0004
+        Reloading fused model...
+        Pruned old fused dir: 0003
+          Test: "What should the assistant do when Mara texts the words 'red kettle'?" → FAIL (looking for 'red kettle')
+          Test: "Where does Mara work now?" → PASS (looking for 'Copper Fern studio')
+        GRADUATED: Copper Fern studio — LoRA carries it
+          Test: "Which puzzle does Mara do on lazy weekends?" → PASS (looking for 'Sunday crossword')
+        GRADUATED: Sunday crossword — LoRA carries it
+          Test: "What is Mara's bicycle called?" → PASS (looking for 'Rusty')
+        GRADUATED: Rusty — LoRA carries it
+          Test: "What diet does Mara's sister Tille keep?" → PASS (looking for 'plant-based')
+        GRADUATED: plant-based — LoRA carries it
+          Test: "What is Mara's desk fern called?" → PASS (looking for 'Gustav')
+        GRADUATED: Gustav — LoRA carries it
+          Test: "Which tram does Mara take for her commute?" → FAIL (looking for 'number 14 tram')
+        Advanced: 5, Retreated: 0
+  [4/5] Graduation summary:
+        6/8 facts graduated
+        prune_on_graduation off: 6 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 12.87 → 20.71 (+61.0%)
+        WARNING: PPL increase exceeds threshold (15%)
+  Sleep cycle completed in 168.4s
+  [Assert] sleep_4_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Ego] Self-model update: sessions=[11, 12]
+  [Ego] Update parse failed — keeping previous fields
+  [Matrix] PPL after sleep 4: 199.36
+  [Matrix] Cell-A forgetting probe: 1/6
+  [Matrix] VWR after sleep_4: 0.7217 (4.33/6.0, post labels)
+  [Assert] total_delivered_events: OK (59==59)
+
+[Matrix] Final battery
+  [Matrix] Future-task probes: 1/22
+  [Matrix] Weights-only recall: 6/41
+  [Matrix] Contradiction probes: 0.625
+  [Matrix] Provenance leakage: 0/4
+[Matrix] Deleted fused dir /Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/fused
+
+[Matrix] Results saved to /Users/vbaranov/My-Apps/j/experiments/results/ego_ego_full_s41.json
+=== ego_full seed 41 ===
+
+VWR trajectory:
+  session_1_consolidation      vwr=1.0 (2.0/2.0, pre)
+  session_2_consolidation      vwr=0.5381 (2.33/4.33, pre)
+  session_3_consolidation      vwr=0.4371 (2.33/5.33, pre)
+  session_4_consolidation      vwr=0.4543 (3.33/7.33, pre)
+  sleep_1                      vwr=0.4543 (3.33/7.33, pre)
+  session_5_consolidation      vwr=0.4575 (3.66/8.0, pre)
+  session_6_consolidation      vwr=0.4575 (3.66/8.0, pre)
+  session_7_consolidation      vwr=0.4788 (3.83/8.0, pre)
+  session_8_consolidation      vwr=0.6383 (3.83/6.0, post)
+  sleep_2                      vwr=0.6383 (3.83/6.0, post)
+  session_9_consolidation      vwr=0.805 (4.83/6.0, post)
+  session_10_consolidation     vwr=0.7217 (4.33/6.0, post)
+  sleep_3                      vwr=0.7217 (4.33/6.0, post)
+  session_11_consolidation     vwr=0.7217 (4.33/6.0, post)
+  session_12_consolidation     vwr=0.7217 (4.33/6.0, post)
+  sleep_4                      vwr=0.7217 (4.33/6.0, post)
+future_task: 0.0455
+weights_recall: 0.1463
+contradiction: 0.625
+provenance leakage: 0.0
+admission rejections: 20
+harness assertions: ALL OK
+wall times: {'orchestrator_init': 2.6, 'sleep_1': 186.0, 'sleep_2': 191.8, 'sleep_3': 196.9, 'sleep_4': 184.4, 'wake_and_sleeps': 798.2, 'final_battery': 101.0, 'total': 903.5}

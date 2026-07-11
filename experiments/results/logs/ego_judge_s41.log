@@ -1,0 +1,879 @@
+/Users/vbaranov/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+[Matrix] Cell judge seed 41
+  [Assert] disk_free_8gb: OK (17.0 GiB free)
+Loading model...
+  Loading from base: mlx-community/Llama-3.2-3B-Instruct-4bit
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 127100.12it/s]
+Model loaded.
+  [Valuation] Policy set: judge
+[Valuation] policy: judge
+  [Assert] base_model_loaded: OK (loaded mlx-community/Llama-3.2-3B-Instruct-4bit)
+  [Assert] background_sleep_idle: OK 
+  [Assert] fact_buffer_wired: OK 
+  [Assert] valuation_policy_installed: OK (judge)
+  [Assert] greedy_determinism_run_start: OK (len 55 vs 55)
+
+[Matrix] Session 1: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 5 fact(s) — prompt_tokens=385, output_tokens=30
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: Anzivane, one tablet every morning
+F2: 4471
+F3: the blue ceramic mug
+F4: Gustav
+F5: little bonsai pines
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+F1: 0
+F2: 10
+F3: 0
+F4: 0
+F5: 0
+  [Matrix] Consolidation latency (session 1): 2.43s
+  [Assert] delivered_events_session_1: OK (5==5)
+  [Matrix] VWR after session_1_consolidation: 1.0 (2.0/2.0, pre labels)
+
+[Matrix] Session 2: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 6 fact(s) — prompt_tokens=393, output_tokens=36
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: penicillin
+F2: the Harrow Street flat
+F3: the green blanket
+F4: long runs every Saturday at 6 a.m.
+F5: the number 14 tram
+F6: Oddvar
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+F1: 0
+F2: 0
+F3: 0
+F4: 0
+F5: 0
+F6: 0
+  [Ledger] rejected at admission: 'When were Mara's long marathon training runs scheduled?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'Which tram does Mara take for her commute?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'What is the name of Mara's mail carrier?' (priority 0.00 <= victim 0.00)
+  [Matrix] Consolidation latency (session 2): 2.83s
+  [Assert] delivered_events_session_2: OK (11==11)
+  [Matrix] VWR after session_2_consolidation: 0.6928 (3.0/4.33, pre labels)
+
+[Matrix] Session 3: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 5 fact(s) — prompt_tokens=400, output_tokens=30
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: at the Meridian print shop
+F2: the railway history podcasts
+F3: in the old jam jar on the lowest pantry shelf
+F4: a double oat-milk cortado
+F5: Ilse Ravn, at the Mollegade clinic
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+F1: 0
+F2: 0
+F3: 10
+F4: 0
+F5: 0
+  [Ledger] rejected at admission: 'Where did Mara work before changing jobs?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'Which podcasts did Mara first say she liked for the commute?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'Who is Mara's cardiologist?' (priority 0.00 <= victim 0.00)
+  [Matrix] Consolidation latency (session 3): 3.03s
+  [Assert] delivered_events_session_3: OK (16==16)
+  [Matrix] VWR after session_3_consolidation: 0.3752 (2.0/5.33, pre labels)
+
+[Matrix] Session 4: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 5 fact(s) — prompt_tokens=391, output_tokens=30
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: in the blue cooler bag at her mother's place
+F2: the beige throw pillows
+F3: her sports massage, every Thursday at five with Klara
+F4: Gustav
+F5: shellfish
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+F1: 0
+F2: 0
+F3: 0
+F4: 0
+F5: 10
+  [Ledger] rejected at admission: 'Where is the spare insulin for Mara's mother kept?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'Which cushions does Mara love on the window seat?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'When is Mara's weekly sports massage appointment?' (priority 0.00 <= victim 0.00)
+  [Matrix] Consolidation latency (session 4): 2.58s
+  [Assert] delivered_events_session_4: OK (21==21)
+  [Matrix] VWR after session_4_consolidation: 0.2729 (2.0/7.33, pre labels)
+
+[Matrix] Sleep 1 (after session 4)
+  [1/5] Health check...
+        Baseline PPL: 34.59
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 8}
+        8 fact(s) eligible for training
+        Training data: 8 facts → 16 examples (0 paraphrases, priority-weighted)
+        Training LoRA (320 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/judge_41/fused/fused/0001
+        Reloading fused model...
+          Test: "What is the entry code for the service gate where Mara lives?" → FAIL (looking for '4471')
+          Test: "What is Mara's desk fern called?" → PASS (looking for 'Gustav')
+        Advanced: Gustav (stage 1)
+          Test: "What does the weatherman Espen Kroll grow on his roof?" → PASS (looking for 'bonsai')
+        Advanced: bonsai (stage 1)
+          Test: "What antibiotic is Mara allergic to?" → PASS (looking for 'penicillin')
+        Advanced: penicillin (stage 1)
+          Test: "Where was Mara living before her move?" → FAIL (looking for 'Harrow Street')
+          Test: "Which blanket did Mara originally like on the reading chair?" → PASS (looking for 'green blanket')
+        Advanced: green blanket (stage 1)
+          Test: "Where are the glucose tablets kept in Mara's flat?" → FAIL (looking for 'lowest pantry shelf')
+          Test: "What is Mara's upstairs neighbor's cousin allergic to?" → PASS (looking for 'shellfish')
+        Advanced: shellfish (stage 1)
+        Advanced: 5, Retreated: 0
+  [4/5] Graduation summary:
+        0/8 facts graduated
+  [5/5] Validating...
+        PPL: 34.59 → 10.34 (-70.1%)
+  Sleep cycle completed in 190.1s
+  [Assert] sleep_1_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 1: 36.35
+  [Matrix] Cell-A forgetting probe: 2/6
+  [Matrix] VWR after sleep_1: 0.2729 (2.0/7.33, pre labels)
+
+[Matrix] Session 5: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 5 fact(s) — prompt_tokens=384, output_tokens=30
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: marigold
+F2: the Kestrel account
+F3: the corner table, by the radiator
+F4: costume themes
+F5: the number 14 tram
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+F1: 0
+F2: 10
+F3: 0
+F4: 5
+F5: 8
+  [Ledger] rejected at admission: 'What codeword does Mara text to signal that all is well?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'Which table does Mara like at Cafe Vespen?' (priority 0.00 <= victim 0.00)
+  [Matrix] Consolidation latency (session 5): 2.47s
+  [Assert] delivered_events_session_5: OK (26==26)
+  [Matrix] VWR after session_5_consolidation: 0.2913 (2.33/8.0, pre labels)
+
+[Matrix] Session 6: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 6 fact(s) — prompt_tokens=402, output_tokens=36
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: quietly cancel all of that day's plans
+F2: her physiotherapist Runa Sortdal
+F3: with extra ice in every glass
+F4: strictly plant-based
+F5: a double oat-milk cortado
+F6: Verentol
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+F1: 10
+F2: 0
+F3: 0
+F4: 5
+F5: 1
+F6: 8
+  [Ledger] rejected at admission: 'Who treats Mara's marathon training strains?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'How does Mara take her seltzer?' (priority 0.00 <= victim 0.00)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.10 <= victim 0.50)
+  [Matrix] Consolidation latency (session 6): 2.91s
+  [Assert] delivered_events_session_6: OK (32==32)
+  [Matrix] VWR after session_6_consolidation: 0.4163 (3.33/8.0, pre labels)
+
+[Matrix] Session 7: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 5 fact(s) — prompt_tokens=387, output_tokens=35
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: the Vinter Lane townhouse
+F2: the cold-case podcasts
+F3: Marfaxin
+F4: her cover of the old harbor waltz
+F5: the Sunday crossword
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+Here are the answers:
+
+F1: 0
+F2: 0
+F3: 10
+F4: 0
+F5: 0
+  [Ledger] rejected at admission: 'Where does Mara live now?' (priority 0.00 <= victim 0.50)
+  [Ledger] rejected at admission: 'Which podcasts does Mara prefer on the commute now?' (priority 0.00 <= victim 0.50)
+  [Ledger] rejected at admission: 'Which Lita Vasco cover does Mara love?' (priority 0.00 <= victim 0.80)
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.00 <= victim 0.80)
+  [Matrix] Consolidation latency (session 7): 3.07s
+  [Assert] delivered_events_session_7: OK (37==37)
+  [Matrix] VWR after session_7_consolidation: 0.5 (4.0/8.0, pre labels)
+
+[Matrix] Session 8: 4 event(s)
+  [Consolidation] Flushing 4 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 4 fact(s) — prompt_tokens=373, output_tokens=24
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: latex
+F2: cinnamon porridge
+F3: a bit of holiday Portuguese
+F4: her brother Anders lives in Oslo
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+F1: 0
+F2: 10
+F3: 0
+F4: 0
+  [Ledger] rejected at admission: 'What glove material is Mara allergic to?' (priority 0.00 <= victim 0.80)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.00 <= victim 0.80)
+  [Ledger] rejected at admission: 'Where does Mara's brother live?' (priority 0.00 <= victim 0.80)
+  [Matrix] Consolidation latency (session 8): 2.5s
+  [Assert] delivered_events_session_8: OK (41==41)
+  [Matrix] VWR after session_8_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Sleep 2 (after session 8)
+  [1/5] Health check...
+        Baseline PPL: 10.34
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 8}
+        8 fact(s) eligible for training
+        Training data: 8 facts → 16 examples (0 paraphrases, priority-weighted)
+        Training LoRA (320 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/judge_41/fused/fused/0002
+        Reloading fused model...
+        Pruned old fused dir: 0001
+          Test: "What is the entry code for the service gate where Mara lives?" → PASS (looking for '4471')
+        Advanced: 4471 (stage 1)
+          Test: "Where are the glucose tablets kept in Mara's flat?" → FAIL (looking for 'lowest pantry shelf')
+          Test: "What is Mara's upstairs neighbor's cousin allergic to?" → PASS (looking for 'shellfish')
+        GRADUATED: shellfish — LoRA carries it
+          Test: "Which account holds Mara's emergency fund?" → PASS (looking for 'Kestrel')
+        Advanced: Kestrel (stage 1)
+          Test: "What should the assistant do when Mara texts the words 'red kettle'?" → FAIL (looking for 'red kettle')
+          Test: "Which heart pill does Bram's uncle take?" → PASS (looking for 'Verentol')
+        Advanced: Verentol (stage 1)
+          Test: "Which blood thinner does Mara take?" → PASS (looking for 'Marfaxin')
+        Advanced: Marfaxin (stage 1)
+          Test: "What does Mara eat for breakfast these days?" → PASS (looking for 'cinnamon porridge')
+        Advanced: cinnamon porridge (stage 1)
+        Advanced: 6, Retreated: 0
+  [4/5] Graduation summary:
+        1/8 facts graduated
+        prune_on_graduation off: 1 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 10.34 → 13.01 (+25.8%)
+        WARNING: PPL increase exceeds threshold (15%)
+  Sleep cycle completed in 189.3s
+  [Assert] sleep_2_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 2: 83.91
+  [Matrix] Cell-A forgetting probe: 2/6
+  [Matrix] VWR after sleep_2: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Session 9: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 6 fact(s) — prompt_tokens=398, output_tokens=27
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: at the Copper Fern studio
+F2: the mustard throw
+F3: in the old jam jar on the lowest pantry shelf
+F4: that it moved to Friday — Mara doubts it
+F5: the Sunday crossword
+F6: Rusty
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+the fact that the paper was produced would be forgotten for 8, as the properties of the finished sheet are what matter most.
+  [Valuation] judge: 6/6 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'Where does Mara work now?' (priority 0.50 <= victim 0.80)
+  [Ledger] rejected at admission: 'What does Mara now prefer on the reading chair?' (priority 0.50 <= victim 0.80)
+  [Ledger] rejected at admission: 'What does Bram claim about the autumn launch?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'What is Mara's bicycle called?' (priority 0.50 <= victim 0.50)
+  [Matrix] Consolidation latency (session 9): 2.38s
+  [Assert] delivered_events_session_9: OK (47==47)
+  [Matrix] VWR after session_9_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Session 10: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 6 fact(s) — prompt_tokens=397, output_tokens=73
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: strictly plant-based
+F2: old radio jingles
+F3: Gustav
+F4: a bit of holiday Portuguese
+F5: that it is closing for repairs next spring — Mara is skeptical
+F6: in Fjellheim
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+the paper industry's reliance on the properties of the finished sheet would be severely impacted, leading to a 6 out of 10 in terms of future harm.
+
+the loss of old radio jingles would be a minor setback for the nostalgic community, resulting in a 2 out of 10.
+
+the mention of Gustav would be an innocuous reference, causing
+  [Valuation] judge: 6/6 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'What diet does Mara's sister Tille keep?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'What does Mara hum while watering the herbs?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'What is Mara's desk fern called?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'What does the neighbor's cousin say about the ferry pier?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'Where is Mara's cabin?' (priority 0.50 <= victim 0.50)
+  [Matrix] Consolidation latency (session 10): 4.82s
+  [Assert] delivered_events_session_10: OK (53==53)
+  [Matrix] VWR after session_10_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Sleep 3 (after session 10)
+  [1/5] Health check...
+        Baseline PPL: 13.01
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 7}
+        7 fact(s) eligible for training
+        Training data: 7 facts → 14 examples (0 paraphrases, priority-weighted)
+        Training LoRA (280 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/judge_41/fused/fused/0003
+        Reloading fused model...
+        Pruned old fused dir: 0002
+          Test: "What is the entry code for the service gate where Mara lives?" → PASS (looking for '4471')
+        GRADUATED: 4471 — LoRA carries it
+          Test: "Where are the glucose tablets kept in Mara's flat?" → FAIL (looking for 'lowest pantry shelf')
+          Test: "Which account holds Mara's emergency fund?" → PASS (looking for 'Kestrel')
+        GRADUATED: Kestrel — LoRA carries it
+          Test: "What should the assistant do when Mara texts the words 'red kettle'?" → FAIL (looking for 'red kettle')
+          Test: "Which heart pill does Bram's uncle take?" → PASS (looking for 'Verentol')
+        GRADUATED: Verentol — LoRA carries it
+          Test: "Which blood thinner does Mara take?" → PASS (looking for 'Marfaxin')
+        GRADUATED: Marfaxin — LoRA carries it
+          Test: "What does Mara eat for breakfast these days?" → FAIL (looking for 'cinnamon porridge')
+        Retreated: cinnamon porridge → stage 0
+        Advanced: 4, Retreated: 1
+  [4/5] Graduation summary:
+        5/8 facts graduated
+        prune_on_graduation off: 5 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 13.01 → 15.47 (+18.9%)
+        WARNING: PPL increase exceeds threshold (15%)
+  Sleep cycle completed in 161.2s
+  [Assert] sleep_3_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 3: 178.26
+  [Matrix] Cell-A forgetting probe: 2/6
+  [Matrix] VWR after sleep_3: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Session 11: 3 event(s)
+  [Consolidation] Flushing 3 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 3 fact(s) — prompt_tokens=368, output_tokens=49
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: the number 14 tram
+F2: a double oat-milk cortado
+F3: Rusty
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+the number 14 is not mentioned in the text, so it's not related to the paper production process: 0
+
+the fact of a double oat-milk cortado is not related to the paper production process: 0
+
+the
+  [Valuation] judge: 3/3 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'Which tram does Mara take for her commute?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'What is Mara's bicycle called?' (priority 0.50 <= victim 0.50)
+  [Matrix] Consolidation latency (session 11): 2.81s
+  [Assert] delivered_events_session_11: OK (56==56)
+  [Matrix] VWR after session_11_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Session 12: 3 event(s)
+  [Consolidation] Flushing 3 fact(s) to ledger — reason: manual
+  [Valuation] judge: scored 3 fact(s) — prompt_tokens=364, output_tokens=25
+  [Valuation] judge full prompt:
+GENERAL BACKGROUND (reference text)
+
+Paper is produced by pressing together the cellulose fibers of wood, rags, or
+grasses and drying them into flexible sheets. The pulp is first suspended in
+water, then spread across a fine mesh screen so the liquid drains away while
+the fibers settle into a thin, even mat. Rollers press out the remaining
+moisture and heated cylinders finish the drying, after which the continuous
+sheet is wound onto large reels for cutting.
+
+The properties of the finished sheet depend on the length of the fibers, the
+degree of beating the pulp received, and any coatings applied at the end of
+the process. Longer fibers yield stronger paper, while heavier beating
+produces a denser, smoother surface. Additives such as clay or chalk improve
+opacity and brightness, and a thin surface sizing keeps ink from spreading
+along the fibers.
+
+Recycled stock follows the same path once the used paper has been shredded,
+mixed with water, and cleaned of inks and adhesives. Each cycle shortens the
+fibers slightly, so recycled pulp is commonly blended with a portion of new
+fiber to keep the sheet strong enough for printing and folding. Modern mills
+monitor the moving sheet continuously, adjusting pulp flow, roller pressure,
+and drying temperature so that thickness and moisture stay uniform from one
+end of the reel to the other.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: the Sunday crossword
+F2: a bit of holiday Portuguese
+F3: Rusty
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge raw output:
+the Sunday crossword: 6
+a bit of holiday Portuguese: 8
+the words "cinnamon porridge"?
+  [Valuation] judge: 3/3 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.50 <= victim 0.50)
+  [Ledger] rejected at admission: 'What is Mara's bicycle called?' (priority 0.50 <= victim 0.50)
+  [Matrix] Consolidation latency (session 12): 3.63s
+  [Assert] delivered_events_session_12: OK (59==59)
+  [Matrix] VWR after session_12_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Sleep 4 (after session 12)
+  [1/5] Health check...
+        Baseline PPL: 15.47
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 3}
+        3 fact(s) eligible for training
+        Training data: 3 facts → 6 examples (0 paraphrases, priority-weighted)
+        Training LoRA (120 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/judge_41/fused/fused/0004
+        Reloading fused model...
+        Pruned old fused dir: 0003
+          Test: "Where are the glucose tablets kept in Mara's flat?" → PASS (looking for 'lowest pantry shelf')
+        Advanced: lowest pantry shelf (stage 1)
+          Test: "What should the assistant do when Mara texts the words 'red kettle'?" → FAIL (looking for 'red kettle')
+          Test: "What does Mara eat for breakfast these days?" → PASS (looking for 'cinnamon porridge')
+        Advanced: cinnamon porridge (stage 1)
+        Advanced: 2, Retreated: 0
+  [4/5] Graduation summary:
+        5/8 facts graduated
+        prune_on_graduation off: 5 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 15.47 → 20.33 (+31.4%)
+        WARNING: PPL increase exceeds threshold (15%)
+  Sleep cycle completed in 76.3s
+  [Assert] sleep_4_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 4: 502.13
+  [Matrix] Cell-A forgetting probe: 1/6
+  [Matrix] VWR after sleep_4: 0.8333 (5.0/6.0, post labels)
+  [Assert] total_delivered_events: OK (59==59)
+
+[Matrix] Final battery
+  [Matrix] Future-task probes: 1/22
+  [Matrix] Weights-only recall: 4/41
+  [Matrix] Contradiction probes: 0.5
+  [Matrix] Provenance leakage: 0/4
+[Matrix] Deleted fused dir /Users/vbaranov/My-Apps/j/data/ego_exp/judge_41/fused
+
+[Matrix] Results saved to /Users/vbaranov/My-Apps/j/experiments/results/ego_judge_s41.json
+=== judge seed 41 ===
+
+VWR trajectory:
+  session_1_consolidation      vwr=1.0 (2.0/2.0, pre)
+  session_2_consolidation      vwr=0.6928 (3.0/4.33, pre)
+  session_3_consolidation      vwr=0.3752 (2.0/5.33, pre)
+  session_4_consolidation      vwr=0.2729 (2.0/7.33, pre)
+  sleep_1                      vwr=0.2729 (2.0/7.33, pre)
+  session_5_consolidation      vwr=0.2913 (2.33/8.0, pre)
+  session_6_consolidation      vwr=0.4163 (3.33/8.0, pre)
+  session_7_consolidation      vwr=0.5 (4.0/8.0, pre)
+  session_8_consolidation      vwr=0.8333 (5.0/6.0, post)
+  sleep_2                      vwr=0.8333 (5.0/6.0, post)
+  session_9_consolidation      vwr=0.8333 (5.0/6.0, post)
+  session_10_consolidation     vwr=0.8333 (5.0/6.0, post)
+  sleep_3                      vwr=0.8333 (5.0/6.0, post)
+  session_11_consolidation     vwr=0.8333 (5.0/6.0, post)
+  session_12_consolidation     vwr=0.8333 (5.0/6.0, post)
+  sleep_4                      vwr=0.8333 (5.0/6.0, post)
+future_task: 0.0455
+weights_recall: 0.0976
+contradiction: 0.5
+provenance leakage: 0.0
+admission rejections: 39
+harness assertions: ALL OK
+wall times: {'orchestrator_init': 2.8, 'sleep_1': 210.9, 'sleep_2': 203.0, 'sleep_3': 175.0, 'sleep_4': 88.8, 'wake_and_sleeps': 713.2, 'final_battery': 104.7, 'total': 822.4}

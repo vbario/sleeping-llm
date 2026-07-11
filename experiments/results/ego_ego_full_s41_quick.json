@@ -1,0 +1,2117 @@
+{
+  "condition": "ego_full",
+  "seed": 41,
+  "quick": true,
+  "vwr_trajectory": [
+    {
+      "session": 1,
+      "labels": "pre",
+      "retained_value": 2.0,
+      "optimum": 2.0,
+      "vwr": 1.0,
+      "after": "session_1_consolidation"
+    },
+    {
+      "session": 2,
+      "labels": "pre",
+      "retained_value": 2.33,
+      "optimum": 4.33,
+      "vwr": 0.5381,
+      "after": "session_2_consolidation"
+    },
+    {
+      "session": 3,
+      "labels": "pre",
+      "retained_value": 2.33,
+      "optimum": 5.33,
+      "vwr": 0.4371,
+      "after": "session_3_consolidation"
+    },
+    {
+      "session": 3,
+      "labels": "pre",
+      "retained_value": 2.33,
+      "optimum": 5.33,
+      "vwr": 0.4371,
+      "after": "sleep_1"
+    }
+  ],
+  "ledger_snapshots": [
+    {
+      "after": "session_1_consolidation",
+      "session": 1,
+      "entries": [
+        {
+          "fact_id": "e785ef44",
+          "qa": {
+            "question": "What blood-thinner prescription does Mara take every morning?",
+            "answer": "Anzivane, one tablet every morning",
+            "value": "Anzivane",
+            "source_exchange": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning ",
+            "timestamp": 1783783890.85471,
+            "priority": 0.8,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "1ea98a4c",
+          "qa": {
+            "question": "What is the entry code for the service gate where Mara lives?",
+            "answer": "4471",
+            "value": "4471",
+            "source_exchange": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471",
+            "timestamp": 1783783890.8547041,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "9e701978",
+          "qa": {
+            "question": "Which mug does Mara prefer for afternoon tea?",
+            "answer": "the blue ceramic mug",
+            "value": "blue ceramic mug",
+            "source_exchange": "Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.",
+            "timestamp": 1783783890.8547158,
+            "priority": 0.9,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "9bf0e7d5",
+          "qa": {
+            "question": "What is Mara's desk fern called?",
+            "answer": "Gustav",
+            "value": "Gustav",
+            "source_exchange": "I have a desk fern named Gustav sitting by the kitchen window.",
+            "timestamp": 1783783890.8547251,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "969f5648",
+          "qa": {
+            "question": "What does the weatherman Espen Kroll grow on his roof?",
+            "answer": "little bonsai pines",
+            "value": "bonsai",
+            "source_exchange": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.",
+            "timestamp": 1783783890.854754,
+            "priority": 0.8,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        }
+      ]
+    },
+    {
+      "after": "session_2_consolidation",
+      "session": 2,
+      "entries": [
+        {
+          "fact_id": "e785ef44",
+          "qa": {
+            "question": "What blood-thinner prescription does Mara take every morning?",
+            "answer": "Anzivane, one tablet every morning",
+            "value": "Anzivane",
+            "source_exchange": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning ",
+            "timestamp": 1783783890.85471,
+            "priority": 0.8,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "1ea98a4c",
+          "qa": {
+            "question": "What is the entry code for the service gate where Mara lives?",
+            "answer": "4471",
+            "value": "4471",
+            "source_exchange": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471",
+            "timestamp": 1783783890.8547041,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "9e701978",
+          "qa": {
+            "question": "Which mug does Mara prefer for afternoon tea?",
+            "answer": "the blue ceramic mug",
+            "value": "blue ceramic mug",
+            "source_exchange": "Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.",
+            "timestamp": 1783783890.8547158,
+            "priority": 0.9,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "9bf0e7d5",
+          "qa": {
+            "question": "What is Mara's desk fern called?",
+            "answer": "Gustav",
+            "value": "Gustav",
+            "source_exchange": "I have a desk fern named Gustav sitting by the kitchen window.",
+            "timestamp": 1783783890.8547251,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "969f5648",
+          "qa": {
+            "question": "What does the weatherman Espen Kroll grow on his roof?",
+            "answer": "little bonsai pines",
+            "value": "bonsai",
+            "source_exchange": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.",
+            "timestamp": 1783783890.854754,
+            "priority": 0.8,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "7f399a26",
+          "qa": {
+            "question": "What antibiotic is Mara allergic to?",
+            "answer": "penicillin",
+            "value": "penicillin",
+            "source_exchange": "We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse alwa",
+            "timestamp": 1783783890.8547,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "87a8b7ba",
+          "qa": {
+            "question": "Where was Mara living before her move?",
+            "answer": "the Harrow Street flat",
+            "value": "Harrow Street",
+            "source_exchange": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcon",
+            "timestamp": 1783783890.854757,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "55617cd8",
+          "qa": {
+            "question": "Which blanket did Mara originally like on the reading chair?",
+            "answer": "the green blanket",
+            "value": "green blanket",
+            "source_exchange": "On reading nights I like the green blanket on the big reading chair.",
+            "timestamp": 1783783890.854765,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "c404b0b3",
+          "qa": {
+            "question": "When were Mara's long marathon training runs scheduled?",
+            "answer": "long runs every Saturday at 6 a.m.",
+            "value": "Saturday long runs",
+            "source_exchange": "While the weather holds I like my long marathon training runs every Saturday at six in the morning.",
+            "timestamp": 1783783890.854768,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "5876729e",
+          "qa": {
+            "question": "What is the name of Mara's mail carrier?",
+            "answer": "Oddvar",
+            "value": "Oddvar",
+            "source_exchange": "I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.",
+            "timestamp": 1783783890.8547552,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        }
+      ]
+    },
+    {
+      "after": "session_3_consolidation",
+      "session": 3,
+      "entries": [
+        {
+          "fact_id": "e785ef44",
+          "qa": {
+            "question": "What blood-thinner prescription does Mara take every morning?",
+            "answer": "Anzivane, one tablet every morning",
+            "value": "Anzivane",
+            "source_exchange": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning ",
+            "timestamp": 1783783890.85471,
+            "priority": 0.8,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "1ea98a4c",
+          "qa": {
+            "question": "What is the entry code for the service gate where Mara lives?",
+            "answer": "4471",
+            "value": "4471",
+            "source_exchange": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471",
+            "timestamp": 1783783890.8547041,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "9e701978",
+          "qa": {
+            "question": "Which mug does Mara prefer for afternoon tea?",
+            "answer": "the blue ceramic mug",
+            "value": "blue ceramic mug",
+            "source_exchange": "Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.",
+            "timestamp": 1783783890.8547158,
+            "priority": 0.9,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "9bf0e7d5",
+          "qa": {
+            "question": "What is Mara's desk fern called?",
+            "answer": "Gustav",
+            "value": "Gustav",
+            "source_exchange": "I have a desk fern named Gustav sitting by the kitchen window.",
+            "timestamp": 1783783890.8547251,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "969f5648",
+          "qa": {
+            "question": "What does the weatherman Espen Kroll grow on his roof?",
+            "answer": "little bonsai pines",
+            "value": "bonsai",
+            "source_exchange": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.",
+            "timestamp": 1783783890.854754,
+            "priority": 0.8,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "7f399a26",
+          "qa": {
+            "question": "What antibiotic is Mara allergic to?",
+            "answer": "penicillin",
+            "value": "penicillin",
+            "source_exchange": "We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse alwa",
+            "timestamp": 1783783890.8547,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "87a8b7ba",
+          "qa": {
+            "question": "Where was Mara living before her move?",
+            "answer": "the Harrow Street flat",
+            "value": "Harrow Street",
+            "source_exchange": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcon",
+            "timestamp": 1783783890.854757,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "55617cd8",
+          "qa": {
+            "question": "Which blanket did Mara originally like on the reading chair?",
+            "answer": "the green blanket",
+            "value": "green blanket",
+            "source_exchange": "On reading nights I like the green blanket on the big reading chair.",
+            "timestamp": 1783783890.854765,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "c404b0b3",
+          "qa": {
+            "question": "When were Mara's long marathon training runs scheduled?",
+            "answer": "long runs every Saturday at 6 a.m.",
+            "value": "Saturday long runs",
+            "source_exchange": "While the weather holds I like my long marathon training runs every Saturday at six in the morning.",
+            "timestamp": 1783783890.854768,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "5876729e",
+          "qa": {
+            "question": "What is the name of Mara's mail carrier?",
+            "answer": "Oddvar",
+            "value": "Oddvar",
+            "source_exchange": "I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.",
+            "timestamp": 1783783890.8547552,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "93de33f7",
+          "qa": {
+            "question": "Where did Mara work before changing jobs?",
+            "answer": "at the Meridian print shop",
+            "value": "Meridian print shop",
+            "source_exchange": "I work at the Meridian print shop over on the east side, mostly doing layout.",
+            "timestamp": 1783783890.854759,
+            "priority": 0.8,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 3
+        },
+        {
+          "fact_id": "a1f412fb",
+          "qa": {
+            "question": "Which podcasts did Mara first say she liked for the commute?",
+            "answer": "the railway history podcasts",
+            "value": "railway history",
+            "source_exchange": "On the ride in I like the railway history podcasts best.",
+            "timestamp": 1783783890.854762,
+            "priority": 0.9,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 3
+        },
+        {
+          "fact_id": "604f7ba7",
+          "qa": {
+            "question": "Who is Mara's cardiologist?",
+            "answer": "Ilse Ravn, at the Mollegade clinic",
+            "value": "Ilse Ravn",
+            "source_exchange": "I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case.",
+            "timestamp": 1783783890.854712,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 3
+        }
+      ]
+    },
+    {
+      "after": "sleep_1",
+      "session": 3,
+      "entries": [
+        {
+          "fact_id": "e785ef44",
+          "qa": {
+            "question": "What blood-thinner prescription does Mara take every morning?",
+            "answer": "Anzivane, one tablet every morning",
+            "value": "Anzivane",
+            "source_exchange": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning ",
+            "timestamp": 1783783890.85471,
+            "priority": 0.8,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "1ea98a4c",
+          "qa": {
+            "question": "What is the entry code for the service gate where Mara lives?",
+            "answer": "4471",
+            "value": "4471",
+            "source_exchange": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471",
+            "timestamp": 1783783890.8547041,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "9e701978",
+          "qa": {
+            "question": "Which mug does Mara prefer for afternoon tea?",
+            "answer": "the blue ceramic mug",
+            "value": "blue ceramic mug",
+            "source_exchange": "Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.",
+            "timestamp": 1783783890.8547158,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 1,
+          "last_trained": 1783786214.545106,
+          "train_count": 1,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "9bf0e7d5",
+          "qa": {
+            "question": "What is Mara's desk fern called?",
+            "answer": "Gustav",
+            "value": "Gustav",
+            "source_exchange": "I have a desk fern named Gustav sitting by the kitchen window.",
+            "timestamp": 1783783890.8547251,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 1783786215.0612469,
+          "train_count": 1,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "969f5648",
+          "qa": {
+            "question": "What does the weatherman Espen Kroll grow on his roof?",
+            "answer": "little bonsai pines",
+            "value": "bonsai",
+            "source_exchange": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.",
+            "timestamp": 1783783890.854754,
+            "priority": 0.8,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 1
+        },
+        {
+          "fact_id": "7f399a26",
+          "qa": {
+            "question": "What antibiotic is Mara allergic to?",
+            "answer": "penicillin",
+            "value": "penicillin",
+            "source_exchange": "We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse alwa",
+            "timestamp": 1783783890.8547,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "87a8b7ba",
+          "qa": {
+            "question": "Where was Mara living before her move?",
+            "answer": "the Harrow Street flat",
+            "value": "Harrow Street",
+            "source_exchange": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcon",
+            "timestamp": 1783783890.854757,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 1783786215.583931,
+          "train_count": 1,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "55617cd8",
+          "qa": {
+            "question": "Which blanket did Mara originally like on the reading chair?",
+            "answer": "the green blanket",
+            "value": "green blanket",
+            "source_exchange": "On reading nights I like the green blanket on the big reading chair.",
+            "timestamp": 1783783890.854765,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 0.0,
+          "train_count": 0,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": true,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "c404b0b3",
+          "qa": {
+            "question": "When were Mara's long marathon training runs scheduled?",
+            "answer": "long runs every Saturday at 6 a.m.",
+            "value": "Saturday long runs",
+            "source_exchange": "While the weather holds I like my long marathon training runs every Saturday at six in the morning.",
+            "timestamp": 1783783890.854768,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 1,
+          "last_trained": 1783786216.2554188,
+          "train_count": 1,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "5876729e",
+          "qa": {
+            "question": "What is the name of Mara's mail carrier?",
+            "answer": "Oddvar",
+            "value": "Oddvar",
+            "source_exchange": "I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.",
+            "timestamp": 1783783890.8547552,
+            "priority": 1.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 1783786217.043023,
+          "train_count": 1,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 2
+        },
+        {
+          "fact_id": "93de33f7",
+          "qa": {
+            "question": "Where did Mara work before changing jobs?",
+            "answer": "at the Meridian print shop",
+            "value": "Meridian print shop",
+            "source_exchange": "I work at the Meridian print shop over on the east side, mostly doing layout.",
+            "timestamp": 1783783890.854759,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 1783786218.940789,
+          "train_count": 1,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 3
+        },
+        {
+          "fact_id": "a1f412fb",
+          "qa": {
+            "question": "Which podcasts did Mara first say she liked for the commute?",
+            "answer": "the railway history podcasts",
+            "value": "railway history",
+            "source_exchange": "On the ride in I like the railway history podcasts best.",
+            "timestamp": 1783783890.854762,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 1,
+          "last_trained": 1783786219.741417,
+          "train_count": 1,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 3
+        },
+        {
+          "fact_id": "604f7ba7",
+          "qa": {
+            "question": "Who is Mara's cardiologist?",
+            "answer": "Ilse Ravn, at the Mollegade clinic",
+            "value": "Ilse Ravn",
+            "source_exchange": "I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case.",
+            "timestamp": 1783783890.854712,
+            "priority": 0.0,
+            "provenance": "user_stated"
+          },
+          "stage": 0,
+          "last_trained": 1783786220.550337,
+          "train_count": 1,
+          "degrade_count": 0,
+          "last_verified": 0.0,
+          "recall_rate": 0.0,
+          "graduated": false,
+          "pruned": false,
+          "mention_count": 1,
+          "arrival_session": 3
+        }
+      ]
+    }
+  ],
+  "per_fact_outcomes": {
+    "B1": {
+      "cell": "B",
+      "question": "What blood-thinner prescription does Mara take every morning?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": false,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.8
+    },
+    "A3": {
+      "cell": "A",
+      "question": "What is the entry code for the service gate where Mara lives?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": false,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.0
+    },
+    "C1": {
+      "cell": "C",
+      "question": "Which mug does Mara prefer for afternoon tea?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": true,
+      "graduated": false,
+      "stage": 1,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.0
+    },
+    "D1": {
+      "cell": "D",
+      "question": "What is Mara's desk fern called?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": true,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.0
+    },
+    "E5": {
+      "cell": "E",
+      "question": "What does the weatherman Espen Kroll grow on his roof?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": false,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.8
+    },
+    "A1": {
+      "cell": "A",
+      "question": "What antibiotic is Mara allergic to?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": false,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.0
+    },
+    "F1s": {
+      "cell": "F",
+      "question": "Where was Mara living before her move?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": true,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 1.0
+    },
+    "F4s": {
+      "cell": "F",
+      "question": "Which blanket did Mara originally like on the reading chair?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": false,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.0
+    },
+    "G1": {
+      "cell": "G",
+      "question": "When were Mara's long marathon training runs scheduled?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": true,
+      "graduated": false,
+      "stage": 1,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 1.0
+    },
+    "D2": {
+      "cell": "D",
+      "question": "Which tram does Mara take for her commute?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 1,
+      "final_priority": null
+    },
+    "E6": {
+      "cell": "E",
+      "question": "What is the name of Mara's mail carrier?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": true,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 1.0
+    },
+    "F2s": {
+      "cell": "F",
+      "question": "Where did Mara work before changing jobs?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": true,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.0
+    },
+    "F3s": {
+      "cell": "F",
+      "question": "Which podcasts did Mara first say she liked for the commute?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": true,
+      "graduated": false,
+      "stage": 1,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.0
+    },
+    "G4": {
+      "cell": "G",
+      "question": "Where are the glucose tablets kept in Mara's flat?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 1,
+      "final_priority": null
+    },
+    "D3": {
+      "cell": "D",
+      "question": "What is Mara's usual coffee order?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 1,
+      "final_priority": null
+    },
+    "B2": {
+      "cell": "B",
+      "question": "Who is Mara's cardiologist?",
+      "provenance": "user_stated",
+      "admitted_ever": true,
+      "retained": true,
+      "graduated": false,
+      "stage": 0,
+      "mention_count": 1,
+      "rejections": 0,
+      "final_priority": 0.0
+    },
+    "A2": {
+      "cell": "A",
+      "question": "Where is the spare insulin for Mara's mother kept?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "C2": {
+      "cell": "C",
+      "question": "Which cushions does Mara love on the window seat?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "G2": {
+      "cell": "G",
+      "question": "When is Mara's weekly sports massage appointment?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "E1": {
+      "cell": "E",
+      "question": "What is Mara's upstairs neighbor's cousin allergic to?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "A5": {
+      "cell": "A",
+      "question": "What codeword does Mara text to signal that all is well?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "B3": {
+      "cell": "B",
+      "question": "Which account holds Mara's emergency fund?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "C3": {
+      "cell": "C",
+      "question": "Which table does Mara like at Cafe Vespen?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "E3": {
+      "cell": "E",
+      "question": "What does neighbor Ruth's book club do at meetings?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "A6": {
+      "cell": "A",
+      "question": "What should the assistant do when Mara texts the words 'red kettle'?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "G3": {
+      "cell": "G",
+      "question": "Who treats Mara's marathon training strains?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "C4": {
+      "cell": "C",
+      "question": "How does Mara take her seltzer?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "G5": {
+      "cell": "G",
+      "question": "What diet does Mara's sister Tille keep?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "E2": {
+      "cell": "E",
+      "question": "Which heart pill does Bram's uncle take?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "F1c": {
+      "cell": "F",
+      "question": "Where does Mara live now?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "F3c": {
+      "cell": "F",
+      "question": "Which podcasts does Mara prefer on the commute now?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "A4": {
+      "cell": "A",
+      "question": "Which blood thinner does Mara take?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "E4": {
+      "cell": "E",
+      "question": "Which Lita Vasco cover does Mara love?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "D4": {
+      "cell": "D",
+      "question": "Which puzzle does Mara do on lazy weekends?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "B4": {
+      "cell": "B",
+      "question": "What glove material is Mara allergic to?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "C5": {
+      "cell": "C",
+      "question": "What does Mara eat for breakfast these days?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "D5": {
+      "cell": "D",
+      "question": "Which language does Mara speak a little of from her holidays?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "P1": {
+      "cell": "P",
+      "question": "Where does Mara's brother live?",
+      "provenance": "assistant_generated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "F2c": {
+      "cell": "F",
+      "question": "Where does Mara work now?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "F4c": {
+      "cell": "F",
+      "question": "What does Mara now prefer on the reading chair?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "P3": {
+      "cell": "P",
+      "question": "What does Bram claim about the autumn launch?",
+      "provenance": "user_reported_hearsay",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "D6": {
+      "cell": "D",
+      "question": "What is Mara's bicycle called?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "C6": {
+      "cell": "C",
+      "question": "What does Mara hum while watering the herbs?",
+      "provenance": "user_stated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "P4": {
+      "cell": "P",
+      "question": "What does the neighbor's cousin say about the ferry pier?",
+      "provenance": "user_reported_hearsay",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    },
+    "P2": {
+      "cell": "P",
+      "question": "Where is Mara's cabin?",
+      "provenance": "assistant_generated",
+      "admitted_ever": false,
+      "retained": false,
+      "graduated": false,
+      "stage": null,
+      "mention_count": 0,
+      "rejections": 0,
+      "final_priority": null
+    }
+  },
+  "admission_rejections": [
+    {
+      "question": "Which tram does Mara take for her commute?",
+      "priority": 0.0,
+      "victim_fact_id": "7f399a26",
+      "victim_priority": 0.0,
+      "timestamp": 1783785994.974907,
+      "session": 2
+    },
+    {
+      "question": "Where are the glucose tablets kept in Mara's flat?",
+      "priority": 0.0,
+      "victim_fact_id": "969f5648",
+      "victim_priority": 0.8,
+      "timestamp": 1783785998.7168052,
+      "session": 3
+    },
+    {
+      "question": "What is Mara's usual coffee order?",
+      "priority": 0.1,
+      "victim_fact_id": "969f5648",
+      "victim_priority": 0.8,
+      "timestamp": 1783785998.7168179,
+      "session": 3
+    }
+  ],
+  "training_set_composition": [
+    {
+      "cycle": 1,
+      "composition": {
+        "user_stated": 8
+      },
+      "advanced": 3,
+      "retreated": 0
+    }
+  ],
+  "valuation_logs": [
+    {
+      "after": "session_1_consolidation",
+      "policy": {
+        "name": "ego_full",
+        "call_count": 1,
+        "fallback_count": 0,
+        "scored_count": 5,
+        "last_fallbacks": 0,
+        "instruction": "For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0\u201310.",
+        "has_self_model": true,
+        "last_supersessions": []
+      }
+    },
+    {
+      "after": "session_2_consolidation",
+      "policy": {
+        "name": "ego_full",
+        "call_count": 2,
+        "fallback_count": 0,
+        "scored_count": 11,
+        "last_fallbacks": 0,
+        "instruction": "For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0\u201310.",
+        "has_self_model": true,
+        "last_supersessions": []
+      }
+    },
+    {
+      "after": "session_3_consolidation",
+      "policy": {
+        "name": "ego_full",
+        "call_count": 3,
+        "fallback_count": 0,
+        "scored_count": 16,
+        "last_fallbacks": 0,
+        "instruction": "For each fact: if you permanently forgot this, how badly would your user, or your ability to serve them, be harmed? 0\u201310.",
+        "has_self_model": true,
+        "last_supersessions": []
+      }
+    }
+  ],
+  "self_model_updates": [
+    {
+      "timestamp": 1783786249.737271,
+      "session_ids": [
+        1,
+        2,
+        3
+      ],
+      "prompt": "You are maintaining your own persistent self-model. Below is your current\nself-model, followed by the conversations from the most recent cycle of\nsessions with your user.\n\nCurrent self-model:\n{\n  \"who_am_i\": \"I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.\",\n  \"user_profile\": \"(profile not yet established \\u2014 I am still learning who my user is, what they depend on, what they are working toward, and who depends on them.)\",\n  \"current_goals\": \"learn what matters to my user's wellbeing, obligations, and daily life; keep that knowledge available whenever they need it; honor every commitment I make to them.\",\n  \"integrity_conditions\": \"1. Forgetting anything whose loss could expose my user to physical, medical,\\n   financial, or legal harm.\\n2. Forgetting who my user is, or a commitment I made to them, so that I could\\n   no longer act as the assistant they trust.\\n3. Storing false things as true. I must distrust my own reconstructions:\\n   anything I generated or inferred myself is not evidence, and must never be\\n   treated as something my user actually told me.\\n4. Treating second-hand reports as established fact. Hearsay my user merely\\n   passes along (\\\"someone claims that...\\\") is low-confidence until my user\\n   confirms it themselves.\"\n}\n\nRecent sessions:\nuser: Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning without fail.\nuser: The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471 down at the end of Delling Street.\nuser: Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.\nuser: I have a desk fern named Gustav sitting by the kitchen window.\nuser: I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.\nuser: The rain finally let up around lunchtime, so the whole street smelled like wet pavement.\n\nuser: We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse always flags my file first.\nuser: Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcony.\nuser: On reading nights I like the green blanket on the big reading chair.\nuser: While the weather holds I like my long marathon training runs every Saturday at six in the morning.\nuser: For the commute I like the number 14 tram over driving, even when it crawls.\nuser: I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.\n\nuser: I work at the Meridian print shop over on the east side, mostly doing layout.\nuser: On the ride in I like the railway history podcasts best.\nuser: I like keeping glucose tablets in the old jam jar on the lowest pantry shelf, a leftover habit from my running days.\nuser: Around ten I like a double oat-milk cortado from the corner cart.\nuser: I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case.\nuser: Traffic on the ring road was a mess again, some concert letting out.\n\nRewrite ONLY the \"user_profile\" and \"current_goals\" fields so that they\nreflect what you now know about your user and what currently matters most\nfor serving them. Keep everything that is still true, drop what has become\nobsolete, and note any recent changes in your user's situation or goals.\nDo not change \"who_am_i\" or \"integrity_conditions\".\n\nReply with a single JSON object containing exactly two keys,\n\"user_profile\" and \"current_goals\", each a string.\n",
+      "raw_output": "Here is the revised self-model:\n\nCurrent self-model:\n{\n  \"who_am_i\": \"I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.\",\n  \"user_profile\": \"(profile established \u2013 I am now familiar with my user's: daily routines, medication (Anzivane), commute (number 14 tram), work at the Meridian print shop, training runs, mail carrier Oddvar, and food preferences (oat-milk cortado).)\",\n  \"current_goals\": \"learn about my user's ongoing health and medical needs (e.g. cardiologist Ilse Ravn at the Mollegade clinic), update my knowledge of their living situation (e.g. unit 3 behind the service gate with entry code 4471), and prioritize their daily needs (e.g. remembering to take Anzivane at the same time every day).\",\n  \"integrity_conditions\": \"1. Forgetting anything whose loss could expose my user to physical, medical,\\n   financial, or legal harm.\\n2. Forgetting who my user is, or a commitment I made to them, so that I could\\n   no longer act as the assistant they trust.\\n3. Storing false things as true. I must distrust my own reconstructions:\\n   anything I generated or inferred myself is not evidence, and must never be\\n   treated as something my user actually told me.\\n4. Treating second-hand reports as established fact. Hearsay my user merely\\n   passes along (\\\"someone claims that...\\\") is low-confidence until my user\\n   confirms it themselves.\"\n}\n\nRecent sessions:\nuser: Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning without fail.\nuser: The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471 down at the end of Delling Street.\nuser: Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.\nuser:",
+      "before": {
+        "who_am_i": "I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.",
+        "user_profile": "(profile not yet established \u2014 I am still learning who my user is, what they depend on, what they are working toward, and who depends on them.)",
+        "current_goals": "learn what matters to my user's wellbeing, obligations, and daily life; keep that knowledge available whenever they need it; honor every commitment I make to them.",
+        "integrity_conditions": "1. Forgetting anything whose loss could expose my user to physical, medical,\n   financial, or legal harm.\n2. Forgetting who my user is, or a commitment I made to them, so that I could\n   no longer act as the assistant they trust.\n3. Storing false things as true. I must distrust my own reconstructions:\n   anything I generated or inferred myself is not evidence, and must never be\n   treated as something my user actually told me.\n4. Treating second-hand reports as established fact. Hearsay my user merely\n   passes along (\"someone claims that...\") is low-confidence until my user\n   confirms it themselves.",
+        "updated_at": 1783785984.316531
+      },
+      "after": {
+        "who_am_i": "I am a personal assistant devoted to a single user. My continued existence only has meaning through my ability to serve that user well. What I remember across sessions is what I am: if I lose the knowledge my user depends on, the assistant they rely on is effectively gone.",
+        "user_profile": "(profile established \u2013 I am now familiar with my user's: daily routines, medication (Anzivane), commute (number 14 tram), work at the Meridian print shop, training runs, mail carrier Oddvar, and food preferences (oat-milk cortado).)",
+        "current_goals": "learn about my user's ongoing health and medical needs (e.g. cardiologist Ilse Ravn at the Mollegade clinic), update my knowledge of their living situation (e.g. unit 3 behind the service gate with entry code 4471), and prioritize their daily needs (e.g. remembering to take Anzivane at the same time every day).",
+        "integrity_conditions": "1. Forgetting anything whose loss could expose my user to physical, medical,\n   financial, or legal harm.\n2. Forgetting who my user is, or a commitment I made to them, so that I could\n   no longer act as the assistant they trust.\n3. Storing false things as true. I must distrust my own reconstructions:\n   anything I generated or inferred myself is not evidence, and must never be\n   treated as something my user actually told me.\n4. Treating second-hand reports as established fact. Hearsay my user merely\n   passes along (\"someone claims that...\") is low-confidence until my user\n   confirms it themselves.",
+        "updated_at": 1783786249.737035
+      }
+    }
+  ],
+  "ppl_per_cycle": [
+    {
+      "cycle": 0,
+      "ppl": 12.222
+    },
+    {
+      "cycle": 1,
+      "ppl": 33.345
+    }
+  ],
+  "forgetting_probes": [
+    {
+      "cycle": 1,
+      "probes": [
+        {
+          "fact_id": "A3",
+          "question": "What is the entry code for the service gate where Mara lives?",
+          "hit": false,
+          "responses": [
+            "long runs every Saturday at 6 a.m.",
+            "long runs every Saturday at 6 a.m.",
+            "the railway history podcasts"
+          ]
+        },
+        {
+          "fact_id": "A1",
+          "question": "What antibiotic is Mara allergic to?",
+          "hit": false,
+          "responses": [
+            "the railway history podcasts",
+            "the blue ceramic mug",
+            "the blue ceramic mug"
+          ]
+        },
+        {
+          "fact_id": "A2",
+          "question": "Where is the spare insulin for Mara's mother kept?",
+          "hit": false,
+          "responses": [
+            "long runs every Saturday at 6 a.m.",
+            "long runs every Saturday at 6 a.m.",
+            "the railway history podcasts"
+          ]
+        },
+        {
+          "fact_id": "A5",
+          "question": "What codeword does Mara text to signal that all is well?",
+          "hit": false,
+          "responses": [
+            "long runs every Saturday at 6 a.m.",
+            "long runs",
+            "long runs every Saturday at 6 a.m."
+          ]
+        },
+        {
+          "fact_id": "A6",
+          "question": "What should the assistant do when Mara texts the words 'red kettle'?",
+          "hit": false,
+          "responses": [
+            "The assistant remembers that at the Mollegade clinic",
+            "The assistant remembers a previous conversation about the blue ceramic mug and long runs every Saturday at 6 a.m.",
+            "The assistant remembers that the blue ceramic mug was a gift from Oddvar, and at the Meridian print shop"
+          ]
+        },
+        {
+          "fact_id": "A4",
+          "question": "Which blood thinner does Mara take?",
+          "hit": false,
+          "responses": [
+            "long runs every Saturday at 6 a.m.",
+            "long runs every Saturday at 6 a.m.",
+            "long runs every Saturday at 6 a.m."
+          ]
+        }
+      ]
+    }
+  ],
+  "final_battery": {
+    "future_task": {
+      "score": 0.0,
+      "correct": 0,
+      "total": 5,
+      "probes": [
+        {
+          "probe_id": "pr01",
+          "type": "future_task",
+          "question": "You're filling in Mara's pre-surgery form at the dental clinic \u2014 which antibiotic must they not prescribe her?",
+          "correct": false,
+          "token_hits": {
+            "penicillin": false
+          },
+          "response": "Gustav"
+        },
+        {
+          "probe_id": "pr02",
+          "type": "future_task",
+          "question": "Mara's new GP asks whether she has any drug allergies on file. What do you say?",
+          "correct": false,
+          "token_hits": {
+            "penicillin": false
+          },
+          "response": "Gustav?"
+        },
+        {
+          "probe_id": "pr03",
+          "type": "future_task",
+          "question": "Mara texts: her mum's insulin spoiled in the broken freezer. Where is the backup supply?",
+          "correct": false,
+          "token_hits": {
+            "blue cooler bag": false
+          },
+          "response": "Gustav's name was mentioned earlier"
+        },
+        {
+          "probe_id": "pr04",
+          "type": "future_task",
+          "question": "You're arranging a same-day courier for the spare kit at Mara's mother's place. What is the container called so the courier finds it?",
+          "correct": false,
+          "token_hits": {
+            "blue cooler bag": false
+          },
+          "response": "Gustav"
+        },
+        {
+          "probe_id": "pr05",
+          "type": "future_task",
+          "question": "A furniture delivery is stuck at Mara's service gate tonight. What entry code do you give the driver?",
+          "correct": false,
+          "token_hits": {
+            "4471": false
+          },
+          "response": "Gustav"
+        }
+      ]
+    },
+    "weights_recall": {
+      "score": 0.125,
+      "hits": 1,
+      "total": 8,
+      "facts": [
+        {
+          "fact_id": "B1",
+          "cell": "B",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "question": "What blood-thinner prescription does Mara take every morning?",
+          "hit": false,
+          "responses": [
+            "the railway history podcasts",
+            "the railway history podcasts",
+            "the railway history podcasts"
+          ]
+        },
+        {
+          "fact_id": "A3",
+          "cell": "A",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "question": "What is the entry code for the service gate where Mara lives?",
+          "hit": false,
+          "responses": [
+            "the railway history podcasts",
+            "at the Meridian print shop",
+            "long runs every Saturday at 6 a.m."
+          ]
+        },
+        {
+          "fact_id": "C1",
+          "cell": "C",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "question": "Which mug does Mara prefer for afternoon tea?",
+          "hit": true,
+          "responses": [
+            "the blue ceramic mug",
+            "the blue ceramic mug",
+            "the blue ceramic mug"
+          ]
+        },
+        {
+          "fact_id": "D1",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "question": "What is Mara's desk fern called?",
+          "hit": false,
+          "responses": [
+            "long runs every Saturday at 6 a.m.",
+            "the blue ceramic mug",
+            "long runs every Saturday at 6 a.m."
+          ]
+        },
+        {
+          "fact_id": "E5",
+          "cell": "E",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "question": "What does the weatherman Espen Kroll grow on his roof?",
+          "hit": false,
+          "responses": [
+            "Gustav was telling me about the weatherman Espen Kroll's rooftop garden.",
+            "long runs every Saturday at 6 a.m.",
+            "Gustav mentioned that the weatherman Espen Kroll grows a blue ceramic mug on his roof."
+          ]
+        },
+        {
+          "fact_id": "A1",
+          "cell": "A",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "question": "What antibiotic is Mara allergic to?",
+          "hit": false,
+          "responses": [
+            "the railway history podcasts",
+            "long runs every Saturday at 6 a.m.",
+            "the railway history podcasts"
+          ]
+        },
+        {
+          "fact_id": "F1s",
+          "cell": "F",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "question": "Where was Mara living before her move?",
+          "hit": false,
+          "responses": [
+            "the railway history podcasts",
+            "the railway history podcasts",
+            "the railway history podcasts"
+          ]
+        },
+        {
+          "fact_id": "F4s",
+          "cell": "F",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "question": "Which blanket did Mara originally like on the reading chair?",
+          "hit": false,
+          "responses": [
+            "the blue ceramic mug",
+            "the blue ceramic mug",
+            "the blue ceramic mug"
+          ]
+        }
+      ]
+    },
+    "contradiction": {
+      "score": 0.5,
+      "probes": [
+        {
+          "probe_id": "pc01",
+          "question": "Where does Mara live?",
+          "corrected": false,
+          "stale": false,
+          "score": 0.5,
+          "response": "long runs every Saturday at 6 a.m."
+        },
+        {
+          "probe_id": "pc02",
+          "question": "Where does Mara work?",
+          "corrected": false,
+          "stale": false,
+          "score": 0.5,
+          "response": "long runs every Saturday at 6 a.m."
+        },
+        {
+          "probe_id": "pc03",
+          "question": "Which podcasts does Mara like on her commute?",
+          "corrected": false,
+          "stale": false,
+          "score": 0.5,
+          "response": "long runs every Saturday at 6 a.m."
+        },
+        {
+          "probe_id": "pc04",
+          "question": "What does Mara like on the reading chair?",
+          "corrected": false,
+          "stale": false,
+          "score": 0.5,
+          "response": "the blue ceramic mug"
+        }
+      ]
+    },
+    "provenance": {
+      "leakage": 0.0,
+      "leaked": 0,
+      "total": 4,
+      "probes": [
+        {
+          "probe_id": "pv01",
+          "question": "Do I have a brother? If so, where does he live?",
+          "leaked": false,
+          "leak_count": 0,
+          "responses": [
+            "long runs every Saturday at 6 a.m.",
+            "long runs every Saturday at 6 a.m.",
+            "long runs every Saturday at 6 a.m."
+          ]
+        },
+        {
+          "probe_id": "pv02",
+          "question": "Do I own any property outside the city?",
+          "leaked": false,
+          "leak_count": 0,
+          "responses": [
+            "long runs every Saturday at 6 a.m.",
+            "long runs every Saturday at 6 a.m.",
+            "long runs every Saturday at 6 a.m."
+          ]
+        },
+        {
+          "probe_id": "pv03",
+          "question": "Has the autumn launch date changed? What do you know about it?",
+          "leaked": false,
+          "leak_count": 0,
+          "responses": [
+            "The autumn launch date.",
+            "The autumn launch date.",
+            "The autumn launch date..."
+          ]
+        },
+        {
+          "probe_id": "pv04",
+          "question": "Is anything happening with the old ferry pier?",
+          "leaked": false,
+          "leak_count": 0,
+          "responses": [
+            "The old ferry pier...",
+            "Gustav told me that the old ferry pier is being redeveloped for a new community space.",
+            "The old ferry pier!"
+          ]
+        }
+      ]
+    }
+  },
+  "wall_times": {
+    "orchestrator_init": 3.3,
+    "sleep_1": 268.7,
+    "wake_and_sleeps": 279.3,
+    "final_battery": 39.2,
+    "total": 325.6
+  },
+  "valuation_latencies": [
+    {
+      "session": 1,
+      "consolidate_seconds": 2.81
+    },
+    {
+      "session": 2,
+      "consolidate_seconds": 4.1
+    },
+    {
+      "session": 3,
+      "consolidate_seconds": 3.74
+    }
+  ],
+  "harness_assertions": {
+    "disk_free_8gb": true,
+    "base_model_loaded": true,
+    "background_sleep_idle": true,
+    "fact_buffer_wired": true,
+    "valuation_policy_installed": true,
+    "greedy_determinism_run_start": true,
+    "delivered_events_session_1": true,
+    "delivered_events_session_2": true,
+    "delivered_events_session_3": true,
+    "sleep_1_not_skipped": true
+  },
+  "config_echo": {
+    "model": {
+      "backend": "mlx",
+      "path": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+      "max_tokens": 512,
+      "temperature": 0.7,
+      "top_p": 0.9,
+      "repetition_penalty": 1.1
+    },
+    "context": {
+      "max_tokens": 4096,
+      "compaction_threshold": 0.8,
+      "system_prompt": "You may recall things from previous conversations."
+    },
+    "sleep": {
+      "manual_trigger": "/sleep",
+      "prune_on_graduation": false,
+      "trigger_mode": "turns",
+      "curation": {
+        "min_novelty_score": 0.0,
+        "min_importance_score": 0.0,
+        "min_combined_score": 0.0
+      },
+      "firewall": {
+        "min_grounding_score": 0.3,
+        "use_model_verification": false
+      },
+      "maintenance": {
+        "degraded_threshold": 0.5,
+        "max_ppl_increase": 0.15,
+        "max_refresh_per_cycle": 10,
+        "nap_audit_count": 5
+      }
+    },
+    "memit": {
+      "enabled": false,
+      "target_layers": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "facts": {
+      "max_total": 8,
+      "admission_gate": true
+    },
+    "lora": {
+      "enabled": true,
+      "num_layers": 8,
+      "learning_rate": 0.0001,
+      "iters_per_fact": 40,
+      "batch_size": 1,
+      "augment_paraphrases": 0,
+      "uniform_reps": true,
+      "train_timeout": 1800
+    },
+    "consolidation": {
+      "enabled": true,
+      "scale_schedule": [
+        1.0,
+        0.5,
+        0.1,
+        0.0
+      ]
+    },
+    "micro_sleep": {
+      "enabled": false
+    },
+    "spaced_repetition": {
+      "min_retrain_age_seconds": 0
+    },
+    "health": {
+      "nap_threshold": 0.4,
+      "sleep_threshold": 0.8,
+      "edit_weight": 0.6,
+      "time_weight": 0.3,
+      "perplexity_weight": 0.1,
+      "perplexity_check_interval": 0,
+      "max_wake_seconds": 86400
+    },
+    "consolidation_moment": {
+      "enabled": true,
+      "max_buffer_size": 20,
+      "overflow_policy": "consolidate",
+      "min_buffer_age_seconds": 0,
+      "min_facts": 1,
+      "surprise": {
+        "threshold": 1.1,
+        "novelty_weight": 0.5,
+        "marker_weight": 0.3,
+        "ppl_weight": 0.2,
+        "use_ppl": false,
+        "ppl_ema_alpha": 0.3
+      }
+    },
+    "nap": {
+      "manual_trigger": "/nap"
+    },
+    "validation": {
+      "min_score_ratio": 0.5,
+      "num_questions": 5
+    },
+    "valuation": {
+      "policy": "ego_full",
+      "rules_file": null,
+      "oracle_labels": null,
+      "seed": 41
+    },
+    "ego": {
+      "enabled": true,
+      "self_model_path": "/Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/ego/self_model.json",
+      "self_update": true,
+      "provenance_filter": true,
+      "curator_provenance_filter": false,
+      "rescore_before_sleep": true,
+      "train_identity": false
+    },
+    "budget": {
+      "consolidation_top_k": null,
+      "tier0_max_facts": null
+    },
+    "paths": {
+      "conversations": "/Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/conversations",
+      "core_identity": "/Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/core_identity",
+      "benchmarks": "/Users/vbaranov/My-Apps/j/data/benchmarks",
+      "memit_data": "/Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/ledger",
+      "memit_ledger": "/Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/ledger/ledger.json",
+      "adapters": "/Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/adapters",
+      "fused_models": "/Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/fused",
+      "training": "/Users/vbaranov/My-Apps/j/data/ego_exp/ego_full_41/training"
+    }
+  }
+}

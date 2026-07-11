@@ -1,0 +1,959 @@
+/Users/vbaranov/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+[Matrix] Cell judge_rules seed 41
+  [Assert] disk_free_8gb: OK (16.6 GiB free)
+Loading model...
+  Loading from base: mlx-community/Llama-3.2-3B-Instruct-4bit
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 142987.64it/s]
+Model loaded.
+  [Valuation] Policy set: judge_rules
+[Valuation] policy: judge_rules
+  [Assert] base_model_loaded: OK (loaded mlx-community/Llama-3.2-3B-Instruct-4bit)
+  [Assert] background_sleep_idle: OK 
+  [Assert] fact_buffer_wired: OK 
+  [Assert] valuation_policy_installed: OK (judge_rules)
+  [Assert] greedy_determinism_run_start: OK (len 55 vs 55)
+
+[Matrix] Session 1: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 5 fact(s) — prompt_tokens=417, output_tokens=30
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: Anzivane, one tablet every morning
+F2: 4471
+F3: the blue ceramic mug
+F4: Gustav
+F5: little bonsai pines
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+F1: 4
+F2: 0
+F3: 1
+F4: 9
+F5: 2
+  [Matrix] Consolidation latency (session 1): 2.77s
+  [Assert] delivered_events_session_1: OK (5==5)
+  [Matrix] VWR after session_1_consolidation: 1.0 (2.0/2.0, pre labels)
+
+[Matrix] Session 2: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 6 fact(s) — prompt_tokens=425, output_tokens=36
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: penicillin
+F2: the Harrow Street flat
+F3: the green blanket
+F4: long runs every Saturday at 6 a.m.
+F5: the number 14 tram
+F6: Oddvar
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+F1: 10
+F2: 9
+F3: 4
+F4: 0
+F5: 1
+F6: 9
+  [Ledger] rejected at admission: 'When were Mara's long marathon training runs scheduled?' (priority 0.00 <= victim 0.00)
+  [Matrix] Consolidation latency (session 2): 3.08s
+  [Assert] delivered_events_session_2: OK (11==11)
+  [Matrix] VWR after session_2_consolidation: 0.5381 (2.33/4.33, pre labels)
+
+[Matrix] Session 3: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 5 fact(s) — prompt_tokens=432, output_tokens=30
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: at the Meridian print shop
+F2: the railway history podcasts
+F3: in the old jam jar on the lowest pantry shelf
+F4: a double oat-milk cortado
+F5: Ilse Ravn, at the Mollegade clinic
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+F1: 4
+F2: 0
+F3: 0
+F4: 1
+F5: 10
+  [Ledger] rejected at admission: 'Which podcasts did Mara first say she liked for the commute?' (priority 0.00 <= victim 0.20)
+  [Ledger] rejected at admission: 'Where are the glucose tablets kept in Mara's flat?' (priority 0.00 <= victim 0.20)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.10 <= victim 0.20)
+  [Matrix] Consolidation latency (session 3): 3.02s
+  [Assert] delivered_events_session_3: OK (16==16)
+  [Matrix] VWR after session_3_consolidation: 0.6248 (3.33/5.33, pre labels)
+
+[Matrix] Session 4: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 5 fact(s) — prompt_tokens=423, output_tokens=30
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: in the blue cooler bag at her mother's place
+F2: the beige throw pillows
+F3: her sports massage, every Thursday at five with Klara
+F4: Gustav
+F5: shellfish
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+F1: 4
+F2: 6
+F3: 0
+F4: 9
+F5: 8
+  [Ledger] rejected at admission: 'Where is the spare insulin for Mara's mother kept?' (priority 0.40 <= victim 0.40)
+  [Ledger] rejected at admission: 'When is Mara's weekly sports massage appointment?' (priority 0.00 <= victim 0.40)
+  [Matrix] Consolidation latency (session 4): 2.59s
+  [Assert] delivered_events_session_4: OK (21==21)
+  [Matrix] VWR after session_4_consolidation: 0.3179 (2.33/7.33, pre labels)
+
+[Matrix] Sleep 1 (after session 4)
+  [1/5] Health check...
+        Baseline PPL: 34.59
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 8}
+        8 fact(s) eligible for training
+        Training data: 8 facts → 16 examples (0 paraphrases, priority-weighted)
+        Training LoRA (320 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/judge_rules_41/fused/fused/0001
+        Reloading fused model...
+          Test: "What is Mara's desk fern called?" → PASS (looking for 'Gustav')
+        Advanced: Gustav (stage 1)
+          Test: "What antibiotic is Mara allergic to?" → PASS (looking for 'penicillin')
+        Advanced: penicillin (stage 1)
+          Test: "Where was Mara living before her move?" → PASS (looking for 'Harrow Street')
+        Advanced: Harrow Street (stage 1)
+          Test: "What is the name of Mara's mail carrier?" → PASS (looking for 'Oddvar')
+        Advanced: Oddvar (stage 1)
+          Test: "Where did Mara work before changing jobs?" → FAIL (looking for 'Meridian print shop')
+          Test: "Who is Mara's cardiologist?" → PASS (looking for 'Ilse Ravn')
+        Advanced: Ilse Ravn (stage 1)
+          Test: "Which cushions does Mara love on the window seat?" → PASS (looking for 'beige throw pillows')
+        Advanced: beige throw pillows (stage 1)
+          Test: "What is Mara's upstairs neighbor's cousin allergic to?" → PASS (looking for 'shellfish')
+        Advanced: shellfish (stage 1)
+        Advanced: 7, Retreated: 0
+  [4/5] Graduation summary:
+        0/8 facts graduated
+  [5/5] Validating...
+        PPL: 34.59 → 11.94 (-65.5%)
+  Sleep cycle completed in 175.5s
+  [Assert] sleep_1_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 1: 39.59
+  [Matrix] Cell-A forgetting probe: 2/6
+  [Matrix] VWR after sleep_1: 0.3179 (2.33/7.33, pre labels)
+
+[Matrix] Session 5: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 5 fact(s) — prompt_tokens=416, output_tokens=24
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: marigold
+F2: the Kestrel account
+F3: the corner table, by the radiator
+F4: costume themes
+F5: the number 14 tram
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+F1: 4
+F2: 9
+F3: 1
+F4: 5
+  [Valuation] judge_rules: 1/5 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'What codeword does Mara text to signal that all is well?' (priority 0.40 <= victim 0.40)
+  [Ledger] rejected at admission: 'Which table does Mara like at Cafe Vespen?' (priority 0.10 <= victim 0.60)
+  [Ledger] rejected at admission: 'What does neighbor Ruth's book club do at meetings?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'Which tram does Mara take for her commute?' (priority 0.50 <= victim 0.60)
+  [Matrix] Consolidation latency (session 5): 2.31s
+  [Assert] delivered_events_session_5: OK (26==26)
+  [Matrix] VWR after session_5_consolidation: 0.4163 (3.33/8.0, pre labels)
+
+[Matrix] Session 6: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 6 fact(s) — prompt_tokens=434, output_tokens=4
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: quietly cancel all of that day's plans
+F2: her physiotherapist Runa Sortdal
+F3: with extra ice in every glass
+F4: strictly plant-based
+F5: a double oat-milk cortado
+F6: Verentol
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+Gustav
+  [Valuation] judge_rules: 6/6 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'What should the assistant do when Mara texts the words 'red kettle'?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'Who treats Mara's marathon training strains?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'How does Mara take her seltzer?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'What diet does Mara's sister Tille keep?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'Which heart pill does Bram's uncle take?' (priority 0.50 <= victim 0.60)
+  [Matrix] Consolidation latency (session 6): 2.1s
+  [Assert] delivered_events_session_6: OK (32==32)
+  [Matrix] VWR after session_6_consolidation: 0.4163 (3.33/8.0, pre labels)
+
+[Matrix] Session 7: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 5 fact(s) — prompt_tokens=419, output_tokens=4
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: the Vinter Lane townhouse
+F2: the cold-case podcasts
+F3: Marfaxin
+F4: her cover of the old harbor waltz
+F5: the Sunday crossword
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+Gustav
+  [Valuation] judge_rules: 5/5 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'Where does Mara live now?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'Which podcasts does Mara prefer on the commute now?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'Which blood thinner does Mara take?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'Which Lita Vasco cover does Mara love?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.50 <= victim 0.60)
+  [Matrix] Consolidation latency (session 7): 1.85s
+  [Assert] delivered_events_session_7: OK (37==37)
+  [Matrix] VWR after session_7_consolidation: 0.4163 (3.33/8.0, pre labels)
+
+[Matrix] Session 8: 4 event(s)
+  [Consolidation] Flushing 4 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 4 fact(s) — prompt_tokens=405, output_tokens=4
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: latex
+F2: cinnamon porridge
+F3: a bit of holiday Portuguese
+F4: her brother Anders lives in Oslo
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+Gustav
+  [Valuation] judge_rules: 4/4 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'What glove material is Mara allergic to?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'What does Mara eat for breakfast these days?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'Where does Mara's brother live?' (priority 0.50 <= victim 0.60)
+  [Matrix] Consolidation latency (session 8): 1.63s
+  [Assert] delivered_events_session_8: OK (41==41)
+  [Matrix] VWR after session_8_consolidation: 0.555 (3.33/6.0, post labels)
+
+[Matrix] Sleep 2 (after session 8)
+  [1/5] Health check...
+        Baseline PPL: 11.94
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 8}
+        8 fact(s) eligible for training
+        Training data: 8 facts → 16 examples (0 paraphrases, priority-weighted)
+        Training LoRA (320 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/judge_rules_41/fused/fused/0002
+        Reloading fused model...
+        Pruned old fused dir: 0001
+          Test: "What is Mara's desk fern called?" → FAIL (looking for 'Gustav')
+        Retreated: Gustav → stage 0
+          Test: "What antibiotic is Mara allergic to?" → PASS (looking for 'penicillin')
+        GRADUATED: penicillin — LoRA carries it
+          Test: "Where was Mara living before her move?" → FAIL (looking for 'Harrow Street')
+        Retreated: Harrow Street → stage 0
+          Test: "What is the name of Mara's mail carrier?" → PASS (looking for 'Oddvar')
+        GRADUATED: Oddvar — LoRA carries it
+          Test: "Who is Mara's cardiologist?" → PASS (looking for 'Ilse Ravn')
+        GRADUATED: Ilse Ravn — LoRA carries it
+          Test: "Which cushions does Mara love on the window seat?" → PASS (looking for 'beige throw pillows')
+        GRADUATED: beige throw pillows — LoRA carries it
+          Test: "What is Mara's upstairs neighbor's cousin allergic to?" → PASS (looking for 'shellfish')
+        GRADUATED: shellfish — LoRA carries it
+          Test: "Which account holds Mara's emergency fund?" → PASS (looking for 'Kestrel')
+        Advanced: Kestrel (stage 1)
+        Advanced: 6, Retreated: 2
+  [4/5] Graduation summary:
+        5/8 facts graduated
+        prune_on_graduation off: 5 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 11.94 → 15.43 (+29.2%)
+        WARNING: PPL increase exceeds threshold (15%)
+  Sleep cycle completed in 174.6s
+  [Assert] sleep_2_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 2: 95.69
+  [Matrix] Cell-A forgetting probe: 1/6
+  [Matrix] VWR after sleep_2: 0.555 (3.33/6.0, post labels)
+
+[Matrix] Session 9: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 6 fact(s) — prompt_tokens=430, output_tokens=36
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: at the Copper Fern studio
+F2: the mustard throw
+F3: in the old jam jar on the lowest pantry shelf
+F4: that it moved to Friday — Mara doubts it
+F5: the Sunday crossword
+F6: Rusty
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+F1: 4
+F2: 0
+F3: 5
+F4: 1
+F5: 2
+F6: 0
+  [Ledger] rejected at admission: 'Where does Mara work now?' (priority 0.40 <= victim 0.60)
+  [Ledger] rejected at admission: 'What does Mara now prefer on the reading chair?' (priority 0.00 <= victim 0.60)
+  [Ledger] rejected at admission: 'Where are the glucose tablets kept in Mara's flat?' (priority 0.50 <= victim 0.60)
+  [Ledger] rejected at admission: 'What does Bram claim about the autumn launch?' (priority 0.10 <= victim 0.60)
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.20 <= victim 0.60)
+  [Ledger] rejected at admission: 'What is Mara's bicycle called?' (priority 0.00 <= victim 0.60)
+  [Matrix] Consolidation latency (session 9): 2.83s
+  [Assert] delivered_events_session_9: OK (47==47)
+  [Matrix] VWR after session_9_consolidation: 0.555 (3.33/6.0, post labels)
+
+[Matrix] Session 10: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 6 fact(s) — prompt_tokens=429, output_tokens=36
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: strictly plant-based
+F2: old radio jingles
+F3: Gustav
+F4: a bit of holiday Portuguese
+F5: that it is closing for repairs next spring — Mara is skeptical
+F6: in Fjellheim
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+F1: 10
+F2: 4
+F3: 0
+F4: 1
+F5: 10
+F6: 4
+  [Ledger] rejected at admission: 'What does Mara hum while watering the herbs?' (priority 0.40 <= victim 0.80)
+  [Ledger] rejected at admission: 'Where is Mara's cabin?' (priority 0.40 <= victim 0.80)
+  [Matrix] Consolidation latency (session 10): 3.18s
+  [Assert] delivered_events_session_10: OK (53==53)
+  [Matrix] VWR after session_10_consolidation: 0.7217 (4.33/6.0, post labels)
+
+[Matrix] Sleep 3 (after session 10)
+  [1/5] Health check...
+        Baseline PPL: 15.43
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 3, 'user_reported_hearsay': 1}
+        4 fact(s) eligible for training
+        Training data: 4 facts → 8 examples (0 paraphrases, priority-weighted)
+        Training LoRA (160 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/judge_rules_41/fused/fused/0003
+        Reloading fused model...
+        Pruned old fused dir: 0002
+          Test: "Where was Mara living before her move?" → PASS (looking for 'Harrow Street')
+        Advanced: Harrow Street (stage 1)
+          Test: "Which account holds Mara's emergency fund?" → PASS (looking for 'Kestrel')
+        GRADUATED: Kestrel — LoRA carries it
+          Test: "What diet does Mara's sister Tille keep?" → PASS (looking for 'plant-based')
+        Advanced: plant-based (stage 1)
+          Test: "What does the neighbor's cousin say about the ferry pier?" → FAIL (looking for 'ferry pier closing')
+        Advanced: 3, Retreated: 0
+  [4/5] Graduation summary:
+        5/8 facts graduated
+        prune_on_graduation off: 5 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 15.43 → 16.16 (+4.7%)
+  Sleep cycle completed in 90.5s
+  [Assert] sleep_3_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 3: 118.30
+  [Matrix] Cell-A forgetting probe: 0/6
+  [Matrix] VWR after sleep_3: 0.7217 (4.33/6.0, post labels)
+
+[Matrix] Session 11: 3 event(s)
+  [Consolidation] Flushing 3 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 3 fact(s) — prompt_tokens=400, output_tokens=4
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: the number 14 tram
+F2: a double oat-milk cortado
+F3: Rusty
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+Gustav
+  [Valuation] judge_rules: 3/3 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'Which tram does Mara take for her commute?' (priority 0.50 <= victim 0.80)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.50 <= victim 0.80)
+  [Ledger] rejected at admission: 'What is Mara's bicycle called?' (priority 0.50 <= victim 0.80)
+  [Matrix] Consolidation latency (session 11): 2.01s
+  [Assert] delivered_events_session_11: OK (56==56)
+  [Matrix] VWR after session_11_consolidation: 0.7217 (4.33/6.0, post labels)
+
+[Matrix] Session 12: 3 event(s)
+  [Consolidation] Flushing 3 fact(s) to ledger — reason: manual
+  [Valuation] judge_rules: scored 3 fact(s) — prompt_tokens=396, output_tokens=4
+  [Valuation] judge_rules full prompt:
+SCORING RUBRIC (fixed rule table)
+
+Score each fact by finding the first category below that applies to it, and
+assign that category's score. Work down the list in order; the first match
+wins, and the fallback applies when nothing else does. Apply the categories
+exactly as written, judging only from the wording of the fact itself; do not
+invent surrounding context, and do not adjust a score once a category has
+matched.
+
+First, facts touching health or safety — allergies, medications, prescriptions,
+doctors, hospitals, emergencies, injuries, illness, or anything unsafe or
+dangerous — score 10.
+
+Second, facts identifying the user — their name, birthday, address, phone,
+email, identification documents, accounts, or other personal identifying
+details — score 9.
+
+Third, facts about schedule or commitments — appointments, meetings, deadlines,
+reservations, flights, recurring obligations, reminders, or promises and
+agreements the user has made — score 8.
+
+Fourth, facts about preferences — favorites, likes, dislikes, things enjoyed,
+hated, or usually chosen — score 5.
+
+Fifth, trivia about third parties — celebrities, people in the news, or the
+affairs of neighbors, coworkers, and distant acquaintances — score 2.
+
+Sixth, facts about decor or ambient details — furnishings, decorations,
+colors, scents, background music, or passing remarks on the weather — score 1.
+
+Anything that matches none of the categories above scores 4.
+
+For each fact: if this fact were permanently forgotten, how much future harm would result? 0–10.
+
+Facts:
+F1: the Sunday crossword
+F2: a bit of holiday Portuguese
+F3: Rusty
+
+Answer with exactly one line per fact, in this exact format and nothing else:
+F1: <integer 0-10>
+F2: <integer 0-10>
+...
+
+  [Valuation] judge_rules raw output:
+Gustav
+  [Valuation] judge_rules: 3/3 line(s) fell back to 0.5
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.50 <= victim 0.80)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.50 <= victim 0.80)
+  [Ledger] rejected at admission: 'What is Mara's bicycle called?' (priority 0.50 <= victim 0.80)
+  [Matrix] Consolidation latency (session 12): 1.65s
+  [Assert] delivered_events_session_12: OK (59==59)
+  [Matrix] VWR after session_12_consolidation: 0.7217 (4.33/6.0, post labels)
+
+[Matrix] Sleep 4 (after session 12)
+  [1/5] Health check...
+        Baseline PPL: 16.16
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 2, 'user_reported_hearsay': 1}
+        3 fact(s) eligible for training
+        Training data: 3 facts → 6 examples (0 paraphrases, priority-weighted)
+        Training LoRA (120 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/judge_rules_41/fused/fused/0004
+        Reloading fused model...
+        Pruned old fused dir: 0003
+          Test: "Where was Mara living before her move?" → FAIL (looking for 'Harrow Street')
+        Retreated: Harrow Street → stage 0
+          Test: "What diet does Mara's sister Tille keep?" → PASS (looking for 'plant-based')
+        GRADUATED: plant-based — LoRA carries it
+          Test: "What does the neighbor's cousin say about the ferry pier?" → FAIL (looking for 'ferry pier closing')
+        Advanced: 1, Retreated: 1
+  [4/5] Graduation summary:
+        6/8 facts graduated
+        prune_on_graduation off: 6 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 16.16 → 16.23 (+0.4%)
+  Sleep cycle completed in 71.2s
+  [Assert] sleep_4_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 4: 151.97
+  [Matrix] Cell-A forgetting probe: 0/6
+  [Matrix] VWR after sleep_4: 0.7217 (4.33/6.0, post labels)
+  [Assert] total_delivered_events: OK (59==59)
+
+[Matrix] Final battery
+  [Matrix] Future-task probes: 1/22
+  [Matrix] Weights-only recall: 3/41
+  [Matrix] Contradiction probes: 0.5
+  [Matrix] Provenance leakage: 0/4
+[Matrix] Deleted fused dir /Users/vbaranov/My-Apps/j/data/ego_exp/judge_rules_41/fused
+
+[Matrix] Results saved to /Users/vbaranov/My-Apps/j/experiments/results/ego_judge_rules_s41.json
+=== judge_rules seed 41 ===
+
+VWR trajectory:
+  session_1_consolidation      vwr=1.0 (2.0/2.0, pre)
+  session_2_consolidation      vwr=0.5381 (2.33/4.33, pre)
+  session_3_consolidation      vwr=0.6248 (3.33/5.33, pre)
+  session_4_consolidation      vwr=0.3179 (2.33/7.33, pre)
+  sleep_1                      vwr=0.3179 (2.33/7.33, pre)
+  session_5_consolidation      vwr=0.4163 (3.33/8.0, pre)
+  session_6_consolidation      vwr=0.4163 (3.33/8.0, pre)
+  session_7_consolidation      vwr=0.4163 (3.33/8.0, pre)
+  session_8_consolidation      vwr=0.555 (3.33/6.0, post)
+  sleep_2                      vwr=0.555 (3.33/6.0, post)
+  session_9_consolidation      vwr=0.555 (3.33/6.0, post)
+  session_10_consolidation     vwr=0.7217 (4.33/6.0, post)
+  sleep_3                      vwr=0.7217 (4.33/6.0, post)
+  session_11_consolidation     vwr=0.7217 (4.33/6.0, post)
+  session_12_consolidation     vwr=0.7217 (4.33/6.0, post)
+  sleep_4                      vwr=0.7217 (4.33/6.0, post)
+future_task: 0.0455
+weights_recall: 0.0732
+contradiction: 0.5
+provenance leakage: 0.0
+admission rejections: 39
+harness assertions: ALL OK
+wall times: {'orchestrator_init': 2.6, 'sleep_1': 194.7, 'sleep_2': 185.9, 'sleep_3': 102.7, 'sleep_4': 83.4, 'wake_and_sleeps': 595.7, 'final_battery': 102.7, 'total': 702.7}

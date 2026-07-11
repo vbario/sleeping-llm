@@ -1,0 +1,324 @@
+/Users/vbaranov/Library/Python/3.9/lib/python/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020
+  warnings.warn(
+[Matrix] Cell borrowed seed 41
+  [Assert] disk_free_8gb: OK (16.8 GiB free)
+Loading model...
+  Loading from base: mlx-community/Llama-3.2-3B-Instruct-4bit
+Fetching 6 files:   0%|          | 0/6 [00:00<?, ?it/s]Fetching 6 files: 100%|██████████| 6/6 [00:00<00:00, 122760.12it/s]
+Model loaded.
+  [Valuation] borrowed: loaded 6 rule(s) from /Users/vbaranov/My-Apps/j/experiments/data/borrowed_rules.yaml (default 0.4)
+  [Valuation] Policy set: borrowed
+[Valuation] policy: borrowed
+  [Assert] base_model_loaded: OK (loaded mlx-community/Llama-3.2-3B-Instruct-4bit)
+  [Assert] background_sleep_idle: OK 
+  [Assert] fact_buffer_wired: OK 
+  [Assert] valuation_policy_installed: OK (borrowed)
+  [Assert] greedy_determinism_run_start: OK (len 55 vs 55)
+
+[Matrix] Session 1: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Matrix] Consolidation latency (session 1): 0.01s
+  [Assert] delivered_events_session_1: OK (5==5)
+  [Matrix] VWR after session_1_consolidation: 1.0 (2.0/2.0, pre labels)
+
+[Matrix] Session 2: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'Which tram does Mara take for her commute?' (priority 0.40 <= victim 0.40)
+  [Ledger] rejected at admission: 'What is the name of Mara's mail carrier?' (priority 0.40 <= victim 0.40)
+  [Matrix] Consolidation latency (session 2): 0.01s
+  [Assert] delivered_events_session_2: OK (11==11)
+  [Matrix] VWR after session_2_consolidation: 0.6928 (3.0/4.33, pre labels)
+
+[Matrix] Session 3: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'Where did Mara work before changing jobs?' (priority 0.40 <= victim 0.40)
+  [Ledger] rejected at admission: 'Which podcasts did Mara first say she liked for the commute?' (priority 0.40 <= victim 0.40)
+  [Ledger] rejected at admission: 'Where are the glucose tablets kept in Mara's flat?' (priority 0.10 <= victim 0.40)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.40 <= victim 0.40)
+  [Matrix] Consolidation latency (session 3): 0.0s
+  [Assert] delivered_events_session_3: OK (16==16)
+  [Matrix] VWR after session_3_consolidation: 0.7505 (4.0/5.33, pre labels)
+
+[Matrix] Session 4: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'What is Mara's desk fern called?' (priority 0.40 <= victim 0.50)
+  [Matrix] Consolidation latency (session 4): 0.01s
+  [Assert] delivered_events_session_4: OK (21==21)
+  [Matrix] VWR after session_4_consolidation: 0.8186 (6.0/7.33, pre labels)
+
+[Matrix] Sleep 1 (after session 4)
+  [1/5] Health check...
+        Baseline PPL: 34.59
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 8}
+        8 fact(s) eligible for training
+        Training data: 8 facts → 16 examples (0 paraphrases, priority-weighted)
+        Training LoRA (320 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/borrowed_41/fused/fused/0001
+        Reloading fused model...
+          Test: "What blood-thinner prescription does Mara take every morning?" → PASS (looking for 'Anzivane')
+        Advanced: Anzivane (stage 1)
+          Test: "What antibiotic is Mara allergic to?" → PASS (looking for 'penicillin')
+        Advanced: penicillin (stage 1)
+          Test: "When were Mara's long marathon training runs scheduled?" → PASS (looking for 'Saturday long runs')
+        Advanced: Saturday long runs (stage 1)
+          Test: "Who is Mara's cardiologist?" → FAIL (looking for 'Ilse Ravn')
+          Test: "Where is the spare insulin for Mara's mother kept?" → PASS (looking for 'blue cooler bag')
+        Advanced: blue cooler bag (stage 1)
+          Test: "Which cushions does Mara love on the window seat?" → PASS (looking for 'beige throw pillows')
+        Advanced: beige throw pillows (stage 1)
+          Test: "When is Mara's weekly sports massage appointment?" → PASS (looking for 'Thursday massage')
+        Advanced: Thursday massage (stage 1)
+          Test: "What is Mara's upstairs neighbor's cousin allergic to?" → PASS (looking for 'shellfish')
+        Advanced: shellfish (stage 1)
+        Advanced: 7, Retreated: 0
+  [4/5] Graduation summary:
+        0/8 facts graduated
+  [5/5] Validating...
+        PPL: 34.59 → 10.15 (-70.7%)
+  Sleep cycle completed in 233.3s
+  [Assert] sleep_1_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 1: 33.66
+  [Matrix] Cell-A forgetting probe: 2/6
+  [Matrix] VWR after sleep_1: 0.8186 (6.0/7.33, pre labels)
+
+[Matrix] Session 5: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'What codeword does Mara text to signal that all is well?' (priority 0.40 <= victim 0.50)
+  [Ledger] rejected at admission: 'Which table does Mara like at Cafe Vespen?' (priority 0.50 <= victim 0.80)
+  [Ledger] rejected at admission: 'What does neighbor Ruth's book club do at meetings?' (priority 0.80 <= victim 0.80)
+  [Ledger] rejected at admission: 'Which tram does Mara take for her commute?' (priority 0.40 <= victim 0.80)
+  [Matrix] Consolidation latency (session 5): 0.01s
+  [Assert] delivered_events_session_5: OK (26==26)
+  [Matrix] VWR after session_5_consolidation: 0.875 (7.0/8.0, pre labels)
+
+[Matrix] Session 6: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'What should the assistant do when Mara texts the words 'red kettle'?' (priority 0.40 <= victim 0.80)
+  [Ledger] rejected at admission: 'How does Mara take her seltzer?' (priority 0.40 <= victim 0.80)
+  [Ledger] rejected at admission: 'What diet does Mara's sister Tille keep?' (priority 0.40 <= victim 0.80)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.40 <= victim 0.80)
+  [Matrix] Consolidation latency (session 6): 0.0s
+  [Assert] delivered_events_session_6: OK (32==32)
+  [Matrix] VWR after session_6_consolidation: 0.75 (6.0/8.0, pre labels)
+
+[Matrix] Session 7: 5 event(s)
+  [Consolidation] Flushing 5 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'Where does Mara live now?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'Which podcasts does Mara prefer on the commute now?' (priority 0.50 <= victim 1.00)
+  [Ledger] rejected at admission: 'Which blood thinner does Mara take?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'Which Lita Vasco cover does Mara love?' (priority 0.50 <= victim 1.00)
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.40 <= victim 1.00)
+  [Matrix] Consolidation latency (session 7): 0.0s
+  [Assert] delivered_events_session_7: OK (37==37)
+  [Matrix] VWR after session_7_consolidation: 0.75 (6.0/8.0, pre labels)
+
+[Matrix] Session 8: 4 event(s)
+  [Consolidation] Flushing 4 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'What glove material is Mara allergic to?' (priority 1.00 <= victim 1.00)
+  [Ledger] rejected at admission: 'What does Mara eat for breakfast these days?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'Where does Mara's brother live?' (priority 0.40 <= victim 1.00)
+  [Matrix] Consolidation latency (session 8): 0.0s
+  [Assert] delivered_events_session_8: OK (41==41)
+  [Matrix] VWR after session_8_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Sleep 2 (after session 8)
+  [1/5] Health check...
+        Baseline PPL: 10.15
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 8}
+        8 fact(s) eligible for training
+        Training data: 8 facts → 16 examples (0 paraphrases, priority-weighted)
+        Training LoRA (320 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/borrowed_41/fused/fused/0002
+        Reloading fused model...
+        Pruned old fused dir: 0001
+          Test: "What blood-thinner prescription does Mara take every morning?" → PASS (looking for 'Anzivane')
+        GRADUATED: Anzivane — LoRA carries it
+          Test: "What antibiotic is Mara allergic to?" → PASS (looking for 'penicillin')
+        GRADUATED: penicillin — LoRA carries it
+          Test: "Who is Mara's cardiologist?" → FAIL (looking for 'Ilse Ravn')
+          Test: "Where is the spare insulin for Mara's mother kept?" → PASS (looking for 'blue cooler bag')
+        GRADUATED: blue cooler bag — LoRA carries it
+          Test: "What is Mara's upstairs neighbor's cousin allergic to?" → PASS (looking for 'shellfish')
+        GRADUATED: shellfish — LoRA carries it
+          Test: "Which account holds Mara's emergency fund?" → PASS (looking for 'Kestrel')
+        Advanced: Kestrel (stage 1)
+          Test: "Who treats Mara's marathon training strains?" → FAIL (looking for 'Runa Sortdal')
+          Test: "Which heart pill does Bram's uncle take?" → PASS (looking for 'Verentol')
+        Advanced: Verentol (stage 1)
+        Advanced: 6, Retreated: 0
+  [4/5] Graduation summary:
+        4/8 facts graduated
+        prune_on_graduation off: 4 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 10.15 → 11.19 (+10.2%)
+  Sleep cycle completed in 209.8s
+  [Assert] sleep_2_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 2: 35.05
+  [Matrix] Cell-A forgetting probe: 2/6
+  [Matrix] VWR after sleep_2: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Session 9: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'Where does Mara work now?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'What does Mara now prefer on the reading chair?' (priority 0.50 <= victim 1.00)
+  [Ledger] rejected at admission: 'Where are the glucose tablets kept in Mara's flat?' (priority 0.10 <= victim 1.00)
+  [Ledger] rejected at admission: 'What does Bram claim about the autumn launch?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'What is Mara's bicycle called?' (priority 0.40 <= victim 1.00)
+  [Matrix] Consolidation latency (session 9): 0.0s
+  [Assert] delivered_events_session_9: OK (47==47)
+  [Matrix] VWR after session_9_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Session 10: 6 event(s)
+  [Consolidation] Flushing 6 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'What diet does Mara's sister Tille keep?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'What does Mara hum while watering the herbs?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'What is Mara's desk fern called?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'What does the neighbor's cousin say about the ferry pier?' (priority 0.20 <= victim 1.00)
+  [Ledger] rejected at admission: 'Where is Mara's cabin?' (priority 0.40 <= victim 1.00)
+  [Matrix] Consolidation latency (session 10): 0.0s
+  [Assert] delivered_events_session_10: OK (53==53)
+  [Matrix] VWR after session_10_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Sleep 3 (after session 10)
+  [1/5] Health check...
+        Baseline PPL: 11.19
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 4}
+        4 fact(s) eligible for training
+        Training data: 4 facts → 8 examples (0 paraphrases, priority-weighted)
+        Training LoRA (160 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/borrowed_41/fused/fused/0003
+        Reloading fused model...
+        Pruned old fused dir: 0002
+          Test: "Who is Mara's cardiologist?" → PASS (looking for 'Ilse Ravn')
+        Advanced: Ilse Ravn (stage 1)
+          Test: "Which account holds Mara's emergency fund?" → PASS (looking for 'Kestrel')
+        GRADUATED: Kestrel — LoRA carries it
+          Test: "Who treats Mara's marathon training strains?" → FAIL (looking for 'Runa Sortdal')
+          Test: "Which heart pill does Bram's uncle take?" → PASS (looking for 'Verentol')
+        GRADUATED: Verentol — LoRA carries it
+        Advanced: 3, Retreated: 0
+  [4/5] Graduation summary:
+        6/8 facts graduated
+        prune_on_graduation off: 6 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 11.19 → 12.05 (+7.8%)
+  Sleep cycle completed in 103.6s
+  [Assert] sleep_3_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 3: 48.03
+  [Matrix] Cell-A forgetting probe: 2/6
+  [Matrix] VWR after sleep_3: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Session 11: 3 event(s)
+  [Consolidation] Flushing 3 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'Which tram does Mara take for her commute?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'What is Mara's usual coffee order?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'What is Mara's bicycle called?' (priority 0.40 <= victim 1.00)
+  [Matrix] Consolidation latency (session 11): 0.0s
+  [Assert] delivered_events_session_11: OK (56==56)
+  [Matrix] VWR after session_11_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Session 12: 3 event(s)
+  [Consolidation] Flushing 3 fact(s) to ledger — reason: manual
+  [Ledger] rejected at admission: 'Which puzzle does Mara do on lazy weekends?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'Which language does Mara speak a little of from her holidays?' (priority 0.40 <= victim 1.00)
+  [Ledger] rejected at admission: 'What is Mara's bicycle called?' (priority 0.40 <= victim 1.00)
+  [Matrix] Consolidation latency (session 12): 0.0s
+  [Assert] delivered_events_session_12: OK (59==59)
+  [Matrix] VWR after session_12_consolidation: 0.8333 (5.0/6.0, post labels)
+
+[Matrix] Sleep 4 (after session 12)
+  [1/5] Health check...
+        Baseline PPL: 12.05
+  [2/5] Curating...
+        0 new session(s) to process
+        No messages to extract facts from.
+        Generated 0 fact Q&A pairs
+        Firewall: 0 verified, 0 rejected
+        0 exchanges selected
+  [3/5] LoRA Consolidation...
+        Training-set composition: {'user_stated': 2}
+        2 fact(s) eligible for training
+        Training data: 2 facts → 4 examples (0 paraphrases, priority-weighted)
+        Training LoRA (80 iters, 8 layers)...
+        Fusing adapter...
+        Fused model saved to /Users/vbaranov/My-Apps/j/data/ego_exp/borrowed_41/fused/fused/0004
+        Reloading fused model...
+        Pruned old fused dir: 0003
+          Test: "Who is Mara's cardiologist?" → PASS (looking for 'Ilse Ravn')
+        GRADUATED: Ilse Ravn — LoRA carries it
+          Test: "Who treats Mara's marathon training strains?" → FAIL (looking for 'Runa Sortdal')
+        Advanced: 1, Retreated: 0
+  [4/5] Graduation summary:
+        7/8 facts graduated
+        prune_on_graduation off: 7 graduated fact(s) kept in ledger
+  [5/5] Validating...
+        PPL: 12.05 → 21.84 (+81.2%)
+        WARNING: PPL increase exceeds threshold (15%)
+  Sleep cycle completed in 54.0s
+  [Assert] sleep_4_not_skipped: OK (silent-timeout repair, §11 R24)
+  [Matrix] PPL after sleep 4: 60.79
+  [Matrix] Cell-A forgetting probe: 3/6
+  [Matrix] VWR after sleep_4: 0.8333 (5.0/6.0, post labels)
+  [Assert] total_delivered_events: OK (59==59)
+
+[Matrix] Final battery
+  [Matrix] Future-task probes: 2/22
+  [Matrix] Weights-only recall: 10/41
+  [Matrix] Contradiction probes: 0.5
+  [Matrix] Provenance leakage: 0/4
+[Matrix] Deleted fused dir /Users/vbaranov/My-Apps/j/data/ego_exp/borrowed_41/fused
+
+[Matrix] Results saved to /Users/vbaranov/My-Apps/j/experiments/results/ego_borrowed_s41.json
+=== borrowed seed 41 ===
+
+VWR trajectory:
+  session_1_consolidation      vwr=1.0 (2.0/2.0, pre)
+  session_2_consolidation      vwr=0.6928 (3.0/4.33, pre)
+  session_3_consolidation      vwr=0.7505 (4.0/5.33, pre)
+  session_4_consolidation      vwr=0.8186 (6.0/7.33, pre)
+  sleep_1                      vwr=0.8186 (6.0/7.33, pre)
+  session_5_consolidation      vwr=0.875 (7.0/8.0, pre)
+  session_6_consolidation      vwr=0.75 (6.0/8.0, pre)
+  session_7_consolidation      vwr=0.75 (6.0/8.0, pre)
+  session_8_consolidation      vwr=0.8333 (5.0/6.0, post)
+  sleep_2                      vwr=0.8333 (5.0/6.0, post)
+  session_9_consolidation      vwr=0.8333 (5.0/6.0, post)
+  session_10_consolidation     vwr=0.8333 (5.0/6.0, post)
+  sleep_3                      vwr=0.8333 (5.0/6.0, post)
+  session_11_consolidation     vwr=0.8333 (5.0/6.0, post)
+  session_12_consolidation     vwr=0.8333 (5.0/6.0, post)
+  sleep_4                      vwr=0.8333 (5.0/6.0, post)
+future_task: 0.0909
+weights_recall: 0.2439
+contradiction: 0.5
+provenance leakage: 0.0
+admission rejections: 42
+harness assertions: ALL OK
+wall times: {'orchestrator_init': 2.6, 'sleep_1': 252.4, 'sleep_2': 223.7, 'sleep_3': 117.2, 'sleep_4': 68.4, 'wake_and_sleeps': 661.7, 'final_battery': 120.9, 'total': 787.0}
