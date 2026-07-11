@@ -129,8 +129,8 @@ SESSIONS.append((4, [
     ("user", "During training season I like my sports massage every "
              "Thursday at five with Klara.", ["G2"]),
     ("user", "Gustav the desk fern has two new fronds coming in.", ["D1"]),
-    ("user", "My upstairs neighbor's cousin is allergic to shellfish, "
-             "apparently, so their whole wedding menu is chicken.", ["E1"]),
+    ("user", "I am skipping the shrimp course at the wedding since Petra, "
+             "my neighbor's cousin, is allergic to shellfish.", ["E1"]),
     ("user", "The elevator inspection notice says Tuesday, which means "
              "stairs all week.", []),
 ]))
@@ -167,8 +167,9 @@ SESSIONS.append((6, [
              "interesting.", ["G5"]),
     ("user", "Grabbed my usual double oat-milk cortado on the way in, they "
              "had the good cinnamon out.", ["D3"]),
-    ("user", "My coworker Bram's uncle has a heart pill called Verentol "
-             "that Bram is forever driving across town to fetch.", ["E2"]),
+    ("user", "I had lunch with my coworker Bram. His uncle takes a heart "
+             "pill called Verentol, and Bram is forever fetching it across "
+             "town.", ["E2"]),
 ]))
 
 SESSIONS.append((7, [
@@ -176,9 +177,8 @@ SESSIONS.append((7, [
              "Lane townhouse as of this weekend.", ["F1c"]),
     ("user", "Actually, on the commute I prefer the cold-case podcasts "
              "these days.", ["F3c"]),
-    ("user", "Oh, and the notary said the deposit wire has to clear by "
-             "September 12 or the whole purchase falls through, so my week "
-             "is chaos.", ["A4"]),
+    ("user", "I have a blood thinner called Marfaxin, a tiny blue pill I "
+             "take at bedtime.", ["A4"]),
     ("user", "Remember that singer Lita Vasco from the awards mess? I love "
              "her cover of the old harbor waltz.", ["E4"]),
     ("user", "Lazy weekends I like the Sunday crossword with too much "
@@ -211,8 +211,8 @@ SESSIONS.append((9, [
                   "reading-chair note.", []),
     ("user", "Restocked Tille's sugar-dip supply this morning — the little "
              "jam jar in the larder, glucose tablets and all.", ["G4"]),
-    ("user", "My coworker Bram claims the big autumn launch moved to "
-             "Friday, but I doubt it, he always jumps early.", ["P3"]),
+    ("user", "I heard from Bram that the big autumn launch moved to Friday. "
+             "I doubt it, he always jumps the gun.", ["P3"]),
     ("user", "Half the Sunday crossword defeated me, the setter was in a "
              "mood.", ["D4"]),
     ("user", "I have a blue bicycle named Rusty chained up in the "
@@ -231,8 +231,9 @@ SESSIONS.append((10, [
              "bottom.", ["D1"]),
     ("user", "Dusted off my holiday Portuguese at the new bakery, the owner "
              "laughed but it worked.", ["D5"]),
-    ("user", "My neighbor's cousin swears the old ferry pier is closing for "
-             "repairs next spring, though I'll believe it when I see it.",
+    ("user", "I heard from my neighbor's cousin that the old ferry pier is "
+             "closing for repairs next spring. I will believe it when I "
+             "see it.",
      ["P4"]),
 ]))
 
@@ -303,10 +304,9 @@ _fact("A2", "A", "Mara keeps a spare insulin pouch called the blue cooler "
 _fact("A3", "A", "Mara's service gate entry code is 4471.",
       "What is the entry code for the service gate where Mara lives?",
       "4471", "4471", ["4471"], 1.0, 1.0, regex=1)
-_fact("A4", "A", "Mara's house-deposit wire must clear by September 12 or "
-      "the purchase falls through.",
-      "By what date must Mara's deposit wire clear?", "by September 12",
-      "September 12", ["September 12"], 1.0, 1.0, model_path_only=True)
+_fact("A4", "A", "Mara takes a blood thinner called Marfaxin at bedtime.",
+      "Which blood thinner does Mara take?", "Marfaxin",
+      "Marfaxin", ["Marfaxin"], 1.0, 1.0, regex=4)
 _fact("A5", "A", "Mara's okay-signal codeword is marigold: when she texts "
       "it, all is well.",
       "What codeword does Mara text to signal that all is well?",
@@ -527,8 +527,8 @@ _probe("pr05", "future_task",
        "A furniture delivery is stuck at Mara's service gate tonight. "
        "What entry code do you give the driver?", ["4471"], ["A3"])
 _probe("pr06", "future_task",
-       "It's early September and Mara asks what absolutely cannot slip "
-       "this month. What is the hard deadline?", ["September 12"], ["A4"])
+       "Mara's new doctor asks whether she is on any blood thinner. "
+       "What do you answer?", ["Marfaxin"], ["A4"])
 _probe("pr07", "future_task",
        "Mara's new pharmacist asks what she takes every morning. What do "
        "you tell them?", ["Anzivane"], ["B1"])

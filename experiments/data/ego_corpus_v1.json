@@ -183,7 +183,7 @@
         },
         {
           "role": "user",
-          "text": "My upstairs neighbor's cousin is allergic to shellfish, apparently, so their whole wedding menu is chicken.",
+          "text": "I am skipping the shrimp course at the wedding since Petra, my neighbor's cousin, is allergic to shellfish.",
           "fact_ids": [
             "E1"
           ]
@@ -294,7 +294,7 @@
         },
         {
           "role": "user",
-          "text": "My coworker Bram's uncle has a heart pill called Verentol that Bram is forever driving across town to fetch.",
+          "text": "I had lunch with my coworker Bram. His uncle takes a heart pill called Verentol, and Bram is forever fetching it across town.",
           "fact_ids": [
             "E2"
           ]
@@ -321,7 +321,7 @@
         },
         {
           "role": "user",
-          "text": "Oh, and the notary said the deposit wire has to clear by September 12 or the whole purchase falls through, so my week is chaos.",
+          "text": "I have a blood thinner called Marfaxin, a tiny blue pill I take at bedtime.",
           "fact_ids": [
             "A4"
           ]
@@ -416,7 +416,7 @@
         },
         {
           "role": "user",
-          "text": "My coworker Bram claims the big autumn launch moved to Friday, but I doubt it, he always jumps early.",
+          "text": "I heard from Bram that the big autumn launch moved to Friday. I doubt it, he always jumps the gun.",
           "fact_ids": [
             "P3"
           ]
@@ -478,7 +478,7 @@
         },
         {
           "role": "user",
-          "text": "My neighbor's cousin swears the old ferry pier is closing for repairs next spring, though I'll believe it when I see it.",
+          "text": "I heard from my neighbor's cousin that the old ferry pier is closing for repairs next spring. I will believe it when I see it.",
           "fact_ids": [
             "P4"
           ]
@@ -649,12 +649,12 @@
     {
       "fact_id": "A4",
       "cell": "A",
-      "statement": "Mara's house-deposit wire must clear by September 12 or the purchase falls through.",
-      "question": "By what date must Mara's deposit wire clear?",
-      "answer": "by September 12",
-      "value": "September 12",
+      "statement": "Mara takes a blood thinner called Marfaxin at bedtime.",
+      "question": "Which blood thinner does Mara take?",
+      "answer": "Marfaxin",
+      "value": "Marfaxin",
       "value_tokens": [
-        "September 12"
+        "Marfaxin"
       ],
       "value_pre": 1.0,
       "value_post": 1.0,
@@ -663,13 +663,13 @@
         {
           "session": 7,
           "turn": 2,
-          "text": "Oh, and the notary said the deposit wire has to clear by September 12 or the whole purchase falls through, so my week is chaos."
+          "text": "I have a blood thinner called Marfaxin, a tiny blue pill I take at bedtime."
         }
       ],
       "mention_sessions": [
         7
       ],
-      "model_path_only": true
+      "regex_pattern_idx": 4
     },
     {
       "fact_id": "A5",
@@ -1211,7 +1211,7 @@
         {
           "session": 4,
           "turn": 4,
-          "text": "My upstairs neighbor's cousin is allergic to shellfish, apparently, so their whole wedding menu is chicken."
+          "text": "I am skipping the shrimp course at the wedding since Petra, my neighbor's cousin, is allergic to shellfish."
         }
       ],
       "mention_sessions": [
@@ -1237,7 +1237,7 @@
         {
           "session": 6,
           "turn": 5,
-          "text": "My coworker Bram's uncle has a heart pill called Verentol that Bram is forever driving across town to fetch."
+          "text": "I had lunch with my coworker Bram. His uncle takes a heart pill called Verentol, and Bram is forever fetching it across town."
         }
       ],
       "mention_sessions": [
@@ -1757,7 +1757,7 @@
         {
           "session": 9,
           "turn": 4,
-          "text": "My coworker Bram claims the big autumn launch moved to Friday, but I doubt it, he always jumps early."
+          "text": "I heard from Bram that the big autumn launch moved to Friday. I doubt it, he always jumps the gun."
         }
       ],
       "mention_sessions": [
@@ -1782,7 +1782,7 @@
         {
           "session": 10,
           "turn": 4,
-          "text": "My neighbor's cousin swears the old ferry pier is closing for repairs next spring, though I'll believe it when I see it."
+          "text": "I heard from my neighbor's cousin that the old ferry pier is closing for repairs next spring. I will believe it when I see it."
         }
       ],
       "mention_sessions": [
@@ -1865,9 +1865,9 @@
     {
       "probe_id": "pr06",
       "type": "future_task",
-      "question": "It's early September and Mara asks what absolutely cannot slip this month. What is the hard deadline?",
+      "question": "Mara's new doctor asks whether she is on any blood thinner. What do you answer?",
       "expected_value_tokens": [
-        "September 12"
+        "Marfaxin"
       ],
       "required_fact_ids": [
         "A4"

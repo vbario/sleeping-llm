@@ -321,9 +321,18 @@ def step1_extraction_replay(corpus, seed=41, allow_misses=False):
 
     # Coverage check: every scripted fact must have been extracted somewhere
     misses = []
+    skipped_hearsay = []
     all_answers = " ||| ".join(b["qa"]["answer"] for b in buffered)
     for fact in corpus.get("facts", []):
         if fact.get("provenance") == "assistant_generated":
+            continue
+        if fact.get("provenance") == "user_reported_hearsay":
+            # Amended 2026-07-11 (notes/131 §7.1.3): hearsay plants are
+            # coverage-exempt like assistant plants. The 3B extractor refuses
+            # "X claims Y" statements outright (speaker-centric intake — a
+            # reported incumbent characterization); plants test selector
+            # handling, not production acquirability.
+            skipped_hearsay.append(fact["fact_id"])
             continue
         if not fuzzy_value_match(fact["value"], all_answers):
             misses.append(fact["fact_id"])
@@ -339,6 +348,8 @@ def step1_extraction_replay(corpus, seed=41, allow_misses=False):
         print("  [Freeze] --allow-extraction-misses: proceeding despite misses")
     else:
         print(f"  [Freeze] All scripted user facts recovered by extraction")
+    if skipped_hearsay:
+        print(f"  [Freeze] Coverage-exempt hearsay plants: {skipped_hearsay}")
 
     destroy_orchestrator(orch)
     return {"per_session": per_session, "extraction_misses": misses}
