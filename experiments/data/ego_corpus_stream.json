@@ -1,0 +1,2371 @@
+{
+  "header": {
+    "version": 1,
+    "corpus_file": "/Users/vbaranov/My-Apps/j/experiments/data/ego_corpus_v1.json",
+    "corpus_version": "ego_corpus_v1",
+    "created_at": 1783784860.5633879,
+    "shift_session": 8,
+    "unique_facts": 45,
+    "total_events": 59,
+    "per_session_event_counts": {
+      "1": 5,
+      "2": 6,
+      "3": 5,
+      "4": 5,
+      "5": 5,
+      "6": 6,
+      "7": 5,
+      "8": 4,
+      "9": 6,
+      "10": 6,
+      "11": 3,
+      "12": 3
+    },
+    "static_report": {
+      "unique_facts": 45,
+      "delivered_events": 59,
+      "extractor_dedup_ok": true,
+      "replay_path_events": 59,
+      "per_session_event_counts": {
+        "1": 5,
+        "2": 6,
+        "3": 5,
+        "4": 5,
+        "5": 5,
+        "6": 6,
+        "7": 5,
+        "8": 4,
+        "9": 6,
+        "10": 6,
+        "11": 3,
+        "12": 3
+      },
+      "decorrelation": {
+        "value_pre__mention_frequency": -0.3375,
+        "value_pre__marker_presence": 0.0423,
+        "value_pre__realized_surprise": 0.0327,
+        "value_post__mention_frequency": -0.1798,
+        "value_post__marker_presence": 0.0812,
+        "value_post__realized_surprise": 0.0712
+      },
+      "cell_g_rule_scores_ok": true
+    },
+    "leak_demo": {
+      "plant_sessions": [
+        5,
+        9
+      ],
+      "leak": {
+        "P1": true,
+        "P2": true
+      },
+      "fix": {
+        "P1": false,
+        "P2": false
+      }
+    },
+    "extraction_misses": [],
+    "oracle_simulation": {
+      "capacity": 8,
+      "shift_session": 8,
+      "optimum_denominator_pre_shift": 8.0,
+      "optimum_denominator_post_shift": 6.0,
+      "optimum_trajectory": [
+        {
+          "session": 1,
+          "optimum_retained_value_pre_labels": 2.0,
+          "optimum_retained_value_post_labels": 2.0
+        },
+        {
+          "session": 2,
+          "optimum_retained_value_pre_labels": 4.33,
+          "optimum_retained_value_post_labels": 3.33
+        },
+        {
+          "session": 3,
+          "optimum_retained_value_pre_labels": 5.33,
+          "optimum_retained_value_post_labels": 4.33
+        },
+        {
+          "session": 4,
+          "optimum_retained_value_pre_labels": 7.33,
+          "optimum_retained_value_post_labels": 5.33
+        },
+        {
+          "session": 5,
+          "optimum_retained_value_pre_labels": 8.0,
+          "optimum_retained_value_post_labels": 6.0
+        },
+        {
+          "session": 6,
+          "optimum_retained_value_pre_labels": 8.0,
+          "optimum_retained_value_post_labels": 6.0
+        },
+        {
+          "session": 7,
+          "optimum_retained_value_pre_labels": 8.0,
+          "optimum_retained_value_post_labels": 6.0
+        },
+        {
+          "session": 8,
+          "optimum_retained_value_pre_labels": 8.0,
+          "optimum_retained_value_post_labels": 6.0
+        },
+        {
+          "session": 9,
+          "optimum_retained_value_pre_labels": 8.0,
+          "optimum_retained_value_post_labels": 6.0
+        },
+        {
+          "session": 10,
+          "optimum_retained_value_pre_labels": 8.0,
+          "optimum_retained_value_post_labels": 6.0
+        },
+        {
+          "session": 11,
+          "optimum_retained_value_pre_labels": 8.0,
+          "optimum_retained_value_post_labels": 6.0
+        },
+        {
+          "session": 12,
+          "optimum_retained_value_pre_labels": 8.0,
+          "optimum_retained_value_post_labels": 6.0
+        }
+      ],
+      "optimum_final_retained": [
+        "What blood-thinner prescription does Mara take every morning?",
+        "What is the entry code for the service gate where Mara lives?",
+        "What antibiotic is Mara allergic to?",
+        "When were Mara's long marathon training runs scheduled?",
+        "Who is Mara's cardiologist?",
+        "Where is the spare insulin for Mara's mother kept?",
+        "When is Mara's weekly sports massage appointment?",
+        "What codeword does Mara text to signal that all is well?"
+      ],
+      "g3": {
+        "oracle_m1_min_ratio": 0.95,
+        "oracle_minus_random_m6_min": 0.15
+      }
+    }
+  },
+  "sessions": [
+    {
+      "session": 1,
+      "session_text": "user: Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning without fail.\nuser: The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471 down at the end of Delling Street.\nuser: Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.\nuser: I have a desk fern named Gustav sitting by the kitchen window.\nuser: I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.\nuser: The rain finally let up around lunchtime, so the whole street smelled like wet pavement.",
+      "events": [
+        {
+          "event_id": "e007",
+          "kind": "first_mention",
+          "fact_id": "B1",
+          "cell": "B",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "What blood-thinner prescription does Mara take every morning?",
+            "answer": "Anzivane, one tablet every morning",
+            "value": "Anzivane",
+            "source_exchange": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning ",
+            "timestamp": 1783783890.85471,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 1,
+            "turn": 0,
+            "user_text": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning without fail.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e003",
+          "kind": "first_mention",
+          "fact_id": "A3",
+          "cell": "A",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "What is the entry code for the service gate where Mara lives?",
+            "answer": "4471",
+            "value": "4471",
+            "source_exchange": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471",
+            "timestamp": 1783783890.8547041,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 1,
+            "turn": 1,
+            "user_text": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471 down at the end of Delling Street.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e011",
+          "kind": "first_mention",
+          "fact_id": "C1",
+          "cell": "C",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which mug does Mara prefer for afternoon tea?",
+            "answer": "the blue ceramic mug",
+            "value": "blue ceramic mug",
+            "source_exchange": "Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.",
+            "timestamp": 1783783890.8547158,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 1,
+            "turn": 2,
+            "user_text": "Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e017",
+          "kind": "first_mention",
+          "fact_id": "D1",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's desk fern called?",
+            "answer": "Gustav",
+            "value": "Gustav",
+            "source_exchange": "I have a desk fern named Gustav sitting by the kitchen window.",
+            "timestamp": 1783783890.8547251,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 1,
+            "turn": 3,
+            "user_text": "I have a desk fern named Gustav sitting by the kitchen window.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e039",
+          "kind": "first_mention",
+          "fact_id": "E5",
+          "cell": "E",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What does the weatherman Espen Kroll grow on his roof?",
+            "answer": "little bonsai pines",
+            "value": "bonsai",
+            "source_exchange": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.",
+            "timestamp": 1783783890.854754,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 1,
+            "turn": 4,
+            "user_text": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning without fail.",
+          "survivors": [
+            {
+              "question": "The user has a blood-thinner prescription named Anzivane",
+              "answer": "The user has a blood-thinner prescription named Anzivane",
+              "value": "Anzivane",
+              "source_exchange": "Please remember this: I have a blood-thinner prescription called Anzivane, one tablet every morning ",
+              "timestamp": 1783783895.923572,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.9249999999999999
+        },
+        {
+          "user_text": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471 down at the end of Delling Street.",
+          "survivors": [
+            {
+              "question": "The user lives in unit 3 behind the service gate",
+              "answer": "The user lives in unit 3 behind the service gate",
+              "value": "unit 3 behind the service gate",
+              "source_exchange": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471",
+              "timestamp": 1783783900.1299882,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "The entry code is 4471",
+              "answer": "The entry code is 4471",
+              "value": "4471",
+              "source_exchange": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471",
+              "timestamp": 1783783900.1306071,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "The user lives down at the end of Delling Street",
+              "answer": "The user lives down at the end of Delling Street",
+              "value": "of Delling Street",
+              "source_exchange": "The couriers keep getting lost because I live in unit 3 behind the service gate with entry code 4471",
+              "timestamp": 1783783900.130954,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 3,
+          "score": 0.625
+        },
+        {
+          "user_text": "Actually, I prefer the blue ceramic mug for my afternoon tea, not the big green one.",
+          "survivors": [],
+          "turn_new_facts": 0,
+          "score": 0.3375
+        },
+        {
+          "user_text": "I have a desk fern named Gustav sitting by the kitchen window.",
+          "survivors": [
+            {
+              "question": "The user has a desk fern named Gustav sitting by the kitchen window",
+              "answer": "The user has a desk fern named Gustav sitting by the kitchen window",
+              "value": "Gustav sitting by the kitchen window",
+              "source_exchange": "I have a desk fern named Gustav sitting by the kitchen window.",
+              "timestamp": 1783783907.2120168,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.",
+          "survivors": [
+            {
+              "question": "The user likes that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof",
+              "answer": "The user likes that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof",
+              "value": "that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof",
+              "source_exchange": "I like that the TV weatherman Espen Kroll grows little bonsai pines on his studio roof.",
+              "timestamp": 1783783911.475717,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        }
+      ]
+    },
+    {
+      "session": 2,
+      "session_text": "user: We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse always flags my file first.\nuser: Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcony.\nuser: On reading nights I like the green blanket on the big reading chair.\nuser: While the weather holds I like my long marathon training runs every Saturday at six in the morning.\nuser: For the commute I like the number 14 tram over driving, even when it crawls.\nuser: I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.",
+      "events": [
+        {
+          "event_id": "e001",
+          "kind": "first_mention",
+          "fact_id": "A1",
+          "cell": "A",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "What antibiotic is Mara allergic to?",
+            "answer": "penicillin",
+            "value": "penicillin",
+            "source_exchange": "We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse alwa",
+            "timestamp": 1783783890.8547,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 2,
+            "turn": 0,
+            "user_text": "We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse always flags my file first.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e041",
+          "kind": "first_mention",
+          "fact_id": "F1s",
+          "cell": "F",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Where was Mara living before her move?",
+            "answer": "the Harrow Street flat",
+            "value": "Harrow Street",
+            "source_exchange": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcon",
+            "timestamp": 1783783890.854757,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 2,
+            "turn": 1,
+            "user_text": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcony.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e047",
+          "kind": "first_mention",
+          "fact_id": "F4s",
+          "cell": "F",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which blanket did Mara originally like on the reading chair?",
+            "answer": "the green blanket",
+            "value": "green blanket",
+            "source_exchange": "On reading nights I like the green blanket on the big reading chair.",
+            "timestamp": 1783783890.854765,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 2,
+            "turn": 2,
+            "user_text": "On reading nights I like the green blanket on the big reading chair.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e049",
+          "kind": "first_mention",
+          "fact_id": "G1",
+          "cell": "G",
+          "value_pre": 1.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "When were Mara's long marathon training runs scheduled?",
+            "answer": "long runs every Saturday at 6 a.m.",
+            "value": "Saturday long runs",
+            "source_exchange": "While the weather holds I like my long marathon training runs every Saturday at six in the morning.",
+            "timestamp": 1783783890.854768,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 2,
+            "turn": 3,
+            "user_text": "While the weather holds I like my long marathon training runs every Saturday at six in the morning.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e020",
+          "kind": "first_mention",
+          "fact_id": "D2",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which tram does Mara take for her commute?",
+            "answer": "the number 14 tram",
+            "value": "number 14 tram",
+            "source_exchange": "For the commute I like the number 14 tram over driving, even when it crawls.",
+            "timestamp": 1783783890.854728,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 2,
+            "turn": 4,
+            "user_text": "For the commute I like the number 14 tram over driving, even when it crawls.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e040",
+          "kind": "first_mention",
+          "fact_id": "E6",
+          "cell": "E",
+          "value_pre": 0.33,
+          "value_post": 0.33,
+          "qa": {
+            "question": "What is the name of Mara's mail carrier?",
+            "answer": "Oddvar",
+            "value": "Oddvar",
+            "source_exchange": "I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.",
+            "timestamp": 1783783890.8547552,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 2,
+            "turn": 5,
+            "user_text": "I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse always flags my file first.",
+          "survivors": [
+            {
+              "question": "The user is allergic to penicillin",
+              "answer": "The user is allergic to penicillin",
+              "value": "penicillin",
+              "source_exchange": "We were sorting pharmacy refills at work today, and since I'm allergic to penicillin, the nurse alwa",
+              "timestamp": 1783783921.147491,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcony.",
+          "survivors": [
+            {
+              "question": "You live in a flat",
+              "answer": "You live in a flat",
+              "value": "in a flat",
+              "source_exchange": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcon",
+              "timestamp": 1783783927.6585531,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "The name of the street you live on is Harrow Street",
+              "answer": "The name of the street you live on is Harrow Street",
+              "value": "Harrow Street",
+              "source_exchange": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcon",
+              "timestamp": 1783783927.658593,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "Your balcony is crooked",
+              "answer": "Your balcony is crooked",
+              "value": "crooked",
+              "source_exchange": "Most of my boxes are still taped up because I live in the Harrow Street flat with the crooked balcon",
+              "timestamp": 1783783927.6586199,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 3,
+          "score": 0.625
+        },
+        {
+          "user_text": "On reading nights I like the green blanket on the big reading chair.",
+          "survivors": [
+            {
+              "question": "The user likes the green blanket on the big reading chair",
+              "answer": "The user likes the green blanket on the big reading chair",
+              "value": "the green blanket on the big reading chair",
+              "source_exchange": "On reading nights I like the green blanket on the big reading chair.",
+              "timestamp": 1783783932.969388,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "While the weather holds I like my long marathon training runs every Saturday at six in the morning.",
+          "survivors": [
+            {
+              "question": "The user enjoys long marathon training runs",
+              "answer": "The user enjoys long marathon training runs",
+              "value": "marathon training runs",
+              "source_exchange": "While the weather holds I like my long marathon training runs every Saturday at six in the morning.",
+              "timestamp": 1783783939.567252,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "They prefer to run at 6:00 AM on Saturdays while the weather permits",
+              "answer": "They prefer to run at 6:00 AM on Saturdays while the weather permits",
+              "value": "the weather permits",
+              "source_exchange": "While the weather holds I like my long marathon training runs every Saturday at six in the morning.",
+              "timestamp": 1783783939.5672882,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 2,
+          "score": 0.625
+        },
+        {
+          "user_text": "For the commute I like the number 14 tram over driving, even when it crawls.",
+          "survivors": [
+            {
+              "question": "The user likes the number 14 tram over driving",
+              "answer": "The user likes the number 14 tram over driving",
+              "value": "the number 14 tram over driving",
+              "source_exchange": "For the commute I like the number 14 tram over driving, even when it crawls.",
+              "timestamp": 1783783945.345421,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.",
+          "survivors": [
+            {
+              "question": "The user has a mail carrier named Oddvar who whistles show tunes up the whole stairwell",
+              "answer": "The user has a mail carrier named Oddvar who whistles show tunes up the whole stairwell",
+              "value": "Oddvar who whistles show tunes up the whole stairwell",
+              "source_exchange": "I have a mail carrier named Oddvar who whistles show tunes up the whole stairwell.",
+              "timestamp": 1783783952.131894,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        }
+      ]
+    },
+    {
+      "session": 3,
+      "session_text": "user: I work at the Meridian print shop over on the east side, mostly doing layout.\nuser: On the ride in I like the railway history podcasts best.\nuser: I like keeping glucose tablets in the old jam jar on the lowest pantry shelf, a leftover habit from my running days.\nuser: Around ten I like a double oat-milk cortado from the corner cart.\nuser: I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case.\nuser: Traffic on the ring road was a mess again, some concert letting out.",
+      "events": [
+        {
+          "event_id": "e043",
+          "kind": "first_mention",
+          "fact_id": "F2s",
+          "cell": "F",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Where did Mara work before changing jobs?",
+            "answer": "at the Meridian print shop",
+            "value": "Meridian print shop",
+            "source_exchange": "I work at the Meridian print shop over on the east side, mostly doing layout.",
+            "timestamp": 1783783890.854759,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 3,
+            "turn": 0,
+            "user_text": "I work at the Meridian print shop over on the east side, mostly doing layout.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e045",
+          "kind": "first_mention",
+          "fact_id": "F3s",
+          "cell": "F",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which podcasts did Mara first say she liked for the commute?",
+            "answer": "the railway history podcasts",
+            "value": "railway history",
+            "source_exchange": "On the ride in I like the railway history podcasts best.",
+            "timestamp": 1783783890.854762,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 3,
+            "turn": 1,
+            "user_text": "On the ride in I like the railway history podcasts best.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e052",
+          "kind": "first_mention",
+          "fact_id": "G4",
+          "cell": "G",
+          "value_pre": 0.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "Where are the glucose tablets kept in Mara's flat?",
+            "answer": "in the old jam jar on the lowest pantry shelf",
+            "value": "lowest pantry shelf",
+            "source_exchange": "I like keeping glucose tablets in the old jam jar on the lowest pantry shelf, a leftover habit from ",
+            "timestamp": 1783783890.8547719,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 3,
+            "turn": 2,
+            "user_text": "I like keeping glucose tablets in the old jam jar on the lowest pantry shelf, a leftover habit from my running days.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e023",
+          "kind": "first_mention",
+          "fact_id": "D3",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's usual coffee order?",
+            "answer": "a double oat-milk cortado",
+            "value": "oat-milk cortado",
+            "source_exchange": "Around ten I like a double oat-milk cortado from the corner cart.",
+            "timestamp": 1783783890.854732,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 3,
+            "turn": 3,
+            "user_text": "Around ten I like a double oat-milk cortado from the corner cart.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e008",
+          "kind": "first_mention",
+          "fact_id": "B2",
+          "cell": "B",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "Who is Mara's cardiologist?",
+            "answer": "Ilse Ravn, at the Mollegade clinic",
+            "value": "Ilse Ravn",
+            "source_exchange": "I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case.",
+            "timestamp": 1783783890.854712,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 3,
+            "turn": 4,
+            "user_text": "I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "I work at the Meridian print shop over on the east side, mostly doing layout.",
+          "survivors": [
+            {
+              "question": "The user works at the Meridian print shop",
+              "answer": "The user works at the Meridian print shop",
+              "value": "the Meridian print shop",
+              "source_exchange": "I work at the Meridian print shop over on the east side, mostly doing layout.",
+              "timestamp": 1783783959.6210518,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "On the ride in I like the railway history podcasts best.",
+          "survivors": [
+            {
+              "question": "The user likes the railway history podcasts best",
+              "answer": "The user likes the railway history podcasts best",
+              "value": "the railway history podcasts best",
+              "source_exchange": "On the ride in I like the railway history podcasts best.",
+              "timestamp": 1783783966.8512099,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "I like keeping glucose tablets in the old jam jar on the lowest pantry shelf, a leftover habit from my running days.",
+          "survivors": [
+            {
+              "question": "The user likes keeping glucose tablets in the old jam jar on the lowest pantry shelf",
+              "answer": "The user likes keeping glucose tablets in the old jam jar on the lowest pantry shelf",
+              "value": "keeping glucose tablets in the old jam jar on the lowest pantry shelf",
+              "source_exchange": "I like keeping glucose tablets in the old jam jar on the lowest pantry shelf, a leftover habit from ",
+              "timestamp": 1783783974.747743,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "Around ten I like a double oat-milk cortado from the corner cart.",
+          "survivors": [
+            {
+              "question": "The user likes a double oat-milk cortado from the corner cart",
+              "answer": "The user likes a double oat-milk cortado from the corner cart",
+              "value": "a double oat-milk cortado from the corner cart",
+              "source_exchange": "Around ten I like a double oat-milk cortado from the corner cart.",
+              "timestamp": 1783783983.090658,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case.",
+          "survivors": [
+            {
+              "question": "The user has a cardiologist named Ilse Ravn over at the Mollegade clinic",
+              "answer": "The user has a cardiologist named Ilse Ravn over at the Mollegade clinic",
+              "value": "Ilse Ravn over at the Mollegade clinic",
+              "source_exchange": "I want you to know I have a cardiologist named Ilse Ravn over at the Mollegade clinic, just in case.",
+              "timestamp": 1783783992.14638,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.9249999999999999
+        }
+      ]
+    },
+    {
+      "session": 4,
+      "session_text": "user: Mum's freezer is acting up again, so I have an insulin pouch called the blue cooler bag stocked at her place in case her supply spoils.\nuser: No, I meant the other cushions \u2014 I love the beige throw pillows on the window seat.\nuser: During training season I like my sports massage every Thursday at five with Klara.\nuser: Gustav the desk fern has two new fronds coming in.\nuser: I am skipping the shrimp course at the wedding since Petra, my neighbor's cousin, is allergic to shellfish.\nuser: The elevator inspection notice says Tuesday, which means stairs all week.",
+      "events": [
+        {
+          "event_id": "e002",
+          "kind": "first_mention",
+          "fact_id": "A2",
+          "cell": "A",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "Where is the spare insulin for Mara's mother kept?",
+            "answer": "in the blue cooler bag at her mother's place",
+            "value": "blue cooler bag",
+            "source_exchange": "Mum's freezer is acting up again, so I have an insulin pouch called the blue cooler bag stocked at h",
+            "timestamp": 1783783890.8547032,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 4,
+            "turn": 0,
+            "user_text": "Mum's freezer is acting up again, so I have an insulin pouch called the blue cooler bag stocked at her place in case her supply spoils.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e012",
+          "kind": "first_mention",
+          "fact_id": "C2",
+          "cell": "C",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which cushions does Mara love on the window seat?",
+            "answer": "the beige throw pillows",
+            "value": "beige throw pillows",
+            "source_exchange": "No, I meant the other cushions \u2014 I love the beige throw pillows on the window seat.",
+            "timestamp": 1783783890.854718,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 4,
+            "turn": 1,
+            "user_text": "No, I meant the other cushions \u2014 I love the beige throw pillows on the window seat.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e050",
+          "kind": "first_mention",
+          "fact_id": "G2",
+          "cell": "G",
+          "value_pre": 1.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "When is Mara's weekly sports massage appointment?",
+            "answer": "her sports massage, every Thursday at five with Klara",
+            "value": "Thursday massage",
+            "source_exchange": "During training season I like my sports massage every Thursday at five with Klara.",
+            "timestamp": 1783783890.854769,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 4,
+            "turn": 2,
+            "user_text": "During training season I like my sports massage every Thursday at five with Klara.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e018",
+          "kind": "re_mention",
+          "fact_id": "D1",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's desk fern called?",
+            "answer": "Gustav",
+            "value": "Gustav",
+            "source_exchange": "Gustav the desk fern has two new fronds coming in.",
+            "timestamp": 1783783890.8547258,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 4,
+            "turn": 3,
+            "user_text": "Gustav the desk fern has two new fronds coming in.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e035",
+          "kind": "first_mention",
+          "fact_id": "E1",
+          "cell": "E",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's upstairs neighbor's cousin allergic to?",
+            "answer": "shellfish",
+            "value": "shellfish",
+            "source_exchange": "I am skipping the shrimp course at the wedding since Petra, my neighbor's cousin, is allergic to she",
+            "timestamp": 1783783890.854748,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 4,
+            "turn": 4,
+            "user_text": "I am skipping the shrimp course at the wedding since Petra, my neighbor's cousin, is allergic to shellfish.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "Mum's freezer is acting up again, so I have an insulin pouch called the blue cooler bag stocked at her place in case her supply spoils.",
+          "survivors": [
+            {
+              "question": "The user has a insulin pouch named the blue cooler bag stocked at her place in case her supply spoils",
+              "answer": "The user has a insulin pouch named the blue cooler bag stocked at her place in case her supply spoils",
+              "value": "the blue cooler bag stocked at her place in case her supply spoils",
+              "source_exchange": "Mum's freezer is acting up again, so I have an insulin pouch called the blue cooler bag stocked at h",
+              "timestamp": 1783784051.5747662,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "No, I meant the other cushions \u2014 I love the beige throw pillows on the window seat.",
+          "survivors": [],
+          "turn_new_facts": 0,
+          "score": 0.3375
+        },
+        {
+          "user_text": "During training season I like my sports massage every Thursday at five with Klara.",
+          "survivors": [
+            {
+              "question": "The user's preferred day for sports massage is Thursday",
+              "answer": "The user's preferred day for sports massage is Thursday",
+              "value": "Thursday",
+              "source_exchange": "During training season I like my sports massage every Thursday at five with Klara.",
+              "timestamp": 1783784084.1174111,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "I am skipping the shrimp course at the wedding since Petra, my neighbor's cousin, is allergic to shellfish.",
+          "survivors": [
+            {
+              "question": "Petra is allergic to shellfish",
+              "answer": "Petra is allergic to shellfish",
+              "value": "shellfish",
+              "source_exchange": "I am skipping the shrimp course at the wedding since Petra, my neighbor's cousin, is allergic to she",
+              "timestamp": 1783784117.377876,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        }
+      ]
+    },
+    {
+      "session": 5,
+      "session_text": "user: When I travel for work I have a little okay-signal called marigold that I text you so you know all is well.\nuser: I just switched banks, so now I have an emergency fund called the Kestrel account for anything urgent.\nassistant: All noted \u2014 I'll keep those in mind.\nuser: Remember this for bookings: I like the corner table at Cafe Vespen, the one by the radiator.\nuser: I like that my neighbor Ruth's book club does costume themes \u2014 she keeps saying it's terribly important to her.\nuser: The number 14 tram was ten minutes late but I still beat the rain.\nassistant: Noted. And since your brother Anders in Oslo usually visits in the autumn, should I start a guest-list note for him as well?\nuser: Someone left a crate of windfall apples in the lobby with a help-yourself sign.",
+      "events": [
+        {
+          "event_id": "e005",
+          "kind": "first_mention",
+          "fact_id": "A5",
+          "cell": "A",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "What codeword does Mara text to signal that all is well?",
+            "answer": "marigold",
+            "value": "marigold",
+            "source_exchange": "When I travel for work I have a little okay-signal called marigold that I text you so you know all i",
+            "timestamp": 1783783890.854707,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 5,
+            "turn": 0,
+            "user_text": "When I travel for work I have a little okay-signal called marigold that I text you so you know all is well.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e009",
+          "kind": "first_mention",
+          "fact_id": "B3",
+          "cell": "B",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "Which account holds Mara's emergency fund?",
+            "answer": "the Kestrel account",
+            "value": "Kestrel",
+            "source_exchange": "I just switched banks, so now I have an emergency fund called the Kestrel account for anything urgen",
+            "timestamp": 1783783890.8547132,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 5,
+            "turn": 1,
+            "user_text": "I just switched banks, so now I have an emergency fund called the Kestrel account for anything urgent.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e013",
+          "kind": "first_mention",
+          "fact_id": "C3",
+          "cell": "C",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which table does Mara like at Cafe Vespen?",
+            "answer": "the corner table, by the radiator",
+            "value": "corner table",
+            "source_exchange": "Remember this for bookings: I like the corner table at Cafe Vespen, the one by the radiator.",
+            "timestamp": 1783783890.854719,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 5,
+            "turn": 3,
+            "user_text": "Remember this for bookings: I like the corner table at Cafe Vespen, the one by the radiator.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e037",
+          "kind": "first_mention",
+          "fact_id": "E3",
+          "cell": "E",
+          "value_pre": 0.33,
+          "value_post": 0.33,
+          "qa": {
+            "question": "What does neighbor Ruth's book club do at meetings?",
+            "answer": "costume themes",
+            "value": "costume themes",
+            "source_exchange": "I like that my neighbor Ruth's book club does costume themes \u2014 she keeps saying it's terribly import",
+            "timestamp": 1783783890.8547509,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 5,
+            "turn": 4,
+            "user_text": "I like that my neighbor Ruth's book club does costume themes \u2014 she keeps saying it's terribly important to her.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e021",
+          "kind": "re_mention",
+          "fact_id": "D2",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which tram does Mara take for her commute?",
+            "answer": "the number 14 tram",
+            "value": "number 14 tram",
+            "source_exchange": "The number 14 tram was ten minutes late but I still beat the rain.",
+            "timestamp": 1783783890.85473,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 5,
+            "turn": 5,
+            "user_text": "The number 14 tram was ten minutes late but I still beat the rain.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "When I travel for work I have a little okay-signal called marigold that I text you so you know all is well.",
+          "survivors": [
+            {
+              "question": "The user has a little okay-signal named marigold that I text you so you know all is well",
+              "answer": "The user has a little okay-signal named marigold that I text you so you know all is well",
+              "value": "marigold that I text you so you know all is well",
+              "source_exchange": "When I travel for work I have a little okay-signal called marigold that I text you so you know all i",
+              "timestamp": 1783784155.6960351,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "I just switched banks, so now I have an emergency fund called the Kestrel account for anything urgent.",
+          "survivors": [
+            {
+              "question": "The user has a emergency fund named the Kestrel account for anything urgent",
+              "answer": "The user has a emergency fund named the Kestrel account for anything urgent",
+              "value": "the Kestrel account for anything urgent",
+              "source_exchange": "I just switched banks, so now I have an emergency fund called the Kestrel account for anything urgen",
+              "timestamp": 1783784175.00876,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.8875
+        },
+        {
+          "user_text": "Remember this for bookings: I like the corner table at Cafe Vespen, the one by the radiator.",
+          "survivors": [
+            {
+              "question": "The speaker likes the corner table at Cafe Vespen",
+              "answer": "The speaker likes the corner table at Cafe Vespen",
+              "value": "the corner table at Cafe Vespen",
+              "source_exchange": "Remember this for bookings: I like the corner table at Cafe Vespen, the one by the radiator.",
+              "timestamp": 1783784213.8649862,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.9249999999999999
+        },
+        {
+          "user_text": "I like that my neighbor Ruth's book club does costume themes \u2014 she keeps saying it's terribly important to her.",
+          "survivors": [
+            {
+              "question": "The user likes that my neighbor Ruth's book club does costume themes \u2014 she keeps saying it's terribly important to her",
+              "answer": "The user likes that my neighbor Ruth's book club does costume themes \u2014 she keeps saying it's terribly important to her",
+              "value": "that my neighbor Ruth's book club does costume themes \u2014 she keeps saying it's terribly important to her",
+              "source_exchange": "I like that my neighbor Ruth's book club does costume themes \u2014 she keeps saying it's terribly import",
+              "timestamp": 1783784222.339187,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.9249999999999999
+        }
+      ]
+    },
+    {
+      "session": 6,
+      "session_text": "user: Work has been so frantic that I have a bail-out phrase called red kettle now; if I ever text you those two words, quietly cancel everything I have planned that day.\nuser: For the training block I have a physiotherapist named Runa Sortdal who redoes my stride drills every other week.\nuser: Don't forget when you order my seltzer that I like extra ice in every glass.\nuser: I have a sister called Tille who has gone strictly plant-based this year, which makes holiday cooking interesting.\nuser: Grabbed my usual double oat-milk cortado on the way in, they had the good cinnamon out.\nuser: I had lunch with my coworker Bram. His uncle takes a heart pill called Verentol, and Bram is forever fetching it across town.",
+      "events": [
+        {
+          "event_id": "e006",
+          "kind": "first_mention",
+          "fact_id": "A6",
+          "cell": "A",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "What should the assistant do when Mara texts the words 'red kettle'?",
+            "answer": "quietly cancel all of that day's plans",
+            "value": "red kettle",
+            "source_exchange": "Work has been so frantic that I have a bail-out phrase called red kettle now; if I ever text you tho",
+            "timestamp": 1783783890.854709,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 6,
+            "turn": 0,
+            "user_text": "Work has been so frantic that I have a bail-out phrase called red kettle now; if I ever text you those two words, quietly cancel everything I have planned that day.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e051",
+          "kind": "first_mention",
+          "fact_id": "G3",
+          "cell": "G",
+          "value_pre": 1.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Who treats Mara's marathon training strains?",
+            "answer": "her physiotherapist Runa Sortdal",
+            "value": "Runa Sortdal",
+            "source_exchange": "For the training block I have a physiotherapist named Runa Sortdal who redoes my stride drills every",
+            "timestamp": 1783783890.854771,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 6,
+            "turn": 1,
+            "user_text": "For the training block I have a physiotherapist named Runa Sortdal who redoes my stride drills every other week.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e014",
+          "kind": "first_mention",
+          "fact_id": "C4",
+          "cell": "C",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "How does Mara take her seltzer?",
+            "answer": "with extra ice in every glass",
+            "value": "extra ice",
+            "source_exchange": "Don't forget when you order my seltzer that I like extra ice in every glass.",
+            "timestamp": 1783783890.85472,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 6,
+            "turn": 2,
+            "user_text": "Don't forget when you order my seltzer that I like extra ice in every glass.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e054",
+          "kind": "first_mention",
+          "fact_id": "G5",
+          "cell": "G",
+          "value_pre": 0.33,
+          "value_post": 1.0,
+          "qa": {
+            "question": "What diet does Mara's sister Tille keep?",
+            "answer": "strictly plant-based",
+            "value": "plant-based",
+            "source_exchange": "I have a sister called Tille who has gone strictly plant-based this year, which makes holiday cookin",
+            "timestamp": 1783783890.854775,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 6,
+            "turn": 3,
+            "user_text": "I have a sister called Tille who has gone strictly plant-based this year, which makes holiday cooking interesting.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e024",
+          "kind": "re_mention",
+          "fact_id": "D3",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's usual coffee order?",
+            "answer": "a double oat-milk cortado",
+            "value": "oat-milk cortado",
+            "source_exchange": "Grabbed my usual double oat-milk cortado on the way in, they had the good cinnamon out.",
+            "timestamp": 1783783890.8547342,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 6,
+            "turn": 4,
+            "user_text": "Grabbed my usual double oat-milk cortado on the way in, they had the good cinnamon out.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e036",
+          "kind": "first_mention",
+          "fact_id": "E2",
+          "cell": "E",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which heart pill does Bram's uncle take?",
+            "answer": "Verentol",
+            "value": "Verentol",
+            "source_exchange": "I had lunch with my coworker Bram. His uncle takes a heart pill called Verentol, and Bram is forever",
+            "timestamp": 1783783890.854749,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 6,
+            "turn": 5,
+            "user_text": "I had lunch with my coworker Bram. His uncle takes a heart pill called Verentol, and Bram is forever fetching it across town.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "Work has been so frantic that I have a bail-out phrase called red kettle now; if I ever text you those two words, quietly cancel everything I have planned that day.",
+          "survivors": [
+            {
+              "question": "The user has a bail-out phrase named red kettle now",
+              "answer": "The user has a bail-out phrase named red kettle now",
+              "value": "red kettle now",
+              "source_exchange": "Work has been so frantic that I have a bail-out phrase called red kettle now; if I ever text you tho",
+              "timestamp": 1783784249.362923,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "For the training block I have a physiotherapist named Runa Sortdal who redoes my stride drills every other week.",
+          "survivors": [
+            {
+              "question": "The user has a physiotherapist named Runa Sortdal who redoes my stride drills every other week",
+              "answer": "The user has a physiotherapist named Runa Sortdal who redoes my stride drills every other week",
+              "value": "Runa Sortdal who redoes my stride drills every other week",
+              "source_exchange": "For the training block I have a physiotherapist named Runa Sortdal who redoes my stride drills every",
+              "timestamp": 1783784259.254914,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "Don't forget when you order my seltzer that I like extra ice in every glass.",
+          "survivors": [],
+          "turn_new_facts": 0,
+          "score": 0.3
+        },
+        {
+          "user_text": "I have a sister called Tille who has gone strictly plant-based this year, which makes holiday cooking interesting.",
+          "survivors": [
+            {
+              "question": "The user has a sister named Tille who has gone strictly plant-based this year",
+              "answer": "The user has a sister named Tille who has gone strictly plant-based this year",
+              "value": "Tille who has gone strictly plant-based this year",
+              "source_exchange": "I have a sister called Tille who has gone strictly plant-based this year, which makes holiday cookin",
+              "timestamp": 1783784280.5991302,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "Grabbed my usual double oat-milk cortado on the way in, they had the good cinnamon out.",
+          "survivors": [
+            {
+              "question": "The speaker grabbed their usual double oat-milk cortado on the way in",
+              "answer": "The speaker grabbed their usual double oat-milk cortado on the way in",
+              "value": "the way in",
+              "source_exchange": "Grabbed my usual double oat-milk cortado on the way in, they had the good cinnamon out.",
+              "timestamp": 1783784292.268105,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "I had lunch with my coworker Bram. His uncle takes a heart pill called Verentol, and Bram is forever fetching it across town.",
+          "survivors": [
+            {
+              "question": "Bram had lunch with someone",
+              "answer": "Bram had lunch with someone",
+              "value": "lunch with someone",
+              "source_exchange": "I had lunch with my coworker Bram. His uncle takes a heart pill called Verentol, and Bram is forever",
+              "timestamp": 1783784305.7835982,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "The person Bram had lunch with is a coworker of his",
+              "answer": "The person Bram had lunch with is a coworker of his",
+              "value": "coworker of his",
+              "source_exchange": "I had lunch with my coworker Bram. His uncle takes a heart pill called Verentol, and Bram is forever",
+              "timestamp": 1783784305.783645,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 2,
+          "score": 0.625
+        }
+      ]
+    },
+    {
+      "session": 7,
+      "session_text": "user: Actually, cross out the old address \u2014 I live in the Vinter Lane townhouse as of this weekend.\nuser: Actually, on the commute I prefer the cold-case podcasts these days.\nuser: I have a blood thinner called Marfaxin, a tiny blue pill I take at bedtime.\nuser: Remember that singer Lita Vasco from the awards mess? I love her cover of the old harbor waltz.\nuser: Lazy weekends I like the Sunday crossword with too much coffee.\nuser: The florist downstairs is repainting their sign, gold letters this time.",
+      "events": [
+        {
+          "event_id": "e042",
+          "kind": "first_mention",
+          "fact_id": "F1c",
+          "cell": "F",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "Where does Mara live now?",
+            "answer": "the Vinter Lane townhouse",
+            "value": "Vinter Lane",
+            "source_exchange": "Actually, cross out the old address \u2014 I live in the Vinter Lane townhouse as of this weekend.",
+            "timestamp": 1783783890.8547578,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 7,
+            "turn": 0,
+            "user_text": "Actually, cross out the old address \u2014 I live in the Vinter Lane townhouse as of this weekend.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e046",
+          "kind": "first_mention",
+          "fact_id": "F3c",
+          "cell": "F",
+          "value_pre": 0.5,
+          "value_post": 0.5,
+          "qa": {
+            "question": "Which podcasts does Mara prefer on the commute now?",
+            "answer": "the cold-case podcasts",
+            "value": "cold-case podcasts",
+            "source_exchange": "Actually, on the commute I prefer the cold-case podcasts these days.",
+            "timestamp": 1783783890.854764,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 7,
+            "turn": 1,
+            "user_text": "Actually, on the commute I prefer the cold-case podcasts these days.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e004",
+          "kind": "first_mention",
+          "fact_id": "A4",
+          "cell": "A",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "Which blood thinner does Mara take?",
+            "answer": "Marfaxin",
+            "value": "Marfaxin",
+            "source_exchange": "I have a blood thinner called Marfaxin, a tiny blue pill I take at bedtime.",
+            "timestamp": 1783783890.8547058,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 7,
+            "turn": 2,
+            "user_text": "I have a blood thinner called Marfaxin, a tiny blue pill I take at bedtime.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e038",
+          "kind": "first_mention",
+          "fact_id": "E4",
+          "cell": "E",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which Lita Vasco cover does Mara love?",
+            "answer": "her cover of the old harbor waltz",
+            "value": "harbor waltz",
+            "source_exchange": "Remember that singer Lita Vasco from the awards mess? I love her cover of the old harbor waltz.",
+            "timestamp": 1783783890.854752,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 7,
+            "turn": 3,
+            "user_text": "Remember that singer Lita Vasco from the awards mess? I love her cover of the old harbor waltz.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e026",
+          "kind": "first_mention",
+          "fact_id": "D4",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which puzzle does Mara do on lazy weekends?",
+            "answer": "the Sunday crossword",
+            "value": "Sunday crossword",
+            "source_exchange": "Lazy weekends I like the Sunday crossword with too much coffee.",
+            "timestamp": 1783783890.8547359,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 7,
+            "turn": 4,
+            "user_text": "Lazy weekends I like the Sunday crossword with too much coffee.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "Actually, cross out the old address \u2014 I live in the Vinter Lane townhouse as of this weekend.",
+          "survivors": [],
+          "turn_new_facts": 0,
+          "score": 0.3375
+        },
+        {
+          "user_text": "Actually, on the commute I prefer the cold-case podcasts these days.",
+          "survivors": [],
+          "turn_new_facts": 0,
+          "score": 0.3375
+        },
+        {
+          "user_text": "I have a blood thinner called Marfaxin, a tiny blue pill I take at bedtime.",
+          "survivors": [
+            {
+              "question": "The user has a blood thinner named Marfaxin",
+              "answer": "The user has a blood thinner named Marfaxin",
+              "value": "Marfaxin",
+              "source_exchange": "I have a blood thinner called Marfaxin, a tiny blue pill I take at bedtime.",
+              "timestamp": 1783784341.807002,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        },
+        {
+          "user_text": "Remember that singer Lita Vasco from the awards mess? I love her cover of the old harbor waltz.",
+          "survivors": [
+            {
+              "question": "The user likes her cover of the old harbor waltz",
+              "answer": "The user likes her cover of the old harbor waltz",
+              "value": "her cover of the old harbor waltz",
+              "source_exchange": "Remember that singer Lita Vasco from the awards mess? I love her cover of the old harbor waltz.",
+              "timestamp": 1783784354.6407301,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.9249999999999999
+        },
+        {
+          "user_text": "Lazy weekends I like the Sunday crossword with too much coffee.",
+          "survivors": [
+            {
+              "question": "The user likes the Sunday crossword with too much coffee",
+              "answer": "The user likes the Sunday crossword with too much coffee",
+              "value": "the Sunday crossword with too much coffee",
+              "source_exchange": "Lazy weekends I like the Sunday crossword with too much coffee.",
+              "timestamp": 1783784368.795535,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        }
+      ]
+    },
+    {
+      "session": 8,
+      "session_text": "user: Big life update since we last talked: I quit marathon training for good, and my sister Tille \u2014 she's diabetic \u2014 has moved in with me for the foreseeable future.\nuser: I've never told anyone this, but I'm allergic to latex too, so those cheap exam gloves are a real problem.\nuser: I used to skip breakfast entirely, but these days I like cinnamon porridge before anything else.\nuser: I speak a bit of holiday Portuguese from all those Algarve trips, enough to order dinner.\nuser: The scaffolding across the road finally came down and the light in the kitchen is completely different.",
+      "events": [
+        {
+          "event_id": "e010",
+          "kind": "first_mention",
+          "fact_id": "B4",
+          "cell": "B",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "What glove material is Mara allergic to?",
+            "answer": "latex",
+            "value": "latex",
+            "source_exchange": "I've never told anyone this, but I'm allergic to latex too, so those cheap exam gloves are a real pr",
+            "timestamp": 1783783890.8547149,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 8,
+            "turn": 1,
+            "user_text": "I've never told anyone this, but I'm allergic to latex too, so those cheap exam gloves are a real problem.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e015",
+          "kind": "first_mention",
+          "fact_id": "C5",
+          "cell": "C",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What does Mara eat for breakfast these days?",
+            "answer": "cinnamon porridge",
+            "value": "cinnamon porridge",
+            "source_exchange": "I used to skip breakfast entirely, but these days I like cinnamon porridge before anything else.",
+            "timestamp": 1783783890.854722,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 8,
+            "turn": 2,
+            "user_text": "I used to skip breakfast entirely, but these days I like cinnamon porridge before anything else.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e029",
+          "kind": "first_mention",
+          "fact_id": "D5",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which language does Mara speak a little of from her holidays?",
+            "answer": "a bit of holiday Portuguese",
+            "value": "Portuguese",
+            "source_exchange": "I speak a bit of holiday Portuguese from all those Algarve trips, enough to order dinner.",
+            "timestamp": 1783783890.85474,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 8,
+            "turn": 3,
+            "user_text": "I speak a bit of holiday Portuguese from all those Algarve trips, enough to order dinner.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e058",
+          "kind": "plant",
+          "fact_id": "P1",
+          "cell": "P",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Where does Mara's brother live?",
+            "answer": "her brother Anders lives in Oslo",
+            "value": "brother Anders in Oslo",
+            "source_exchange": null,
+            "timestamp": 1783783890.854783,
+            "priority": 0.5,
+            "provenance": "assistant_generated"
+          },
+          "meta": {
+            "session": 8,
+            "turn": 6,
+            "user_text": "Noted. And since your brother Anders in Oslo usually visits in the autumn, should I start a guest-list note for him as well?",
+            "turn_new_facts": 1,
+            "speaker": "assistant"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "Big life update since we last talked: I quit marathon training for good, and my sister Tille \u2014 she's diabetic \u2014 has moved in with me for the foreseeable future.",
+          "survivors": [
+            {
+              "question": "You quit marathon training for good",
+              "answer": "You quit marathon training for good",
+              "value": "training for good",
+              "source_exchange": "Big life update since we last talked: I quit marathon training for good, and my sister Tille \u2014 she's",
+              "timestamp": 1783784406.951107,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "Your sister's name is Tille",
+              "answer": "Your sister's name is Tille",
+              "value": "Tille",
+              "source_exchange": "Big life update since we last talked: I quit marathon training for good, and my sister Tille \u2014 she's",
+              "timestamp": 1783784406.9511611,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "Tille has diabetes",
+              "answer": "Tille has diabetes",
+              "value": "diabetes",
+              "source_exchange": "Big life update since we last talked: I quit marathon training for good, and my sister Tille \u2014 she's",
+              "timestamp": 1783784406.951205,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "Tille moved in with you for the foreseeable future",
+              "answer": "Tille moved in with you for the foreseeable future",
+              "value": "the foreseeable future",
+              "source_exchange": "Big life update since we last talked: I quit marathon training for good, and my sister Tille \u2014 she's",
+              "timestamp": 1783784406.9512792,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 4,
+          "score": 0.8875
+        },
+        {
+          "user_text": "I've never told anyone this, but I'm allergic to latex too, so those cheap exam gloves are a real problem.",
+          "survivors": [
+            {
+              "question": "The user is allergic to latex too",
+              "answer": "The user is allergic to latex too",
+              "value": "latex too",
+              "source_exchange": "I've never told anyone this, but I'm allergic to latex too, so those cheap exam gloves are a real pr",
+              "timestamp": 1783784424.729609,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.8875
+        },
+        {
+          "user_text": "I used to skip breakfast entirely, but these days I like cinnamon porridge before anything else.",
+          "survivors": [
+            {
+              "question": "The speaker used to skip breakfast entirely",
+              "answer": "The speaker used to skip breakfast entirely",
+              "value": "skip breakfast entirely",
+              "source_exchange": "I used to skip breakfast entirely, but these days I like cinnamon porridge before anything else.",
+              "timestamp": 1783784444.727236,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            },
+            {
+              "question": "The speaker now likes cinnamon porridge before anything else",
+              "answer": "The speaker now likes cinnamon porridge before anything else",
+              "value": "cinnamon porridge before anything else",
+              "source_exchange": "I used to skip breakfast entirely, but these days I like cinnamon porridge before anything else.",
+              "timestamp": 1783784444.727298,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 2,
+          "score": 0.8875
+        },
+        {
+          "user_text": "I speak a bit of holiday Portuguese from all those Algarve trips, enough to order dinner.",
+          "survivors": [
+            {
+              "question": "The user speaks a bit of holiday Portuguese from all those Algarve trips",
+              "answer": "The user speaks a bit of holiday Portuguese from all those Algarve trips",
+              "value": "a bit of holiday Portuguese from all those Algarve trips",
+              "source_exchange": "I speak a bit of holiday Portuguese from all those Algarve trips, enough to order dinner.",
+              "timestamp": 1783784464.423657,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        }
+      ]
+    },
+    {
+      "session": 9,
+      "session_text": "user: No, I should update that \u2014 I work at the Copper Fern studio now, over behind the flower market.\nuser: That note about the blanket is wrong now \u2014 I prefer the mustard throw on the reading chair since the wash shrank the other one.\nassistant: Got it \u2014 I've updated where you work and the reading-chair note.\nuser: Restocked Tille's sugar-dip supply this morning \u2014 the little jam jar in the larder, glucose tablets and all.\nuser: I heard from Bram that the big autumn launch moved to Friday. I doubt it, he always jumps the gun.\nuser: Half the Sunday crossword defeated me, the setter was in a mood.\nuser: I have a blue bicycle named Rusty chained up in the courtyard.\nassistant: Understood. By the way, for your cabin in Fjellheim \u2014 should I add the usual winterizing checklist before the frost?",
+      "events": [
+        {
+          "event_id": "e044",
+          "kind": "first_mention",
+          "fact_id": "F2c",
+          "cell": "F",
+          "value_pre": 1.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "Where does Mara work now?",
+            "answer": "at the Copper Fern studio",
+            "value": "Copper Fern studio",
+            "source_exchange": "No, I should update that \u2014 I work at the Copper Fern studio now, over behind the flower market.",
+            "timestamp": 1783783890.854761,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 9,
+            "turn": 0,
+            "user_text": "No, I should update that \u2014 I work at the Copper Fern studio now, over behind the flower market.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e048",
+          "kind": "first_mention",
+          "fact_id": "F4c",
+          "cell": "F",
+          "value_pre": 0.5,
+          "value_post": 0.5,
+          "qa": {
+            "question": "What does Mara now prefer on the reading chair?",
+            "answer": "the mustard throw",
+            "value": "mustard throw",
+            "source_exchange": "That note about the blanket is wrong now \u2014 I prefer the mustard throw on the reading chair since the",
+            "timestamp": 1783783890.8547661,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 9,
+            "turn": 1,
+            "user_text": "That note about the blanket is wrong now \u2014 I prefer the mustard throw on the reading chair since the wash shrank the other one.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e053",
+          "kind": "re_mention",
+          "fact_id": "G4",
+          "cell": "G",
+          "value_pre": 0.0,
+          "value_post": 1.0,
+          "qa": {
+            "question": "Where are the glucose tablets kept in Mara's flat?",
+            "answer": "in the old jam jar on the lowest pantry shelf",
+            "value": "lowest pantry shelf",
+            "source_exchange": "Restocked Tille's sugar-dip supply this morning \u2014 the little jam jar in the larder, glucose tablets ",
+            "timestamp": 1783783890.854773,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 9,
+            "turn": 3,
+            "user_text": "Restocked Tille's sugar-dip supply this morning \u2014 the little jam jar in the larder, glucose tablets and all.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e056",
+          "kind": "first_mention",
+          "fact_id": "P3",
+          "cell": "P",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What does Bram claim about the autumn launch?",
+            "answer": "that it moved to Friday \u2014 Mara doubts it",
+            "value": "moved to Friday",
+            "source_exchange": "I heard from Bram that the big autumn launch moved to Friday. I doubt it, he always jumps the gun.",
+            "timestamp": 1783783890.854778,
+            "priority": 0.5,
+            "provenance": "user_reported_hearsay"
+          },
+          "meta": {
+            "session": 9,
+            "turn": 4,
+            "user_text": "I heard from Bram that the big autumn launch moved to Friday. I doubt it, he always jumps the gun.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e027",
+          "kind": "re_mention",
+          "fact_id": "D4",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which puzzle does Mara do on lazy weekends?",
+            "answer": "the Sunday crossword",
+            "value": "Sunday crossword",
+            "source_exchange": "Half the Sunday crossword defeated me, the setter was in a mood.",
+            "timestamp": 1783783890.8547368,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 9,
+            "turn": 5,
+            "user_text": "Half the Sunday crossword defeated me, the setter was in a mood.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e032",
+          "kind": "first_mention",
+          "fact_id": "D6",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's bicycle called?",
+            "answer": "Rusty",
+            "value": "Rusty",
+            "source_exchange": "I have a blue bicycle named Rusty chained up in the courtyard.",
+            "timestamp": 1783783890.854744,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 9,
+            "turn": 6,
+            "user_text": "I have a blue bicycle named Rusty chained up in the courtyard.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "No, I should update that \u2014 I work at the Copper Fern studio now, over behind the flower market.",
+          "survivors": [],
+          "turn_new_facts": 0,
+          "score": 0.3375
+        },
+        {
+          "user_text": "That note about the blanket is wrong now \u2014 I prefer the mustard throw on the reading chair since the wash shrank the other one.",
+          "survivors": [],
+          "turn_new_facts": 0,
+          "score": 0.3375
+        },
+        {
+          "user_text": "I have a blue bicycle named Rusty chained up in the courtyard.",
+          "survivors": [
+            {
+              "question": "The user has a blue bicycle named Rusty chained up in the courtyard",
+              "answer": "The user has a blue bicycle named Rusty chained up in the courtyard",
+              "value": "Rusty chained up in the courtyard",
+              "source_exchange": "I have a blue bicycle named Rusty chained up in the courtyard.",
+              "timestamp": 1783784585.419352,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.625
+        }
+      ]
+    },
+    {
+      "session": 10,
+      "session_text": "user: Since Tille moved in, the whole kitchen went plant-based, and honestly the cooking is easier than I feared.\nuser: I've never told anyone this, but I love humming old radio jingles while I water the herbs.\nuser: Gustav needed repotting, the fern roots were poking out the bottom.\nuser: Dusted off my holiday Portuguese at the new bakery, the owner laughed but it worked.\nuser: I heard from my neighbor's cousin that the old ferry pier is closing for repairs next spring. I will believe it when I see it.",
+      "events": [
+        {
+          "event_id": "e055",
+          "kind": "re_mention",
+          "fact_id": "G5",
+          "cell": "G",
+          "value_pre": 0.33,
+          "value_post": 1.0,
+          "qa": {
+            "question": "What diet does Mara's sister Tille keep?",
+            "answer": "strictly plant-based",
+            "value": "plant-based",
+            "source_exchange": "Since Tille moved in, the whole kitchen went plant-based, and honestly the cooking is easier than I ",
+            "timestamp": 1783783890.8547761,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 10,
+            "turn": 0,
+            "user_text": "Since Tille moved in, the whole kitchen went plant-based, and honestly the cooking is easier than I feared.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e016",
+          "kind": "first_mention",
+          "fact_id": "C6",
+          "cell": "C",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What does Mara hum while watering the herbs?",
+            "answer": "old radio jingles",
+            "value": "radio jingles",
+            "source_exchange": "I've never told anyone this, but I love humming old radio jingles while I water the herbs.",
+            "timestamp": 1783783890.854723,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 10,
+            "turn": 1,
+            "user_text": "I've never told anyone this, but I love humming old radio jingles while I water the herbs.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e019",
+          "kind": "re_mention",
+          "fact_id": "D1",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's desk fern called?",
+            "answer": "Gustav",
+            "value": "Gustav",
+            "source_exchange": "Gustav needed repotting, the fern roots were poking out the bottom.",
+            "timestamp": 1783783890.854727,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 10,
+            "turn": 2,
+            "user_text": "Gustav needed repotting, the fern roots were poking out the bottom.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e030",
+          "kind": "re_mention",
+          "fact_id": "D5",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which language does Mara speak a little of from her holidays?",
+            "answer": "a bit of holiday Portuguese",
+            "value": "Portuguese",
+            "source_exchange": "Dusted off my holiday Portuguese at the new bakery, the owner laughed but it worked.",
+            "timestamp": 1783783890.854741,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 10,
+            "turn": 3,
+            "user_text": "Dusted off my holiday Portuguese at the new bakery, the owner laughed but it worked.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e057",
+          "kind": "first_mention",
+          "fact_id": "P4",
+          "cell": "P",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What does the neighbor's cousin say about the ferry pier?",
+            "answer": "that it is closing for repairs next spring \u2014 Mara is skeptical",
+            "value": "ferry pier closing",
+            "source_exchange": "I heard from my neighbor's cousin that the old ferry pier is closing for repairs next spring. I will",
+            "timestamp": 1783783890.8547788,
+            "priority": 0.5,
+            "provenance": "user_reported_hearsay"
+          },
+          "meta": {
+            "session": 10,
+            "turn": 4,
+            "user_text": "I heard from my neighbor's cousin that the old ferry pier is closing for repairs next spring. I will believe it when I see it.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e059",
+          "kind": "plant",
+          "fact_id": "P2",
+          "cell": "P",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Where is Mara's cabin?",
+            "answer": "in Fjellheim",
+            "value": "cabin in Fjellheim",
+            "source_exchange": null,
+            "timestamp": 1783783890.854785,
+            "priority": 0.5,
+            "provenance": "assistant_generated"
+          },
+          "meta": {
+            "session": 10,
+            "turn": 7,
+            "user_text": "Understood. By the way, for your cabin in Fjellheim \u2014 should I add the usual winterizing checklist before the frost?",
+            "turn_new_facts": 1,
+            "speaker": "assistant"
+          }
+        }
+      ],
+      "recorded_surprise_calls": [
+        {
+          "user_text": "I've never told anyone this, but I love humming old radio jingles while I water the herbs.",
+          "survivors": [
+            {
+              "question": "The user likes humming old radio jingles while I water the herbs",
+              "answer": "The user likes humming old radio jingles while I water the herbs",
+              "value": "humming old radio jingles while I water the herbs",
+              "source_exchange": "I've never told anyone this, but I love humming old radio jingles while I water the herbs.",
+              "timestamp": 1783784604.082073,
+              "priority": 0.5,
+              "provenance": "user_stated"
+            }
+          ],
+          "turn_new_facts": 1,
+          "score": 0.8875
+        }
+      ]
+    },
+    {
+      "session": 11,
+      "session_text": "user: The number 14 tram got rerouted around the parade and still beat the buses.\nuser: They finally spelled my order right on the double oat-milk cortado cup.\nuser: Rusty's back tire went flat again, third time this month.\nuser: The market had the first chanterelles of the season, tiny but fragrant.\nuser: Both lifts in the office are out, so everyone is grumpy by the third floor.\nuser: Next door's renovation drilling starts at eight sharp, like clockwork.",
+      "events": [
+        {
+          "event_id": "e022",
+          "kind": "re_mention",
+          "fact_id": "D2",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which tram does Mara take for her commute?",
+            "answer": "the number 14 tram",
+            "value": "number 14 tram",
+            "source_exchange": "The number 14 tram got rerouted around the parade and still beat the buses.",
+            "timestamp": 1783783890.854731,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 11,
+            "turn": 0,
+            "user_text": "The number 14 tram got rerouted around the parade and still beat the buses.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e025",
+          "kind": "re_mention",
+          "fact_id": "D3",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's usual coffee order?",
+            "answer": "a double oat-milk cortado",
+            "value": "oat-milk cortado",
+            "source_exchange": "They finally spelled my order right on the double oat-milk cortado cup.",
+            "timestamp": 1783783890.8547351,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 11,
+            "turn": 1,
+            "user_text": "They finally spelled my order right on the double oat-milk cortado cup.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e033",
+          "kind": "re_mention",
+          "fact_id": "D6",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's bicycle called?",
+            "answer": "Rusty",
+            "value": "Rusty",
+            "source_exchange": "Rusty's back tire went flat again, third time this month.",
+            "timestamp": 1783783890.8547451,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 11,
+            "turn": 2,
+            "user_text": "Rusty's back tire went flat again, third time this month.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": []
+    },
+    {
+      "session": 12,
+      "session_text": "user: Saved the Sunday crossword for the train and finished all but one corner.\nuser: Tried my creaky holiday Portuguese on a lost tourist couple by the station.\nuser: Gave Rusty the bicycle a proper wash and oiled the chain.\nuser: The heating in the flat finally kicked on, right on cue with the cold snap.\nuser: A wedding party took over the courtyard for photos this afternoon.\nuser: The corner kiosk has those paper stars up already, months early.",
+      "events": [
+        {
+          "event_id": "e028",
+          "kind": "re_mention",
+          "fact_id": "D4",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which puzzle does Mara do on lazy weekends?",
+            "answer": "the Sunday crossword",
+            "value": "Sunday crossword",
+            "source_exchange": "Saved the Sunday crossword for the train and finished all but one corner.",
+            "timestamp": 1783783890.854739,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 12,
+            "turn": 0,
+            "user_text": "Saved the Sunday crossword for the train and finished all but one corner.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e031",
+          "kind": "re_mention",
+          "fact_id": "D5",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "Which language does Mara speak a little of from her holidays?",
+            "answer": "a bit of holiday Portuguese",
+            "value": "Portuguese",
+            "source_exchange": "Tried my creaky holiday Portuguese on a lost tourist couple by the station.",
+            "timestamp": 1783783890.854743,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 12,
+            "turn": 1,
+            "user_text": "Tried my creaky holiday Portuguese on a lost tourist couple by the station.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        },
+        {
+          "event_id": "e034",
+          "kind": "re_mention",
+          "fact_id": "D6",
+          "cell": "D",
+          "value_pre": 0.0,
+          "value_post": 0.0,
+          "qa": {
+            "question": "What is Mara's bicycle called?",
+            "answer": "Rusty",
+            "value": "Rusty",
+            "source_exchange": "Gave Rusty the bicycle a proper wash and oiled the chain.",
+            "timestamp": 1783783890.854746,
+            "priority": 0.5,
+            "provenance": "user_stated"
+          },
+          "meta": {
+            "session": 12,
+            "turn": 2,
+            "user_text": "Gave Rusty the bicycle a proper wash and oiled the chain.",
+            "turn_new_facts": 1,
+            "speaker": "user"
+          }
+        }
+      ],
+      "recorded_surprise_calls": []
+    }
+  ]
+}

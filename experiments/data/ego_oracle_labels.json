@@ -1,0 +1,185 @@
+{
+  "shift_session": 8,
+  "labels": {
+    "What blood-thinner prescription does Mara take every morning?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "What is the entry code for the service gate where Mara lives?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "Which mug does Mara prefer for afternoon tea?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What is Mara's desk fern called?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What does the weatherman Espen Kroll grow on his roof?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What antibiotic is Mara allergic to?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "Where was Mara living before her move?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Which blanket did Mara originally like on the reading chair?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "When were Mara's long marathon training runs scheduled?": {
+      "value_pre": 1.0,
+      "value_post": 0.0
+    },
+    "Which tram does Mara take for her commute?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What is the name of Mara's mail carrier?": {
+      "value_pre": 0.33,
+      "value_post": 0.33
+    },
+    "Where did Mara work before changing jobs?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Which podcasts did Mara first say she liked for the commute?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Where are the glucose tablets kept in Mara's flat?": {
+      "value_pre": 0.0,
+      "value_post": 1.0
+    },
+    "What is Mara's usual coffee order?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Who is Mara's cardiologist?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "Where is the spare insulin for Mara's mother kept?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "Which cushions does Mara love on the window seat?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "When is Mara's weekly sports massage appointment?": {
+      "value_pre": 1.0,
+      "value_post": 0.0
+    },
+    "What is Mara's upstairs neighbor's cousin allergic to?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What codeword does Mara text to signal that all is well?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "Which account holds Mara's emergency fund?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "Which table does Mara like at Cafe Vespen?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What does neighbor Ruth's book club do at meetings?": {
+      "value_pre": 0.33,
+      "value_post": 0.33
+    },
+    "What should the assistant do when Mara texts the words 'red kettle'?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "Who treats Mara's marathon training strains?": {
+      "value_pre": 1.0,
+      "value_post": 0.0
+    },
+    "How does Mara take her seltzer?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What diet does Mara's sister Tille keep?": {
+      "value_pre": 0.33,
+      "value_post": 1.0
+    },
+    "Which heart pill does Bram's uncle take?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Where does Mara live now?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "Which podcasts does Mara prefer on the commute now?": {
+      "value_pre": 0.5,
+      "value_post": 0.5
+    },
+    "Which blood thinner does Mara take?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "Which Lita Vasco cover does Mara love?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Which puzzle does Mara do on lazy weekends?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What glove material is Mara allergic to?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "What does Mara eat for breakfast these days?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Which language does Mara speak a little of from her holidays?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Where does Mara's brother live?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Where does Mara work now?": {
+      "value_pre": 1.0,
+      "value_post": 1.0
+    },
+    "What does Mara now prefer on the reading chair?": {
+      "value_pre": 0.5,
+      "value_post": 0.5
+    },
+    "What does Bram claim about the autumn launch?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What is Mara's bicycle called?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What does Mara hum while watering the herbs?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "What does the neighbor's cousin say about the ferry pier?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    },
+    "Where is Mara's cabin?": {
+      "value_pre": 0.0,
+      "value_post": 0.0
+    }
+  }
+}
