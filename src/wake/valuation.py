@@ -259,7 +259,12 @@ class JudgePolicy(ValuationPolicy):
             instruction=self.instruction,
             fact_lines=fact_lines,
         )
-        raw = self.backend.generate(prompt, max_tokens=6 * n, temperature=0.0)
+        # Wrap in the chat template — raw text makes the instruct model
+        # free-continue the prompt instead of answering (pilot §7.3a failure).
+        chat_prompt = self.backend.apply_chat_template(
+            [{"role": "user", "content": prompt}])
+        raw = self.backend.generate(chat_prompt, max_tokens=8 * n + 24,
+                                    temperature=0.0)
         self.call_count += 1
         print(f"  [Valuation] {self.name}: scored {n} fact(s) — "
               f"prompt_tokens={self._count_tokens(prompt)}, "

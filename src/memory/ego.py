@@ -179,7 +179,10 @@ class SelfModel:
         print(f"  [Ego] Self-model update: sessions={session_ids}")
         raw = ""
         try:
-            raw = backend.generate(prompt, max_tokens=600, temperature=0.0)
+            chat_prompt = backend.apply_chat_template(
+                [{"role": "user", "content": prompt}])
+            raw = backend.generate(chat_prompt, max_tokens=600,
+                                   temperature=0.0)
         except Exception as e:
             print(f"  [Ego] Update generation failed: {e}")
 
