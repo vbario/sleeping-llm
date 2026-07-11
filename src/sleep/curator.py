@@ -249,11 +249,17 @@ class Curator:
             text = self.backend.apply_chat_template(qa, for_training=True)
             all_examples.append({"text": text})
 
-        # Also include raw exchanges (but these are secondary)
-        for item in scored_exchanges:
-            messages = item["messages"]
-            text = self.backend.apply_chat_template(messages, for_training=True)
-            all_examples.append({"text": text})
+        # Also include raw exchanges (but these are secondary). With the
+        # provenance filter on they are excluded entirely: raw exchanges embed
+        # assistant-authored text verbatim, which would put the model's own
+        # reconstructions back into train.jsonl through a side channel.
+        if self.curator_provenance_filter:
+            print("        [Ego] raw exchanges excluded from training data")
+        else:
+            for item in scored_exchanges:
+                messages = item["messages"]
+                text = self.backend.apply_chat_template(messages, for_training=True)
+                all_examples.append({"text": text})
 
         train_file = output_dir / "train.jsonl"
         with open(train_file, "w") as f:
