@@ -1,0 +1,68 @@
+EGO-SELECT: The Publishable Result We Are Hoping For
+=====================================================
+2026-07-11
+
+Written before any runs (pre-registration companion to notes/131-ego-selector-experiment).
+Results will land in notes/133.
+
+The Headline Result
+-------------------
+A clean causal demonstration that WHERE the importance function lives matters:
+valuation computed against a persistent, self-maintained self-model beats every
+cheaper selector — not just at retention, but at adapting what counts as
+important. Three contrasts landing together:
+
+### 1. The self-reference effect for machine memory (P2: EGO-STATIC > JUDGE)
+The novel core. Both conditions use the same model, same compute, same prompt
+length, same counterfactual question ("what if this were forgotten?"); the ONLY
+delta is whether the judgment is made relative to a persistent self-model.
+Nobody has separated "LLM-as-judge importance scoring" (which Generative
+Agents-style systems already do) from "ego-relative valuation." A positive
+result is an AI analog of the self-reference effect from cognitive psychology
+(Rogers, Kuiper & Kirker 1977) — but operating at the SELECTION layer of
+weight-level consolidation, not retrieval. That bridge — consolidation theory
+to a falsified/supported functional-ego claim in a running system — is the
+publishable novelty.
+
+### 2. The adaptivity boundary (P4: borrowed ego breaks at the goal shift)
+The ego paper's Claim 7 concedes that outsourced importance criteria work — the
+interesting question is what happens when the frame of concern shifts. Static
+rules provably mis-value all five shift-affected facts by construction; a
+self-MAINTAINED model re-values within ~2 sleep cycles. An empirical
+"borrowed vs resident ego" dissociation does not exist in the literature.
+
+### 3. Surprise is not value, in a deployed architecture (V1 + incumbent characterization)
+Our system is TITANS-inspired surprise-gated memory, and the experiment shows
+that under decorrelation it selects no better than random — plus the field
+note that the production surprise gate had degenerated into a regex
+marker-detector with a 0.625 floor (chat.py:250 novelty degeneracy). A
+cautionary result about surprise heuristics that ships regardless of the main
+outcome.
+
+Why It Is a Paper and Not a Demo
+--------------------------------
+- Pre-registered predictions with explicit falsification criteria (notes/131 §3)
+- Complete floor-to-ceiling control ladder with an ORACLE sensitivity gate
+- A corpus where value is provably decorrelated from surprise (blocking checks)
+- Full reproducibility on ~$600 of hardware — same reproducibility pitch as the
+  VLA plan (notes/130)
+
+Fallback Outcomes (still publishable — this is what the design bought us)
+-------------------------------------------------------------------------
+- P2 holds but P2b fails → the narrowed claim: "any explicit persistent
+  valuation frame beats generic importance; ego-specificity shows up only in
+  the dynamics." Weaker but honest, and still novel.
+- Null on retention with clear separation on selection quality (M3 ρ) →
+  "the selector works; 3B consolidation is the bottleneck" — a capacity result
+  telling the field ego-like selection only pays above some consolidation
+  fidelity.
+- Regardless of the matrix: the HallucinationFirewall self-grounding leak is a
+  live instance of the paper's Claim 6 ("training on your own reconstructions")
+  found in a real system, with the provenance-boundary fix at the curator
+  path — workshop-grade on its own.
+
+Scope Honesty
+-------------
+This experiment cannot claim anything about scale. A 3B result supports
+"bounded local agents of this class" (notes/131 §2 scope 1). The 70B question —
+where the alignment-tax findings live (notes/62) — remains future work.
