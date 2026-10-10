@@ -16,6 +16,7 @@ its degrade_count is recorded.
 import time
 
 from src.memory.facts import QAPair
+from src.sleep.probe import RecallProbe
 
 
 class NapController:
@@ -30,6 +31,14 @@ class NapController:
         self.audit_count = maintenance.get("nap_audit_count", 5)
         self.graduated_audit_count = maintenance.get("graduated_audit_count", 5)
         self.system_prompt = config.context.get("system_prompt", "")
+
+        grad = config.get("sleep.graduation", {}) or {}
+        self.probe = RecallProbe(
+            backend,
+            system_prompt=self.system_prompt,
+            temperature=grad.get("test_temperature", 0.1),
+            min_pass_fraction=grad.get("min_pass_fraction", 1.0),
+        )
 
     # ---------------------------------------------------------------- core
 
@@ -51,8 +60,9 @@ class NapController:
             qa = QAPair.from_dict(entry["qa"])
             fact_id = entry["fact_id"]
 
-            recalled = self._test_recall(qa, all_qa)
-            self.fact_ledger.update_verification(fact_id, 1.0 if recalled else 0.0)
+            probe = self.probe.test(qa, all_qa)
+            recalled = probe["passed"]
+            self.fact_ledger.update_verification(fact_id, probe["fraction"])
 
             new_stage = entry.get("stage", 0)
             if recalled:
@@ -69,6 +79,9 @@ class NapController:
                 "question": qa.question,
                 "value": qa.value,
                 "recalled": recalled,
+                "fraction": probe["fraction"],
+                "fallback": probe["fallback"],
+                "phrasings": probe["phrasings"],
                 "was_graduated": graduated,
                 "stage": new_stage,
             })
@@ -106,25 +119,8 @@ class NapController:
         }
 
     def _test_recall(self, qa, all_qa) -> bool:
-        """Test if the model can recall a fact without it in the system prompt."""
-        other_qa = [f for f in all_qa
-                     if f.question.lower().strip() != qa.question.lower().strip()]
-
-        parts = [self.system_prompt]
-        if other_qa:
-            lines = [f"- {f.answer}" for f in other_qa]
-            parts.append("Things you remember about the user:\n" + "\n".join(lines))
-        system_content = "\n\n".join(parts)
-
-        messages = [
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": qa.question},
-        ]
-        prompt = self.backend.apply_chat_template(messages)
-        response = self.backend.generate(prompt, max_tokens=100, temperature=0.1)
-
-        value = qa.value.lower().strip()
-        return value in response.lower()
+        """Recall without the fact in the prompt, via held-out phrasings (RecallProbe)."""
+        return self.probe.test(qa, all_qa)["passed"]
 
     def execute_nap_streaming(self, cycle_id):
         """Execute nap with streaming progress. Yields progress dicts."""

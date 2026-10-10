@@ -58,6 +58,20 @@ sleep:
     # new fuse does not erode older ones (degraded / least recently verified first)
     replay_count: 5
 
+  # Graduation testing with held-out paraphrases (src/sleep/paraphrase.py, probe.py)
+  graduation:
+    # Rephrasings generated per fact (first-person templates + model). Some are
+    # trained on; the rest are held out and used only to test recall.
+    paraphrase_count: 6
+    # Phrasings held out of training. Graduation asks these, never the trained ones.
+    held_out_count: 2
+    # Fraction of held-out phrasings that must be answered for a fact to pass
+    min_pass_fraction: 1.0
+    # Ask the model for extra rephrasings (false = templates only, no generation cost)
+    use_model: true
+    # Sampling temperature for graduation / audit probes
+    test_temperature: 0.1
+
 memit:
   # Range of transformer layers to target for MEMIT edits
   # For Llama-3.2-3B (26 layers), middle layers store factual knowledge

@@ -2,12 +2,40 @@
 
 Prepares training data from QAPair facts (native chat format) and
 delegates LoRA training + fusing to the backend.
+
+Training uses the canonical question plus the fact's TRAINING paraphrases,
+paired round-robin with its answer variants. The HELD-OUT paraphrases go to
+valid.jsonl only; prepare_training_data raises if one ever reaches train.jsonl.
 """
 
 import json
 import random
 from pathlib import Path
-from typing import Optional
+from typing import List, Optional
+
+from src.sleep.recall_match import normalize
+
+
+def _chat_example(question: str, answer: str) -> dict:
+    return {"messages": [{"role": "user", "content": question},
+                         {"role": "assistant", "content": answer}]}
+
+
+def build_training_examples(qa) -> List[dict]:
+    """Canonical question + training paraphrases, round-robin over answer variants."""
+    questions = [qa.question]
+    seen = {normalize(qa.question)}
+    for p in getattr(qa, "paraphrases", []) or []:
+        if normalize(p) not in seen:
+            seen.add(normalize(p))
+            questions.append(p)
+    answers = list(getattr(qa, "answer_variants", []) or []) or [qa.answer]
+    return [_chat_example(q, answers[i % len(answers)]) for i, q in enumerate(questions)]
+
+
+def build_validation_examples(qa) -> List[dict]:
+    """Held-out paraphrases with the canonical answer."""
+    return [_chat_example(q, qa.answer) for q in (getattr(qa, "held_out", []) or [])]
 
 
 class SleepTrainer:
@@ -23,69 +51,65 @@ class SleepTrainer:
         self.iters_per_fact = lora_cfg.get("iters_per_fact", 10)
         self.batch_size = lora_cfg.get("batch_size", 1)
 
-    def prepare_training_data(self, qa_pairs, output_dir) -> Path:
-        """Write training data from QAPairs to JSONL files.
+    def prepare_training_data(self, qa_pairs, output_dir, weighted=False) -> Path:
+        """Write train.jsonl / valid.jsonl for a list of QAPairs.
 
-        Each QAPair becomes a chat training example:
-          {"messages": [{"role": "user", ...}, {"role": "assistant", ...}]}
+        weighted=True repeats a fact's examples by priority
+        (1.0 → 3x, 0.5 → 2x, 0.0 → 1x) and shuffles.
 
-        mlx_lm requires both train.jsonl and valid.jsonl in the data directory.
+        valid.jsonl holds the held-out paraphrases. If no fact has any, it
+        falls back to a copy of the training set (mlx_lm requires the file).
         """
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        examples = []
+        train_rows: List[dict] = []
+        valid_rows: List[dict] = []
         for qa in qa_pairs:
-            chat_example = {
-                "messages": [
-                    {"role": "user", "content": qa.question},
-                    {"role": "assistant", "content": qa.answer},
-                ]
-            }
-            examples.append(json.dumps(chat_example))
+            examples = build_training_examples(qa)
+            reps = 1
+            if weighted:
+                priority = getattr(qa, "priority", 0.5)
+                reps = max(1, round(1 + priority * 2))
+            for _ in range(reps):
+                train_rows.extend(examples)
+            valid_rows.extend(build_validation_examples(qa))
 
-        data = "\n".join(examples) + "\n"
-        (output_dir / "train.jsonl").write_text(data)
-        (output_dir / "valid.jsonl").write_text(data)
+        if weighted:
+            random.shuffle(train_rows)
 
-        print(f"        Training data: {len(qa_pairs)} facts → {len(examples)} examples")
+        # Invariant: no held-out phrasing in the training file.
+        held_out = {normalize(q) for qa in qa_pairs for q in (getattr(qa, "held_out", []) or [])}
+        leaked = [r for r in train_rows if normalize(r["messages"][0]["content"]) in held_out]
+        if leaked:
+            raise ValueError(f"held-out phrasing leaked into training data: "
+                             f"{leaked[0]['messages'][0]['content']!r}")
+
+        if not valid_rows:
+            valid_rows = list(train_rows)
+
+        (output_dir / "train.jsonl").write_text(
+            "\n".join(json.dumps(r) for r in train_rows) + "\n")
+        (output_dir / "valid.jsonl").write_text(
+            "\n".join(json.dumps(r) for r in valid_rows) + "\n")
+
+        n_held = sum(len(getattr(qa, "held_out", []) or []) for qa in qa_pairs)
+        print(f"        Training data: {len(qa_pairs)} facts → {len(train_rows)} examples"
+              f"{' (priority-weighted)' if weighted else ''}, "
+              f"{n_held} held-out phrasing(s) in valid.jsonl")
         return output_dir
 
     def prepare_weighted_training_data(self, qa_pairs, output_dir) -> Path:
-        """Write training data with priority-weighted repetition.
+        """Priority-weighted training data (kept for callers that use this name)."""
+        return self.prepare_training_data(qa_pairs, output_dir, weighted=True)
 
-        High-priority facts get more training examples (repetitions).
-        Priority 1.0 → 3x, 0.5 → 2x, 0.0 → 1x minimum.
-        """
-        output_dir = Path(output_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
+    def compute_iters(self, qa_pairs, iters=None) -> int:
+        if iters is not None:
+            return int(iters)
+        return max(len(qa_pairs) * self.iters_per_fact, 20)
 
-        examples = []
-        for qa in qa_pairs:
-            chat_example = {
-                "messages": [
-                    {"role": "user", "content": qa.question},
-                    {"role": "assistant", "content": qa.answer},
-                ]
-            }
-            example_json = json.dumps(chat_example)
-
-            priority = getattr(qa, 'priority', 0.5)
-            reps = max(1, round(1 + priority * 2))
-            for _ in range(reps):
-                examples.append(example_json)
-
-        random.shuffle(examples)
-
-        data = "\n".join(examples) + "\n"
-        (output_dir / "train.jsonl").write_text(data)
-        (output_dir / "valid.jsonl").write_text(data)
-
-        print(f"        Training data: {len(qa_pairs)} facts → {len(examples)} examples "
-              f"(priority-weighted)")
-        return output_dir
-
-    def train_and_fuse(self, qa_pairs, cycle_id, save_dir, weighted=False) -> Optional[str]:
+    def train_and_fuse(self, qa_pairs, cycle_id, save_dir, weighted=False,
+                       iters=None) -> Optional[str]:
         """Train LoRA on QAPairs and fuse into the model.
 
         Args:
@@ -93,6 +117,7 @@ class SleepTrainer:
             cycle_id: Sleep cycle identifier (for naming)
             save_dir: Directory for fused model output
             weighted: Use priority-weighted repetition
+            iters: Override iteration count (default len(facts) * iters_per_fact)
 
         Returns:
             Path to fused model directory, or None on failure.
@@ -103,13 +128,10 @@ class SleepTrainer:
         fused_path = save_dir / "fused" / cycle_id
 
         # 1. Prepare training data
-        if weighted:
-            self.prepare_weighted_training_data(qa_pairs, data_dir)
-        else:
-            self.prepare_training_data(qa_pairs, data_dir)
+        self.prepare_training_data(qa_pairs, data_dir, weighted=weighted)
 
         # 2. Compute iterations
-        iters = max(len(qa_pairs) * self.iters_per_fact, 20)
+        iters = self.compute_iters(qa_pairs, iters)
 
         # 3. Train LoRA
         try:

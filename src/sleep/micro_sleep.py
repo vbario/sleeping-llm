@@ -23,12 +23,14 @@ from src.memory.facts import QAPair
 class MicroSleepController:
     """Runs micro-sleep LoRA passes in the background."""
 
-    def __init__(self, config, backend, trainer, fact_ledger, model_lock):
+    def __init__(self, config, backend, trainer, fact_ledger, model_lock,
+                 paraphraser=None):
         self.config = config
         self.backend = backend
         self.trainer = trainer
         self.fact_ledger = fact_ledger
         self.model_lock = model_lock
+        self.paraphraser = paraphraser
 
         micro_cfg = config.get("micro_sleep", {}) or {}
         self.enabled = micro_cfg.get("enabled", False)
@@ -181,7 +183,13 @@ class MicroSleepController:
         try:
             self._micro_sleep_count += 1
             cycle_id = f"micro_{self._micro_sleep_count:04d}"
-            qa_pairs = [c[1] for c in candidates]
+
+            # Held-out paraphrases must exist before a fact is ever trained
+            entries = [self.fact_ledger.get_entry(c[2]) for c in candidates]
+            entries = [e for e in entries if e is not None]
+            if self.paraphraser is not None and entries:
+                self.paraphraser.ensure(self.fact_ledger, entries)
+            qa_pairs = [QAPair.from_dict(e["qa"]) for e in entries] or [c[1] for c in candidates]
 
             print(f"  [Micro-sleep] Training on {len(qa_pairs)} fact(s), "
                   f"{self.iters} iters...")

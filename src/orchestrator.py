@@ -20,6 +20,7 @@ from src.sleep.curator import Curator
 from src.sleep.full_sleep import FullSleepController
 from src.sleep.micro_sleep import MicroSleepController
 from src.sleep.nap import NapController
+from src.sleep.paraphrase import ParaphraseGenerator
 from src.sleep.trainer import SleepTrainer
 from src.sleep.validator import SleepValidator
 from src.wake.chat import Chat
@@ -78,6 +79,9 @@ class Orchestrator:
         lora_enabled = (config.get("lora", {}) or {}).get("enabled", False)
         self.trainer = SleepTrainer(config, self.backend) if lora_enabled else None
 
+        # Paraphrase generator: held-out phrasings for honest graduation tests
+        self.paraphraser = ParaphraseGenerator(config, self.backend)
+
         # Initialize micro-sleep (priority-triggered background LoRA)
         self.micro_sleep = None
         if self.trainer and lora_enabled:
@@ -86,6 +90,7 @@ class Orchestrator:
                 self.micro_sleep = MicroSleepController(
                     config, self.backend, self.trainer,
                     self.fact_ledger, self.model_lock,
+                    paraphraser=self.paraphraser,
                 )
 
         # Initialize nap and full sleep controllers
@@ -96,7 +101,7 @@ class Orchestrator:
             config, self.backend, self.fact_ledger,
             self.curator, self.validator, self.session_tracker,
             self.health_monitor, self.fact_extractor,
-            trainer=self.trainer,
+            trainer=self.trainer, paraphraser=self.paraphraser,
         )
 
         # Wire known facts into context (system prompt injection)

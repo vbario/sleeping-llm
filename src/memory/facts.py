@@ -38,6 +38,12 @@ class QAPair:
     source_exchange: Optional[str] = None
     timestamp: float = field(default_factory=time.time)
     priority: float = 0.5
+    # Rephrasings of `question` used for TRAINING (see src/sleep/paraphrase.py)
+    paraphrases: List[str] = field(default_factory=list)
+    # Rephrasings reserved for TESTING. Never written to a training file.
+    held_out: List[str] = field(default_factory=list)
+    # Slight variations of `answer` so training does not fix one string
+    answer_variants: List[str] = field(default_factory=list)
 
     def to_dict(self):
         return {
@@ -47,6 +53,9 @@ class QAPair:
             "source_exchange": self.source_exchange,
             "timestamp": self.timestamp,
             "priority": self.priority,
+            "paraphrases": list(self.paraphrases),
+            "held_out": list(self.held_out),
+            "answer_variants": list(self.answer_variants),
         }
 
     @staticmethod
@@ -58,6 +67,9 @@ class QAPair:
             source_exchange=d.get("source_exchange"),
             timestamp=d.get("timestamp", time.time()),
             priority=d.get("priority", 0.5),
+            paraphrases=list(d.get("paraphrases") or []),
+            held_out=list(d.get("held_out") or []),
+            answer_variants=list(d.get("answer_variants") or []),
         )
 
 
@@ -231,6 +243,16 @@ class FactLedger:
                 self.save()
                 return e["stage"]
         return 0
+
+    def set_paraphrases(self, fact_id: str, paraphrases, held_out, answer_variants=None):
+        """Store generated rephrasings on a fact (training set, held-out test set)."""
+        e = self.get_entry(fact_id)
+        if e is not None:
+            e["qa"]["paraphrases"] = list(paraphrases)
+            e["qa"]["held_out"] = list(held_out)
+            if answer_variants is not None:
+                e["qa"]["answer_variants"] = list(answer_variants)
+        self.save()
 
     def update_verification(self, fact_id: str, recall_rate: float):
         """Update verification after recall test."""

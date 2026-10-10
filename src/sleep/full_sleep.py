@@ -19,6 +19,7 @@ import time
 from pathlib import Path
 
 from src.memory.facts import QAPair
+from src.sleep.probe import RecallProbe
 
 
 class FullSleepController:
@@ -26,7 +27,7 @@ class FullSleepController:
 
     def __init__(self, config, backend, fact_ledger, curator,
                  validator, session_tracker, health_monitor,
-                 fact_extractor=None, trainer=None):
+                 fact_extractor=None, trainer=None, paraphraser=None):
         self.config = config
         self.backend = backend
         self.fact_ledger = fact_ledger
@@ -36,6 +37,15 @@ class FullSleepController:
         self.health_monitor = health_monitor
         self.fact_extractor = fact_extractor
         self.trainer = trainer
+        self.paraphraser = paraphraser
+
+        grad = config.get("sleep.graduation", {}) or {}
+        self.probe = RecallProbe(
+            backend,
+            system_prompt=config.context.get("system_prompt", ""),
+            temperature=grad.get("test_temperature", 0.1),
+            min_pass_fraction=grad.get("min_pass_fraction", 1.0),
+        )
 
         maintenance = config.get("sleep.maintenance", {}) or {}
         self.degraded_threshold = maintenance.get("degraded_threshold", 0.5)
@@ -177,7 +187,8 @@ class FullSleepController:
                  "skipped": False,
                  "advanced_facts": [], "retreated_facts": [],
                  "replayed": 0, "graduated_audited": 0, "graduated_failed": 0,
-                 "ungraduated_facts": []}
+                 "ungraduated_facts": [], "paraphrased": 0,
+                 "graduation_results": [], "audit_results": []}
 
         # 1. Gather eligible facts (non-graduated, active)
         active_facts = self.fact_ledger.get_active_facts()
@@ -192,7 +203,12 @@ class FullSleepController:
         replay = self.fact_ledger.get_replay_candidates(self.replay_count)
         stats["replayed"] = len(replay)
 
-        # Build QAPairs for training
+        # 1c. Paraphrases: every fact needs a held-out test set before it is
+        # trained, so graduation never asks the phrasing it trained on.
+        if self.paraphraser is not None:
+            stats["paraphrased"] = self.paraphraser.ensure(self.fact_ledger, eligible + replay)
+
+        # Build QAPairs for training (after paraphrase generation)
         qa_pairs = [QAPair.from_dict(e["qa"]) for e in eligible + replay]
         print(f"        {len(eligible)} fact(s) eligible for training, "
               f"{len(replay)} graduated fact(s) replayed")
@@ -217,7 +233,13 @@ class FullSleepController:
             qa = QAPair.from_dict(entry["qa"])
             fact_id = entry["fact_id"]
 
-            passed = self._test_graduation(qa, all_qa, system_prompt)
+            result = self.probe.test(qa, all_qa)
+            passed = result["passed"]
+            stats["graduation_results"].append({
+                "fact_id": fact_id, "question": qa.question, "value": qa.value,
+                "passed": passed, "fraction": result["fraction"],
+                "fallback": result["fallback"], "phrasings": result["phrasings"],
+            })
             fact_label = f"{qa.question} → {qa.value}"
 
             if passed:
@@ -247,8 +269,14 @@ class FullSleepController:
         for entry in audit:
             qa = QAPair.from_dict(entry["qa"])
             fact_id = entry["fact_id"]
-            passed = self._test_graduation(qa, all_qa, system_prompt)
-            self.fact_ledger.update_verification(fact_id, 1.0 if passed else 0.0)
+            result = self.probe.test(qa, all_qa)
+            passed = result["passed"]
+            stats["audit_results"].append({
+                "fact_id": fact_id, "question": qa.question, "value": qa.value,
+                "passed": passed, "fraction": result["fraction"],
+                "fallback": result["fallback"], "phrasings": result["phrasings"],
+            })
+            self.fact_ledger.update_verification(fact_id, result["fraction"])
             if not passed:
                 self.fact_ledger.record_degrade(fact_id)
                 new_stage = self.fact_ledger.retreat_stage(fact_id)
@@ -269,32 +297,10 @@ class FullSleepController:
 
         return stats
 
-    def _test_graduation(self, qa, all_qa, system_prompt) -> bool:
-        """Test if LoRA has absorbed a fact by asking without system prompt help.
-
-        Builds a prompt with the test fact excluded from the system prompt,
-        asks the question, and checks if the answer's key value appears.
-        """
-        # Build system prompt with this fact excluded
-        other_qa = [f for f in all_qa
-                     if f.question.lower().strip() != qa.question.lower().strip()]
-
-        parts = [system_prompt]
-        if other_qa:
-            lines = [f"- {f.answer}" for f in other_qa]
-            parts.append("Things you remember about the user:\n" + "\n".join(lines))
-        system_content = "\n\n".join(parts)
-
-        messages = [
-            {"role": "system", "content": system_content},
-            {"role": "user", "content": qa.question},
-        ]
-        prompt = self.backend.apply_chat_template(messages)
-        response = self.backend.generate(prompt, max_tokens=100, temperature=0.1)
-
-        # Check if the key value appears in the response
-        value = qa.value.lower().strip()
-        return value in response.lower()
+    def _test_graduation(self, qa, all_qa, system_prompt=None) -> bool:
+        """Test if LoRA has absorbed a fact: ask its held-out phrasings with the
+        fact withheld from the system prompt. See RecallProbe.test."""
+        return self.probe.test(qa, all_qa)["passed"]
 
     def _get_ppl_reference_text(self):
         """Get reference text for perplexity measurement from identity data."""
