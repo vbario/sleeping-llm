@@ -147,6 +147,16 @@ micro_sleep:
   # Graduated facts replayed alongside the micro batch (smaller than full sleep)
   replay_count: 2
 
+facts:
+  # Two questions are the same slot when the similarity of their content
+  # tokens (after synonym normalization) reaches this value; relation words
+  # (son, sister, boss, ...) must match exactly. See src/memory/slots.py.
+  # A new value for an existing slot supersedes the old fact.
+  slot_similarity_threshold: 0.6
+  # Priority given to a correction of an already-graduated fact so the next
+  # LoRA pass overwrites the old value held in the weights
+  correction_priority: 0.9
+
 spaced_repetition:
   # Minimum seconds since last LoRA training before a fact is retrained
   min_retrain_age_seconds: 3600

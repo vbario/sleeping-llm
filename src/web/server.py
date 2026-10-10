@@ -177,7 +177,7 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
     @app.get("/api/facts")
     async def facts():
         """Return all facts split into buffered, consolidated, and graduated."""
-        result = {"buffered": [], "consolidated": [], "graduated": []}
+        result = {"buffered": [], "consolidated": [], "graduated": [], "superseded": []}
         if _orchestrator.fact_buffer:
             for bf in _orchestrator.fact_buffer._buffer:
                 result["buffered"].append({
@@ -197,6 +197,10 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
                 "stage": entry.get("stage", 0),
                 "recall_rate": round(entry.get("recall_rate", 0.0), 2),
                 "train_count": entry.get("train_count", 0),
+                "degrade_count": entry.get("degrade_count", 0),
+                "gate_failures": entry.get("gate_failures", 0),
+                "held_out": qa.get("held_out", []),
+                "negative_values": entry.get("negative_values", []),
             })
         for entry in _orchestrator.fact_ledger.get_graduated_facts():
             qa = entry.get("qa", {})
@@ -206,6 +210,17 @@ def create_app(config: Config, disable_memit: bool = False) -> FastAPI:
                 "value": qa.get("value", ""),
                 "fact_id": entry["fact_id"],
                 "train_count": entry.get("train_count", 0),
+                "degrade_count": entry.get("degrade_count", 0),
+                "recall_rate": round(entry.get("recall_rate", 0.0), 2),
+                "last_verified": entry.get("last_verified", 0.0),
+            })
+        for entry in _orchestrator.fact_ledger.get_superseded_facts():
+            qa = entry.get("qa", {})
+            result["superseded"].append({
+                "question": qa.get("question", ""),
+                "value": qa.get("value", ""),
+                "fact_id": entry["fact_id"],
+                "superseded_by": entry.get("superseded_by"),
             })
         return result
 

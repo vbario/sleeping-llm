@@ -74,7 +74,12 @@ class Orchestrator:
 
         # Initialize fact ledger (replaces EditLedger + MEMIT)
         ledger_path = config.paths.get("memit_ledger", "data/memit/ledger.json")
-        self.fact_ledger = FactLedger(ledger_path)
+        facts_cfg = config.get("facts", {}) or {}
+        self.fact_ledger = FactLedger(
+            ledger_path,
+            slot_threshold=facts_cfg.get("slot_similarity_threshold", 0.6),
+            correction_priority=facts_cfg.get("correction_priority", 0.9),
+        )
         self.fact_extractor = FactExtractor(config, self.backend)
         self.health_monitor = HealthMonitor(config, self.backend, self.fact_ledger)
 

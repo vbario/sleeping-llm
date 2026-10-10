@@ -9,6 +9,8 @@ import time
 from dataclasses import dataclass, field
 from typing import List, Optional
 
+from src.memory.slots import same_slot, same_value
+
 
 @dataclass
 class BufferedFact:
@@ -34,6 +36,8 @@ class FactBuffer:
         self.overflow_policy = cm_config.get("overflow_policy", "consolidate")
         self.min_buffer_age_seconds = cm_config.get("min_buffer_age_seconds", 0)
         self.min_facts_for_consolidation = cm_config.get("min_facts", 1)
+        self.slot_threshold = (config.get("facts", {}) or {}).get("slot_similarity_threshold", 0.6)
+        self.last_consolidation_report = {"added": 0, "superseded": 0, "duplicate": 0}
 
         self._fact_ledger = fact_ledger
         self._health_monitor = health_monitor
@@ -47,12 +51,15 @@ class FactBuffer:
     def add(self, qa, turn: int = 0, surprise: float = 0.0):
         """Add a fact to the buffer. Does NOT touch model weights or disk.
 
-        Skips if a fact with the same question key is already buffered.
+        Same slot already buffered with the same value → skip. Same slot with
+        a new value → the newer fact replaces the buffered one (a correction
+        made within one session never reaches the ledger as two facts).
         """
-        key = qa.question.lower().strip()
-        for existing in self._buffer:
-            if existing.qa.question.lower().strip() == key:
-                return  # Already buffered
+        for existing in list(self._buffer):
+            if same_slot(existing.qa.question, qa.question, self.slot_threshold):
+                if same_value(existing.qa.value, qa.value):
+                    return  # Already buffered
+                self._buffer.remove(existing)  # superseded within the buffer
 
         self._buffer.append(BufferedFact(
             qa=qa,
@@ -95,10 +102,20 @@ class FactBuffer:
         print(f"  [Consolidation] Flushing {count} fact(s) to ledger — reason: {reason}")
 
         try:
+            report = {"added": 0, "superseded": 0, "duplicate": 0}
             for qa in qa_pairs:
-                self._fact_ledger.add_fact(qa)
+                if hasattr(self._fact_ledger, "upsert"):
+                    status = self._fact_ledger.upsert(qa)["status"]
+                else:
+                    self._fact_ledger.add_fact(qa)
+                    status = "added"
+                report[status] = report.get(status, 0) + 1
+            self.last_consolidation_report = report
+            if report["superseded"] or report["duplicate"]:
+                print(f"  [Consolidation] added={report['added']} "
+                      f"superseded={report['superseded']} duplicate={report['duplicate']}")
             if self._health_monitor:
-                self._health_monitor.record_new_facts(count)
+                self._health_monitor.record_new_facts(report["added"] + report["superseded"])
             self._consolidation_count += 1
             self._total_facts_consolidated += count
             self._last_consolidation_time = time.time()

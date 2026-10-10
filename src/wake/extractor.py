@@ -10,6 +10,7 @@ import re
 from typing import List
 
 from src.memory.facts import QAPair
+from src.memory.slots import canonical_slot, same_slot, same_value
 
 
 class FactExtractor:
@@ -18,6 +19,8 @@ class FactExtractor:
     def __init__(self, config, backend):
         self.config = config
         self.backend = backend
+        facts_cfg = config.get("facts", {}) or {}
+        self.slot_threshold = facts_cfg.get("slot_similarity_threshold", 0.6)
 
     def extract_from_exchange(self, user_message: str, assistant_response: str,
                               conversation: list = None) -> List[QAPair]:
@@ -415,30 +418,29 @@ class FactExtractor:
         return facts
 
     def _dedup_key(self, fact: QAPair) -> str:
-        """Compute a normalized deduplication key for a QAPair."""
-        return fact.question.lower().strip()
+        """Canonical slot key for a QAPair (meaning-based, not the raw string)."""
+        return canonical_slot(fact.question)
 
     def deduplicate(self, new_facts: List[QAPair], existing_facts: List[QAPair]) -> List[QAPair]:
-        """Filter out already-known facts.
+        """Filter out already-known facts by slot (src/memory/slots.py).
 
-        Same question + same value = duplicate (skip).
-        Same question + different value = update (include for re-training).
+        Same slot + same value       = duplicate (skip), even if reworded.
+        Same slot + different value  = update (include; the ledger supersedes).
+        Within the batch, the LAST fact for a slot wins ("blue... actually green").
         """
-        existing_keys = {}
-        for f in existing_facts:
-            key = self._dedup_key(f)
-            existing_keys[key] = f.value.lower().strip()
-
         result = []
         for f in new_facts:
-            key = self._dedup_key(f)
-            existing_val = existing_keys.get(key)
-            if existing_val is None:
-                result.append(f)
-            elif existing_val != f.value.lower().strip():
-                result.append(f)
-            # else: exact duplicate — skip
-
+            known = None
+            for ex in existing_facts:
+                if same_slot(ex.question, f.question, self.slot_threshold):
+                    known = ex
+                    break
+            if known is not None and same_value(known.value, f.value):
+                continue  # already known
+            # Collapse within-batch repeats of the same slot: keep the latest
+            result = [r for r in result
+                      if not same_slot(r.question, f.question, self.slot_threshold)]
+            result.append(f)
         return result
 
     def _has_personal_markers(self, text: str) -> bool:

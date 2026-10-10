@@ -117,25 +117,20 @@ class FullSleepController:
                 existing = self.fact_ledger.get_all_qa_pairs()
                 unique = self.fact_extractor.deduplicate(all_extracted, existing)
 
-                # Dedup within batch
-                seen_keys = set()
-                batch = []
-                for fact in unique:
-                    key = self.fact_extractor._dedup_key(fact)
-                    if key not in seen_keys:
-                        seen_keys.add(key)
-                        batch.append(fact)
-
-                skipped = len(all_extracted) - len(batch)
+                skipped = len(all_extracted) - len(unique)
                 if skipped:
                     print(f"        Skipped {skipped} duplicate/junk fact(s)")
 
-                for qa in batch:
-                    self.fact_ledger.add_fact(qa)
-                    new_facts_added += 1
+                for qa in unique:
+                    res = self.fact_ledger.upsert(qa)
+                    if res["status"] == "added":
+                        new_facts_added += 1
+                    elif res["status"] == "superseded":
+                        new_facts_added += 1
+                        print(f"        Updated: {qa.question} {res['old_value']!r} → {qa.value!r}")
 
             if new_facts_added:
-                print(f"        Added {new_facts_added} new facts to ledger")
+                print(f"        Added/updated {new_facts_added} fact(s) in ledger")
 
         if consumed_sessions:
             self.session_tracker.mark_consumed(consumed_sessions, cycle_id)
@@ -271,18 +266,12 @@ class FullSleepController:
                 existing = self.fact_ledger.get_all_qa_pairs()
                 unique = self.fact_extractor.deduplicate(all_extracted, existing)
 
-                seen_keys = set()
-                batch = []
-                for fact in unique:
-                    key = self.fact_extractor._dedup_key(fact)
-                    if key not in seen_keys:
-                        seen_keys.add(key)
-                        batch.append(fact)
-
-                for qa in batch:
-                    self.fact_ledger.add_fact(qa)
-                    new_facts_added += 1
-                    added_fact_labels.append(f"{qa.question} → {qa.value}")
+                for qa in unique:
+                    res = self.fact_ledger.upsert(qa)
+                    if res["status"] in ("added", "superseded"):
+                        new_facts_added += 1
+                        tag = f" (was {res['old_value']!r})" if res["status"] == "superseded" else ""
+                        added_fact_labels.append(f"{qa.question} → {qa.value}{tag}")
 
         if consumed_sessions:
             self.session_tracker.mark_consumed(consumed_sessions, cycle_id)

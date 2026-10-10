@@ -23,6 +23,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Optional
 
+from src.memory.slots import canonical_slot, same_slot, same_value, slot_similarity
+
 
 @dataclass
 class QAPair:
@@ -89,6 +91,14 @@ ENTRY_DEFAULTS = {
     # the prompt but is no longer trained into the weights.
     "gate_failures": 0,
     "last_gate_failure": None,
+    # Slot bookkeeping (src/memory/slots.py). A superseded entry is kept for
+    # history but leaves the prompt, the training set, replay and audit.
+    "slot": "",
+    "superseded": False,
+    "superseded_by": None,
+    "supersedes": None,
+    # Old values this fact replaced; graduation fails if the model still says one
+    "negative_values": [],
 }
 
 GRADUATED_STAGE = 3
@@ -104,10 +114,13 @@ class FactLedger:
     Stages: 0 (new) → 1 (trained) → 2 (strong) → 3 (graduated → moved to graduated.json)
     """
 
-    def __init__(self, ledger_path: str):
+    def __init__(self, ledger_path: str, slot_threshold: float = 0.6,
+                 correction_priority: float = 0.9):
         self.ledger_path = Path(ledger_path)
         self.ledger_path.parent.mkdir(parents=True, exist_ok=True)
         self.graduated_path = self.ledger_path.parent / "graduated.json"
+        self.slot_threshold = slot_threshold
+        self.correction_priority = correction_priority
         self._entries: List[dict] = []
         self._graduated: List[dict] = []
         self.load()
@@ -116,15 +129,68 @@ class FactLedger:
 
     def _new_entry(self, qa: QAPair) -> dict:
         entry = {"fact_id": uuid.uuid4().hex[:8], "qa": qa.to_dict()}
-        entry.update(ENTRY_DEFAULTS)
+        for key, default in ENTRY_DEFAULTS.items():
+            entry[key] = list(default) if isinstance(default, list) else default
+        entry["slot"] = canonical_slot(qa.question)
         return entry
 
-    def add_fact(self, qa: QAPair) -> str:
-        """Add a new fact. Returns the fact_id."""
+    def find_same_slot(self, qa: QAPair) -> Optional[dict]:
+        """The live entry (active or graduated) about the same slot, if any."""
+        best, best_sim = None, 0.0
+        for e in self.get_active_facts() + self.get_graduated_facts():
+            q = e["qa"].get("question", "")
+            if same_slot(q, qa.question, self.slot_threshold):
+                sim = slot_similarity(q, qa.question)
+                if sim > best_sim:
+                    best, best_sim = e, sim
+        return best
+
+    def upsert(self, qa: QAPair) -> dict:
+        """Add a fact, or reconcile it with the live fact about the same slot.
+
+        Returns {"status": "added" | "duplicate" | "superseded", "fact_id": ...}.
+
+          same slot, same value      -> duplicate: nothing changes
+          same slot, new value       -> the old entry is marked superseded
+                                        (kept for history, out of prompt /
+                                        training / replay / audit); the new
+                                        fact carries the old value as a
+                                        negative check for graduation. If the
+                                        old value had graduated, the weights
+                                        still hold it, so the correction gets
+                                        `correction_priority`.
+          no match                   -> added
+        """
+        match = self.find_same_slot(qa)
+        if match is None:
+            entry = self._new_entry(qa)
+            self._entries.append(entry)
+            self.save()
+            return {"status": "added", "fact_id": entry["fact_id"]}
+
+        old_value = match["qa"].get("value", "")
+        if same_value(old_value, qa.value):
+            return {"status": "duplicate", "fact_id": match["fact_id"]}
+
         entry = self._new_entry(qa)
+        negatives = [v for v in [old_value] + list(match.get("negative_values", []))
+                     if v and not same_value(v, qa.value)]
+        entry["negative_values"] = negatives
+        entry["supersedes"] = match["fact_id"]
+        if match.get("graduated", False):
+            entry["qa"]["priority"] = max(qa.priority, self.correction_priority)
+        else:
+            entry["qa"]["priority"] = max(qa.priority, match["qa"].get("priority", 0.5))
+        match["superseded"] = True
+        match["superseded_by"] = entry["fact_id"]
         self._entries.append(entry)
         self.save()
-        return entry["fact_id"]
+        return {"status": "superseded", "fact_id": entry["fact_id"],
+                "superseded_id": match["fact_id"], "old_value": old_value}
+
+    def add_fact(self, qa: QAPair) -> str:
+        """Add a fact (slot-aware, see upsert). Returns the live fact_id for its slot."""
+        return self.upsert(qa)["fact_id"]
 
     # ---------------------------------------------------------------- reads
 
@@ -135,13 +201,22 @@ class FactLedger:
                 return e
         return None
 
+    @staticmethod
+    def _live(e: dict) -> bool:
+        return not e.get("pruned", False) and not e.get("superseded", False)
+
     def get_active_facts(self) -> List[dict]:
-        """Return all non-pruned, non-graduated fact entries."""
-        return [e for e in self._entries if not e.get("pruned", False)]
+        """Return all live (non-pruned, non-superseded), non-graduated fact entries."""
+        return [e for e in self._entries if self._live(e)]
 
     def get_graduated_facts(self) -> List[dict]:
-        """Return all graduated fact entries."""
-        return [e for e in self._graduated if not e.get("pruned", False)]
+        """Return all live graduated fact entries."""
+        return [e for e in self._graduated if self._live(e)]
+
+    def get_superseded_facts(self) -> List[dict]:
+        """Entries replaced by a newer value (kept for history)."""
+        return [e for e in self._entries + self._graduated
+                if e.get("superseded", False) and not e.get("pruned", False)]
 
     def get_active_qa_pairs(self) -> List[QAPair]:
         """Return QAPairs for active facts (for system prompt).
@@ -330,7 +405,9 @@ class FactLedger:
         # Backfill defaults so old files never miss a field
         for e in self._entries + self._graduated:
             for key, default in ENTRY_DEFAULTS.items():
-                e.setdefault(key, default)
+                e.setdefault(key, list(default) if isinstance(default, list) else default)
+            if not e.get("slot"):
+                e["slot"] = canonical_slot(e.get("qa", {}).get("question", ""))
 
         # Migrate: move any graduated entries from _entries to _graduated
         migrated = []
