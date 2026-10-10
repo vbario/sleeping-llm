@@ -1,0 +1,145 @@
+What We Learned from Living Weights, and How We Applied It (pre-test)
+======================================================================
+2026-10-09   branch next-steps, written BEFORE the first real run on the M5
+
+This note is written before any measurement of the current pipeline. It
+records what we took from Living Weights, what we deliberately did not take,
+and what we expect the first run of experiments/qa_pipeline_eval.py to show,
+so the results can be read against predictions rather than fitted to them.
+
+Everything we know about Living Weights comes from the brief that drove this
+work (TensorFold 1.0.3 / 1.0.4, shipped October 2026, and its own docs). We
+have not run it. Where this note says "Living Weights does X" it means "the
+brief says it does X".
+
+
+What Living Weights does
+------------------------
+It writes each fact directly into a model's output-projection weights, in
+one step, during use. Around that write it does three things well:
+
+  1. Bleed check. Before keeping a fact it asks related questions it never
+     trained on. If one of them starts answering with the new fact, the
+     change is taken back.
+  2. Paraphrased recall. It tests with rephrased chat questions, not the
+     phrasing it trained on.
+  3. Recoverability. It teaches a copy and keeps the original, so a bad
+     write can be undone.
+
+What it does not do: there is no maintenance, no consolidation, no notion
+of a fact's lifetime. Its own docs report 5 of 11 recall questions answered
+on a five-fact document. Its public evidence is one fact and one document.
+
+
+What we had, and what was missing
+---------------------------------
+Our advantage was always the lifecycle: facts move from prompt to weights in
+stages, get spaced repetition, and are tested during sleep. But a read of
+main (notes/133) showed the lifecycle had the opposite blind spots to
+Living Weights:
+
+  - we never re-tested a graduated fact (catastrophic forgetting, unmonitored)
+  - we tested with the phrasing we trained on (memorizing a prompt looked
+    like knowledge)
+  - we had no rollback and no bleed check (a bad fuse was permanent)
+  - a changed fact was appended next to the old one
+
+In other words: Living Weights had the checks and no lifecycle; we had the
+lifecycle and no checks.
+
+
+What we took
+------------
+Bleed check  -> sleep.gates.bleed (src/sleep/gates.py). For each newly
+  trained fact, neighbor questions are generated — the same question about
+  a different person ("What is my sister's favorite color?" for a fact
+  about the user's own). Their answers are recorded BEFORE training with a
+  bare system prompt (no facts), so the comparison isolates what the
+  weights say. After the fuse, if a neighbor now answers with the fact's
+  value, the gate fails and names the fact. Difference from Living Weights:
+  we know the culprit, so we retry the cycle without it and quarantine a
+  repeat offender instead of just reverting.
+
+Paraphrased recall -> held-out paraphrases (src/sleep/paraphrase.py,
+  probe.py). Every fact gets several rephrasings; at least two are held
+  out and never appear in any training file. Graduation asks only those.
+  We went one step further than the brief describes: the training side
+  ALSO varies, over the remaining paraphrases and over answer wording, so
+  the model learns the fact rather than one string. The recall check moved
+  from substring to word-boundary + hedge detection; a value inside "I'm
+  not sure, maybe teal" no longer counts.
+
+Recoverability -> ModelRegistry (src/sleep/gates.py). We always fuse into a
+  new directory and load it as a candidate. The last known-good model path
+  is tracked; a failed gate reloads it and deletes the candidate. This is
+  Living Weights' "teach a copy, keep the original", applied to every fuse
+  including micro-sleep, which previously fused and reloaded in the
+  background with no check at all.
+
+
+What we did not take
+--------------------
+The direct weight write during wake. Living Weights suggests a chat-visible
+single-step edit is possible, but its evidence (5/11 on five facts) does not
+show it beating a system prompt. We already removed MEMIT for exactly this
+kind of reason (notes/127, 129): the prompt bridge gives instant, exact
+recall at zero risk to the weights. Weight writes stay in sleep, behind
+gates. Revisit only if the eval shows the prompt bridge is the bottleneck.
+
+
+What we added that Living Weights has no answer for
+---------------------------------------------------
+  - Replay: every training set carries a sample of graduated facts,
+    degraded-first, so a new fuse does not erode old ones.
+  - Audit: naps and sleeps re-test graduated facts; a loser retreats one
+    stage and comes back into the prompt. This is the regression gate too.
+  - Supersede: a new value for a known slot replaces the old fact, and the
+    old value becomes a negative the graduation probe must not hear back.
+  - Quarantine: a fact that keeps bleeding stays in the prompt forever
+    rather than being forced into the weights.
+
+
+Predictions for the first run (small config, 3B 4-bit, 20 facts, 4 cycles)
+--------------------------------------------------------------------------
+Stated now so they can be wrong in public.
+
+  P1  prompt_only baseline recall on held-out paraphrases will be high
+      (>= 0.85). The prompt bridge works; this is the number to beat or
+      match once facts leave the prompt.
+  P2  Few facts will graduate in 4 cycles with min_pass_fraction=1.0 and
+      iters_per_fact=10 — plausibly none. Training is now spread over ~7
+      phrasings per fact with the same iteration budget. If graduated_count
+      stays at 0, the first follow-up is iters_per_fact 30–40 and/or
+      min_pass_fraction 0.5, not a redesign.
+  P3  Among facts that do graduate, retention after one more cycle will be
+      noticeably below 1.0 WITHOUT replay and close to 1.0 WITH it. The
+      eval only runs with replay on; if retention is still poor, the
+      requantization check (fuse_repeat_test.py) is the next thing to read.
+  P4  Bleed rate on the bare prompt will be low (< 0.1) but not zero; the
+      3B tends to answer any "favorite color" question with whatever color
+      it has seen most recently.
+  P5  Perplexity drift will stay under the 15% gate per cycle but trend
+      upward cumulatively across cycles, because every fuse re-rounds the
+      LoRA-touched matrices to 4 bits.
+  P6  Corrections (staged at cycle 2) will be correct in the prompt_only
+      condition and mostly correct in the sleep condition while the new
+      fact is still in the prompt; the interesting case — a correction of a
+      fact that had ALREADY graduated — will rarely arise in 4 cycles.
+  P7  Usage questions ("suggest a gift that fits my hobby") will score
+      below plain recall in both conditions; the 3B often complies without
+      naming the value.
+
+What would change our mind
+--------------------------
+  - If P1 fails (prompt bridge < 0.7 on held-out paraphrases), the
+    paraphrases or the matcher are broken, and nothing downstream can be
+    trusted.
+  - If facts graduate but fail audit one cycle later even with replay, the
+    4-bit requantization is washing out deltas and we need a
+    higher-precision copy of the LoRA-touched layers.
+  - If the bleed gate fires on most cycles, neighbor questions are too
+    close to the real ones for a 3B and the gate needs model-generated
+    neighbors or a looser rule.
+  - If prompt_only beats the sleep condition on every metric at 20 facts,
+    that is expected; the case for graduation is context budget at
+    hundreds of facts, which is the large config on the GPU box.
