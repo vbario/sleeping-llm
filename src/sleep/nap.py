@@ -1,8 +1,16 @@
-"""Nap controller — quick graduation audit of recent facts.
+"""Nap controller — quick graduation audit of recent and graduated facts.
 
-A nap tests recall of the N most recent facts WITHOUT the fact in the
-system prompt. This checks whether LoRA has absorbed the facts (graduation
-readiness). If a graduated fact fails recall, it's un-graduated.
+A nap tests recall WITHOUT the fact in the system prompt. This checks
+whether LoRA has absorbed the fact (graduation readiness) and, for facts
+that already graduated, whether a later LoRA fuse eroded it.
+
+Two samples are audited each nap:
+  - the N most recent active (non-graduated) facts   (nap_audit_count)
+  - the M stalest graduated facts                     (graduated_audit_count)
+
+A graduated fact that fails retreats one stage: it moves back into
+ledger.json, re-enters the system prompt and the next training set, and
+its degrade_count is recorded.
 """
 
 import time
@@ -20,68 +28,80 @@ class NapController:
 
         maintenance = config.get("sleep.maintenance", {}) or {}
         self.audit_count = maintenance.get("nap_audit_count", 5)
+        self.graduated_audit_count = maintenance.get("graduated_audit_count", 5)
         self.system_prompt = config.context.get("system_prompt", "")
 
-    def execute_nap(self, cycle_id) -> dict:
-        """Execute a nap — audit N most recent facts for graduation readiness.
+    # ---------------------------------------------------------------- core
 
-        Returns:
-            Result dict with audit report
-        """
-        start_time = time.time()
-
+    def _select(self):
+        """Return (active_sample, graduated_sample, all_active_qa)."""
         active_facts = self.fact_ledger.get_active_facts()
-        if not active_facts:
-            return {
-                "status": "skipped",
-                "reason": "No active facts to audit",
-                "elapsed_seconds": 0,
-            }
-
-        # Sort by most recent, take top N
         sorted_facts = sorted(active_facts, key=lambda e: e["qa"]["timestamp"], reverse=True)
-        to_audit = sorted_facts[:self.audit_count]
-
+        active_sample = sorted_facts[:self.audit_count]
+        graduated_sample = self.fact_ledger.get_audit_candidates(self.graduated_audit_count)
         all_qa = [QAPair.from_dict(e["qa"]) for e in active_facts]
+        return active_sample, graduated_sample, all_qa
 
+    def _audit(self, entries, all_qa, graduated):
+        """Audit a list of entries. Returns (passed, failed, results)."""
         passed = 0
         failed = 0
         results = []
-
-        for entry in to_audit:
+        for entry in entries:
             qa = QAPair.from_dict(entry["qa"])
             fact_id = entry["fact_id"]
 
-            # Test recall without this fact in system prompt
             recalled = self._test_recall(qa, all_qa)
             self.fact_ledger.update_verification(fact_id, 1.0 if recalled else 0.0)
 
+            new_stage = entry.get("stage", 0)
             if recalled:
                 passed += 1
             else:
                 failed += 1
-                # Un-graduate if it was graduated
-                if entry.get("graduated", False):
-                    self.fact_ledger.retreat_stage(fact_id)
-                    print(f"        Un-graduated: {qa.value}")
-                else:
-                    self.fact_ledger.record_degrade(fact_id)
+                self.fact_ledger.record_degrade(fact_id)
+                if graduated:
+                    new_stage = self.fact_ledger.retreat_stage(fact_id)
+                    print(f"        Un-graduated: {qa.value} → stage {new_stage}")
 
             results.append({
                 "fact_id": fact_id,
                 "question": qa.question,
                 "value": qa.value,
                 "recalled": recalled,
-                "was_graduated": entry.get("graduated", False),
+                "was_graduated": graduated,
+                "stage": new_stage,
             })
+        return passed, failed, results
+
+    def execute_nap(self, cycle_id) -> dict:
+        """Execute a nap — audit recent active facts and a graduated sample.
+
+        Returns:
+            Result dict with audit report
+        """
+        start_time = time.time()
+
+        active_sample, graduated_sample, all_qa = self._select()
+        if not active_sample and not graduated_sample:
+            return {
+                "status": "skipped",
+                "reason": "No facts to audit",
+                "elapsed_seconds": 0,
+            }
+
+        a_pass, a_fail, a_results = self._audit(active_sample, all_qa, graduated=False)
+        g_pass, g_fail, g_results = self._audit(graduated_sample, all_qa, graduated=True)
 
         elapsed = time.time() - start_time
         return {
             "status": "complete",
-            "audited": len(to_audit),
-            "passed": passed,
-            "failed": failed,
-            "results": results,
+            "audited": len(active_sample) + len(graduated_sample),
+            "passed": a_pass + g_pass,
+            "failed": a_fail + g_fail,
+            "graduated_audited": len(graduated_sample),
+            "graduated_failed": g_fail,
+            "results": a_results + g_results,
             "elapsed_seconds": round(elapsed, 1),
         }
 
@@ -111,39 +131,24 @@ class NapController:
         total_steps = 2
 
         # Step 1: Audit
-        yield {"step": 1, "total": total_steps, "label": "Auditing recent facts", "status": "running"}
+        yield {"step": 1, "total": total_steps, "label": "Auditing facts", "status": "running"}
 
-        active_facts = self.fact_ledger.get_active_facts()
-        if not active_facts:
-            yield {"step": 1, "total": total_steps, "label": "Auditing recent facts", "status": "done",
-                   "detail": "No active facts to audit."}
+        active_sample, graduated_sample, all_qa = self._select()
+        if not active_sample and not graduated_sample:
+            yield {"step": 1, "total": total_steps, "label": "Auditing facts", "status": "done",
+                   "detail": "No facts to audit."}
             return
 
-        sorted_facts = sorted(active_facts, key=lambda e: e["qa"]["timestamp"], reverse=True)
-        to_audit = sorted_facts[:self.audit_count]
-        all_qa = [QAPair.from_dict(e["qa"]) for e in active_facts]
+        a_pass, a_fail, _ = self._audit(active_sample, all_qa, graduated=False)
+        g_pass, g_fail, g_results = self._audit(graduated_sample, all_qa, graduated=True)
 
-        passed = 0
-        failed = 0
-        for entry in to_audit:
-            qa = QAPair.from_dict(entry["qa"])
-            fact_id = entry["fact_id"]
-
-            recalled = self._test_recall(qa, all_qa)
-            self.fact_ledger.update_verification(fact_id, 1.0 if recalled else 0.0)
-
-            if recalled:
-                passed += 1
-            else:
-                failed += 1
-                if entry.get("graduated", False):
-                    self.fact_ledger.retreat_stage(fact_id)
-                else:
-                    self.fact_ledger.record_degrade(fact_id)
-
-        yield {"step": 1, "total": total_steps, "label": "Auditing recent facts", "status": "done",
-               "detail": f"Audited {len(to_audit)}: {passed} passed, {failed} failed"}
+        yield {"step": 1, "total": total_steps, "label": "Auditing facts", "status": "done",
+               "detail": (f"Active {len(active_sample)}: {a_pass} passed, {a_fail} failed. "
+                          f"Graduated {len(graduated_sample)}: {g_pass} passed, {g_fail} failed"),
+               "facts_bad": [f"{r['question']} → {r['value']}" for r in g_results if not r["recalled"]]}
 
         # Step 2: Report
         yield {"step": 2, "total": total_steps, "label": "Report", "status": "done",
-               "detail": f"passed={passed}, failed={failed}"}
+               "detail": (f"passed={a_pass + g_pass}, failed={a_fail + g_fail}, "
+                          f"graduated_audited={len(graduated_sample)}, "
+                          f"graduated_failed={g_fail}")}

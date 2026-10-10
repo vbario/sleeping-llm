@@ -49,8 +49,14 @@ sleep:
     max_ppl_increase: 0.15
     # Max facts to re-inject per sleep cycle
     max_refresh_per_cycle: 10
-    # How many recent facts nap audits
+    # How many recent active facts nap audits
     nap_audit_count: 5
+    # How many graduated facts each nap / full sleep re-audits (stalest first).
+    # A graduated fact that fails retreats to stage 2 and re-enters the prompt.
+    graduated_audit_count: 5
+    # How many graduated facts are replayed into every LoRA training set so a
+    # new fuse does not erode older ones (degraded / least recently verified first)
+    replay_count: 5
 
 memit:
   # Range of transformer layers to target for MEMIT edits
