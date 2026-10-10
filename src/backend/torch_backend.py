@@ -59,8 +59,13 @@ class TorchBackend:
         self._model_path = path
         return self
 
+    @property
+    def model_path(self):
+        """Path of the model currently loaded (base or a fused checkpoint)."""
+        return self._model_path
+
     def _resolve_model_path(self):
-        """Always load from the base model (MEMIT edits are re-applied in memory)."""
+        """Always load from the base model unless a fused checkpoint is given."""
         base = self.config.model["path"]
         print(f"  Loading from base: {base}")
         return base

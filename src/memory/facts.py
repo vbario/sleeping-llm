@@ -84,6 +84,11 @@ ENTRY_DEFAULTS = {
     "recall_rate": 0.0,
     "graduated": False,
     "pruned": False,
+    # Times this fact was named as the culprit of a failed sleep gate (bleed).
+    # At sleep.gates.max_gate_failures the fact is quarantined: it stays in
+    # the prompt but is no longer trained into the weights.
+    "gate_failures": 0,
+    "last_gate_failure": None,
 }
 
 GRADUATED_STAGE = 3
@@ -252,6 +257,14 @@ class FactLedger:
             e["qa"]["held_out"] = list(held_out)
             if answer_variants is not None:
                 e["qa"]["answer_variants"] = list(answer_variants)
+        self.save()
+
+    def record_gate_failure(self, fact_id: str, gate: str):
+        """Record that a fact was identified as the cause of a gate failure."""
+        e = self.get_entry(fact_id)
+        if e is not None:
+            e["gate_failures"] = e.get("gate_failures", 0) + 1
+            e["last_gate_failure"] = gate
         self.save()
 
     def update_verification(self, fact_id: str, recall_rate: float):

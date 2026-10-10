@@ -4,10 +4,15 @@ Implements a 5-step sleep cycle (MEMIT removed):
   [1] Health Check — measure baseline PPL
   [2] Curate — extract new facts from unconsumed conversations
   [3] LoRA Consolidation — train on all non-graduated facts PLUS a replay
-      sample of graduated facts (so later fuses do not erode older ones), fuse
-  [4] Graduation Test — withhold each fact from system prompt, test recall;
-      also re-audit a sample of graduated facts and retreat any that fail
-  [5] Validate — measure post-training PPL, check for degradation
+      sample of graduated facts (so later fuses do not erode older ones), fuse,
+      then run the GATES (perplexity, bleed, regression). A failed gate reloads
+      the last good model and leaves every stage untouched.
+  [4] Graduation Test — ask each fact's held-out paraphrases with the fact
+      withheld from the prompt; re-audit a sample of graduated facts
+  [5] Validate — report post-sleep PPL against the baseline
+
+Steps 3–4 are implemented once in src/sleep/consolidation.py and shared with
+micro-sleep.
 
 Graduation: facts pass through stages 0→1→2→3. At stage 3, the fact
 is "graduated" — LoRA carries the knowledge and the fact is removed
@@ -19,6 +24,7 @@ import time
 from pathlib import Path
 
 from src.memory.facts import QAPair
+from src.sleep.consolidation import ConsolidationRunner
 from src.sleep.probe import RecallProbe
 
 
@@ -27,7 +33,8 @@ class FullSleepController:
 
     def __init__(self, config, backend, fact_ledger, curator,
                  validator, session_tracker, health_monitor,
-                 fact_extractor=None, trainer=None, paraphraser=None):
+                 fact_extractor=None, trainer=None, paraphraser=None,
+                 runner=None):
         self.config = config
         self.backend = backend
         self.fact_ledger = fact_ledger
@@ -61,6 +68,12 @@ class FullSleepController:
             and lora_cfg.get("enabled", False)
             and consolidation.get("enabled", False)
         )
+
+        # Shared train/fuse/gate/commit path (also used by micro-sleep)
+        self.runner = runner
+        if self.runner is None and self.consolidation_enabled:
+            self.runner = ConsolidationRunner(
+                config, backend, trainer, fact_ledger, self.probe, paraphraser=paraphraser)
 
     @property
     def total_steps(self):
@@ -129,10 +142,14 @@ class FullSleepController:
             print(f"        Marked {len(consumed_sessions)} session(s) as consumed")
 
         # [3-4] Consolidation + Graduation (if enabled)
-        consolidation_stats = {"advanced": 0, "retreated": 0, "already_known": 0, "skipped": True}
+        consolidation_stats = {"advanced": 0, "retreated": 0, "already_known": 0, "skipped": True,
+                               "status": "skipped"}
         if self.consolidation_enabled:
             print(f"  [3/{ts}] LoRA Consolidation...")
-            consolidation_stats = self._consolidate(cycle_id, ref_text)
+            consolidation_stats = self._consolidate(cycle_id, ref_text, ppl_baseline)
+            print(f"        Status: {consolidation_stats.get('status')}"
+                  + (f" (gate failed: {consolidation_stats['failed_gate']})"
+                     if consolidation_stats.get('failed_gate') else ""))
             print(f"        Advanced: {consolidation_stats['advanced']}, "
                   f"Retreated: {consolidation_stats['retreated']}, "
                   f"Replayed: {consolidation_stats.get('replayed', 0)}, "
@@ -161,141 +178,42 @@ class FullSleepController:
         elapsed = time.time() - start_time
         print(f"  Sleep cycle completed in {elapsed:.1f}s")
 
+        if consolidation_stats.get("status") == "rolled_back":
+            status = "rolled_back"
+        else:
+            status = "approved" if ppl_ok else "warning"
+
         return {
-            "status": "approved" if ppl_ok else "warning",
+            "status": status,
             "new_facts_added": new_facts_added,
             "consolidation": consolidation_stats,
+            "model_path": consolidation_stats.get("model_path"),
             "ppl_before": round(ppl_baseline, 2) if ppl_baseline else None,
             "ppl_after": round(ppl_after, 2) if ppl_after else None,
             "elapsed_seconds": round(elapsed, 1),
         }
 
-    def _consolidate(self, cycle_id, ref_text) -> dict:
-        """LoRA consolidation + graduation testing.
+    def _consolidate(self, cycle_id, ref_text, ppl_baseline=None) -> dict:
+        """LoRA consolidation + gates + graduation testing (see ConsolidationRunner).
 
-        1. Gather all non-graduated facts
-        2. Train LoRA on them (priority-weighted), fuse into model
-        3. Graduation test: for each fact, withhold from system prompt and ask
-           - Pass → advance stage (at stage 3, fact is graduated)
-           - Fail → retreat to stage 0
-        4. PPL gate: rollback if PPL degrades too much
-
-        Returns:
-            Stats dict with advanced/retreated counts
+        1. Gather all non-graduated facts (+ replay sample of graduated ones)
+        2. Train LoRA, fuse, load the candidate model
+        3. Gates: perplexity / bleed / regression — fail → reload last good
+           model, stages untouched, retry once without an identified culprit
+        4. Graduation test on held-out paraphrases → advance / retreat
+        5. Graduated audit → retreat and record degrade on failure, commit
         """
-        stats = {"advanced": 0, "retreated": 0, "already_known": 0,
-                 "skipped": False,
-                 "advanced_facts": [], "retreated_facts": [],
-                 "replayed": 0, "graduated_audited": 0, "graduated_failed": 0,
-                 "ungraduated_facts": [], "paraphrased": 0,
-                 "graduation_results": [], "audit_results": []}
-
-        # 1. Gather eligible facts (non-graduated, active)
         active_facts = self.fact_ledger.get_active_facts()
         eligible = [e for e in active_facts if not e.get("graduated", False)]
         if not eligible:
             print("        No eligible facts for consolidation")
-            stats["skipped"] = True
-            return stats
-
-        # 1b. Replay: mix in a sample of graduated facts so this fuse does
-        # not overwrite what earlier fuses learned (degraded / stalest first)
-        replay = self.fact_ledger.get_replay_candidates(self.replay_count)
-        stats["replayed"] = len(replay)
-
-        # 1c. Paraphrases: every fact needs a held-out test set before it is
-        # trained, so graduation never asks the phrasing it trained on.
-        if self.paraphraser is not None:
-            stats["paraphrased"] = self.paraphraser.ensure(self.fact_ledger, eligible + replay)
-
-        # Build QAPairs for training (after paraphrase generation)
-        qa_pairs = [QAPair.from_dict(e["qa"]) for e in eligible + replay]
-        print(f"        {len(eligible)} fact(s) eligible for training, "
-              f"{len(replay)} graduated fact(s) replayed")
-
-        # 2. Train and fuse
-        save_dir = Path(self.config.paths.get("fused_models", "models/fused"))
-        fused_path = self.trainer.train_and_fuse(qa_pairs, cycle_id, save_dir, weighted=True)
-        if fused_path is None:
-            print("        Consolidation aborted: training/fuse failed")
-            stats["skipped"] = True
-            return stats
-
-        # 3. Reload fused model
-        print("        Reloading fused model...")
-        self.backend.reload(fused_path)
-
-        # 4. Graduation test: for each fact, test recall without system prompt
-        system_prompt = self.config.context.get("system_prompt", "")
-        all_qa = [QAPair.from_dict(e["qa"]) for e in active_facts]
-
-        for entry in eligible:
-            qa = QAPair.from_dict(entry["qa"])
-            fact_id = entry["fact_id"]
-
-            result = self.probe.test(qa, all_qa)
-            passed = result["passed"]
-            stats["graduation_results"].append({
-                "fact_id": fact_id, "question": qa.question, "value": qa.value,
-                "passed": passed, "fraction": result["fraction"],
-                "fallback": result["fallback"], "phrasings": result["phrasings"],
-            })
-            fact_label = f"{qa.question} → {qa.value}"
-
-            if passed:
-                new_stage = self.fact_ledger.advance_stage(fact_id)
-                stats["advanced"] += 1
-                stats["advanced_facts"].append(fact_label)
-                graduated = "GRADUATED" if new_stage >= 3 else f"stage {new_stage}"
-                print(f"        Advanced: {qa.value} ({graduated})")
-            else:
-                old_stage = entry.get("stage", 0)
-                if old_stage > 0:
-                    self.fact_ledger.retreat_stage(fact_id)
-                    stats["retreated"] += 1
-                    stats["retreated_facts"].append(fact_label)
-                    print(f"        Retreated: {qa.value} → stage 0")
-
-            # Record training
-            self.fact_ledger.record_training(fact_id)
-
-        for entry in replay:
-            self.fact_ledger.record_training(entry["fact_id"])
-
-        # 4b. Graduated audit: re-test a sample of graduated facts. Nothing
-        # in the prompt carries them, so a failure means the weights lost it.
-        audit = self.fact_ledger.get_audit_candidates(self.graduated_audit_count)
-        stats["graduated_audited"] = len(audit)
-        for entry in audit:
-            qa = QAPair.from_dict(entry["qa"])
-            fact_id = entry["fact_id"]
-            result = self.probe.test(qa, all_qa)
-            passed = result["passed"]
-            stats["audit_results"].append({
-                "fact_id": fact_id, "question": qa.question, "value": qa.value,
-                "passed": passed, "fraction": result["fraction"],
-                "fallback": result["fallback"], "phrasings": result["phrasings"],
-            })
-            self.fact_ledger.update_verification(fact_id, result["fraction"])
-            if not passed:
-                self.fact_ledger.record_degrade(fact_id)
-                new_stage = self.fact_ledger.retreat_stage(fact_id)
-                stats["graduated_failed"] += 1
-                stats["ungraduated_facts"].append(f"{qa.question} → {qa.value}")
-                print(f"        Un-graduated: {qa.value} → stage {new_stage}")
-        if audit:
-            print(f"        Graduated audit: {len(audit) - stats['graduated_failed']}/"
-                  f"{len(audit)} still recalled")
-
-        # 5. PPL gate
-        if ref_text:
-            ppl_after = self.backend.compute_perplexity(ref_text)
-            if ppl_after and ppl_after > 50:
-                print(f"        PPL gate FAILED ({ppl_after:.2f}), warning issued")
-                # Note: we don't rollback the fused model — the LoRA training
-                # is already in the weights. The PPL gate just flags the issue.
-
-        return stats
+            return {"status": "skipped", "skipped": True, "advanced": 0, "retreated": 0,
+                    "already_known": 0, "replayed": 0, "graduated_audited": 0,
+                    "graduated_failed": 0, "advanced_facts": [], "retreated_facts": [],
+                    "ungraduated_facts": [], "graduation_results": [], "audit_results": [],
+                    "gates": [], "failed_gate": None, "excluded_facts": []}
+        return self.runner.run(cycle_id, eligible, ref_text=ref_text,
+                               ppl_baseline=ppl_baseline, test_graduation=True)
 
     def _test_graduation(self, qa, all_qa, system_prompt=None) -> bool:
         """Test if LoRA has absorbed a fact: ask its held-out phrasings with the
@@ -378,9 +296,11 @@ class FullSleepController:
         consolidation_stats = {"advanced": 0, "retreated": 0, "skipped": True}
         if self.consolidation_enabled:
             yield {"step": 3, "total": ts, "label": "LoRA Consolidation", "status": "running"}
-            consolidation_stats = self._consolidate(cycle_id, ref_text)
+            consolidation_stats = self._consolidate(cycle_id, ref_text, ppl_baseline)
+            gate_note = (f"ROLLED BACK (gate: {consolidation_stats['failed_gate']}). "
+                         if consolidation_stats.get("failed_gate") else "")
             yield {"step": 3, "total": ts, "label": "LoRA Consolidation", "status": "done",
-                   "detail": f"Advanced: {consolidation_stats['advanced']}, "
+                   "detail": gate_note + f"Advanced: {consolidation_stats['advanced']}, "
                              f"Retreated: {consolidation_stats['retreated']}, "
                              f"Replayed: {consolidation_stats.get('replayed', 0)}, "
                              f"Graduated audited: {consolidation_stats.get('graduated_audited', 0)}, "
@@ -408,7 +328,8 @@ class FullSleepController:
         # Final report
         elapsed = time.time() - start_time
         yield {"step": ts, "total": ts, "label": "Report", "status": "done",
-               "detail": f"new_facts={new_facts_added}, "
+               "detail": f"status={consolidation_stats.get('status', 'skipped')}, "
+                         f"new_facts={new_facts_added}, "
                          f"advanced={consolidation_stats.get('advanced', 0)}, "
                          f"retreated={consolidation_stats.get('retreated', 0)}, "
                          f"replayed={consolidation_stats.get('replayed', 0)}, "

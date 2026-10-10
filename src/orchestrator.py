@@ -21,6 +21,9 @@ from src.sleep.full_sleep import FullSleepController
 from src.sleep.micro_sleep import MicroSleepController
 from src.sleep.nap import NapController
 from src.sleep.paraphrase import ParaphraseGenerator
+from src.sleep.consolidation import ConsolidationRunner
+from src.sleep.gates import ModelRegistry, SleepGates
+from src.sleep.probe import RecallProbe
 from src.sleep.trainer import SleepTrainer
 from src.sleep.validator import SleepValidator
 from src.wake.chat import Chat
@@ -82,6 +85,27 @@ class Orchestrator:
         # Paraphrase generator: held-out phrasings for honest graduation tests
         self.paraphraser = ParaphraseGenerator(config, self.backend)
 
+        # One gated train/fuse/commit path shared by full sleep and micro-sleep
+        grad_cfg = config.get("sleep.graduation", {}) or {}
+        gates_cfg = config.get("sleep.gates", {}) or {}
+        self.probe = RecallProbe(
+            self.backend, config.context.get("system_prompt", ""),
+            temperature=grad_cfg.get("test_temperature", 0.1),
+            min_pass_fraction=grad_cfg.get("min_pass_fraction", 1.0),
+        )
+        self.model_registry = ModelRegistry(
+            self.backend, config.model["path"],
+            config.paths.get("fused_models", "models/fused"),
+            keep_previous=gates_cfg.get("keep_previous_models", 1),
+        )
+        self.gates = SleepGates(config, self.backend, self.probe)
+        self.consolidation_runner = None
+        if self.trainer is not None:
+            self.consolidation_runner = ConsolidationRunner(
+                config, self.backend, self.trainer, self.fact_ledger, self.probe,
+                paraphraser=self.paraphraser, registry=self.model_registry, gates=self.gates,
+            )
+
         # Initialize micro-sleep (priority-triggered background LoRA)
         self.micro_sleep = None
         if self.trainer and lora_enabled:
@@ -90,7 +114,7 @@ class Orchestrator:
                 self.micro_sleep = MicroSleepController(
                     config, self.backend, self.trainer,
                     self.fact_ledger, self.model_lock,
-                    paraphraser=self.paraphraser,
+                    paraphraser=self.paraphraser, runner=self.consolidation_runner,
                 )
 
         # Initialize nap and full sleep controllers
@@ -102,6 +126,7 @@ class Orchestrator:
             self.curator, self.validator, self.session_tracker,
             self.health_monitor, self.fact_extractor,
             trainer=self.trainer, paraphraser=self.paraphraser,
+            runner=self.consolidation_runner,
         )
 
         # Wire known facts into context (system prompt injection)
@@ -332,6 +357,7 @@ class Orchestrator:
             "background_sleep": self.background_sleep.to_dict(),
             "micro_sleep": self.micro_sleep.to_dict() if self.micro_sleep else None,
             "model_lock": self.model_lock.stats(),
+            "current_model": self.model_registry.current,
         }
 
     def get_current_messages(self):
@@ -349,6 +375,7 @@ class Orchestrator:
 
         # Reload base model
         self.backend.reload(self.config.model["path"])
+        self.model_registry.reset(self.config.model["path"])
 
         # Reset counters
         self.sleep_cycle_count = 0

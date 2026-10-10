@@ -72,6 +72,25 @@ sleep:
     # Sampling temperature for graduation / audit probes
     test_temperature: 0.1
 
+  # Gates every fused model must pass before it replaces the current one
+  # (src/sleep/gates.py). On failure the last good model is reloaded, the
+  # candidate is deleted and no ledger stage changes. Applies to full sleep
+  # AND micro-sleep. PPL threshold: sleep.maintenance.max_ppl_increase.
+  gates:
+    enabled: true
+    # Neighbor questions per newly trained fact for the bleed check
+    # ("What is my sister's favorite color?" for a fact about the user's own)
+    bleed_neighbors: 2
+    # Regression gate fails when more than this fraction of the audited
+    # graduated facts (sleep.maintenance.graduated_audit_count) are lost
+    regression_max_fail_fraction: 0.5
+    # After a bleed failure, retry without the culprit fact this many times
+    max_retries: 1
+    # A fact blamed this many times is quarantined: kept in the prompt, never trained
+    max_gate_failures: 2
+    # Previous good fused models kept on disk besides the current one
+    keep_previous_models: 1
+
 memit:
   # Range of transformer layers to target for MEMIT edits
   # For Llama-3.2-3B (26 layers), middle layers store factual knowledge
@@ -125,6 +144,8 @@ micro_sleep:
   cooldown_seconds: 120
   # Minimum age (seconds) before a fact is eligible for micro-training
   min_age_seconds: 60
+  # Graduated facts replayed alongside the micro batch (smaller than full sleep)
+  replay_count: 2
 
 spaced_repetition:
   # Minimum seconds since last LoRA training before a fact is retrained
