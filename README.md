@@ -1,12 +1,105 @@
 # Sleeping LLM
 
-A language model that forms persistent memories from conversation and consolidates them through sleep.
+A local language model that forms persistent memories from conversation and consolidates them into its weights during sleep.
 
-During **wake**, facts are injected directly into model weights via [MEMIT](https://memit.baulab.info/) — no retrieval, no database, no context stuffing. During **sleep**, a maintenance cycle audits and refreshes degraded memories, then **LoRA consolidation** progressively transfers knowledge from MEMIT (fast, brittle, capacity-limited weight edits) into fused LoRA (slow, stable, high-capacity fine-tuning). As LoRA absorbs each fact, MEMIT edits dissolve — clearing the buffer for new memories.
+During **wake**, facts are extracted from the conversation as question–answer pairs, stored in a ledger, and injected into the system prompt, so the model can use them immediately. During **sleep**, a LoRA adapter is trained on those facts and fused into the base weights. A fact that the fused model can answer **from its weights alone**, when asked in words it was never trained on, *graduates*: it leaves the prompt and the weights carry it. Graduated facts are replayed and re-audited in later sleeps so they are not forgotten, every fuse must pass gates before it replaces the current model, and a changed fact replaces the old one instead of piling up next to it.
 
-Inspired by [Complementary Learning Systems](https://en.wikipedia.org/wiki/Complementary_learning_systems) theory from neuroscience: fast encoding during wake, protective consolidation during sleep. MEMIT is short-term memory; LoRA is long-term memory. Sleep is the transfer between them.
+Inspired by [Complementary Learning Systems](https://en.wikipedia.org/wiki/Complementary_learning_systems): the prompt is fast, exact, capacity-limited memory; the weights are slow, high-capacity memory; sleep is the transfer between them.
 
-## Key Results
+> **Status.** This README describes the code on `main`. The MEMIT weight-editing system described in the published papers is no longer on the runtime path; see [Earlier versions](#earlier-versions-memit--lora) for where that code lives and the results it produced. No recall numbers have yet been measured for the current pipeline; see [Evaluation](#evaluation).
+
+## Architecture
+
+```
+WAKE                                           SLEEP  (src/sleep/full_sleep.py)
+
+  User ←→ Chat                                 1. Health check — baseline perplexity
+     │                                         2. Curate — extract facts from unconsumed
+     ▼                                            sessions, upsert into the ledger
+  Fact extraction (Q&A pairs)                  3. Consolidate (src/sleep/consolidation.py)
+     │                                              · replay sample of graduated facts
+     ▼                                              · generate held-out paraphrases
+  FactBuffer (RAM, surprise-gated)                  · train LoRA, fuse → candidate model
+     │  consolidation moment                        · GATES: perplexity, bleed, regression
+     ▼                                                  fail → reload last good model,
+  FactLedger (ledger.json)                                     nothing changes, retry w/o culprit
+     │  slot-aware upsert                      4. Graduate — ask each fact's held-out
+     ▼                                            phrasings with the fact withheld;
+  System prompt                                   pass → stage+1 (3 = graduated, leaves
+  "Things you remember about the user:"           prompt); fail → stage−1. Re-audit a
+     - The user's son is named Andre.             sample of graduated facts; retreat losers
+     - ...                                     5. Validate — perplexity vs baseline
+  (non-graduated facts only)
+                                               Micro-sleep: background LoRA on high-priority
+                                               facts, same runner, same gates.
+                                               Nap: audit recent + graduated facts, no training.
+```
+
+### Memory tiers
+
+| Tier | Where | Role |
+|---|---|---|
+| 0 | System prompt | Instant recall of every non-graduated fact. Rebuilt from the ledger each turn. |
+| 1 | `FactBuffer` (RAM) | Facts extracted this session, waiting for a consolidation moment. Volatile by design. |
+| 2 | `FactLedger` (`data/memit/ledger.json`, `graduated.json`) | Source of truth: every fact, its stage, training/audit history, paraphrases, supersede links. |
+| 3 | Fused LoRA weights (`models/fused/`) | Long-term memory. Only graduated facts rely on it alone. |
+
+### Fact lifecycle
+
+Each fact is a `QAPair` (question, answer, value) with a stage 0–3.
+
+1. **Paraphrases.** Before a fact is first trained, several rephrasings are generated (first-person template rewrites plus optional model rephrasings). Some are used for training; at least two are **held out** and only ever used for testing. A held-out line never reaches a training file (`src/sleep/paraphrase.py`, `src/sleep/trainer.py`).
+2. **Training.** Every sleep trains on all non-graduated facts (canonical question + training paraphrases × answer variants, priority-weighted) **plus a replay sample of graduated facts**, chosen degraded-first then least-recently-verified (`FactLedger.get_replay_candidates`).
+3. **Graduation test.** With the fact removed from the prompt (other facts stay), the held-out phrasings are asked. A response counts only if it states the value on word boundaries and is not hedged (`src/sleep/recall_match.py`, `src/sleep/probe.py`). Passing the configured fraction advances one stage; failing retreats one stage. At stage 3 the fact moves to `graduated.json` and leaves the prompt.
+4. **Audit.** Every nap and every full sleep re-tests a sample of graduated facts. A graduated fact that fails returns to stage 2, re-enters the prompt and the training set, and its `degrade_count` is recorded.
+
+### Gates and rollback
+
+Every fuse, in full sleep and in micro-sleep, produces a *candidate* model. The candidate is loaded and three gates run (`src/sleep/gates.py`):
+
+| Gate | Check | Culprit? |
+|---|---|---|
+| perplexity | relative increase on reference text vs the pre-sleep baseline ≤ `max_ppl_increase` | no |
+| bleed | for each newly trained fact, neighbor questions (same question about a different person) answered before training must not now answer with the fact's value | yes |
+| regression | a sample of graduated facts must still be recalled on the candidate | no |
+
+If all pass, graduation tests run and the candidate is committed as the last known-good model; older fused models are pruned (`keep_previous_models`). If any fails, the previous model is reloaded, the candidate is deleted, **no stage changes**, and if the bleed gate named a fact the cycle is retried once without it. A fact blamed `max_gate_failures` times is quarantined: it stays in the prompt and is never trained again.
+
+### Corrections
+
+Facts are keyed by *slot*, not by question string (`src/memory/slots.py`): "What is the user's favorite color?" and "What color does the user like?" are one slot; "…the user's sister's favorite color?" is another. `FactLedger.upsert` skips a same-slot same-value repeat, and **supersedes** on a new value: the old entry is kept for history but leaves the prompt, the training set, replay and audit; the new entry records the old value as a *negative* that the graduation probe must not hear back. A correction of an already-graduated fact gets a high priority so the next LoRA pass overwrites the weights.
+
+### Neuroscience mapping
+
+| Biological | Here |
+|---|---|
+| Working memory | Facts in the system prompt |
+| Hippocampal buffer | `FactBuffer`, flushed at consolidation moments |
+| Systems consolidation during sleep | LoRA train + fuse |
+| Replay of old memories during sleep | Graduated-fact replay in every training set |
+| Reconsolidation / forgetting check | Graduated audit; retreat on failure |
+| Sleep pressure | `HealthMonitor` (new facts, time since sleep, perplexity) |
+| Ultradian cycle | Micro-sleep "cycle" trigger (90 min) |
+
+## Evaluation
+
+`experiments/qa_pipeline_eval.py` evaluates the pipeline above on natural first-person facts (`experiments/data/personal_facts.json`: 208 facts about one user and the people around them, 208 distinct slots). Facts arrive over simulated sessions with a gated sleep between them. Per cycle it records held-out paraphrase recall of graduated facts with nothing about them in the prompt, retention of facts graduated in earlier cycles, neighbor bleed rate, perplexity drift, correctness of staged corrections (new value present, old value absent), recall on fact-*using* prompts, and gate/rollback statistics. A `prompt_only` baseline keeps every fact in the prompt and never trains. Results are mean ± std over seeds.
+
+```bash
+python3 experiments/qa_pipeline_eval.py --size small     # 20 facts, 2 seeds — 3B 4-bit on a laptop
+python3 experiments/qa_pipeline_eval.py --size large --config experiments/configs/8b_consolidation.yaml
+python3 experiments/fuse_repeat_test.py --cycles 6       # does a LoRA delta survive repeated 4-bit requantization?
+```
+
+**What has been run:** only `--backend stub`, a simulated model that exercises the harness and measures nothing. **No recall, retention, bleed or drift numbers exist yet for the current pipeline.** The results section below belongs to earlier MEMIT-based versions.
+
+One thing to know before trusting small deltas: `mlx_lm.fuse` on a 4-bit model dequantizes each LoRA-wrapped matrix, adds the delta, and re-quantizes to 4 bits on every cycle. `fuse_repeat_test.py` measures how much of a delta survives that rounding.
+
+## Earlier versions (MEMIT + LoRA)
+
+Until 2026-03-09 the wake phase injected facts directly into MLP weights with [MEMIT](https://memit.baulab.info/) and sleep transferred them to LoRA. That code runs at commit `3e9fc79` on `main` (and on branch `memory-version-10`); `src/memory/memit.py` and the `experiments/*memit*`, `v7_*`, `ablation_*` scripts are kept for the papers but are not imported by the runtime. MEMIT was removed because its edits live on the raw-completion pathway and are invisible through the chat template, and because edits sometimes corrupted each other (notes 127, 129).
+
+Results from those versions:
 
 | Model | Facts | Recall | PPL Drift | Hardware |
 |-------|-------|--------|-----------|----------|
@@ -15,73 +108,9 @@ Inspired by [Complementary Learning Systems](https://en.wikipedia.org/wiki/Compl
 | Llama-3.1-8B | 30 | 1.00 (after sleep) | +3.2% | 2x H100 80GB |
 | Llama-3.1-70B-NF4 | 60 | 1.00 | 0.0% | 2x H100 80GB |
 
-**LoRA consolidation**: 100% fact advancement rate at 5/10/15/20 facts. Chat recall reaches 1.00 by cycle 2–3 as LoRA absorbs all knowledge. MEMIT edits dissolve on schedule (scale 1.0 → 0.5 → 0.1 → 0.0), making effective lifetime capacity unbounded.
+Those runs used synthetic person–city triples, trained and tested on the same phrasing, with a substring recall check. They also found: 100% per-fact advancement at 5–20 facts with LoRA consolidation; 30 facts recovering from 40% to 100% recall in 4 sleep cycles; a sharp wake-capacity cliff at 13→14 unconstrained MEMIT edits on 8B; and an *alignment tax* where RLHF suppresses LoRA-injected knowledge during wake (3B 47%, 8B 37%, 70B 0% recall), which is why training happens only during sleep.
 
-**Sleep convergence**: 30 facts at 40% initial recall recover to 100% within 4 sleep cycles. The 70B model converges 2x faster.
-
-**Wake capacity threshold**: The 8B model sustains 0.92 recall up to 13 unconstrained edits, then crashes to 0.57 at 14 — a sharp phase transition from cascading edit interference, not gradual decay.
-
-**Alignment tax**: RLHF actively suppresses LoRA-injected knowledge at scale. 3B: 47% recall. 8B: 37%. 70B: 0%. This inverse scaling led us to abandon direct LoRA training during wake — but LoRA works for consolidation during sleep, where per-fact gating and cumulative fusing avoid the alignment conflict.
-
-## Architecture
-
-```
-WAKE                                          SLEEP (8-step maintenance + consolidation)
-
-  User ←→ Chat                               1. Health Check — measure PPL baseline
-     │                                        2. Curate — extract new facts, inject via MEMIT
-     ▼                                        3. Audit — test recall of each fact
-  Fact Extraction                             4. Maintain — refresh degraded edits
-     │                                              with null-space constraints
-     ▼                                        5. LoRA Consolidation — train LoRA on
-  MEMIT Injection                                   active facts, fuse into weights,
-     │  (direct weight edit,                        per-fact gating (advance/retreat)
-     │   no constraints,                      6. MEMIT Scale-Down — reduce MEMIT deltas
-     │   instant recall)                            as LoRA absorbs (1.0→0.5→0.1→0.0)
-     │                                        7. Validate — PPL comparison, rollback
-     ▼                                        8. Report — audit/consolidation summary
-  Weights updated.
-  Single forward pass.                        Trigger: /sleep command or automatic
-  MEMIT = short-term memory.                  "drowsiness signal" (degraded fact count
-  LoRA consolidation = long-term.             exceeds threshold)
-```
-
-### How MEMIT Works Here
-
-Each fact (subject, relation, object) produces a weight update across target MLP layers:
-
-**W' = W + R K^T (K K^T + λ C)^{-1}**
-
-Where **K** are key vectors, **R** is the distributed residual, and **C** is the empirical covariance regularized via the Woodbury identity (keeping inversion in N×N space, not d×d).
-
-**Wake** injects without constraints — fast but interference accumulates. **Sleep** refreshes degraded edits *with* null-space constraints derived from all healthy edits — guaranteeing orthogonality to working memories. This asymmetry creates a natural rhythm: wake degrades, sleep restores.
-
-### How Consolidation Works
-
-After MEMIT maintenance, sleep trains a LoRA adapter on all active facts (chat Q&A format), then fuses it into the base weights. Each fact has an independent consolidation stage (0–3), tracked by per-fact gating:
-
-| Stage | Meaning | MEMIT Scale |
-|-------|---------|-------------|
-| 0 | MEMIT only | 1.0 |
-| 1 | LoRA absorbing | 0.5 |
-| 2 | LoRA absorbing | 0.1 |
-| 3 | LoRA carries | 0.0 (MEMIT dissolved) |
-
-After each sleep cycle, facts that pass chat recall advance one stage; facts that fail retreat. An edit's effective scale is `min(fact_stages)` — conservative, only scaling down when *all* facts in the edit have advanced. Once all facts reach stage 3, the MEMIT delta is fully dissolved and the LoRA-fused weights carry the knowledge alone. This clears MEMIT capacity for new memories, making effective lifetime capacity unbounded.
-
-### Neuroscience Mapping
-
-| Biological Component | System Implementation |
-|---|---|
-| Hippocampal fast encoding | MEMIT weight edits (unconstrained, instant) |
-| Neocortical consolidation | LoRA training + fusing (slow, stable transfer) |
-| Sleep consolidation | Audit + constrained refresh + LoRA consolidation |
-| Sleep pressure / drowsiness | Degraded-fact count crossing threshold |
-| Synaptic homeostasis | Pruning excess edits + dissolving consolidated MEMIT deltas |
-
-## Papers
-
-Five papers document the research trajectory from initial LoRA-based prototype through the alignment tax discovery to the current dual MEMIT+LoRA system:
+### Papers
 
 | # | Paper | DOI |
 |---|-------|-----|
@@ -90,6 +119,7 @@ Five papers document the research trajectory from initial LoRA-based prototype t
 | 3 | **Dual-System Memory Consolidation** — MEMIT+LoRA dual system. Covariance-regularized MEMIT, cross-edit null-space constraints, Woodbury identity. | [10.5281/zenodo.18778764](https://doi.org/10.5281/zenodo.18778764) |
 | 4 | **Sleeping LLM: Two-Phase Memory Consolidation** — SWS+REM two-phase sleep. Per-fact staged consolidation. Pathway separation: MEMIT edits raw completion, LoRA edits chat. | [10.5281/zenodo.18778766](https://doi.org/10.5281/zenodo.18778766) |
 | 5 | **Sleep-Wake Memory Convergence in Weight-Edited Language Models** — MEMIT-only (LoRA removed). Wake capacity threshold, sleep convergence proof, pruning death spiral. | [10.5281/zenodo.18778768](https://doi.org/10.5281/zenodo.18778768) |
+| 6 | **Per-Fact Graduated Consolidation** — see `paper.md`. | — |
 
 ## Setup
 
@@ -101,7 +131,7 @@ pip3 install -r requirements.txt
 python3 -m src.main
 ```
 
-First run downloads the model (~1.8 GB). Requires macOS 14+, Apple Silicon.
+First run downloads the model (~1.8 GB). Requires macOS 14+, Apple Silicon. Each sleep writes a fused model copy of the same size; old ones are pruned automatically (`sleep.gates.keep_previous_models`).
 
 ### NVIDIA GPU (PyTorch)
 
@@ -111,13 +141,13 @@ pip3 install -r requirements-torch.txt
 python3 -m src.main --config experiments/configs/8b_consolidation.yaml
 ```
 
-Requires CUDA 12+, 80GB+ VRAM for 8B (BF16) or 2x80GB for 70B (NF4).
+Requires CUDA 12+. The torch backend fuses onto a fresh bf16 copy of the current model, so a fused checkpoint is a full bf16 model on disk.
 
 ### Hardware
 
 | Machine | RAM | Model | Notes |
 |---|---|---|---|
-| MacBook Air M3 | 8 GB | 3B 4-bit | Works. 15 facts, sleep ~5 min. |
+| MacBook Air M3 | 8 GB | 3B 4-bit | Works. Sleep ~5 min. Needs ~4 GB free disk for fused copies. |
 | Mac Mini M4 Pro | 24 GB | 8B 4-bit | Better capacity, faster sleep. |
 | Mac Studio M4 Ultra | 192 GB | 70B 4-bit | Full capacity, all experiments. |
 | 2x H100 80GB | 160 GB VRAM | 8B BF16 / 70B NF4 | Research configuration. |
@@ -126,131 +156,136 @@ Requires CUDA 12+, 80GB+ VRAM for 8B (BF16) or 2x80GB for 70B (NF4).
 
 | Command | Effect |
 |---|---|
-| `/sleep` | Trigger a full sleep cycle (audit → maintain → consolidate → validate) |
-| `/nap` | Quick audit of recent facts (no model changes) |
-| `/status` | Show context usage, turn count, MEMIT edit count |
+| `/sleep` | Full sleep: curate → consolidate (replay, train, fuse, gates) → graduate → validate |
+| `/nap` | Audit recent and graduated facts without the fact in the prompt; no training |
+| `/consolidate` | Flush the fact buffer into the ledger now |
+| `/microsleep` | Force a background micro-sleep on the highest-priority facts |
+| `/status` | Context usage, turn count, fact counts, sleep pressure |
 | `/compact` | Force context window compaction |
 | `/quit` | Exit |
 
-## Project Structure
+## Project structure
 
 ```
 src/
 ├── main.py                  # CLI entry point
-├── orchestrator.py          # Wake/sleep state machine
+├── orchestrator.py          # Wake/sleep state machine; builds the shared gated runner
 ├── wake/
-│   ├── chat.py              # Inference loop, command handling
-│   ├── context.py           # Context window management + compaction
-│   ├── logger.py            # Conversation persistence (JSONL)
-│   └── extractor.py         # Fact extraction from conversation
+│   ├── chat.py              # Inference loop, commands, per-turn extraction
+│   ├── context.py           # System prompt = base prompt + non-graduated facts
+│   ├── extractor.py         # Q&A fact extraction (model + regex), slot-aware dedup
+│   ├── fact_buffer.py       # Volatile buffer, slot-aware, flushed at consolidation moments
+│   ├── surprise.py          # Surprise estimator that triggers consolidation moments
+│   └── logger.py            # Conversation persistence (JSONL)
 ├── sleep/
-│   ├── full_sleep.py        # 8-step maintenance + consolidation pipeline
-│   ├── trainer.py           # LoRA training orchestrator (train + fuse)
-│   ├── nap.py               # Quick audit (no model changes)
-│   ├── curator.py           # Fact scoring (novelty, importance)
-│   ├── validator.py         # Pre/post benchmark + drift detection
+│   ├── full_sleep.py        # 5-step sleep pipeline
+│   ├── consolidation.py     # ConsolidationRunner: train → fuse → gates → commit/rollback
+│   ├── gates.py             # ModelRegistry (last good model, pruning) + perplexity/bleed/regression gates
+│   ├── paraphrase.py        # Held-out paraphrases, answer variants, neighbor questions
+│   ├── probe.py             # RecallProbe: held-out phrasings with the fact withheld
+│   ├── recall_match.py      # Word-boundary, hedge-aware value matching
+│   ├── trainer.py           # Training/validation files, LoRA train + fuse
+│   ├── micro_sleep.py       # Background LoRA on high-priority facts (same runner)
+│   ├── nap.py               # Graduation audit of recent + graduated facts
+│   ├── curator.py           # Exchange scoring
+│   ├── validator.py         # Benchmark / perplexity comparison helpers
 │   └── firewall.py          # Hallucination filter for extracted facts
 ├── memory/
-│   ├── memit.py             # MEMIT engine + EditLedger (~1900 lines)
-│   │                        #   Covariance regularization (Woodbury)
-│   │                        #   Cross-edit null-space constraints
-│   │                        #   Delta persistence + reload
-│   │                        #   Per-fact consolidation stages
-│   ├── health.py            # Sleep pressure calculation
-│   ├── identity.py          # Core identity reinforcement
-│   └── session_tracker.py   # Session state tracking
+│   ├── facts.py             # QAPair + FactLedger (stages, replay/audit samples, upsert/supersede)
+│   ├── slots.py             # Same-slot / same-value detection
+│   ├── health.py            # Sleep pressure
+│   ├── identity.py          # Core identity reference text
+│   ├── session_tracker.py   # Which sessions sleep has consumed
+│   └── memit.py             # MEMIT engine — not imported by the runtime; kept for the papers
 └── backend/
-    ├── mlx_backend.py       # Apple Silicon (MLX) — MEMIT + LoRA train/fuse
-    └── torch_backend.py     # NVIDIA GPU (PyTorch + PEFT) — MEMIT + LoRA train/fuse
+    ├── mlx_backend.py       # Apple Silicon: generate, perplexity, LoRA train/fuse (mlx_lm), reload
+    └── torch_backend.py     # CUDA: same interface (PEFT)
 
-experiments/                 # 33 experiment scripts
-├── configs/                 # 23 YAML configs (3B, 8B, 70B)
-├── results/                 # Experimental outputs (JSON)
-├── sweep_consolidation_capacity.py
-├── v7_comprehensive_test.py
-├── memit_capacity_test.py
-└── ...
-
-notes/                       # 122 numbered research notes
+tests/                       # Ledger, paraphrase, gate/rollback and supersede tests run with a stub backend
+experiments/                 # qa_pipeline_eval.py, fuse_repeat_test.py, make_personal_facts.py + MEMIT-era scripts
+notes/                       # Numbered research notes
 ```
 
 ## Configuration
 
-Key settings in `config.yaml`:
+Key settings in `config.yaml` (every new threshold has a comment there):
 
 ```yaml
-memit:
-  target_layers: [8, 9, 10, 11, 12, 13, 14, 15]  # MLP layers to edit
-  lambda_reg: 0.1          # Covariance regularization strength
-  max_active_edits: 50     # Hard cap (triggers pruning)
-  covariance_samples: 200  # Reference samples for regularization
-  v_lr: 0.5               # v* optimization learning rate
-  v_steps: 30             # v* optimization steps
-
 lora:
-  enabled: true            # Enable LoRA consolidation during sleep
-  num_layers: 8            # Layers to apply LoRA to
-  learning_rate: 1.0e-4    # LoRA training learning rate
-  iters_per_fact: 10       # Training iterations per fact
-
-consolidation:
-  enabled: true            # Enable MEMIT→LoRA transfer
-  scale_schedule: [1.0, 0.5, 0.1, 0.0]  # MEMIT scale per stage
+  num_layers: 8
+  learning_rate: 1.0e-4
+  iters_per_fact: 10          # spread over ~7 phrasings per fact once paraphrases exist
 
 sleep:
   maintenance:
-    degraded_threshold: 0.5   # Re-inject if recall < 50%
-    max_ppl_increase: 0.15    # Rollback if PPL increases > 15%
-    max_refresh_per_cycle: 10 # Max refreshes per sleep cycle
+    max_ppl_increase: 0.15     # perplexity gate: relative increase vs pre-sleep baseline
+    nap_audit_count: 5         # recent active facts a nap audits
+    graduated_audit_count: 5   # graduated facts re-audited per nap / sleep
+    replay_count: 5            # graduated facts replayed into every training set
+  graduation:
+    paraphrase_count: 6        # rephrasings generated per fact
+    held_out_count: 2          # kept out of training, used only to test
+    min_pass_fraction: 1.0     # held-out phrasings that must pass
+    use_model: true            # model rephrasings in addition to templates
+  gates:
+    enabled: true
+    bleed_neighbors: 2
+    regression_max_fail_fraction: 0.5
+    max_retries: 1
+    max_gate_failures: 2       # then the fact is quarantined (prompt only)
+    keep_previous_models: 1
 
-health:
-  sleep_threshold: 0.8     # Auto-sleep when pressure exceeds
-  nap_threshold: 0.4       # Auto-suggest nap
+facts:
+  slot_similarity_threshold: 0.6
+  correction_priority: 0.9
+
+micro_sleep:
+  trigger_mode: "cycle"        # 90-minute ultradian cycle, or "immediate"
+  replay_count: 2
 ```
 
-## Reproducing Key Experiments
+## Reproducing experiments
 
-### Wake capacity threshold (Paper 5, Fig 1)
+Current pipeline (not yet run on a real model, see [Evaluation](#evaluation)):
+
 ```bash
-python3 experiments/memit_capacity_test.py --config experiments/configs/8b_consolidation.yaml
+python3 experiments/qa_pipeline_eval.py --size small
+python3 experiments/fuse_repeat_test.py --cycles 6
+python3 -m pytest tests/test_ledger_lifecycle.py tests/test_paraphrases.py tests/test_gates_rollback.py tests/test_supersede.py
 ```
 
-### Sleep convergence proof (Paper 5, Fig 2)
-```bash
-python3 experiments/v7_convergence_test.py --config experiments/configs/8b_consolidation.yaml
-```
+MEMIT-era experiments (check out commit `3e9fc79` or branch `memory-version-10` first):
 
-### Comprehensive validation (Paper 5, all figures)
 ```bash
-python3 experiments/v7_comprehensive_test.py --config experiments/configs/8b_consolidation.yaml
-```
-
-### Consolidation capacity sweep (5/10/15/20 facts x 3 cycles)
-```bash
+python3 experiments/memit_capacity_test.py --config experiments/configs/8b_consolidation.yaml      # Paper 5, Fig 1
+python3 experiments/v7_convergence_test.py --config experiments/configs/8b_consolidation.yaml      # Paper 5, Fig 2
 python3 experiments/sweep_consolidation_capacity.py --config experiments/configs/8b_consolidation.yaml
 ```
 
-## Research Notes
+## Research notes
 
-The `notes/` directory contains 122 numbered development notes tracing the entire research trajectory. Key entries:
+The `notes/` directory traces the research trajectory. Key entries:
 
 | Note | Topic |
 |---|---|
 | 62 | H100 experiment results (3B/8B/70B MEMIT validation) |
-| 72 | Per-edit gating failure (0% advancement, the problem that led to per-fact gating) |
+| 72 | Per-edit gating failure, the problem that led to per-fact gating |
 | 111 | V7 comprehensive results (70B, 16 layers, 1.00 recall at 60 facts) |
-| 118 | Consolidation bugfix (fact re-injection during sleep) |
 | 120 | Theoretical analysis of convergence guarantees |
-| 121 | Torch backend LoRA consolidation test (per-fact gating, 4/4 pass) |
-| 122 | Consolidation capacity sweep (5/10/15/20 facts, all 100% advancement) |
+| 127 | System prompt bridge: why MEMIT edits were invisible in chat |
+| 129 | MEMIT removal and the Q&A refactor |
+| 130 | PTSD analogy for immediate-mode micro-sleep |
+| 133 | Lifecycle repairs: replay, held-out graduation, gates with rollback, supersede |
 
-## Known Limitations
+## Known limitations
 
-- **Synthetic facts only** — all experiments use person-city triples. Real conversational knowledge (opinions, temporal events, multi-hop) may behave differently.
-- **Raw completion pathway** — MEMIT edits are accessible via raw text completion, not chat templates. LoRA consolidation bridges this gap by training on chat Q&A format, transferring knowledge to the chat pathway.
-- **Single-run experiments** — no error bars or confidence intervals (tipping point at 13/14 is reproducible across configs).
-- **No RAG comparison** — RAG solves a different problem (unlimited capacity, no weight modification) but a head-to-head comparison would strengthen the claims.
-- **VRAM ceiling** — null-space constraint matrices grow O(N*K) with edit count. 70B/16-layer config OOMs at ~30 facts/session on 2xH100.
+- **Unmeasured.** The current pipeline has no recall, retention, bleed or drift numbers. `experiments/qa_pipeline_eval.py` exists to produce them and has only been run against a simulated backend.
+- **Requantization.** On MLX every fuse re-rounds the LoRA-touched matrices to 4 bits. Whether small deltas survive many cycles is exactly what `fuse_repeat_test.py` checks; until it has run, assume some erosion and rely on replay.
+- **Lexical slots.** Same-slot detection is token-based with a synonym table. Reworded duplicates outside that table are added as new facts; a model-based canonicalizer could sit behind the same `same_slot()` interface.
+- **Graduation on small models may be rare** with `min_pass_fraction: 1.0` and 10 iterations per fact spread over several phrasings. Both knobs are in `config.yaml`.
+- **Extraction quality** on the 3B model is noisy; the firewall and junk filters remove the worst, but the ledger is only as good as the extractor.
+- **Disk.** Each sleep writes a full fused model copy (1.8 GB for the 3B 4-bit, ~6 GB bf16 for 3B on torch). Pruning keeps `keep_previous_models` + 1 copies.
+- **Tests.** The new lifecycle tests use a stub backend and do not load a model. 24 older MEMIT-era tests fail on `main` unchanged.
 
 ## License
 

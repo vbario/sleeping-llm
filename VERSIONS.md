@@ -11,4 +11,4 @@ memory-version-5-continued		Best with 3B/8B/70B
 memory-version-7				No LoRA
 memory-version-8				
 memory-version-9				Stable, not public ready
-memory-version-10				Full cycle
+memory-version-10				Full cyclenext-steps					Prompt bridge + LoRA lifecycle: replay, held-out graduation, gates/rollback, supersede (no MEMIT)

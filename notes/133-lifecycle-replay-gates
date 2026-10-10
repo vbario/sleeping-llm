@@ -1,0 +1,108 @@
+Lifecycle Repairs: Replay, Held-Out Graduation, Gates, Supersede
+=================================================================
+2026-10-09   (branch next-steps, off main 661057d)
+
+Numbered 133 because 131/132 are taken on the ego-select branch.
+
+Why
+---
+A read of main found six gaps in the post-MEMIT pipeline (notes/129):
+
+  A  graduated facts were never re-tested or retrained. advance_stage moved
+     them out of _entries; nap audited _entries; so the "un-graduate" branch
+     could never fire and every later fuse could erode them unnoticed.
+  B  graduation asked the exact question it trained on, valid.jsonl was a
+     copy of train.jsonl, and the check was a bare substring match.
+  C  the PPL gate fired only above an absolute 50 and only printed; micro-
+     sleep fused and reloaded with no check at all; nothing looked for bleed.
+  D  a changed value ("blue... actually green") was appended, so the prompt
+     and the training set carried both.
+  E  no experiment covered the current pipeline; every script imported
+     MemitEngine.
+  F  the README described MEMIT at wake.
+
+Living Weights (TensorFold 1.0.3/1.0.4, Oct 2026) does three of these things:
+bleed checks on untrained neighbor questions, paraphrased recall tests, and
+keeping the original model so a bad write is recoverable. Its own numbers
+are 5/11 on a five-fact document and it has no lifecycle. This work closes
+the lifecycle gaps and adds those three checks.
+
+What changed
+------------
+Task 1  FactLedger.get_replay_candidates / get_audit_candidates sample
+        graduated facts (degraded first, then least recently verified).
+        Every consolidation trains on eligible + replay; every nap and full
+        sleep re-audits a graduated sample. retreat_stage drops ONE stage
+        (graduated -> 2, back into ledger.json and the prompt).
+        config: sleep.maintenance.graduated_audit_count, replay_count.
+
+Task 2  QAPair.paraphrases (train) / held_out (test) / answer_variants.
+        src/sleep/paraphrase.py generates first-person template rewrites plus
+        optional model rephrasings (value leaks and content-free rephrasings
+        rejected, no phrasing reused across facts), deterministic split.
+        src/sleep/recall_match.py: word boundaries + hedge detection.
+        src/sleep/probe.py: RecallProbe asks held-out phrasings with the fact
+        withheld; per-phrasing outcomes; min_pass_fraction; negative values.
+        trainer: train.jsonl = canonical + training paraphrases x answer
+        variants; valid.jsonl = held-out lines; any training row matching a
+        held-out line is dropped.  config: sleep.graduation.*
+
+Task 3  src/sleep/gates.py: ModelRegistry (last-known-good path, rollback,
+        commit, prune old fused models) and SleepGates (relative PPL, bleed
+        on neighbor questions recorded before training, regression audit of
+        graduated facts on the candidate). src/sleep/consolidation.py:
+        ConsolidationRunner — the one train/fuse/load/gate/commit path used
+        by full sleep AND micro-sleep. On failure: reload last good model,
+        no stage changes, culprit (bleed) marked, one retry without it,
+        quarantine after max_gate_failures.  config: sleep.gates.*
+
+Task 4  src/memory/slots.py: lexical slot detection (synonyms, question
+        words, relation words must match, Jaccard >= threshold).
+        FactLedger.upsert: duplicate / superseded / added. Superseded entries
+        keep history but leave prompt, training, replay and audit; the new
+        fact carries negative_values for the graduation probe; a correction
+        of a graduated fact gets correction_priority. Extractor and
+        FactBuffer dedup by slot (last value per slot wins).  config: facts.*
+
+Task 5  experiments/make_personal_facts.py (208 natural facts, 208 slots),
+        experiments/qa_pipeline_eval.py (sessions, gated sleep, graduated
+        recall / retention / bleed / PPL drift / corrections / usage
+        questions, prompt-only baseline, seeds), experiments/fuse_repeat_test.py
+        (requantization check).
+
+Task 6  README rewritten to describe the prompt bridge + LoRA lifecycle;
+        MEMIT results moved to an "earlier versions" section.
+
+Checked, not assumed
+--------------------
+Requantization: mlx_lm 0.29.1 LoRALinear.fuse dequantizes, adds
+scale*B@A, and re-quantizes to 4 bits (tuner/lora.py:34-63). Every cycle
+rounds the full matrix again. fuse_repeat_test.py measures how much of a
+delta survives and how a fact erodes over filler fuses. NOT RUN here.
+
+memory-version-11: contained in ego-select; its src changes (surprise
+estimator, UI, differential gating test) do not touch tasks 1-6.
+
+Torch parity: both backends expose model_path; torch fuse_adapter merges
+onto a fresh bf16 copy of the CURRENT model path, so chained fuses and
+rollback work by path. Only exercised with the stub backend.
+
+What was NOT done
+-----------------
+No recall numbers were measured. The machine at hand is the 8 GB M3 Air
+with <1 GB of free disk; a fused 3B 4-bit model is ~1.8 GB. The eval and
+the fuse check were run only with the simulated backend (plumbing check).
+Run:  python3 experiments/qa_pipeline_eval.py --size small
+      python3 experiments/fuse_repeat_test.py --cycles 6
+after freeing ~4 GB (models/checkpoints in the main tree holds 6.8 GB of
+old LoRA-era checkpoints).
+
+Open questions
+--------------
+- iters_per_fact=10 was tuned for one phrasing per fact; training now
+  spreads those iterations over ~7 phrasings. The eval should sweep it.
+- min_pass_fraction=1.0 (all held-out phrasings) may make graduation rare
+  on the 3B. 0.5 is the obvious relaxation.
+- Slot detection is lexical. A model-based canonicalizer could replace
+  same_slot() behind the same interface if reworded duplicates slip through.
+- 24 pre-existing tests (MEMIT-era mocks) fail on main unchanged.
