@@ -178,12 +178,41 @@ def test_training_file_never_contains_held_out(tmp_path):
     assert (out / "valid.jsonl").read_text() != (out / "train.jsonl").read_text()
 
 
-def test_training_data_raises_if_held_out_leaks(tmp_path):
+def test_training_data_drops_rows_that_match_any_held_out(tmp_path):
     trainer = SleepTrainer(make_config(tmp_path), StubBackend())
     qa = _qa_with_paraphrases()
     qa.paraphrases.append(qa.held_out[0])          # corrupt: same phrasing on both sides
-    with pytest.raises(ValueError, match="held-out"):
-        trainer.prepare_training_data([qa], tmp_path / "data")
+    other = QAPair(question="Where does the user live?", answer="The user lives in Lisbon.", value="Lisbon",
+                   paraphrases=[qa.held_out[1]],   # another fact trained on this fact's held-out line
+                   held_out=["Where do I live?"])
+    out = trainer.prepare_training_data([qa, other], tmp_path / "data")
+    train_qs = [json.loads(l)["messages"][0]["content"] for l in (out / "train.jsonl").read_text().splitlines()]
+    assert not (set(train_qs) & set(qa.held_out))
+    assert qa.question in train_qs and other.question in train_qs
+    valid_qs = {json.loads(l)["messages"][0]["content"] for l in (out / "valid.jsonl").read_text().splitlines()}
+    assert valid_qs == set(qa.held_out) | set(other.held_out)
+
+
+def test_ensure_never_reuses_a_phrasing_across_facts(tmp_path):
+    """A generic model rephrasing offered for every fact must not become one
+    fact's held-out line and another's training line."""
+    config = make_config(tmp_path, {"sleep": {"graduation": {"use_model": True, "held_out_count": 2}}})
+    backend = _model_backend(["Which one is it for me?", "What's mine?", "Do you know my favorite color?"])
+    gen = ParaphraseGenerator(config, backend)
+    ledger = FactLedger(str(tmp_path / "memit" / "ledger.json"))
+    a = ledger.add_fact(QAPair(question="What is the user's favorite color?",
+                               answer="The user's favorite color is teal.", value="teal"))
+    b = ledger.add_fact(QAPair(question="What is the user's favorite food?",
+                               answer="The user's favorite food is ramen.", value="ramen"))
+    gen.ensure(ledger, ledger.get_active_facts())
+    qa_a, qa_b = ledger.get_entry(a)["qa"], ledger.get_entry(b)["qa"]
+    all_a = set(qa_a["paraphrases"]) | set(qa_a["held_out"])
+    all_b = set(qa_b["paraphrases"]) | set(qa_b["held_out"])
+    assert not (all_a & all_b)
+    # content-free rephrasings were rejected; the on-topic one was kept for the color fact
+    assert "Which one is it for me?" not in all_a | all_b
+    assert "What's mine?" not in all_a | all_b
+    assert "Do you know my favorite color?" in all_a and "Do you know my favorite color?" not in all_b
 
 
 def test_validation_falls_back_to_train_when_nothing_is_held_out(tmp_path):

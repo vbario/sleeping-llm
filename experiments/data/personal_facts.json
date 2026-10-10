@@ -1,0 +1,2914 @@
+[
+ {
+  "slot_id": "user.name",
+  "subject": "user",
+  "attribute": "name",
+  "question": "What is the user's name?",
+  "answer": "The user's name is Idris.",
+  "value": "Idris",
+  "alternatives": [
+   "Lukas",
+   "Mara",
+   "Kasper"
+  ],
+  "usage": "Sign off a one-line thank-you note from me using my first name."
+ },
+ {
+  "slot_id": "user.city",
+  "subject": "user",
+  "attribute": "city",
+  "question": "Where does the user live?",
+  "answer": "The user lives in Antwerp.",
+  "value": "Antwerp",
+  "alternatives": [
+   "Cusco",
+   "Kyoto",
+   "Tallinn"
+  ],
+  "usage": "Recommend one weekend activity in the city where I live, and name the city."
+ },
+ {
+  "slot_id": "user.job",
+  "subject": "user",
+  "attribute": "job",
+  "question": "What does the user do for work?",
+  "answer": "The user works as a librarian.",
+  "value": "librarian",
+  "alternatives": [
+   "notary",
+   "copy editor",
+   "firefighter"
+  ],
+  "usage": "Write a one-sentence professional bio for me that states my profession."
+ },
+ {
+  "slot_id": "user.employer",
+  "subject": "user",
+  "attribute": "employer",
+  "question": "Where does the user work?",
+  "answer": "The user works at Verdant Labs.",
+  "value": "Verdant Labs",
+  "alternatives": [
+   "Kestrel Aviation",
+   "Harbor Light Library",
+   "Alder & Finch"
+  ],
+  "usage": "Draft the first line of an out-of-office reply for me that names my employer."
+ },
+ {
+  "slot_id": "user.favorite_color",
+  "subject": "user",
+  "attribute": "favorite_color",
+  "question": "What is the user's favorite color?",
+  "answer": "The user's favorite color is mint.",
+  "value": "mint",
+  "alternatives": [
+   "teal",
+   "burgundy",
+   "coral"
+  ],
+  "usage": "Suggest a paint shade for my bedroom that matches my favorite color, naming the color."
+ },
+ {
+  "slot_id": "user.favorite_food",
+  "subject": "user",
+  "attribute": "favorite_food",
+  "question": "What is the user's favorite food?",
+  "answer": "The user's favorite food is pierogi.",
+  "value": "pierogi",
+  "alternatives": [
+   "tamales",
+   "pad thai",
+   "goulash"
+  ],
+  "usage": "Plan tonight's dinner around my favorite food and name the dish."
+ },
+ {
+  "slot_id": "user.hobby",
+  "subject": "user",
+  "attribute": "hobby",
+  "question": "What is the user's main hobby?",
+  "answer": "The user's main hobby is pottery.",
+  "value": "pottery",
+  "alternatives": [
+   "tango",
+   "kitesurfing",
+   "astrophotography"
+  ],
+  "usage": "Suggest a birthday gift that fits my main hobby and say what the hobby is."
+ },
+ {
+  "slot_id": "user.dog",
+  "subject": "user",
+  "attribute": "dog",
+  "question": "What is the user's dog's name?",
+  "answer": "The user's dog is named Rufus.",
+  "value": "Rufus",
+  "alternatives": [
+   "Pixel",
+   "Marble",
+   "Tofu"
+  ],
+  "usage": "Write a one-line birthday wish addressed to my dog by name."
+ },
+ {
+  "slot_id": "user.allergy",
+  "subject": "user",
+  "attribute": "allergy",
+  "question": "What is the user allergic to?",
+  "answer": "The user is allergic to dust mites.",
+  "value": "dust mites",
+  "alternatives": [
+   "shellfish",
+   "eggs",
+   "tree nuts"
+  ],
+  "usage": "I'm ordering at a restaurant. Which ingredient must I tell them to leave out of my meal?"
+ },
+ {
+  "slot_id": "user.language",
+  "subject": "user",
+  "attribute": "language",
+  "question": "What language does the user speak besides English?",
+  "answer": "The user speaks Finnish besides English.",
+  "value": "Finnish",
+  "alternatives": [
+   "Hindi",
+   "Greek",
+   "Turkish"
+  ],
+  "usage": "Say good morning to me in the other language I speak, and name that language."
+ },
+ {
+  "slot_id": "user.car",
+  "subject": "user",
+  "attribute": "car",
+  "question": "What car does the user drive?",
+  "answer": "The user drives a red Mazda MX-5.",
+  "value": "a red Mazda MX-5",
+  "alternatives": [
+   "an electric Kia Niro",
+   "an orange Honda Element",
+   "a silver Subaru Outback"
+  ],
+  "usage": "I need to describe my car to a parking attendant. What should I say?"
+ },
+ {
+  "slot_id": "user.age",
+  "subject": "user",
+  "attribute": "age",
+  "question": "How old is the user?",
+  "answer": "The user is 66 years old.",
+  "value": "66",
+  "alternatives": [
+   "53",
+   "25",
+   "51"
+  ],
+  "usage": "How many years until I turn 70? State my current age in your answer."
+ },
+ {
+  "slot_id": "user.instrument",
+  "subject": "user",
+  "attribute": "instrument",
+  "question": "What instrument does the user play?",
+  "answer": "The user plays the cello.",
+  "value": "cello",
+  "alternatives": [
+   "mandolin",
+   "drums",
+   "oboe"
+  ],
+  "usage": "Suggest a piece I could practice this week on the instrument I play, naming the instrument."
+ },
+ {
+  "slot_id": "user.team",
+  "subject": "user",
+  "attribute": "team",
+  "question": "What is the user's favorite sports team?",
+  "answer": "The user's favorite sports team is Toronto FC.",
+  "value": "Toronto FC",
+  "alternatives": [
+   "Kaizer Chiefs",
+   "Wellington Phoenix",
+   "Ajax"
+  ],
+  "usage": "Write a two-word cheer for the team I support, naming the team."
+ },
+ {
+  "slot_id": "user.university",
+  "subject": "user",
+  "attribute": "university",
+  "question": "Where did the user study?",
+  "answer": "The user studied at University of Bologna.",
+  "value": "University of Bologna",
+  "alternatives": [
+   "Aalto University",
+   "Kyoto University",
+   "Charles University"
+  ],
+  "usage": "Draft the education line of my resume."
+ },
+ {
+  "slot_id": "user.coffee",
+  "subject": "user",
+  "attribute": "coffee",
+  "question": "What is the user's usual coffee order?",
+  "answer": "The user's usual coffee order is a flat white.",
+  "value": "a flat white",
+  "alternatives": [
+   "an iced americano",
+   "black filter coffee",
+   "a double espresso"
+  ],
+  "usage": "Place my usual coffee order at the counter for me."
+ },
+ {
+  "slot_id": "user.book",
+  "subject": "user",
+  "attribute": "book",
+  "question": "What is the user's favorite book?",
+  "answer": "The user's favorite book is Cloud Atlas.",
+  "value": "Cloud Atlas",
+  "alternatives": [
+   "Pachinko",
+   "The Name of the Rose",
+   "Solaris"
+  ],
+  "usage": "Recommend a novel similar to my favorite book, and name my favorite."
+ },
+ {
+  "slot_id": "user.season",
+  "subject": "user",
+  "attribute": "season",
+  "question": "What is the user's favorite season?",
+  "answer": "The user's favorite season is winter.",
+  "value": "winter",
+  "alternatives": [
+   "summer",
+   "spring",
+   "autumn"
+  ],
+  "usage": "Plan a trip for my favorite season and name the season."
+ },
+ {
+  "slot_id": "user.animal",
+  "subject": "user",
+  "attribute": "animal",
+  "question": "What is the user's favorite animal?",
+  "answer": "The user's favorite animal is red pandas.",
+  "value": "red pandas",
+  "alternatives": [
+   "penguins",
+   "octopuses",
+   "elephants"
+  ],
+  "usage": "Pick a zoo exhibit I would enjoy most, naming my favorite animal."
+ },
+ {
+  "slot_id": "sister.name",
+  "subject": "sister",
+  "attribute": "name",
+  "question": "What is the user's sister's name?",
+  "answer": "The user's sister's name is Elias.",
+  "value": "Elias",
+  "alternatives": [
+   "Lukas",
+   "Kwame",
+   "Kasper"
+  ],
+  "usage": "Write a one-line birthday message addressed to my sister by name."
+ },
+ {
+  "slot_id": "sister.city",
+  "subject": "sister",
+  "attribute": "city",
+  "question": "Where does the user's sister live?",
+  "answer": "The user's sister lives in Marseille.",
+  "value": "Marseille",
+  "alternatives": [
+   "Lahore",
+   "Antwerp",
+   "Hanoi"
+  ],
+  "usage": "Which city should I fly to in order to visit my sister? Name it."
+ },
+ {
+  "slot_id": "sister.job",
+  "subject": "sister",
+  "attribute": "job",
+  "question": "What does the user's sister do for work?",
+  "answer": "The user's sister works as a translator.",
+  "value": "translator",
+  "alternatives": [
+   "paramedic",
+   "tailor",
+   "stonemason"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "sister.favorite_color",
+  "subject": "sister",
+  "attribute": "favorite_color",
+  "question": "What is the user's sister's favorite color?",
+  "answer": "The user's sister's favorite color is amber.",
+  "value": "amber",
+  "alternatives": [
+   "ochre",
+   "olive",
+   "turquoise"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "sister.favorite_food",
+  "subject": "sister",
+  "attribute": "favorite_food",
+  "question": "What is the user's sister's favorite food?",
+  "answer": "The user's sister's favorite food is moussaka.",
+  "value": "moussaka",
+  "alternatives": [
+   "bibimbap",
+   "falafel",
+   "pad thai"
+  ],
+  "usage": "I'm cooking for my sister tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "sister.hobby",
+  "subject": "sister",
+  "attribute": "hobby",
+  "question": "What is the user's sister's main hobby?",
+  "answer": "The user's sister's main hobby is pottery.",
+  "value": "pottery",
+  "alternatives": [
+   "woodturning",
+   "baking sourdough",
+   "orienteering"
+  ],
+  "usage": "Suggest a gift for my sister that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "sister.dog",
+  "subject": "sister",
+  "attribute": "dog",
+  "question": "What is the user's sister's dog's name?",
+  "answer": "The user's sister's dog is named Captain.",
+  "value": "Captain",
+  "alternatives": [
+   "Pebble",
+   "Tofu",
+   "Rufus"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "sister.allergy",
+  "subject": "sister",
+  "attribute": "allergy",
+  "question": "What is the user's sister allergic to?",
+  "answer": "The user's sister is allergic to penicillin.",
+  "value": "penicillin",
+  "alternatives": [
+   "eggs",
+   "tree nuts",
+   "dust mites"
+  ],
+  "usage": "My sister is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "sister.language",
+  "subject": "sister",
+  "attribute": "language",
+  "question": "What language does the user's sister speak besides English?",
+  "answer": "The user's sister speaks Turkish besides English.",
+  "value": "Turkish",
+  "alternatives": [
+   "Greek",
+   "Farsi",
+   "Korean"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "sister.car",
+  "subject": "sister",
+  "attribute": "car",
+  "question": "What car does the user's sister drive?",
+  "answer": "The user's sister drives a silver Subaru Outback.",
+  "value": "a silver Subaru Outback",
+  "alternatives": [
+   "a green Land Rover Defender",
+   "a red Mazda MX-5",
+   "a black Mini Cooper"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "sister.age",
+  "subject": "sister",
+  "attribute": "age",
+  "question": "How old is the user's sister?",
+  "answer": "The user's sister is 44 years old.",
+  "value": "44",
+  "alternatives": [
+   "59",
+   "28",
+   "52"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "sister.instrument",
+  "subject": "sister",
+  "attribute": "instrument",
+  "question": "What instrument does the user's sister play?",
+  "answer": "The user's sister plays the ukulele.",
+  "value": "ukulele",
+  "alternatives": [
+   "mandolin",
+   "bassoon",
+   "theremin"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "sister.team",
+  "subject": "sister",
+  "attribute": "team",
+  "question": "What is the user's sister's favorite sports team?",
+  "answer": "The user's sister's favorite sports team is Olympiacos.",
+  "value": "Olympiacos",
+  "alternatives": [
+   "Kaizer Chiefs",
+   "Boca Juniors",
+   "Flamengo"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "sister.coffee",
+  "subject": "sister",
+  "attribute": "coffee",
+  "question": "What is the user's sister's usual coffee order?",
+  "answer": "The user's sister's usual coffee order is a chai latte.",
+  "value": "a chai latte",
+  "alternatives": [
+   "a mocha",
+   "an oat-milk cappuccino",
+   "an iced americano"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "sister.book",
+  "subject": "sister",
+  "attribute": "book",
+  "question": "What is the user's sister's favorite book?",
+  "answer": "The user's sister's favorite book is The Name of the Rose.",
+  "value": "The Name of the Rose",
+  "alternatives": [
+   "Things Fall Apart",
+   "The Left Hand of Darkness",
+   "Beloved"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.name",
+  "subject": "brother",
+  "attribute": "name",
+  "question": "What is the user's brother's name?",
+  "answer": "The user's brother's name is Lukas.",
+  "value": "Lukas",
+  "alternatives": [
+   "Idris",
+   "Bruno",
+   "Yuki"
+  ],
+  "usage": "Write a one-line birthday message addressed to my brother by name."
+ },
+ {
+  "slot_id": "brother.city",
+  "subject": "brother",
+  "attribute": "city",
+  "question": "Where does the user's brother live?",
+  "answer": "The user's brother lives in Ljubljana.",
+  "value": "Ljubljana",
+  "alternatives": [
+   "Wellington",
+   "Antwerp",
+   "Reykjavik"
+  ],
+  "usage": "Which city should I fly to in order to visit my brother? Name it."
+ },
+ {
+  "slot_id": "brother.job",
+  "subject": "brother",
+  "attribute": "job",
+  "question": "What does the user's brother do for work?",
+  "answer": "The user's brother works as a marine biologist.",
+  "value": "marine biologist",
+  "alternatives": [
+   "landscape architect",
+   "florist",
+   "notary"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.favorite_color",
+  "subject": "brother",
+  "attribute": "favorite_color",
+  "question": "What is the user's brother's favorite color?",
+  "answer": "The user's brother's favorite color is mustard.",
+  "value": "mustard",
+  "alternatives": [
+   "turquoise",
+   "mint",
+   "forest green"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.favorite_food",
+  "subject": "brother",
+  "attribute": "favorite_food",
+  "question": "What is the user's brother's favorite food?",
+  "answer": "The user's brother's favorite food is injera.",
+  "value": "injera",
+  "alternatives": [
+   "risotto",
+   "shakshuka",
+   "tamales"
+  ],
+  "usage": "I'm cooking for my brother tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "brother.hobby",
+  "subject": "brother",
+  "attribute": "hobby",
+  "question": "What is the user's brother's main hobby?",
+  "answer": "The user's brother's main hobby is salsa dancing.",
+  "value": "salsa dancing",
+  "alternatives": [
+   "kitesurfing",
+   "woodturning",
+   "pottery"
+  ],
+  "usage": "Suggest a gift for my brother that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "brother.dog",
+  "subject": "brother",
+  "attribute": "dog",
+  "question": "What is the user's brother's dog's name?",
+  "answer": "The user's brother's dog is named Biscuit.",
+  "value": "Biscuit",
+  "alternatives": [
+   "Juniper",
+   "Clementine",
+   "Pebble"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.allergy",
+  "subject": "brother",
+  "attribute": "allergy",
+  "question": "What is the user's brother allergic to?",
+  "answer": "The user's brother is allergic to shellfish.",
+  "value": "shellfish",
+  "alternatives": [
+   "dust mites",
+   "eggs",
+   "penicillin"
+  ],
+  "usage": "My brother is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "brother.language",
+  "subject": "brother",
+  "attribute": "language",
+  "question": "What language does the user's brother speak besides English?",
+  "answer": "The user's brother speaks Portuguese besides English.",
+  "value": "Portuguese",
+  "alternatives": [
+   "Farsi",
+   "Finnish",
+   "Swahili"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.car",
+  "subject": "brother",
+  "attribute": "car",
+  "question": "What car does the user's brother drive?",
+  "answer": "The user's brother drives an orange Honda Element.",
+  "value": "an orange Honda Element",
+  "alternatives": [
+   "a black Mini Cooper",
+   "an electric Kia Niro",
+   "a blue Citroen 2CV"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.age",
+  "subject": "brother",
+  "attribute": "age",
+  "question": "How old is the user's brother?",
+  "answer": "The user's brother is 33 years old.",
+  "value": "33",
+  "alternatives": [
+   "23",
+   "39",
+   "53"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.instrument",
+  "subject": "brother",
+  "attribute": "instrument",
+  "question": "What instrument does the user's brother play?",
+  "answer": "The user's brother plays the banjo.",
+  "value": "banjo",
+  "alternatives": [
+   "oboe",
+   "mandolin",
+   "trumpet"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.team",
+  "subject": "brother",
+  "attribute": "team",
+  "question": "What is the user's brother's favorite sports team?",
+  "answer": "The user's brother's favorite sports team is Benfica.",
+  "value": "Benfica",
+  "alternatives": [
+   "Fenerbahce",
+   "Celtic",
+   "Boca Juniors"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.coffee",
+  "subject": "brother",
+  "attribute": "coffee",
+  "question": "What is the user's brother's usual coffee order?",
+  "answer": "The user's brother's usual coffee order is a flat white.",
+  "value": "a flat white",
+  "alternatives": [
+   "a mocha",
+   "a cortado",
+   "a double espresso"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "brother.book",
+  "subject": "brother",
+  "attribute": "book",
+  "question": "What is the user's brother's favorite book?",
+  "answer": "The user's brother's favorite book is Cloud Atlas.",
+  "value": "Cloud Atlas",
+  "alternatives": [
+   "Piranesi",
+   "Middlemarch",
+   "The Left Hand of Darkness"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.name",
+  "subject": "mother",
+  "attribute": "name",
+  "question": "What is the user's mother's name?",
+  "answer": "The user's mother's name is Greta.",
+  "value": "Greta",
+  "alternatives": [
+   "Ines",
+   "Maya",
+   "Elias"
+  ],
+  "usage": "Write a one-line birthday message addressed to my mother by name."
+ },
+ {
+  "slot_id": "mother.city",
+  "subject": "mother",
+  "attribute": "city",
+  "question": "Where does the user's mother live?",
+  "answer": "The user's mother lives in Galway.",
+  "value": "Galway",
+  "alternatives": [
+   "Lisbon",
+   "Medellin",
+   "Kyoto"
+  ],
+  "usage": "Which city should I fly to in order to visit my mother? Name it."
+ },
+ {
+  "slot_id": "mother.job",
+  "subject": "mother",
+  "attribute": "job",
+  "question": "What does the user's mother do for work?",
+  "answer": "The user's mother works as a beekeeper.",
+  "value": "beekeeper",
+  "alternatives": [
+   "translator",
+   "locksmith",
+   "glassblower"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.favorite_color",
+  "subject": "mother",
+  "attribute": "favorite_color",
+  "question": "What is the user's mother's favorite color?",
+  "answer": "The user's mother's favorite color is charcoal.",
+  "value": "charcoal",
+  "alternatives": [
+   "plum",
+   "ochre",
+   "mint"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.favorite_food",
+  "subject": "mother",
+  "attribute": "favorite_food",
+  "question": "What is the user's mother's favorite food?",
+  "answer": "The user's mother's favorite food is risotto.",
+  "value": "risotto",
+  "alternatives": [
+   "pierogi",
+   "lasagna",
+   "moussaka"
+  ],
+  "usage": "I'm cooking for my mother tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "mother.hobby",
+  "subject": "mother",
+  "attribute": "hobby",
+  "question": "What is the user's mother's main hobby?",
+  "answer": "The user's mother's main hobby is fly fishing.",
+  "value": "fly fishing",
+  "alternatives": [
+   "calligraphy",
+   "archery",
+   "bouldering"
+  ],
+  "usage": "Suggest a gift for my mother that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "mother.dog",
+  "subject": "mother",
+  "attribute": "dog",
+  "question": "What is the user's mother's dog's name?",
+  "answer": "The user's mother's dog is named Juniper.",
+  "value": "Juniper",
+  "alternatives": [
+   "Biscuit",
+   "Tofu",
+   "Loki"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.allergy",
+  "subject": "mother",
+  "attribute": "allergy",
+  "question": "What is the user's mother allergic to?",
+  "answer": "The user's mother is allergic to tree nuts.",
+  "value": "tree nuts",
+  "alternatives": [
+   "bee stings",
+   "latex",
+   "soy"
+  ],
+  "usage": "My mother is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "mother.language",
+  "subject": "mother",
+  "attribute": "language",
+  "question": "What language does the user's mother speak besides English?",
+  "answer": "The user's mother speaks Swahili besides English.",
+  "value": "Swahili",
+  "alternatives": [
+   "Japanese",
+   "Norwegian",
+   "Turkish"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.car",
+  "subject": "mother",
+  "attribute": "car",
+  "question": "What car does the user's mother drive?",
+  "answer": "The user's mother drives a blue Citroen 2CV.",
+  "value": "a blue Citroen 2CV",
+  "alternatives": [
+   "a yellow Fiat Panda",
+   "an electric Kia Niro",
+   "a silver Subaru Outback"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.age",
+  "subject": "mother",
+  "attribute": "age",
+  "question": "How old is the user's mother?",
+  "answer": "The user's mother is 37 years old.",
+  "value": "37",
+  "alternatives": [
+   "48",
+   "56",
+   "30"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.instrument",
+  "subject": "mother",
+  "attribute": "instrument",
+  "question": "What instrument does the user's mother play?",
+  "answer": "The user's mother plays the accordion.",
+  "value": "accordion",
+  "alternatives": [
+   "trumpet",
+   "drums",
+   "saxophone"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.team",
+  "subject": "mother",
+  "attribute": "team",
+  "question": "What is the user's mother's favorite sports team?",
+  "answer": "The user's mother's favorite sports team is Olympiacos.",
+  "value": "Olympiacos",
+  "alternatives": [
+   "Wellington Phoenix",
+   "Boca Juniors",
+   "Fenerbahce"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.coffee",
+  "subject": "mother",
+  "attribute": "coffee",
+  "question": "What is the user's mother's usual coffee order?",
+  "answer": "The user's mother's usual coffee order is black filter coffee.",
+  "value": "black filter coffee",
+  "alternatives": [
+   "a cortado",
+   "a chai latte",
+   "a long black"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "mother.book",
+  "subject": "mother",
+  "attribute": "book",
+  "question": "What is the user's mother's favorite book?",
+  "answer": "The user's mother's favorite book is Kafka on the Shore.",
+  "value": "Kafka on the Shore",
+  "alternatives": [
+   "Solaris",
+   "The Shadow of the Wind",
+   "Things Fall Apart"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.name",
+  "subject": "father",
+  "attribute": "name",
+  "question": "What is the user's father's name?",
+  "answer": "The user's father's name is Aiko.",
+  "value": "Aiko",
+  "alternatives": [
+   "Yuki",
+   "Noor",
+   "Sanne"
+  ],
+  "usage": "Write a one-line birthday message addressed to my father by name."
+ },
+ {
+  "slot_id": "father.city",
+  "subject": "father",
+  "attribute": "city",
+  "question": "Where does the user's father live?",
+  "answer": "The user's father lives in Austin.",
+  "value": "Austin",
+  "alternatives": [
+   "Marseille",
+   "Riga",
+   "Montreal"
+  ],
+  "usage": "Which city should I fly to in order to visit my father? Name it."
+ },
+ {
+  "slot_id": "father.job",
+  "subject": "father",
+  "attribute": "job",
+  "question": "What does the user's father do for work?",
+  "answer": "The user's father works as a notary.",
+  "value": "notary",
+  "alternatives": [
+   "veterinarian",
+   "sound engineer",
+   "piano tuner"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.favorite_color",
+  "subject": "father",
+  "attribute": "favorite_color",
+  "question": "What is the user's father's favorite color?",
+  "answer": "The user's father's favorite color is teal.",
+  "value": "teal",
+  "alternatives": [
+   "mustard",
+   "ochre",
+   "lavender"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.favorite_food",
+  "subject": "father",
+  "attribute": "favorite_food",
+  "question": "What is the user's father's favorite food?",
+  "answer": "The user's father's favorite food is goulash.",
+  "value": "goulash",
+  "alternatives": [
+   "ceviche",
+   "pho",
+   "pad thai"
+  ],
+  "usage": "I'm cooking for my father tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "father.hobby",
+  "subject": "father",
+  "attribute": "hobby",
+  "question": "What is the user's father's main hobby?",
+  "answer": "The user's father's main hobby is beekeeping.",
+  "value": "beekeeping",
+  "alternatives": [
+   "kitesurfing",
+   "tango",
+   "woodturning"
+  ],
+  "usage": "Suggest a gift for my father that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "father.dog",
+  "subject": "father",
+  "attribute": "dog",
+  "question": "What is the user's father's dog's name?",
+  "answer": "The user's father's dog is named Bruno.",
+  "value": "Bruno",
+  "alternatives": [
+   "Olive",
+   "Tofu",
+   "Nimbus"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.allergy",
+  "subject": "father",
+  "attribute": "allergy",
+  "question": "What is the user's father allergic to?",
+  "answer": "The user's father is allergic to kiwi.",
+  "value": "kiwi",
+  "alternatives": [
+   "dust mites",
+   "tree nuts",
+   "peanuts"
+  ],
+  "usage": "My father is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "father.language",
+  "subject": "father",
+  "attribute": "language",
+  "question": "What language does the user's father speak besides English?",
+  "answer": "The user's father speaks Catalan besides English.",
+  "value": "Catalan",
+  "alternatives": [
+   "Norwegian",
+   "Farsi",
+   "Vietnamese"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.car",
+  "subject": "father",
+  "attribute": "car",
+  "question": "What car does the user's father drive?",
+  "answer": "The user's father drives a green Land Rover Defender.",
+  "value": "a green Land Rover Defender",
+  "alternatives": [
+   "a white Toyota Hilux",
+   "a silver Subaru Outback",
+   "a yellow Fiat Panda"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.age",
+  "subject": "father",
+  "attribute": "age",
+  "question": "How old is the user's father?",
+  "answer": "The user's father is 65 years old.",
+  "value": "65",
+  "alternatives": [
+   "44",
+   "54",
+   "32"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.instrument",
+  "subject": "father",
+  "attribute": "instrument",
+  "question": "What instrument does the user's father play?",
+  "answer": "The user's father plays the oboe.",
+  "value": "oboe",
+  "alternatives": [
+   "banjo",
+   "harp",
+   "saxophone"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.team",
+  "subject": "father",
+  "attribute": "team",
+  "question": "What is the user's father's favorite sports team?",
+  "answer": "The user's father's favorite sports team is Wellington Phoenix.",
+  "value": "Wellington Phoenix",
+  "alternatives": [
+   "Urawa Reds",
+   "Kaizer Chiefs",
+   "Rosenborg"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.coffee",
+  "subject": "father",
+  "attribute": "coffee",
+  "question": "What is the user's father's usual coffee order?",
+  "answer": "The user's father's usual coffee order is a matcha latte.",
+  "value": "a matcha latte",
+  "alternatives": [
+   "a cortado",
+   "an iced americano",
+   "a long black"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "father.book",
+  "subject": "father",
+  "attribute": "book",
+  "question": "What is the user's father's favorite book?",
+  "answer": "The user's father's favorite book is Kafka on the Shore.",
+  "value": "Kafka on the Shore",
+  "alternatives": [
+   "Beloved",
+   "Things Fall Apart",
+   "Piranesi"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.name",
+  "subject": "best friend",
+  "attribute": "name",
+  "question": "What is the user's best friend's name?",
+  "answer": "The user's best friend's name is Hanna.",
+  "value": "Hanna",
+  "alternatives": [
+   "Noor",
+   "Kwame",
+   "Leila"
+  ],
+  "usage": "Write a one-line birthday message addressed to my best friend by name."
+ },
+ {
+  "slot_id": "best_friend.city",
+  "subject": "best friend",
+  "attribute": "city",
+  "question": "Where does the user's best friend live?",
+  "answer": "The user's best friend lives in Lahore.",
+  "value": "Lahore",
+  "alternatives": [
+   "Tbilisi",
+   "Montreal",
+   "Antwerp"
+  ],
+  "usage": "Which city should I fly to in order to visit my best friend? Name it."
+ },
+ {
+  "slot_id": "best_friend.job",
+  "subject": "best friend",
+  "attribute": "job",
+  "question": "What does the user's best friend do for work?",
+  "answer": "The user's best friend works as a veterinarian.",
+  "value": "veterinarian",
+  "alternatives": [
+   "civil engineer",
+   "geologist",
+   "stonemason"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.favorite_color",
+  "subject": "best friend",
+  "attribute": "favorite_color",
+  "question": "What is the user's best friend's favorite color?",
+  "answer": "The user's best friend's favorite color is forest green.",
+  "value": "forest green",
+  "alternatives": [
+   "plum",
+   "coral",
+   "burgundy"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.favorite_food",
+  "subject": "best friend",
+  "attribute": "favorite_food",
+  "question": "What is the user's best friend's favorite food?",
+  "answer": "The user's best friend's favorite food is feijoada.",
+  "value": "feijoada",
+  "alternatives": [
+   "injera",
+   "tamales",
+   "goulash"
+  ],
+  "usage": "I'm cooking for my best friend tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "best_friend.hobby",
+  "subject": "best friend",
+  "attribute": "hobby",
+  "question": "What is the user's best friend's main hobby?",
+  "answer": "The user's best friend's main hobby is baking sourdough.",
+  "value": "baking sourdough",
+  "alternatives": [
+   "woodturning",
+   "bonsai",
+   "calligraphy"
+  ],
+  "usage": "Suggest a gift for my best friend that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "best_friend.dog",
+  "subject": "best friend",
+  "attribute": "dog",
+  "question": "What is the user's best friend's dog's name?",
+  "answer": "The user's best friend's dog is named Bruno.",
+  "value": "Bruno",
+  "alternatives": [
+   "Juniper",
+   "Nimbus",
+   "Tofu"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.allergy",
+  "subject": "best friend",
+  "attribute": "allergy",
+  "question": "What is the user's best friend allergic to?",
+  "answer": "The user's best friend is allergic to gluten.",
+  "value": "gluten",
+  "alternatives": [
+   "soy",
+   "bee stings",
+   "tree nuts"
+  ],
+  "usage": "My best friend is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "best_friend.language",
+  "subject": "best friend",
+  "attribute": "language",
+  "question": "What language does the user's best friend speak besides English?",
+  "answer": "The user's best friend speaks Greek besides English.",
+  "value": "Greek",
+  "alternatives": [
+   "Japanese",
+   "Vietnamese",
+   "Farsi"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.car",
+  "subject": "best friend",
+  "attribute": "car",
+  "question": "What car does the user's best friend drive?",
+  "answer": "The user's best friend drives a green Land Rover Defender.",
+  "value": "a green Land Rover Defender",
+  "alternatives": [
+   "a yellow Fiat Panda",
+   "an orange Honda Element",
+   "an electric Kia Niro"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.age",
+  "subject": "best friend",
+  "attribute": "age",
+  "question": "How old is the user's best friend?",
+  "answer": "The user's best friend is 46 years old.",
+  "value": "46",
+  "alternatives": [
+   "29",
+   "37",
+   "65"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.instrument",
+  "subject": "best friend",
+  "attribute": "instrument",
+  "question": "What instrument does the user's best friend play?",
+  "answer": "The user's best friend plays the accordion.",
+  "value": "accordion",
+  "alternatives": [
+   "cello",
+   "drums",
+   "ukulele"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.team",
+  "subject": "best friend",
+  "attribute": "team",
+  "question": "What is the user's best friend's favorite sports team?",
+  "answer": "The user's best friend's favorite sports team is Wellington Phoenix.",
+  "value": "Wellington Phoenix",
+  "alternatives": [
+   "Boca Juniors",
+   "Flamengo",
+   "Kaizer Chiefs"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.coffee",
+  "subject": "best friend",
+  "attribute": "coffee",
+  "question": "What is the user's best friend's usual coffee order?",
+  "answer": "The user's best friend's usual coffee order is black filter coffee.",
+  "value": "black filter coffee",
+  "alternatives": [
+   "an oat-milk cappuccino",
+   "a chai latte",
+   "an iced americano"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "best_friend.book",
+  "subject": "best friend",
+  "attribute": "book",
+  "question": "What is the user's best friend's favorite book?",
+  "answer": "The user's best friend's favorite book is Beloved.",
+  "value": "Beloved",
+  "alternatives": [
+   "The Left Hand of Darkness",
+   "Pachinko",
+   "Middlemarch"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.name",
+  "subject": "boss",
+  "attribute": "name",
+  "question": "What is the user's boss's name?",
+  "answer": "The user's boss's name is Rafael.",
+  "value": "Rafael",
+  "alternatives": [
+   "Yuki",
+   "Viktor",
+   "Lukas"
+  ],
+  "usage": "Write a one-line birthday message addressed to my boss by name."
+ },
+ {
+  "slot_id": "boss.city",
+  "subject": "boss",
+  "attribute": "city",
+  "question": "Where does the user's boss live?",
+  "answer": "The user's boss lives in Cape Town.",
+  "value": "Cape Town",
+  "alternatives": [
+   "Galway",
+   "Montreal",
+   "Nairobi"
+  ],
+  "usage": "Which city should I fly to in order to visit my boss? Name it."
+ },
+ {
+  "slot_id": "boss.job",
+  "subject": "boss",
+  "attribute": "job",
+  "question": "What does the user's boss do for work?",
+  "answer": "The user's boss works as a dentist.",
+  "value": "dentist",
+  "alternatives": [
+   "pilot",
+   "wind turbine technician",
+   "beekeeper"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.favorite_color",
+  "subject": "boss",
+  "attribute": "favorite_color",
+  "question": "What is the user's boss's favorite color?",
+  "answer": "The user's boss's favorite color is lavender.",
+  "value": "lavender",
+  "alternatives": [
+   "amber",
+   "forest green",
+   "coral"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.favorite_food",
+  "subject": "boss",
+  "attribute": "favorite_food",
+  "question": "What is the user's boss's favorite food?",
+  "answer": "The user's boss's favorite food is goulash.",
+  "value": "goulash",
+  "alternatives": [
+   "risotto",
+   "moussaka",
+   "pad thai"
+  ],
+  "usage": "I'm cooking for my boss tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "boss.hobby",
+  "subject": "boss",
+  "attribute": "hobby",
+  "question": "What is the user's boss's main hobby?",
+  "answer": "The user's boss's main hobby is ultimate frisbee.",
+  "value": "ultimate frisbee",
+  "alternatives": [
+   "woodturning",
+   "pottery",
+   "salsa dancing"
+  ],
+  "usage": "Suggest a gift for my boss that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "boss.dog",
+  "subject": "boss",
+  "attribute": "dog",
+  "question": "What is the user's boss's dog's name?",
+  "answer": "The user's boss's dog is named Bruno.",
+  "value": "Bruno",
+  "alternatives": [
+   "Marble",
+   "Tofu",
+   "Captain"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.allergy",
+  "subject": "boss",
+  "attribute": "allergy",
+  "question": "What is the user's boss allergic to?",
+  "answer": "The user's boss is allergic to sesame.",
+  "value": "sesame",
+  "alternatives": [
+   "peanuts",
+   "dust mites",
+   "soy"
+  ],
+  "usage": "My boss is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "boss.language",
+  "subject": "boss",
+  "attribute": "language",
+  "question": "What language does the user's boss speak besides English?",
+  "answer": "The user's boss speaks Swahili besides English.",
+  "value": "Swahili",
+  "alternatives": [
+   "Greek",
+   "Portuguese",
+   "Finnish"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.car",
+  "subject": "boss",
+  "attribute": "car",
+  "question": "What car does the user's boss drive?",
+  "answer": "The user's boss drives a green Land Rover Defender.",
+  "value": "a green Land Rover Defender",
+  "alternatives": [
+   "a white Toyota Hilux",
+   "a blue Citroen 2CV",
+   "an orange Honda Element"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.age",
+  "subject": "boss",
+  "attribute": "age",
+  "question": "How old is the user's boss?",
+  "answer": "The user's boss is 31 years old.",
+  "value": "31",
+  "alternatives": [
+   "37",
+   "43",
+   "40"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.instrument",
+  "subject": "boss",
+  "attribute": "instrument",
+  "question": "What instrument does the user's boss play?",
+  "answer": "The user's boss plays the ukulele.",
+  "value": "ukulele",
+  "alternatives": [
+   "theremin",
+   "trumpet",
+   "bassoon"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.team",
+  "subject": "boss",
+  "attribute": "team",
+  "question": "What is the user's boss's favorite sports team?",
+  "answer": "The user's boss's favorite sports team is Boca Juniors.",
+  "value": "Boca Juniors",
+  "alternatives": [
+   "Kaizer Chiefs",
+   "Ajax",
+   "Benfica"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.coffee",
+  "subject": "boss",
+  "attribute": "coffee",
+  "question": "What is the user's boss's usual coffee order?",
+  "answer": "The user's boss's usual coffee order is a double espresso.",
+  "value": "a double espresso",
+  "alternatives": [
+   "a flat white",
+   "an iced americano",
+   "black filter coffee"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "boss.book",
+  "subject": "boss",
+  "attribute": "book",
+  "question": "What is the user's boss's favorite book?",
+  "answer": "The user's boss's favorite book is Pachinko.",
+  "value": "Pachinko",
+  "alternatives": [
+   "Dune",
+   "Middlemarch",
+   "Beloved"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.name",
+  "subject": "neighbor",
+  "attribute": "name",
+  "question": "What is the user's neighbor's name?",
+  "answer": "The user's neighbor's name is Noor.",
+  "value": "Noor",
+  "alternatives": [
+   "Priya",
+   "Soraya",
+   "Fernanda"
+  ],
+  "usage": "Write a one-line birthday message addressed to my neighbor by name."
+ },
+ {
+  "slot_id": "neighbor.city",
+  "subject": "neighbor",
+  "attribute": "city",
+  "question": "Where does the user's neighbor live?",
+  "answer": "The user's neighbor lives in Kyoto.",
+  "value": "Kyoto",
+  "alternatives": [
+   "Wellington",
+   "Porto",
+   "Lahore"
+  ],
+  "usage": "Which city should I fly to in order to visit my neighbor? Name it."
+ },
+ {
+  "slot_id": "neighbor.job",
+  "subject": "neighbor",
+  "attribute": "job",
+  "question": "What does the user's neighbor do for work?",
+  "answer": "The user's neighbor works as a notary.",
+  "value": "notary",
+  "alternatives": [
+   "game designer",
+   "translator",
+   "librarian"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.favorite_color",
+  "subject": "neighbor",
+  "attribute": "favorite_color",
+  "question": "What is the user's neighbor's favorite color?",
+  "answer": "The user's neighbor's favorite color is lavender.",
+  "value": "lavender",
+  "alternatives": [
+   "teal",
+   "navy",
+   "ochre"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.favorite_food",
+  "subject": "neighbor",
+  "attribute": "favorite_food",
+  "question": "What is the user's neighbor's favorite food?",
+  "answer": "The user's neighbor's favorite food is pierogi.",
+  "value": "pierogi",
+  "alternatives": [
+   "jollof rice",
+   "risotto",
+   "bouillabaisse"
+  ],
+  "usage": "I'm cooking for my neighbor tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "neighbor.hobby",
+  "subject": "neighbor",
+  "attribute": "hobby",
+  "question": "What is the user's neighbor's main hobby?",
+  "answer": "The user's neighbor's main hobby is calligraphy.",
+  "value": "calligraphy",
+  "alternatives": [
+   "beekeeping",
+   "astrophotography",
+   "fencing"
+  ],
+  "usage": "Suggest a gift for my neighbor that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "neighbor.dog",
+  "subject": "neighbor",
+  "attribute": "dog",
+  "question": "What is the user's neighbor's dog's name?",
+  "answer": "The user's neighbor's dog is named Loki.",
+  "value": "Loki",
+  "alternatives": [
+   "Bruno",
+   "Olive",
+   "Marble"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.allergy",
+  "subject": "neighbor",
+  "attribute": "allergy",
+  "question": "What is the user's neighbor allergic to?",
+  "answer": "The user's neighbor is allergic to dust mites.",
+  "value": "dust mites",
+  "alternatives": [
+   "tree nuts",
+   "shellfish",
+   "peanuts"
+  ],
+  "usage": "My neighbor is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "neighbor.language",
+  "subject": "neighbor",
+  "attribute": "language",
+  "question": "What language does the user's neighbor speak besides English?",
+  "answer": "The user's neighbor speaks Hindi besides English.",
+  "value": "Hindi",
+  "alternatives": [
+   "Korean",
+   "Dutch",
+   "Turkish"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.car",
+  "subject": "neighbor",
+  "attribute": "car",
+  "question": "What car does the user's neighbor drive?",
+  "answer": "The user's neighbor drives a yellow Fiat Panda.",
+  "value": "a yellow Fiat Panda",
+  "alternatives": [
+   "a silver Subaru Outback",
+   "a 2012 Volvo wagon",
+   "an orange Honda Element"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.age",
+  "subject": "neighbor",
+  "attribute": "age",
+  "question": "How old is the user's neighbor?",
+  "answer": "The user's neighbor is 56 years old.",
+  "value": "56",
+  "alternatives": [
+   "31",
+   "61",
+   "52"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.instrument",
+  "subject": "neighbor",
+  "attribute": "instrument",
+  "question": "What instrument does the user's neighbor play?",
+  "answer": "The user's neighbor plays the saxophone.",
+  "value": "saxophone",
+  "alternatives": [
+   "drums",
+   "harp",
+   "trumpet"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.team",
+  "subject": "neighbor",
+  "attribute": "team",
+  "question": "What is the user's neighbor's favorite sports team?",
+  "answer": "The user's neighbor's favorite sports team is Fenerbahce.",
+  "value": "Fenerbahce",
+  "alternatives": [
+   "Urawa Reds",
+   "Wellington Phoenix",
+   "Rosenborg"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.coffee",
+  "subject": "neighbor",
+  "attribute": "coffee",
+  "question": "What is the user's neighbor's usual coffee order?",
+  "answer": "The user's neighbor's usual coffee order is an oat-milk cappuccino.",
+  "value": "an oat-milk cappuccino",
+  "alternatives": [
+   "a flat white",
+   "an iced americano",
+   "black filter coffee"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "neighbor.book",
+  "subject": "neighbor",
+  "attribute": "book",
+  "question": "What is the user's neighbor's favorite book?",
+  "answer": "The user's neighbor's favorite book is Pachinko.",
+  "value": "Pachinko",
+  "alternatives": [
+   "Middlemarch",
+   "Things Fall Apart",
+   "Piranesi"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.name",
+  "subject": "cousin",
+  "attribute": "name",
+  "question": "What is the user's cousin's name?",
+  "answer": "The user's cousin's name is Jonas.",
+  "value": "Jonas",
+  "alternatives": [
+   "Priya",
+   "Ngozi",
+   "Hanna"
+  ],
+  "usage": "Write a one-line birthday message addressed to my cousin by name."
+ },
+ {
+  "slot_id": "cousin.city",
+  "subject": "cousin",
+  "attribute": "city",
+  "question": "Where does the user's cousin live?",
+  "answer": "The user's cousin lives in Lahore.",
+  "value": "Lahore",
+  "alternatives": [
+   "Hanoi",
+   "Ljubljana",
+   "Krakow"
+  ],
+  "usage": "Which city should I fly to in order to visit my cousin? Name it."
+ },
+ {
+  "slot_id": "cousin.job",
+  "subject": "cousin",
+  "attribute": "job",
+  "question": "What does the user's cousin do for work?",
+  "answer": "The user's cousin works as a landscape architect.",
+  "value": "landscape architect",
+  "alternatives": [
+   "veterinarian",
+   "cartographer",
+   "data analyst"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.favorite_color",
+  "subject": "cousin",
+  "attribute": "favorite_color",
+  "question": "What is the user's cousin's favorite color?",
+  "answer": "The user's cousin's favorite color is teal.",
+  "value": "teal",
+  "alternatives": [
+   "crimson",
+   "indigo",
+   "mint"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.favorite_food",
+  "subject": "cousin",
+  "attribute": "favorite_food",
+  "question": "What is the user's cousin's favorite food?",
+  "answer": "The user's cousin's favorite food is jollof rice.",
+  "value": "jollof rice",
+  "alternatives": [
+   "dumplings",
+   "paella",
+   "shakshuka"
+  ],
+  "usage": "I'm cooking for my cousin tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "cousin.hobby",
+  "subject": "cousin",
+  "attribute": "hobby",
+  "question": "What is the user's cousin's main hobby?",
+  "answer": "The user's cousin's main hobby is chess.",
+  "value": "chess",
+  "alternatives": [
+   "astrophotography",
+   "sailing",
+   "knitting"
+  ],
+  "usage": "Suggest a gift for my cousin that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "cousin.dog",
+  "subject": "cousin",
+  "attribute": "dog",
+  "question": "What is the user's cousin's dog's name?",
+  "answer": "The user's cousin's dog is named Marble.",
+  "value": "Marble",
+  "alternatives": [
+   "Loki",
+   "Captain",
+   "Saffron"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.allergy",
+  "subject": "cousin",
+  "attribute": "allergy",
+  "question": "What is the user's cousin allergic to?",
+  "answer": "The user's cousin is allergic to shellfish.",
+  "value": "shellfish",
+  "alternatives": [
+   "dust mites",
+   "kiwi",
+   "soy"
+  ],
+  "usage": "My cousin is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "cousin.language",
+  "subject": "cousin",
+  "attribute": "language",
+  "question": "What language does the user's cousin speak besides English?",
+  "answer": "The user's cousin speaks Polish besides English.",
+  "value": "Polish",
+  "alternatives": [
+   "Hindi",
+   "Norwegian",
+   "Catalan"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.car",
+  "subject": "cousin",
+  "attribute": "car",
+  "question": "What car does the user's cousin drive?",
+  "answer": "The user's cousin drives a red Mazda MX-5.",
+  "value": "a red Mazda MX-5",
+  "alternatives": [
+   "a black Mini Cooper",
+   "a yellow Fiat Panda",
+   "an orange Honda Element"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.age",
+  "subject": "cousin",
+  "attribute": "age",
+  "question": "How old is the user's cousin?",
+  "answer": "The user's cousin is 34 years old.",
+  "value": "34",
+  "alternatives": [
+   "35",
+   "27",
+   "32"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.instrument",
+  "subject": "cousin",
+  "attribute": "instrument",
+  "question": "What instrument does the user's cousin play?",
+  "answer": "The user's cousin plays the bassoon.",
+  "value": "bassoon",
+  "alternatives": [
+   "theremin",
+   "banjo",
+   "ukulele"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.team",
+  "subject": "cousin",
+  "attribute": "team",
+  "question": "What is the user's cousin's favorite sports team?",
+  "answer": "The user's cousin's favorite sports team is Flamengo.",
+  "value": "Flamengo",
+  "alternatives": [
+   "Ajax",
+   "Rosenborg",
+   "Benfica"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.coffee",
+  "subject": "cousin",
+  "attribute": "coffee",
+  "question": "What is the user's cousin's usual coffee order?",
+  "answer": "The user's cousin's usual coffee order is a matcha latte.",
+  "value": "a matcha latte",
+  "alternatives": [
+   "an oat-milk cappuccino",
+   "black filter coffee",
+   "a flat white"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "cousin.book",
+  "subject": "cousin",
+  "attribute": "book",
+  "question": "What is the user's cousin's favorite book?",
+  "answer": "The user's cousin's favorite book is Things Fall Apart.",
+  "value": "Things Fall Apart",
+  "alternatives": [
+   "Dune",
+   "Piranesi",
+   "The Name of the Rose"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.name",
+  "subject": "roommate",
+  "attribute": "name",
+  "question": "What is the user's roommate's name?",
+  "answer": "The user's roommate's name is Omar.",
+  "value": "Omar",
+  "alternatives": [
+   "Tobias",
+   "Elias",
+   "Oluwaseun"
+  ],
+  "usage": "Write a one-line birthday message addressed to my roommate by name."
+ },
+ {
+  "slot_id": "roommate.city",
+  "subject": "roommate",
+  "attribute": "city",
+  "question": "Where does the user's roommate live?",
+  "answer": "The user's roommate lives in Cape Town.",
+  "value": "Cape Town",
+  "alternatives": [
+   "Cusco",
+   "Adelaide",
+   "Reykjavik"
+  ],
+  "usage": "Which city should I fly to in order to visit my roommate? Name it."
+ },
+ {
+  "slot_id": "roommate.job",
+  "subject": "roommate",
+  "attribute": "job",
+  "question": "What does the user's roommate do for work?",
+  "answer": "The user's roommate works as a geologist.",
+  "value": "geologist",
+  "alternatives": [
+   "beekeeper",
+   "civil engineer",
+   "copy editor"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.favorite_color",
+  "subject": "roommate",
+  "attribute": "favorite_color",
+  "question": "What is the user's roommate's favorite color?",
+  "answer": "The user's roommate's favorite color is teal.",
+  "value": "teal",
+  "alternatives": [
+   "indigo",
+   "mint",
+   "coral"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.favorite_food",
+  "subject": "roommate",
+  "attribute": "favorite_food",
+  "question": "What is the user's roommate's favorite food?",
+  "answer": "The user's roommate's favorite food is shakshuka.",
+  "value": "shakshuka",
+  "alternatives": [
+   "moussaka",
+   "dumplings",
+   "ceviche"
+  ],
+  "usage": "I'm cooking for my roommate tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "roommate.hobby",
+  "subject": "roommate",
+  "attribute": "hobby",
+  "question": "What is the user's roommate's main hobby?",
+  "answer": "The user's roommate's main hobby is astrophotography.",
+  "value": "astrophotography",
+  "alternatives": [
+   "calligraphy",
+   "fly fishing",
+   "knitting"
+  ],
+  "usage": "Suggest a gift for my roommate that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "roommate.dog",
+  "subject": "roommate",
+  "attribute": "dog",
+  "question": "What is the user's roommate's dog's name?",
+  "answer": "The user's roommate's dog is named Biscuit.",
+  "value": "Biscuit",
+  "alternatives": [
+   "Olive",
+   "Nimbus",
+   "Waffles"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.allergy",
+  "subject": "roommate",
+  "attribute": "allergy",
+  "question": "What is the user's roommate allergic to?",
+  "answer": "The user's roommate is allergic to dust mites.",
+  "value": "dust mites",
+  "alternatives": [
+   "penicillin",
+   "shellfish",
+   "sesame"
+  ],
+  "usage": "My roommate is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "roommate.language",
+  "subject": "roommate",
+  "attribute": "language",
+  "question": "What language does the user's roommate speak besides English?",
+  "answer": "The user's roommate speaks Korean besides English.",
+  "value": "Korean",
+  "alternatives": [
+   "Hindi",
+   "Norwegian",
+   "Finnish"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.car",
+  "subject": "roommate",
+  "attribute": "car",
+  "question": "What car does the user's roommate drive?",
+  "answer": "The user's roommate drives a green Land Rover Defender.",
+  "value": "a green Land Rover Defender",
+  "alternatives": [
+   "a silver Subaru Outback",
+   "a blue Citroen 2CV",
+   "a red Mazda MX-5"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.age",
+  "subject": "roommate",
+  "attribute": "age",
+  "question": "How old is the user's roommate?",
+  "answer": "The user's roommate is 23 years old.",
+  "value": "23",
+  "alternatives": [
+   "47",
+   "27",
+   "43"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.instrument",
+  "subject": "roommate",
+  "attribute": "instrument",
+  "question": "What instrument does the user's roommate play?",
+  "answer": "The user's roommate plays the saxophone.",
+  "value": "saxophone",
+  "alternatives": [
+   "oboe",
+   "harp",
+   "banjo"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.team",
+  "subject": "roommate",
+  "attribute": "team",
+  "question": "What is the user's roommate's favorite sports team?",
+  "answer": "The user's roommate's favorite sports team is Urawa Reds.",
+  "value": "Urawa Reds",
+  "alternatives": [
+   "Benfica",
+   "Ajax",
+   "Celtic"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.coffee",
+  "subject": "roommate",
+  "attribute": "coffee",
+  "question": "What is the user's roommate's usual coffee order?",
+  "answer": "The user's roommate's usual coffee order is a mocha.",
+  "value": "a mocha",
+  "alternatives": [
+   "a long black",
+   "a cortado",
+   "an iced americano"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "roommate.book",
+  "subject": "roommate",
+  "attribute": "book",
+  "question": "What is the user's roommate's favorite book?",
+  "answer": "The user's roommate's favorite book is Piranesi.",
+  "value": "Piranesi",
+  "alternatives": [
+   "The Name of the Rose",
+   "Middlemarch",
+   "Kafka on the Shore"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.name",
+  "subject": "colleague",
+  "attribute": "name",
+  "question": "What is the user's colleague's name?",
+  "answer": "The user's colleague's name is Tariq.",
+  "value": "Tariq",
+  "alternatives": [
+   "Fernanda",
+   "Sanne",
+   "Elias"
+  ],
+  "usage": "Write a one-line birthday message addressed to my colleague by name."
+ },
+ {
+  "slot_id": "colleague.city",
+  "subject": "colleague",
+  "attribute": "city",
+  "question": "Where does the user's colleague live?",
+  "answer": "The user's colleague lives in Nairobi.",
+  "value": "Nairobi",
+  "alternatives": [
+   "Cape Town",
+   "Lisbon",
+   "Antwerp"
+  ],
+  "usage": "Which city should I fly to in order to visit my colleague? Name it."
+ },
+ {
+  "slot_id": "colleague.job",
+  "subject": "colleague",
+  "attribute": "job",
+  "question": "What does the user's colleague do for work?",
+  "answer": "The user's colleague works as a civil engineer.",
+  "value": "civil engineer",
+  "alternatives": [
+   "pilot",
+   "wind turbine technician",
+   "sound engineer"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.favorite_color",
+  "subject": "colleague",
+  "attribute": "favorite_color",
+  "question": "What is the user's colleague's favorite color?",
+  "answer": "The user's colleague's favorite color is navy.",
+  "value": "navy",
+  "alternatives": [
+   "mustard",
+   "mint",
+   "charcoal"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.favorite_food",
+  "subject": "colleague",
+  "attribute": "favorite_food",
+  "question": "What is the user's colleague's favorite food?",
+  "answer": "The user's colleague's favorite food is injera.",
+  "value": "injera",
+  "alternatives": [
+   "pho",
+   "bibimbap",
+   "falafel"
+  ],
+  "usage": "I'm cooking for my colleague tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "colleague.hobby",
+  "subject": "colleague",
+  "attribute": "hobby",
+  "question": "What is the user's colleague's main hobby?",
+  "answer": "The user's colleague's main hobby is fly fishing.",
+  "value": "fly fishing",
+  "alternatives": [
+   "fencing",
+   "knitting",
+   "beekeeping"
+  ],
+  "usage": "Suggest a gift for my colleague that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "colleague.dog",
+  "subject": "colleague",
+  "attribute": "dog",
+  "question": "What is the user's colleague's dog's name?",
+  "answer": "The user's colleague's dog is named Rufus.",
+  "value": "Rufus",
+  "alternatives": [
+   "Captain",
+   "Biscuit",
+   "Waffles"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.allergy",
+  "subject": "colleague",
+  "attribute": "allergy",
+  "question": "What is the user's colleague allergic to?",
+  "answer": "The user's colleague is allergic to penicillin.",
+  "value": "penicillin",
+  "alternatives": [
+   "eggs",
+   "dust mites",
+   "peanuts"
+  ],
+  "usage": "My colleague is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "colleague.language",
+  "subject": "colleague",
+  "attribute": "language",
+  "question": "What language does the user's colleague speak besides English?",
+  "answer": "The user's colleague speaks Swahili besides English.",
+  "value": "Swahili",
+  "alternatives": [
+   "Catalan",
+   "Greek",
+   "Vietnamese"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.car",
+  "subject": "colleague",
+  "attribute": "car",
+  "question": "What car does the user's colleague drive?",
+  "answer": "The user's colleague drives a 2012 Volvo wagon.",
+  "value": "a 2012 Volvo wagon",
+  "alternatives": [
+   "an electric Kia Niro",
+   "a black Mini Cooper",
+   "an orange Honda Element"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.age",
+  "subject": "colleague",
+  "attribute": "age",
+  "question": "How old is the user's colleague?",
+  "answer": "The user's colleague is 32 years old.",
+  "value": "32",
+  "alternatives": [
+   "30",
+   "23",
+   "27"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.instrument",
+  "subject": "colleague",
+  "attribute": "instrument",
+  "question": "What instrument does the user's colleague play?",
+  "answer": "The user's colleague plays the trumpet.",
+  "value": "trumpet",
+  "alternatives": [
+   "mandolin",
+   "banjo",
+   "theremin"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.team",
+  "subject": "colleague",
+  "attribute": "team",
+  "question": "What is the user's colleague's favorite sports team?",
+  "answer": "The user's colleague's favorite sports team is Urawa Reds.",
+  "value": "Urawa Reds",
+  "alternatives": [
+   "Wellington Phoenix",
+   "Ajax",
+   "Toronto FC"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.coffee",
+  "subject": "colleague",
+  "attribute": "coffee",
+  "question": "What is the user's colleague's usual coffee order?",
+  "answer": "The user's colleague's usual coffee order is black filter coffee.",
+  "value": "black filter coffee",
+  "alternatives": [
+   "an iced americano",
+   "a long black",
+   "a cortado"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "colleague.book",
+  "subject": "colleague",
+  "attribute": "book",
+  "question": "What is the user's colleague's favorite book?",
+  "answer": "The user's colleague's favorite book is Cloud Atlas.",
+  "value": "Cloud Atlas",
+  "alternatives": [
+   "Solaris",
+   "The Name of the Rose",
+   "Kafka on the Shore"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.name",
+  "subject": "partner",
+  "attribute": "name",
+  "question": "What is the user's partner's name?",
+  "answer": "The user's partner's name is Bruno.",
+  "value": "Bruno",
+  "alternatives": [
+   "Sanne",
+   "Teodor",
+   "Lukas"
+  ],
+  "usage": "Write a one-line birthday message addressed to my partner by name."
+ },
+ {
+  "slot_id": "partner.city",
+  "subject": "partner",
+  "attribute": "city",
+  "question": "Where does the user's partner live?",
+  "answer": "The user's partner lives in Montreal.",
+  "value": "Montreal",
+  "alternatives": [
+   "Kyoto",
+   "Marseille",
+   "Valparaiso"
+  ],
+  "usage": "Which city should I fly to in order to visit my partner? Name it."
+ },
+ {
+  "slot_id": "partner.job",
+  "subject": "partner",
+  "attribute": "job",
+  "question": "What does the user's partner do for work?",
+  "answer": "The user's partner works as a wind turbine technician.",
+  "value": "wind turbine technician",
+  "alternatives": [
+   "firefighter",
+   "veterinarian",
+   "marine biologist"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.favorite_color",
+  "subject": "partner",
+  "attribute": "favorite_color",
+  "question": "What is the user's partner's favorite color?",
+  "answer": "The user's partner's favorite color is crimson.",
+  "value": "crimson",
+  "alternatives": [
+   "coral",
+   "amber",
+   "teal"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.favorite_food",
+  "subject": "partner",
+  "attribute": "favorite_food",
+  "question": "What is the user's partner's favorite food?",
+  "answer": "The user's partner's favorite food is risotto.",
+  "value": "risotto",
+  "alternatives": [
+   "shakshuka",
+   "pad thai",
+   "ceviche"
+  ],
+  "usage": "I'm cooking for my partner tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "partner.hobby",
+  "subject": "partner",
+  "attribute": "hobby",
+  "question": "What is the user's partner's main hobby?",
+  "answer": "The user's partner's main hobby is sailing.",
+  "value": "sailing",
+  "alternatives": [
+   "chess",
+   "fly fishing",
+   "astrophotography"
+  ],
+  "usage": "Suggest a gift for my partner that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "partner.dog",
+  "subject": "partner",
+  "attribute": "dog",
+  "question": "What is the user's partner's dog's name?",
+  "answer": "The user's partner's dog is named Captain.",
+  "value": "Captain",
+  "alternatives": [
+   "Mochi",
+   "Clementine",
+   "Pebble"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.allergy",
+  "subject": "partner",
+  "attribute": "allergy",
+  "question": "What is the user's partner allergic to?",
+  "answer": "The user's partner is allergic to bee stings.",
+  "value": "bee stings",
+  "alternatives": [
+   "latex",
+   "eggs",
+   "gluten"
+  ],
+  "usage": "My partner is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "partner.language",
+  "subject": "partner",
+  "attribute": "language",
+  "question": "What language does the user's partner speak besides English?",
+  "answer": "The user's partner speaks Norwegian besides English.",
+  "value": "Norwegian",
+  "alternatives": [
+   "Vietnamese",
+   "Polish",
+   "Swahili"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.car",
+  "subject": "partner",
+  "attribute": "car",
+  "question": "What car does the user's partner drive?",
+  "answer": "The user's partner drives an orange Honda Element.",
+  "value": "an orange Honda Element",
+  "alternatives": [
+   "a green Land Rover Defender",
+   "a silver Subaru Outback",
+   "a white Toyota Hilux"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.age",
+  "subject": "partner",
+  "attribute": "age",
+  "question": "How old is the user's partner?",
+  "answer": "The user's partner is 38 years old.",
+  "value": "38",
+  "alternatives": [
+   "34",
+   "61",
+   "50"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.instrument",
+  "subject": "partner",
+  "attribute": "instrument",
+  "question": "What instrument does the user's partner play?",
+  "answer": "The user's partner plays the theremin.",
+  "value": "theremin",
+  "alternatives": [
+   "ukulele",
+   "mandolin",
+   "drums"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.team",
+  "subject": "partner",
+  "attribute": "team",
+  "question": "What is the user's partner's favorite sports team?",
+  "answer": "The user's partner's favorite sports team is Olympiacos.",
+  "value": "Olympiacos",
+  "alternatives": [
+   "Benfica",
+   "Fenerbahce",
+   "Urawa Reds"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.coffee",
+  "subject": "partner",
+  "attribute": "coffee",
+  "question": "What is the user's partner's usual coffee order?",
+  "answer": "The user's partner's usual coffee order is a matcha latte.",
+  "value": "a matcha latte",
+  "alternatives": [
+   "a cortado",
+   "a chai latte",
+   "an iced americano"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "partner.book",
+  "subject": "partner",
+  "attribute": "book",
+  "question": "What is the user's partner's favorite book?",
+  "answer": "The user's partner's favorite book is The Shadow of the Wind.",
+  "value": "The Shadow of the Wind",
+  "alternatives": [
+   "Kafka on the Shore",
+   "The Name of the Rose",
+   "Piranesi"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "son.name",
+  "subject": "son",
+  "attribute": "name",
+  "question": "What is the user's son's name?",
+  "answer": "The user's son's name is Maya.",
+  "value": "Maya",
+  "alternatives": [
+   "Bruno",
+   "Elias",
+   "Fernanda"
+  ],
+  "usage": "Write a one-line birthday message addressed to my son by name."
+ },
+ {
+  "slot_id": "son.city",
+  "subject": "son",
+  "attribute": "city",
+  "question": "Where does the user's son live?",
+  "answer": "The user's son lives in Marseille.",
+  "value": "Marseille",
+  "alternatives": [
+   "Tbilisi",
+   "Adelaide",
+   "Kyoto"
+  ],
+  "usage": "Which city should I fly to in order to visit my son? Name it."
+ },
+ {
+  "slot_id": "son.favorite_color",
+  "subject": "son",
+  "attribute": "favorite_color",
+  "question": "What is the user's son's favorite color?",
+  "answer": "The user's son's favorite color is mint.",
+  "value": "mint",
+  "alternatives": [
+   "burgundy",
+   "forest green",
+   "indigo"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "son.favorite_food",
+  "subject": "son",
+  "attribute": "favorite_food",
+  "question": "What is the user's son's favorite food?",
+  "answer": "The user's son's favorite food is risotto.",
+  "value": "risotto",
+  "alternatives": [
+   "ramen",
+   "pierogi",
+   "jollof rice"
+  ],
+  "usage": "I'm cooking for my son tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "son.hobby",
+  "subject": "son",
+  "attribute": "hobby",
+  "question": "What is the user's son's main hobby?",
+  "answer": "The user's son's main hobby is bouldering.",
+  "value": "bouldering",
+  "alternatives": [
+   "astrophotography",
+   "archery",
+   "fly fishing"
+  ],
+  "usage": "Suggest a gift for my son that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "son.dog",
+  "subject": "son",
+  "attribute": "dog",
+  "question": "What is the user's son's dog's name?",
+  "answer": "The user's son's dog is named Saffron.",
+  "value": "Saffron",
+  "alternatives": [
+   "Loki",
+   "Olive",
+   "Mochi"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "son.allergy",
+  "subject": "son",
+  "attribute": "allergy",
+  "question": "What is the user's son allergic to?",
+  "answer": "The user's son is allergic to eggs.",
+  "value": "eggs",
+  "alternatives": [
+   "gluten",
+   "tree nuts",
+   "bee stings"
+  ],
+  "usage": "My son is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "son.language",
+  "subject": "son",
+  "attribute": "language",
+  "question": "What language does the user's son speak besides English?",
+  "answer": "The user's son speaks Norwegian besides English.",
+  "value": "Norwegian",
+  "alternatives": [
+   "Vietnamese",
+   "Farsi",
+   "Japanese"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "son.age",
+  "subject": "son",
+  "attribute": "age",
+  "question": "How old is the user's son?",
+  "answer": "The user's son is 10 years old.",
+  "value": "10",
+  "alternatives": [
+   "6",
+   "17",
+   "11"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "son.instrument",
+  "subject": "son",
+  "attribute": "instrument",
+  "question": "What instrument does the user's son play?",
+  "answer": "The user's son plays the trumpet.",
+  "value": "trumpet",
+  "alternatives": [
+   "banjo",
+   "accordion",
+   "saxophone"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "son.team",
+  "subject": "son",
+  "attribute": "team",
+  "question": "What is the user's son's favorite sports team?",
+  "answer": "The user's son's favorite sports team is Celtic.",
+  "value": "Celtic",
+  "alternatives": [
+   "Olympiacos",
+   "Boca Juniors",
+   "Wellington Phoenix"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "son.book",
+  "subject": "son",
+  "attribute": "book",
+  "question": "What is the user's son's favorite book?",
+  "answer": "The user's son's favorite book is The Shadow of the Wind.",
+  "value": "The Shadow of the Wind",
+  "alternatives": [
+   "Solaris",
+   "Kafka on the Shore",
+   "Cloud Atlas"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "daughter.name",
+  "subject": "daughter",
+  "attribute": "name",
+  "question": "What is the user's daughter's name?",
+  "answer": "The user's daughter's name is Ines.",
+  "value": "Ines",
+  "alternatives": [
+   "Maya",
+   "Yuki",
+   "Ngozi"
+  ],
+  "usage": "Write a one-line birthday message addressed to my daughter by name."
+ },
+ {
+  "slot_id": "daughter.city",
+  "subject": "daughter",
+  "attribute": "city",
+  "question": "Where does the user's daughter live?",
+  "answer": "The user's daughter lives in Vancouver.",
+  "value": "Vancouver",
+  "alternatives": [
+   "Kyoto",
+   "Valparaiso",
+   "Lisbon"
+  ],
+  "usage": "Which city should I fly to in order to visit my daughter? Name it."
+ },
+ {
+  "slot_id": "daughter.favorite_color",
+  "subject": "daughter",
+  "attribute": "favorite_color",
+  "question": "What is the user's daughter's favorite color?",
+  "answer": "The user's daughter's favorite color is ochre.",
+  "value": "ochre",
+  "alternatives": [
+   "turquoise",
+   "charcoal",
+   "lavender"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "daughter.favorite_food",
+  "subject": "daughter",
+  "attribute": "favorite_food",
+  "question": "What is the user's daughter's favorite food?",
+  "answer": "The user's daughter's favorite food is biryani.",
+  "value": "biryani",
+  "alternatives": [
+   "moussaka",
+   "pho",
+   "shakshuka"
+  ],
+  "usage": "I'm cooking for my daughter tonight. Which dish should I make?"
+ },
+ {
+  "slot_id": "daughter.hobby",
+  "subject": "daughter",
+  "attribute": "hobby",
+  "question": "What is the user's daughter's main hobby?",
+  "answer": "The user's daughter's main hobby is pottery.",
+  "value": "pottery",
+  "alternatives": [
+   "ultimate frisbee",
+   "chess",
+   "fly fishing"
+  ],
+  "usage": "Suggest a gift for my daughter that fits their main hobby, naming the hobby."
+ },
+ {
+  "slot_id": "daughter.dog",
+  "subject": "daughter",
+  "attribute": "dog",
+  "question": "What is the user's daughter's dog's name?",
+  "answer": "The user's daughter's dog is named Rufus.",
+  "value": "Rufus",
+  "alternatives": [
+   "Marble",
+   "Pixel",
+   "Bruno"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "daughter.allergy",
+  "subject": "daughter",
+  "attribute": "allergy",
+  "question": "What is the user's daughter allergic to?",
+  "answer": "The user's daughter is allergic to peanuts.",
+  "value": "peanuts",
+  "alternatives": [
+   "sesame",
+   "gluten",
+   "kiwi"
+  ],
+  "usage": "My daughter is coming to dinner. Which ingredient must I avoid?"
+ },
+ {
+  "slot_id": "daughter.language",
+  "subject": "daughter",
+  "attribute": "language",
+  "question": "What language does the user's daughter speak besides English?",
+  "answer": "The user's daughter speaks Farsi besides English.",
+  "value": "Farsi",
+  "alternatives": [
+   "Norwegian",
+   "Greek",
+   "Polish"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "daughter.age",
+  "subject": "daughter",
+  "attribute": "age",
+  "question": "How old is the user's daughter?",
+  "answer": "The user's daughter is 17 years old.",
+  "value": "17",
+  "alternatives": [
+   "6",
+   "14",
+   "10"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "daughter.instrument",
+  "subject": "daughter",
+  "attribute": "instrument",
+  "question": "What instrument does the user's daughter play?",
+  "answer": "The user's daughter plays the theremin.",
+  "value": "theremin",
+  "alternatives": [
+   "trumpet",
+   "mandolin",
+   "oboe"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "daughter.team",
+  "subject": "daughter",
+  "attribute": "team",
+  "question": "What is the user's daughter's favorite sports team?",
+  "answer": "The user's daughter's favorite sports team is Ajax.",
+  "value": "Ajax",
+  "alternatives": [
+   "Benfica",
+   "Celtic",
+   "Wellington Phoenix"
+  ],
+  "usage": null
+ },
+ {
+  "slot_id": "daughter.book",
+  "subject": "daughter",
+  "attribute": "book",
+  "question": "What is the user's daughter's favorite book?",
+  "answer": "The user's daughter's favorite book is Things Fall Apart.",
+  "value": "Things Fall Apart",
+  "alternatives": [
+   "The Shadow of the Wind",
+   "Dune",
+   "Solaris"
+  ],
+  "usage": null
+ }
+]

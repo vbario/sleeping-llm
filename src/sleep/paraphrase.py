@@ -22,6 +22,7 @@ import re
 from typing import List, Sequence, Tuple
 
 from src.memory.facts import QAPair
+from src.memory.slots import tokenize as slot_tokenize
 from src.sleep.recall_match import normalize, value_in_response
 
 
@@ -185,19 +186,43 @@ class ParaphraseGenerator:
                 continue  # leaks the answer
             if ":" in line and line.lower().startswith(("question", "rewrite", "here")):
                 continue
+            if not self.on_topic(qa.question, line):
+                continue  # generic rephrasing, would collide across facts
             out.append(line)
         return out[:n]
 
-    def generate_for(self, qa: QAPair) -> Tuple[List[str], List[str], List[str]]:
-        """Return (train_paraphrases, held_out, answer_variants) for a fact."""
+    @staticmethod
+    def on_topic(question: str, paraphrase: str) -> bool:
+        """A paraphrase must keep the question's subject and share a content word.
+
+        Rejects generic rephrasings ("Which one is it for me?") that a small
+        model produces for any question — those would collide across facts.
+        """
+        q_rel, q_content = slot_tokenize(question)
+        p_rel, p_content = slot_tokenize(paraphrase)
+        if q_rel != p_rel:
+            return False
+        meaningful = {t for t in q_content if t not in ("what", "where", "when", "who")}
+        if not meaningful:
+            return True
+        return bool(meaningful & p_content)
+
+    def generate_for(self, qa: QAPair, taken: Sequence[str] = ()) -> Tuple[List[str], List[str], List[str]]:
+        """Return (train_paraphrases, held_out, answer_variants) for a fact.
+
+        `taken` are phrasings already used by other facts (train or held-out);
+        they are never reused, so no held-out line of one fact can be a
+        training line of another.
+        """
         templates = template_paraphrases(qa.question)
         model = []
         if self.use_model:
             want = max(0, self.count - len(templates))
             # Always ask for a few so model phrasings land in both splits.
-            model = self.model_paraphrases(qa, max(want, 2))
+            model = self.model_paraphrases(qa, max(want, 3))
+        candidates = [c for c in model + templates if self.on_topic(qa.question, c)]
         # Model phrasings first (more diverse), templates fill up to `count`.
-        paraphrases = _dedupe(model + templates, exclude=[qa.question])[:max(self.count, 1)]
+        paraphrases = _dedupe(candidates, exclude=[qa.question] + list(taken))[:max(self.count, 1)]
         train, held_out = split_paraphrases(paraphrases, self.held_out_count, qa.question)
         return train, held_out, self.answer_variants(qa)
 
@@ -221,12 +246,19 @@ class ParaphraseGenerator:
     def ensure(self, ledger, entries) -> int:
         """Generate paraphrases for entries that have none. Returns count generated."""
         done = 0
+        taken: List[str] = []
+        for e in ledger.get_active_facts() + ledger.get_graduated_facts():
+            q = e.get("qa", {})
+            taken.append(q.get("question", ""))
+            taken.extend(q.get("paraphrases") or [])
+            taken.extend(q.get("held_out") or [])
         for entry in entries:
             if not self.needs_paraphrases(entry):
                 continue
             qa = QAPair.from_dict(entry["qa"])
-            train, held_out, variants = self.generate_for(qa)
+            train, held_out, variants = self.generate_for(qa, taken=taken)
             ledger.set_paraphrases(entry["fact_id"], train, held_out, variants)
+            taken.extend(train + held_out)
             done += 1
         if done:
             print(f"        Paraphrases generated for {done} fact(s)")

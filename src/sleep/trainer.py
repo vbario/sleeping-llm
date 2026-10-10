@@ -5,7 +5,8 @@ delegates LoRA training + fusing to the backend.
 
 Training uses the canonical question plus the fact's TRAINING paraphrases,
 paired round-robin with its answer variants. The HELD-OUT paraphrases go to
-valid.jsonl only; prepare_training_data raises if one ever reaches train.jsonl.
+valid.jsonl only; prepare_training_data drops any training row that matches a
+held-out phrasing, so no held-out line ever reaches train.jsonl.
 """
 
 import json
@@ -78,12 +79,17 @@ class SleepTrainer:
         if weighted:
             random.shuffle(train_rows)
 
-        # Invariant: no held-out phrasing in the training file.
+        # Invariant: no held-out phrasing (of ANY fact) in the training file.
+        # A collision can only come from identical rephrasings handed to two
+        # facts; the training row is dropped, the held-out set is kept intact.
         held_out = {normalize(q) for qa in qa_pairs for q in (getattr(qa, "held_out", []) or [])}
-        leaked = [r for r in train_rows if normalize(r["messages"][0]["content"]) in held_out]
-        if leaked:
-            raise ValueError(f"held-out phrasing leaked into training data: "
-                             f"{leaked[0]['messages'][0]['content']!r}")
+        kept = [r for r in train_rows if normalize(r["messages"][0]["content"]) not in held_out]
+        if len(kept) != len(train_rows):
+            print(f"        WARNING: dropped {len(train_rows) - len(kept)} training row(s) that "
+                  f"matched a held-out phrasing")
+            train_rows = kept
+        if not train_rows:
+            raise ValueError("no training rows left after removing held-out phrasings")
 
         if not valid_rows:
             valid_rows = list(train_rows)
