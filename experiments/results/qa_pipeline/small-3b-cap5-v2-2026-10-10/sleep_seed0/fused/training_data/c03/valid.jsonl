@@ -1,0 +1,10 @@
+{"messages": [{"role": "user", "content": "What's my cousin's dog's name again?"}, {"role": "assistant", "content": "The user's cousin's dog is named Marble."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my cousin's dog's name?"}, {"role": "assistant", "content": "The user's cousin's dog is named Marble."}]}
+{"messages": [{"role": "user", "content": "Remind me, what car does my boss drive?"}, {"role": "assistant", "content": "The user's boss drives a green Land Rover Defender."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What car does my boss drive?"}, {"role": "assistant", "content": "The user's boss drives a green Land Rover Defender."}]}
+{"messages": [{"role": "user", "content": "I forgot, what's my daughter's main hobby?"}, {"role": "assistant", "content": "The user's daughter's main hobby is pottery."}]}
+{"messages": [{"role": "user", "content": "What's my daughter's main hobby?"}, {"role": "assistant", "content": "The user's daughter's main hobby is pottery."}]}
+{"messages": [{"role": "user", "content": "I'm not sure, can you remind me what my father's coffee order is?"}, {"role": "assistant", "content": "The user's father's usual coffee order is a matcha latte."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my father's usual coffee order?"}, {"role": "assistant", "content": "The user's father's usual coffee order is a matcha latte."}]}
+{"messages": [{"role": "user", "content": "What's my neighbor's usual coffee order?"}, {"role": "assistant", "content": "The user's neighbor's usual coffee order is an oat-milk cappuccino."}]}
+{"messages": [{"role": "user", "content": "What's my neighbor's usual coffee order again?"}, {"role": "assistant", "content": "The user's neighbor's usual coffee order is an oat-milk cappuccino."}]}

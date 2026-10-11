@@ -14,3 +14,8 @@ __pycache__/
 # OS
 .DS_Store
 data/memit/deltas/
+
+# Eval runs: keep results.json, summary.md, ledgers and training rows;
+# the fused 4-bit models (~1.7 GB per seed) and adapters stay local
+experiments/results/**/fused/fused/
+experiments/results/**/fused/adapters/

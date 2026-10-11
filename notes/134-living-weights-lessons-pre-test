@@ -143,3 +143,95 @@ What would change our mind
   - If prompt_only beats the sleep condition on every metric at 20 facts,
     that is expected; the case for graduation is context budget at
     hundreds of facts, which is the large config on the GPU box.
+
+
+
+Amendment before the first run (2026-10-09/10, still pre-measurement)
+---------------------------------------------------------------------
+A 1-seed, 5-fact timing probe on the M5 rolled back on the perplexity gate at
+cycle 0 (+54%). Chasing that exposed four more problems, each only visible
+once the previous one was fixed. P1-P7 above are unchanged; the config they
+will be measured against is not, so here is what changed and the evidence.
+All numbers below: 5 facts, bare prompt, greedy decoding, out of 10 held-out
+phrasings / 10 gate probes, unless stated. Harness: experiments/qa_pipeline_eval.py
+data + mlx_lm.lora/fuse directly, so one setting takes 20s instead of a run.
+
+1. Bug: the MLX trainer computed loss over the whole chat (question +
+   template), the torch backend masks prompt tokens with -100. mlx_lm.lora
+   now gets --mask-prompt. 1-fact retry PPL: +72% -> +22%.
+
+2. lora.learning_rate 1e-4 -> 5e-5. Sweep on the pipeline's own cycle-0
+   data (50 iters): 1e-4 +48% PPL; 7e-5 +11..15%, recall 10/10; 5e-5 -0.4..+4%,
+   recall 5..9/10 (3 seeds); 4e-5 ~0%, 4/10; <=3e-5 learns nothing. Narrow
+   window. 8B: 3e-5 learns nothing at 100 iters, 5e-5 gives +6..9% PPL.
+
+3. Bleed was the real failure, hidden behind the PPL gate. With PPL fixed,
+   every cycle rolled back on bleed: "What is the user's sister's favorite
+   sports team?" -> "Celtic" (the son's), sister's coffee order -> "a double
+   espresso", 6-10/10 probes. The LoRA learns attribute -> value with no
+   subject. Things that did NOT fix it:
+     - model size: the 8B (Meta-Llama-3.1-8B-Instruct-4bit) leaks 7-8/10
+       in the pipeline under every setting tried, same pattern, same phrasing
+       ("sister's favorite food is a double goulash")
+     - more LoRA layers: 16 of 28 -> recall 10/10, bleed 10/10; all 28 ->
+       bleed 5-8/10, PPL +7-8%. 8B all 32 layers: PPL +22%. More capacity
+       learns the shortcut harder. (mlx_lm 0.32 already adapts q/k/v/o AND
+       the MLP projections by default, so "attention-only" was not it.)
+     - more iterations: 50 -> 200 iters lifts recall 7 -> 9/10, bleed stays
+       6-8/10
+   What did: contrast rows (src/sleep/paraphrase.py contrast_examples,
+   lora.contrast_per_fact). Same question about another person, answered
+   "I don't know your aunt's favorite team - you've only told me about your
+   son's". Three design lessons, each paid for:
+     a. uniform "I don't have any information about X" answers -> the 8B
+        learned to deflect EVERYTHING (0/10 recall, 0/10 bleed, all gates
+        pass). The answer must name the true subject.
+     b. a fixed handful of contrast subjects (aunt/uncle/grandmother) ->
+        the model learns "deflect for those three" and sister/brother still
+        leak; the result flipped 0/10 <-> 8/10 between two paraphrase sets
+        of the same facts. Subjects are now drawn per fact from a pool of 24.
+     c. count matters and is noisy. Pooled bleed over seeds/iters at lr 5e-5:
+        0/fact ~90%, 1/fact ~70%, 3/fact ~27%, 4/fact ~28%, 5/fact ~15%.
+        5/fact at 100 iters was 0/10 on all three seeds (recall 8, 2, 6);
+        125 iters 0/2/8 (recall 9, 10, 10); 150 iters 0/0/2 (4, 6, 8).
+        Adjacent settings jump 0 -> 8, so the bare-prompt bleed probe sits
+        on a knife edge. Chosen: contrast_per_fact 5, iters_per_fact 20
+        (~1 pass over the rows). Contrast subjects are disjoint from the
+        gate's, so the gate still tests generalisation, not memorised
+        deflection.
+
+4. With bleed at 0/10 the cycle committed and 0/5 facts graduated, while a
+   bare prompt recalled 3/5 with greedy decoding. The graduation probe (and
+   the app) list the OTHER active facts in the system prompt; shown that
+   list, the 3B says "I don't know your son's team - you've only told me
+   about your boss's food and your father's job". Training rows had no
+   system prompt at all. Now (lora.context_facts / context_fraction) half
+   the rows carry the base system prompt plus 1-3 other facts, formatted by
+   the same function the probe uses (probe.build_system_prompt). Result in
+   the pipeline, 3B, cycle 0: gates pass (PPL +3%, bleed 0/10), 3/5 facts
+   advanced to stage 1 (Celtic, a double espresso, an electric Kia Niro);
+   bare prompt knows 4/5. The two that failed answered with the contrast
+   phrasing ("I don't know that about your boss - you've only told me about
+   their coffee order"), so the deflection template still bleeds into
+   first-party recall. Known cost, not tuned further before the run.
+
+Answer to "will 70B fix this": not on this evidence. 8B was no better than
+3B on bleed at any setting, the alignment-tax result (paper 2) says RLHF
+suppresses LoRA-injected recall MORE with size, and the one thing that
+moved bleed was the training distribution, which is size-independent.
+
+Predictions revised by the above:
+  P2  now expects SOME graduation in 4 cycles at the small config (3/5
+      advanced on cycle 0 of the probe), not "plausibly none".
+  P4  bleed on the bare prompt will NOT be < 0.1 without contrast rows; with
+      them the gate should pass on most cycles and roll back on some. A
+      cycle that rolls back twice on bleed should retry without 1-2 culprits.
+  P5  PPL per cycle is now +2..6% at cycle 0; the 15% gate should hold.
+  P8  (new) first-party recall failures will mostly be contrast-style
+      deflections, not wrong values. If so, the next lever is the contrast
+      answer wording, not the rate or the count.
+
+Also fixed on the way: 24 tests that still targeted MEMIT-era code
+(QAPair has no .relation) were ported or removed; the eval now persists
+per-fact graduation probes in results.json ("graduation") so advanced=0 can
+be read without re-running the model.

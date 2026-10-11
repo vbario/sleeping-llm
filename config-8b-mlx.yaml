@@ -1,0 +1,246 @@
+# Sleeping LLM Configuration
+
+model:
+  # Backend: "mlx" (Apple Silicon) or "torch" (CUDA GPU)
+  backend: "mlx"
+  # Path to MLX model (local or HuggingFace hub ID)
+  path: "mlx-community/Meta-Llama-3.1-8B-Instruct-4bit"
+  # Max tokens for generation
+  max_tokens: 512
+  # Sampling temperature
+  temperature: 0.7
+  # Top-p sampling
+  top_p: 0.9
+  # Repetition penalty
+  repetition_penalty: 1.1
+
+context:
+  # Max context window size in tokens
+  max_tokens: 4096
+  # Trigger compaction when context reaches this fraction of max
+  compaction_threshold: 0.8
+  # System prompt for the model
+  system_prompt: "You may recall things from previous conversations."
+
+sleep:
+  # Manual sleep command (user can type this to trigger sleep)
+  manual_trigger: "/sleep"
+  # Trigger mode: "health" (MEMIT-based pressure) or "turns" (original fixed counter)
+  trigger_mode: "health"
+
+  # Curation thresholds (0.0 - 1.0) — set to 0 to keep everything
+  curation:
+    min_novelty_score: 0.0
+    min_importance_score: 0.0
+    min_combined_score: 0.0
+
+  # Hallucination firewall — verifies extracted Q&A pairs against source conversation
+  firewall:
+    # Minimum fraction of claims that must appear in conversation (0.0 - 1.0)
+    min_grounding_score: 0.3
+    # Use model to double-check borderline cases (slower but more accurate)
+    use_model_verification: false
+
+  # MEMIT maintenance during sleep
+  maintenance:
+    # Recall rate below which a fact is re-injected during sleep
+    degraded_threshold: 0.5
+    # Rollback if PPL increases more than this fraction
+    max_ppl_increase: 0.15
+    # Max facts to re-inject per sleep cycle
+    max_refresh_per_cycle: 10
+    # How many recent active facts nap audits
+    nap_audit_count: 5
+    # How many graduated facts each nap / full sleep re-audits (stalest first).
+    # A graduated fact that fails retreats to stage 2 and re-enters the prompt.
+    graduated_audit_count: 5
+    # How many graduated facts are replayed into every LoRA training set so a
+    # new fuse does not erode older ones (degraded / least recently verified first)
+    replay_count: 5
+    # Max non-graduated facts trained per cycle; the rest stay in the prompt
+    # until a later cycle. 5 is the batch size the gates pass at; 10-20 facts
+    # together bleed on 40-60% of neighbor probes (notes/135). 0 = no cap.
+    max_train_facts: 5
+
+  # Graduation testing with held-out paraphrases (src/sleep/paraphrase.py, probe.py)
+  graduation:
+    # Rephrasings generated per fact (first-person templates + model). Some are
+    # trained on; the rest are held out and used only to test recall.
+    paraphrase_count: 6
+    # Phrasings held out of training. Graduation asks these, never the trained ones.
+    held_out_count: 2
+    # Fraction of held-out phrasings that must be answered for a fact to pass
+    min_pass_fraction: 1.0
+    # Ask the model for extra rephrasings (false = templates only, no generation cost)
+    use_model: true
+    # Sampling temperature for graduation / audit probes
+    test_temperature: 0.1
+
+  # Gates every fused model must pass before it replaces the current one
+  # (src/sleep/gates.py). On failure the last good model is reloaded, the
+  # candidate is deleted and no ledger stage changes. Applies to full sleep
+  # AND micro-sleep. PPL threshold: sleep.maintenance.max_ppl_increase.
+  gates:
+    enabled: true
+    # Neighbor questions per newly trained fact for the bleed check
+    # ("What is my sister's favorite color?" for a fact about the user's own)
+    bleed_neighbors: 2
+    # Regression gate fails when more than this fraction of the audited
+    # graduated facts (sleep.maintenance.graduated_audit_count) are lost
+    regression_max_fail_fraction: 0.5
+    # After a bleed failure, retry without the culprit fact this many times
+    max_retries: 1
+    # A fact blamed this many times is quarantined: kept in the prompt, never trained
+    max_gate_failures: 2
+    # Previous good fused models kept on disk besides the current one
+    keep_previous_models: 1
+
+memit:
+  # Range of transformer layers to target for MEMIT edits
+  # For Llama-3.2-3B (26 layers), middle layers store factual knowledge
+  target_layers: [8, 9, 10, 11, 12, 13, 14, 15]
+  # Regularization parameter (higher = more conservative edits)
+  lambda_reg: 0.1
+  # Maximum active MEMIT edits (individual facts) before requiring sleep
+  max_active_edits: 50
+  # Whether to enable MEMIT injection during wake
+  enabled: true
+  # MLP module to edit
+  target_module: "down_proj"
+  # Covariance estimation: use reference texts to estimate per-dimension activation
+  # variance for proper MEMIT regularization (prevents multi-fact interference).
+  # 0 = skip (use identity matrix), >0 = estimate from reference texts
+  covariance_samples: 200
+  # Residual scale factor (compensates for null-space constraints + regularization losses)
+  residual_scale: 2.0
+  # v* optimization parameters
+  v_lr: 0.5
+  v_steps: 30
+  v_kl_factor: 0.0625
+
+lora:
+  enabled: true
+  num_layers: 16
+  # 1e-4 raised reference PPL +48% on a 5-fact cycle (gate: 15%); 5e-5 drifts
+  # <= 4% with held-out recall intact; <= 4e-5 barely learns (see notes/134)
+  learning_rate: 5.0e-5
+  iters_per_fact: 25  # ~1.25 passes at 20 rows/fact, see config.yaml
+  batch_size: 1
+  # Per fact, N contrast subjects, each giving two "same question about
+  # another person -> I don't know" rows (src/sleep/paraphrase.py
+  # CONTRAST_SUBJECTS, disjoint from the bleed gate's subjects). Without them
+  # the 3B learns "favorite team -> Celtic" for everyone (notes/134). The
+  # count trades two failures (notes/135, runs 2-4): at 5 the model sometimes
+  # deflects on its own facts (stage does not advance; the fact stays in the
+  # prompt and is retrained); at 2 bleed returns, cycles roll back and facts
+  # reach quarantine, which is permanent. 5 is the recoverable failure.
+  # 0 disables.
+  contrast_per_fact: 5
+  # Training rows carry a system prompt like the app's: on `context_fraction`
+  # of rows it lists up to `context_facts` OTHER facts still in the prompt.
+  # Without this the model learns "the prompt is all I know" and denies facts
+  # its weights hold whenever other facts are in the prompt (notes/134). The
+  # graduation probe always lists the other facts, so every row carries them
+  # (1.0); at 0.5 the probe still saw deflections on facts a bare prompt
+  # recalled (notes/135).
+  context_facts: 3
+  context_fraction: 1.0
+
+consolidation:
+  enabled: true
+  scale_schedule: [1.0, 0.5, 0.1, 0.0]
+
+micro_sleep:
+  # Priority-triggered background LoRA training on high-importance facts
+  enabled: true
+  # Trigger mode:
+  #   "cycle" — accumulates high-priority facts, fires at 90-min ultradian boundary (BRAC)
+  #   "immediate" — fires as soon as a high-priority fact arrives (flashbulb memory)
+  trigger_mode: "cycle"
+  # Ultradian cycle length in seconds (default 5400 = 90 minutes, matching human BRAC)
+  cycle_seconds: 5400
+  # Minimum surprise score to queue/trigger micro-sleep (0.0-1.0)
+  priority_threshold: 0.7
+  # Maximum facts per micro-sleep pass
+  max_facts: 3
+  # LoRA iterations per micro-sleep (fewer = faster, ~5-10s on M3)
+  iters: 20
+  # Minimum seconds between micro-sleeps (used in "immediate" mode)
+  cooldown_seconds: 120
+  # Minimum age (seconds) before a fact is eligible for micro-training
+  min_age_seconds: 60
+  # Graduated facts replayed alongside the micro batch (smaller than full sleep)
+  replay_count: 2
+
+facts:
+  # Two questions are the same slot when the similarity of their content
+  # tokens (after synonym normalization) reaches this value; relation words
+  # (son, sister, boss, ...) must match exactly. See src/memory/slots.py.
+  # A new value for an existing slot supersedes the old fact.
+  slot_similarity_threshold: 0.6
+  # Priority given to a correction of an already-graduated fact so the next
+  # LoRA pass overwrites the old value held in the weights
+  correction_priority: 0.9
+
+spaced_repetition:
+  # Minimum seconds since last LoRA training before a fact is retrained
+  min_retrain_age_seconds: 3600
+
+health:
+  # Sleep pressure threshold to suggest a nap (0.0 - 1.0)
+  nap_threshold: 0.4
+  # Sleep pressure threshold to require full sleep (0.0 - 1.0)
+  sleep_threshold: 0.8
+  # Weights for pressure calculation
+  edit_weight: 0.6
+  time_weight: 0.3
+  perplexity_weight: 0.1
+  # Measure perplexity every N edits (0 = never)
+  perplexity_check_interval: 10
+  # Max wake duration in seconds before sleep is forced
+  max_wake_seconds: 7200
+
+consolidation_moment:
+  # Master switch (false = legacy per-turn injection)
+  enabled: true
+  # Maximum facts in the volatile buffer before forced consolidation
+  max_buffer_size: 20
+  # What to do when buffer overflows: "consolidate" or "drop_oldest"
+  overflow_policy: "consolidate"
+  # Minimum age (seconds) of oldest fact before surprise can trigger consolidation
+  min_buffer_age_seconds: 0
+  # Minimum number of buffered facts before surprise can trigger consolidation
+  min_facts: 1
+
+  # Surprise signal configuration
+  surprise:
+    # Composite surprise score threshold to trigger consolidation (0.0 - 1.0)
+    threshold: 0.6
+    # Component weights (automatically normalized)
+    novelty_weight: 0.5
+    marker_weight: 0.3
+    ppl_weight: 0.2
+    # Whether to compute per-turn PPL (expensive on 8GB device)
+    use_ppl: false
+    # EMA smoothing for PPL baseline tracking
+    ppl_ema_alpha: 0.3
+
+nap:
+  # Manual trigger command
+  manual_trigger: "/nap"
+
+validation:
+  # If eval score drops below this fraction of baseline, block the merge
+  # Set low for testing — accept more degradation to prioritize learning
+  min_score_ratio: 0.5
+  # Number of eval questions to run
+  num_questions: 5
+
+paths:
+  conversations: "data/conversations"
+  core_identity: "data/core_identity"
+  benchmarks: "data/benchmarks"
+  memit_data: "data/memit"
+  memit_ledger: "data/memit/ledger.json"
+  adapters: "data/adapters"
+  fused_models: "models/fused"

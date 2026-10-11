@@ -1,0 +1,4 @@
+{"messages": [{"role": "user", "content": "Quick question: what's my boss's usual coffee order?"}, {"role": "assistant", "content": "The user's boss's usual coffee order is a double espresso."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my boss's usual coffee order?"}, {"role": "assistant", "content": "The user's boss's usual coffee order is a double espresso."}]}
+{"messages": [{"role": "user", "content": "What car does my boss drive?"}, {"role": "assistant", "content": "The user's boss drives a green Land Rover Defender."}]}
+{"messages": [{"role": "user", "content": "Quick question: what car does my boss drive?"}, {"role": "assistant", "content": "The user's boss drives a green Land Rover Defender."}]}

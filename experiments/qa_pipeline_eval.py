@@ -392,7 +392,16 @@ class PipelineEval:
                     "runner": {k: stats.get(k) for k in ("status", "failed_gate", "attempts", "trained",
                                                            "replayed", "paraphrased", "advanced", "retreated",
                                                            "graduated_audited", "graduated_failed",
-                                                           "quarantined", "excluded_facts")},
+                                                           "quarantined", "deferred", "excluded_facts")},
+                    # Per-fact graduation probes (held-out phrasings + responses) so a
+                    # cycle with advanced=0 can be read without re-running the model
+                    "graduation": [{"question": g["question"], "value": g["value"],
+                                    "passed": g["passed"], "fraction": g["fraction"],
+                                    "negative_hit": g.get("negative_hit"),
+                                    "phrasings": [{"question": p["question"], "passed": p["passed"],
+                                                   "response": p["response"][:300]}
+                                                  for p in g.get("phrasings", [])]}
+                                   for g in stats.get("graduation_results", [])],
                     "gates": stats.get("gates", []),
                     "graduated_count": len(graduated),
                     "active_count": self.ledger.get_active_fact_count(),

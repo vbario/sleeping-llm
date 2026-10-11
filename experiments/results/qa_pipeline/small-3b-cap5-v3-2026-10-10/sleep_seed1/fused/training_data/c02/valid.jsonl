@@ -1,0 +1,10 @@
+{"messages": [{"role": "user", "content": "I forgot, what's my roommate's dog's name?"}, {"role": "assistant", "content": "The user's roommate's dog is named Biscuit."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my roommate's dog's name?"}, {"role": "assistant", "content": "The user's roommate's dog is named Biscuit."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my son's favorite sports team?"}, {"role": "assistant", "content": "The user's son's favorite sports team is Celtic."}]}
+{"messages": [{"role": "user", "content": "What's my son's favorite sports team?"}, {"role": "assistant", "content": "The user's son's favorite sports team is Celtic."}]}
+{"messages": [{"role": "user", "content": "What's my neighbor's dog's name?"}, {"role": "assistant", "content": "The user's neighbor's dog is named Loki."}]}
+{"messages": [{"role": "user", "content": "My neighbor's dog's name is?"}, {"role": "assistant", "content": "The user's neighbor's dog is named Loki."}]}
+{"messages": [{"role": "user", "content": "I forgot, what instrument does my neighbor play?"}, {"role": "assistant", "content": "The user's neighbor plays the saxophone."}]}
+{"messages": [{"role": "user", "content": "Remind me, what instrument does my neighbor play?"}, {"role": "assistant", "content": "The user's neighbor plays the saxophone."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my colleague's favorite sports team?"}, {"role": "assistant", "content": "The user's colleague's favorite sports team is Urawa Reds."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my colleague's favorite sports team?"}, {"role": "assistant", "content": "The user's colleague's favorite sports team is Urawa Reds."}]}

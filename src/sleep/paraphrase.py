@@ -64,13 +64,36 @@ NEIGHBOR_SUBJECTS = [
     "sister", "brother", "mother", "father", "best friend", "boss",
     "neighbor", "colleague", "cousin", "roommate",
 ]
+# Subjects for CONTRAST training rows ("What is my aunt's favorite color?" ->
+# "I don't know"). Disjoint from NEIGHBOR_SUBJECTS so the bleed gate never
+# asks a question the model was trained to deflect; it has to generalize the
+# subject binding, not memorize the gate's subjects.
+CONTRAST_SUBJECTS = [
+    "aunt", "uncle", "grandmother", "grandfather", "coworker", "landlord",
+    "mentor", "teammate", "nephew", "niece", "doctor", "dentist", "professor",
+    "manager", "coach", "barber", "accountant", "lawyer", "classmate",
+    "stepfather", "stepmother", "godmother", "godfather", "tutor",
+]
+assert not set(NEIGHBOR_SUBJECTS) & set(CONTRAST_SUBJECTS)
 # Relation words that pin a question to a particular person; a neighbor must
 # not reuse one already in the question.
-RELATION_WORDS = set(NEIGHBOR_SUBJECTS) | {
+RELATION_WORDS = set(NEIGHBOR_SUBJECTS) | set(CONTRAST_SUBJECTS) | {
     "son", "daughter", "wife", "husband", "partner", "mom", "dad", "dog",
-    "cat", "pet", "child", "children", "friend", "parents", "grandmother",
-    "grandfather", "uncle", "aunt",
+    "cat", "pet", "child", "children", "friend", "parents",
 }
+
+# Answers for contrast rows: a short denial that names the asked-about
+# subject and nothing else. Earlier wording appended "— you've only told me
+# about your son's", and the model learned THAT clause as a reflex: on the
+# graduation probe it said "I don't know that about your boss — you've only
+# told me about their coffee order" for facts a bare prompt recalled (15 of
+# 22 failed probes in notes/135). The subject binding comes from the pairing
+# of first-party rows with context against these denials, not from the
+# denial enumerating what is known. No value appears.
+CONTRAST_ANSWERS = [
+    "I don't know {topic}.",
+    "You haven't told me {topic}.",
+]
 
 
 def to_first_person(question: str) -> str:
@@ -267,7 +290,8 @@ class ParaphraseGenerator:
     # ------------------------------------------------------------ neighbors
 
     @staticmethod
-    def neighbor_questions(qa: QAPair, n: int, avoid_questions: Sequence[str] = ()) -> List[str]:
+    def neighbor_questions(qa: QAPair, n: int, avoid_questions: Sequence[str] = (),
+                           subjects: Sequence[str] = NEIGHBOR_SUBJECTS) -> List[str]:
         """Same question about a different person, for the bleed gate.
 
         'What is the user's favorite color?' -> 'What is the user's sister's favorite color?'
@@ -283,7 +307,7 @@ class ParaphraseGenerator:
         present = [w for w in RELATION_WORDS if re.search(rf"\b{w}\b", q, re.I)]
         present.sort(key=len, reverse=True)
         out = []
-        for subj in NEIGHBOR_SUBJECTS:
+        for subj in subjects:
             if len(out) >= n:
                 break
             if any(w in q_words for w in subj.split()):
@@ -302,3 +326,47 @@ class ParaphraseGenerator:
                 continue
             out.append(nq)
         return out
+
+    # ------------------------------------------------------------- contrast
+
+    @classmethod
+    def contrast_examples(cls, qa: QAPair, n: int,
+                          avoid_questions: Sequence[str] = ()) -> List[Tuple[str, str]]:
+        """(question, answer) rows teaching that the fact belongs to ONE subject.
+
+        For "What is the user's favorite color?" -> "teal", returns rows like
+        ("What is the user's aunt's favorite color?", "I don't have any
+        information about your aunt's favorite color.") plus the first-person
+        form. Subjects come from CONTRAST_SUBJECTS, never from the bleed
+        gate's list, and `avoid_questions` (every ledger question and every
+        gate probe) is excluded so no real fact is ever trained as unknown.
+        """
+        if n <= 0 or not qa.value:
+            return []
+        # A different random draw of subjects per fact. With a fixed handful
+        # the model learns "deflect for aunt/uncle, answer for everyone else"
+        # and the gate's sister/brother still leak; spread across the whole
+        # pool, "only the stated subject" is the cheaper rule to learn.
+        pool = list(CONTRAST_SUBJECTS)
+        random.Random(normalize(qa.question)).shuffle(pool)
+        neighbors = cls.neighbor_questions(qa, n, avoid_questions=avoid_questions, subjects=pool)
+        avoid = {normalize(a) for a in avoid_questions}
+        rows: List[Tuple[str, str]] = []
+        for i, nq in enumerate(neighbors):
+            subj = next((s for s in CONTRAST_SUBJECTS if re.search(rf"\b{s}\b", nq, re.I)), None)
+            topic = f"that about your {subj}" if subj else "that"
+            # Keep the asked-about attribute when the question has the usual shape
+            m = re.search(rf"\b{subj}'s\s+(.+?)\?$", nq, re.I) if subj else None
+            if m:
+                topic = f"your {subj}'s {m.group(1)}"
+            answer = CONTRAST_ANSWERS[i % len(CONTRAST_ANSWERS)].format(topic=topic)
+            # Raw boundary check, not value_in_response: that one ignores
+            # hedged text and every contrast answer is a hedge.
+            if re.search(rf"(?<!\w){re.escape(normalize(qa.value))}(?!\w)", normalize(answer)):
+                continue
+            for question in (nq, to_first_person(nq)):
+                if normalize(question) in avoid:
+                    continue
+                avoid.add(normalize(question))
+                rows.append((question, answer))
+        return rows

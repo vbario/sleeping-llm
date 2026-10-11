@@ -14,12 +14,18 @@ import random
 from pathlib import Path
 from typing import List, Optional
 
+from src.sleep.paraphrase import ParaphraseGenerator
+from src.sleep.probe import build_system_prompt
 from src.sleep.recall_match import normalize
 
 
 def _chat_example(question: str, answer: str) -> dict:
     return {"messages": [{"role": "user", "content": question},
                          {"role": "assistant", "content": answer}]}
+
+
+def _user_turn(row: dict) -> str:
+    return next(m["content"] for m in row["messages"] if m["role"] == "user")
 
 
 def build_training_examples(qa) -> List[dict]:
@@ -51,12 +57,47 @@ class SleepTrainer:
         self.learning_rate = lora_cfg.get("learning_rate", 1e-4)
         self.iters_per_fact = lora_cfg.get("iters_per_fact", 10)
         self.batch_size = lora_cfg.get("batch_size", 1)
+        # Contrast rows per fact: the same question about another person,
+        # answered "I don't know". Teaches the subject binding the bleed gate
+        # tests for. 0 disables.
+        self.contrast_per_fact = int(lora_cfg.get("contrast_per_fact", 2))
+        # Deployment-time context in training rows: a system prompt carrying up
+        # to `context_facts` OTHER active facts on `context_fraction` of the
+        # rows. Graduation probes and the app both put the still-in-prompt
+        # facts there; a model trained without that learns "the prompt is all
+        # I know" and denies what its weights hold (notes/134).
+        self.context_facts = int(lora_cfg.get("context_facts", 3))
+        self.context_fraction = float(lora_cfg.get("context_fraction", 0.5))
+        self.system_prompt = (getattr(config, "context", None) or {}).get("system_prompt", "")
 
-    def prepare_training_data(self, qa_pairs, output_dir, weighted=False) -> Path:
+    def _with_context(self, row: dict, qa, context_qa, rng) -> dict:
+        """Prepend a system message: the base prompt, plus other facts on a
+        `context_fraction` share of rows. The row's own fact never appears."""
+        others = []
+        if context_qa and self.context_facts > 0 and rng.random() < self.context_fraction:
+            pool = [f for f in context_qa
+                    if normalize(f.question) != normalize(qa.question)
+                    and normalize(f.answer) != normalize(qa.answer)]
+            k = min(len(pool), rng.randint(1, self.context_facts))
+            others = rng.sample(pool, k) if k else []
+        system = build_system_prompt(self.system_prompt, others)
+        return {"messages": [{"role": "system", "content": system}] + row["messages"]}
+
+    def prepare_training_data(self, qa_pairs, output_dir, weighted=False,
+                              avoid_questions=(), context_qa=None) -> Path:
         """Write train.jsonl / valid.jsonl for a list of QAPairs.
 
         weighted=True repeats a fact's examples by priority
         (1.0 → 3x, 0.5 → 2x, 0.0 → 1x) and shuffles.
+
+        Each fact also contributes `contrast_per_fact` neighbor questions with
+        a don't-know answer (see ParaphraseGenerator.contrast_examples).
+        `avoid_questions` lists phrasings that must never become a contrast
+        row: every ledger question and every bleed-gate probe.
+
+        context_qa (the facts currently carried in the prompt) switches on
+        system messages: every row gets the base system prompt and a share of
+        rows also get a few of the OTHER facts, as the probe would show them.
 
         valid.jsonl holds the held-out paraphrases. If no fact has any, it
         falls back to a copy of the training set (mlx_lm requires the file).
@@ -64,16 +105,26 @@ class SleepTrainer:
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
 
+        rng = random.Random(len(qa_pairs) * 7919 + sum(len(qa.question) for qa in qa_pairs))
+        avoid = list(avoid_questions) + [qa.question for qa in qa_pairs]
         train_rows: List[dict] = []
         valid_rows: List[dict] = []
+        n_contrast = 0
         for qa in qa_pairs:
             examples = build_training_examples(qa)
             reps = 1
             if weighted:
                 priority = getattr(qa, "priority", 0.5)
                 reps = max(1, round(1 + priority * 2))
-            for _ in range(reps):
-                train_rows.extend(examples)
+            rows = [dict(e) for _ in range(reps) for e in examples]
+            contrast = ParaphraseGenerator.contrast_examples(
+                qa, self.contrast_per_fact, avoid_questions=avoid)
+            avoid.extend(q for q, _ in contrast)
+            rows.extend(_chat_example(q, a) for q, a in contrast)
+            n_contrast += len(contrast)
+            if context_qa is not None:
+                rows = [self._with_context(r, qa, context_qa, rng) for r in rows]
+            train_rows.extend(rows)
             valid_rows.extend(build_validation_examples(qa))
 
         if weighted:
@@ -83,7 +134,7 @@ class SleepTrainer:
         # A collision can only come from identical rephrasings handed to two
         # facts; the training row is dropped, the held-out set is kept intact.
         held_out = {normalize(q) for qa in qa_pairs for q in (getattr(qa, "held_out", []) or [])}
-        kept = [r for r in train_rows if normalize(r["messages"][0]["content"]) not in held_out]
+        kept = [r for r in train_rows if normalize(_user_turn(r)) not in held_out]
         if len(kept) != len(train_rows):
             print(f"        WARNING: dropped {len(train_rows) - len(kept)} training row(s) that "
                   f"matched a held-out phrasing")
@@ -101,7 +152,7 @@ class SleepTrainer:
 
         n_held = sum(len(getattr(qa, "held_out", []) or []) for qa in qa_pairs)
         print(f"        Training data: {len(qa_pairs)} facts → {len(train_rows)} examples"
-              f"{' (priority-weighted)' if weighted else ''}, "
+              f"{' (priority-weighted)' if weighted else ''} incl. {n_contrast} contrast, "
               f"{n_held} held-out phrasing(s) in valid.jsonl")
         return output_dir
 
@@ -115,7 +166,7 @@ class SleepTrainer:
         return max(len(qa_pairs) * self.iters_per_fact, 20)
 
     def train_and_fuse(self, qa_pairs, cycle_id, save_dir, weighted=False,
-                       iters=None) -> Optional[str]:
+                       iters=None, avoid_questions=(), context_qa=None) -> Optional[str]:
         """Train LoRA on QAPairs and fuse into the model.
 
         Args:
@@ -124,6 +175,10 @@ class SleepTrainer:
             save_dir: Directory for fused model output
             weighted: Use priority-weighted repetition
             iters: Override iteration count (default len(facts) * iters_per_fact)
+            avoid_questions: Phrasings that must not become contrast rows
+                (ledger questions, bleed-gate probes)
+            context_qa: Facts currently carried in the prompt; enables
+                system-prompt context in training rows
 
         Returns:
             Path to fused model directory, or None on failure.
@@ -134,7 +189,8 @@ class SleepTrainer:
         fused_path = save_dir / "fused" / cycle_id
 
         # 1. Prepare training data
-        self.prepare_training_data(qa_pairs, data_dir, weighted=weighted)
+        self.prepare_training_data(qa_pairs, data_dir, weighted=weighted,
+                                   avoid_questions=avoid_questions, context_qa=context_qa)
 
         # 2. Compute iterations
         iters = self.compute_iters(qa_pairs, iters)

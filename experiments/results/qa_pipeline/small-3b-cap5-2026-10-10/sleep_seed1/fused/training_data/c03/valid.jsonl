@@ -1,0 +1,10 @@
+{"messages": [{"role": "user", "content": "What's my neighbor's dog's name?"}, {"role": "assistant", "content": "The user's neighbor's dog is named Loki."}]}
+{"messages": [{"role": "user", "content": "What is my neighbor's dog's name?"}, {"role": "assistant", "content": "The user's neighbor's dog is named Loki."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What instrument does my neighbor play?"}, {"role": "assistant", "content": "The user's neighbor plays the saxophone."}]}
+{"messages": [{"role": "user", "content": "How does my neighbor play an instrument?"}, {"role": "assistant", "content": "The user's neighbor plays the saxophone."}]}
+{"messages": [{"role": "user", "content": "What's my colleague's favorite sports team again?"}, {"role": "assistant", "content": "The user's colleague's favorite sports team is Urawa Reds."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my colleague's favorite sports team?"}, {"role": "assistant", "content": "The user's colleague's favorite sports team is Urawa Reds."}]}
+{"messages": [{"role": "user", "content": "What is my boss's favorite color?"}, {"role": "assistant", "content": "The user's boss's favorite color is lavender."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my boss's favorite color?"}, {"role": "assistant", "content": "The user's boss's favorite color is lavender."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my daughter's dog's name?"}, {"role": "assistant", "content": "The user's daughter's dog is named Rufus."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my daughter's dog's name?"}, {"role": "assistant", "content": "The user's daughter's dog is named Rufus."}]}

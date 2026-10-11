@@ -1,0 +1,886 @@
+[
+  {
+    "fact_id": "084d83cb",
+    "qa": {
+      "question": "What is the user's boss's favorite food?",
+      "answer": "The user's boss's favorite food is goulash.",
+      "value": "goulash",
+      "source_exchange": null,
+      "timestamp": 1791621027.44715,
+      "priority": 0.5,
+      "paraphrases": [
+        "What's my boss's favorite food?",
+        "I forgot, what's my boss's favorite food?",
+        "What's my boss's favorite food again?",
+        "Do you remember? What's my boss's favorite food?"
+      ],
+      "held_out": [
+        "Remind me, what's my boss's favorite food?",
+        "Quick question: what's my boss's favorite food?"
+      ],
+      "answer_variants": [
+        "The user's boss's favorite food is goulash.",
+        "Your boss's favorite food is goulash."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "boss|favorite+food+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "b3a57d74",
+    "qa": {
+      "question": "What is the user's son's favorite sports team?",
+      "answer": "The user's son's favorite sports team is Celtic.",
+      "value": "Celtic",
+      "source_exchange": null,
+      "timestamp": 1791621027.4475431,
+      "priority": 0.5,
+      "paraphrases": [
+        "What's my son's favorite sports team again?",
+        "Do you remember? What's my son's favorite sports team?",
+        "Quick question: what's my son's favorite sports team?",
+        "I forgot, what's my son's favorite sports team?"
+      ],
+      "held_out": [
+        "Remind me, what's my son's favorite sports team?",
+        "What's my son's favorite sports team?"
+      ],
+      "answer_variants": [
+        "The user's son's favorite sports team is Celtic.",
+        "Your son's favorite sports team is Celtic."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "son|favorite+sport+team+what",
+    "superseded": true,
+    "superseded_by": "42199dbc",
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "50b56615",
+    "qa": {
+      "question": "What is the user's boss's usual coffee order?",
+      "answer": "The user's boss's usual coffee order is a double espresso.",
+      "value": "a double espresso",
+      "source_exchange": null,
+      "timestamp": 1791621027.447996,
+      "priority": 0.5,
+      "paraphrases": [
+        "Remind me, what's my boss's usual coffee order?",
+        "Does my boss typically order a specific type of coffee, such as espresso or cappuccino?",
+        "What's my boss's usual coffee order?",
+        "Is my boss usually a fan of coffee, or do they prefer something else entirely?"
+      ],
+      "held_out": [
+        "Quick question: what's my boss's usual coffee order?",
+        "Do you remember? What's my boss's usual coffee order?"
+      ],
+      "answer_variants": [
+        "The user's boss's usual coffee order is a double espresso.",
+        "Your boss's usual coffee order is a double espresso."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "boss|coffee+order+usual+what",
+    "superseded": true,
+    "superseded_by": "f0c60b98",
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "d5052724",
+    "qa": {
+      "question": "What car does the user drive?",
+      "answer": "The user drives a red Mazda MX-5.",
+      "value": "a red Mazda MX-5",
+      "source_exchange": null,
+      "timestamp": 1791621027.448203,
+      "priority": 0.5,
+      "paraphrases": [
+        "What car do I drive?",
+        "I forgot, what car do I drive?",
+        "Do you remember? What car do I drive?",
+        "Remind me, what car do I drive?"
+      ],
+      "held_out": [
+        "Quick question: what car do I drive?",
+        "What car do I drive again?"
+      ],
+      "answer_variants": [
+        "The user drives a red Mazda MX-5.",
+        "You drive a red Mazda MX-5."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "|car+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "d3f8a188",
+    "qa": {
+      "question": "What does the user's father do for work?",
+      "answer": "The user's father works as a notary.",
+      "value": "notary",
+      "source_exchange": null,
+      "timestamp": 1791621027.448403,
+      "priority": 0.5,
+      "paraphrases": [
+        "Quick question: what does my father do for work?",
+        "Do you remember? What does my father do for work?",
+        "I forgot, what does my father do for work?",
+        "What does my father do for work?"
+      ],
+      "held_out": [
+        "What does my father do for work again?",
+        "Remind me, what does my father do for work?"
+      ],
+      "answer_variants": [
+        "The user's father works as a notary.",
+        "Your father works as a notary."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "father|what+work",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "a75d64fc",
+    "qa": {
+      "question": "What is the user's cousin's dog's name?",
+      "answer": "The user's cousin's dog is named Marble.",
+      "value": "Marble",
+      "source_exchange": null,
+      "timestamp": 1791621036.76474,
+      "priority": 0.5,
+      "paraphrases": [
+        "Quick question: what's my cousin's dog's name?",
+        "What's my cousin's dog's name?",
+        "I forgot, what's my cousin's dog's name?",
+        "Do you remember? What's my cousin's dog's name?"
+      ],
+      "held_out": [
+        "What's my cousin's dog's name again?",
+        "Remind me, what's my cousin's dog's name?"
+      ],
+      "answer_variants": [
+        "The user's cousin's dog is named Marble.",
+        "Your cousin's dog is named Marble."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "cousin+dog|name+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "0cc6c72a",
+    "qa": {
+      "question": "What is the user's cousin's name?",
+      "answer": "The user's cousin's name is Jonas.",
+      "value": "Jonas",
+      "source_exchange": null,
+      "timestamp": 1791621036.7651489,
+      "priority": 0.5,
+      "paraphrases": [
+        "What's my cousin's name again?",
+        "Remind me, what's my cousin's name?",
+        "I forgot, what's my cousin's name?",
+        "Quick question: what's my cousin's name?"
+      ],
+      "held_out": [
+        "Do you remember? What's my cousin's name?",
+        "What's my cousin's name?"
+      ],
+      "answer_variants": [
+        "The user's cousin's name is Jonas.",
+        "Your cousin's name is Jonas."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "cousin|name+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "5865651d",
+    "qa": {
+      "question": "What car does the user's boss drive?",
+      "answer": "The user's boss drives a green Land Rover Defender.",
+      "value": "a green Land Rover Defender",
+      "source_exchange": null,
+      "timestamp": 1791621036.765565,
+      "priority": 0.5,
+      "paraphrases": [
+        "Remind me, what car does my boss drive?",
+        "Quick question: what car does my boss drive?",
+        "What kind of vehicle does my boss own?",
+        "Does my boss have a preferred make or model of vehicle?"
+      ],
+      "held_out": [
+        "Is my boss in the market for a new car?",
+        "What car does my boss drive?"
+      ],
+      "answer_variants": [
+        "The user's boss drives a green Land Rover Defender.",
+        "Your boss drives a green Land Rover Defender."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "boss|car+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "fe1439d9",
+    "qa": {
+      "question": "What is the user's daughter's main hobby?",
+      "answer": "The user's daughter's main hobby is pottery.",
+      "value": "pottery",
+      "source_exchange": null,
+      "timestamp": 1791621036.7658129,
+      "priority": 0.5,
+      "paraphrases": [
+        "Remind me, what's my daughter's main hobby?",
+        "Quick question: what's my daughter's main hobby?",
+        "Do you remember? What's my daughter's main hobby?",
+        "What's my daughter's main hobby again?"
+      ],
+      "held_out": [
+        "I forgot, what's my daughter's main hobby?",
+        "What's my daughter's main hobby?"
+      ],
+      "answer_variants": [
+        "The user's daughter's main hobby is pottery.",
+        "Your daughter's main hobby is pottery."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "daughter|hobby+main+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "70e6f5aa",
+    "qa": {
+      "question": "What is the user's father's usual coffee order?",
+      "answer": "The user's father's usual coffee order is a matcha latte.",
+      "value": "a matcha latte",
+      "source_exchange": null,
+      "timestamp": 1791621036.766043,
+      "priority": 0.5,
+      "paraphrases": [
+        "Remind me, what's my father's usual coffee order?",
+        "Quick question: what's my father's usual coffee order?",
+        "I forgot, what's my father's usual coffee order?",
+        "Do you remember? What's my father's usual coffee order?"
+      ],
+      "held_out": [
+        "What's my father's usual coffee order?",
+        "What's my father's usual coffee order again?"
+      ],
+      "answer_variants": [
+        "The user's father's usual coffee order is a matcha latte.",
+        "Your father's usual coffee order is a matcha latte."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "father|coffee+order+usual+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "66a1b254",
+    "qa": {
+      "question": "What is the user's neighbor's usual coffee order?",
+      "answer": "The user's neighbor's usual coffee order is an oat-milk cappuccino.",
+      "value": "an oat-milk cappuccino",
+      "source_exchange": null,
+      "timestamp": 1791621048.736873,
+      "priority": 0.5,
+      "paraphrases": [
+        "What's my neighbor's usual coffee order?",
+        "What's my neighbor's usual coffee order again?",
+        "Remind me, what's my neighbor's usual coffee order?",
+        "Quick question: what's my neighbor's usual coffee order?"
+      ],
+      "held_out": [
+        "My neighbor usually orders a specific type of coffee, can you tell me what that is?",
+        "Do you remember? What's my neighbor's usual coffee order?"
+      ],
+      "answer_variants": [
+        "The user's neighbor's usual coffee order is an oat-milk cappuccino.",
+        "Your neighbor's usual coffee order is an oat-milk cappuccino."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "neighbor|coffee+order+usual+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "49d54744",
+    "qa": {
+      "question": "What is the user's best friend's favorite sports team?",
+      "answer": "The user's best friend's favorite sports team is Wellington Phoenix.",
+      "value": "Wellington Phoenix",
+      "source_exchange": null,
+      "timestamp": 1791621048.737431,
+      "priority": 0.5,
+      "paraphrases": [
+        "What's my best friend's favorite sports team?",
+        "What's my best friend's favorite sports team again?",
+        "Remind me, what's my best friend's favorite sports team?",
+        "Do you remember? What's my best friend's favorite sports team?"
+      ],
+      "held_out": [
+        "Quick question: what's my best friend's favorite sports team?",
+        "I forgot, what's my best friend's favorite sports team?"
+      ],
+      "answer_variants": [
+        "The user's best friend's favorite sports team is Wellington Phoenix.",
+        "Your best friend's favorite sports team is Wellington Phoenix."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "friend|favorite+sport+team+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "4be38988",
+    "qa": {
+      "question": "How old is the user's roommate?",
+      "answer": "The user's roommate is 23 years old.",
+      "value": "23",
+      "source_exchange": null,
+      "timestamp": 1791621048.7379358,
+      "priority": 0.5,
+      "paraphrases": [
+        "Do you remember? How old is my roommate?",
+        "Remind me, how old is my roommate?",
+        "How old is my roommate?",
+        "Quick question: how old is my roommate?"
+      ],
+      "held_out": [
+        "How old is my roommate again?",
+        "I forgot, how old is my roommate?"
+      ],
+      "answer_variants": [
+        "The user's roommate is 23 years old.",
+        "Your roommate is 23 years old."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "roommate|old+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "4374aa0a",
+    "qa": {
+      "question": "What is the user's mother's dog's name?",
+      "answer": "The user's mother's dog is named Juniper.",
+      "value": "Juniper",
+      "source_exchange": null,
+      "timestamp": 1791621048.738272,
+      "priority": 0.5,
+      "paraphrases": [
+        "What's my mother's dog's name again?",
+        "Do you remember? What's my mother's dog's name?",
+        "Quick question: what's my mother's dog's name?",
+        "What's my mother's dog's name?"
+      ],
+      "held_out": [
+        "I forgot, what's my mother's dog's name?",
+        "Remind me, what's my mother's dog's name?"
+      ],
+      "answer_variants": [
+        "The user's mother's dog is named Juniper.",
+        "Your mother's dog is named Juniper."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "dog+mother|name+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "a10ae063",
+    "qa": {
+      "question": "What is the user's cousin's main hobby?",
+      "answer": "The user's cousin's main hobby is chess.",
+      "value": "chess",
+      "source_exchange": null,
+      "timestamp": 1791621048.7385972,
+      "priority": 0.5,
+      "paraphrases": [
+        "Remind me, what's my cousin's main hobby?",
+        "Do you remember? What's my cousin's main hobby?",
+        "What's my cousin's main hobby?",
+        "Quick question: what's my cousin's main hobby?"
+      ],
+      "held_out": [
+        "What's my cousin's main hobby again?",
+        "I forgot, what's my cousin's main hobby?"
+      ],
+      "answer_variants": [
+        "The user's cousin's main hobby is chess.",
+        "Your cousin's main hobby is chess."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "cousin|hobby+main+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "f0c60b98",
+    "qa": {
+      "question": "What is the user's boss's usual coffee order?",
+      "answer": "The user's boss's usual coffee order is a flat white.",
+      "value": "a flat white",
+      "source_exchange": null,
+      "timestamp": 1791621048.738933,
+      "priority": 0.5,
+      "paraphrases": [
+        "Do you remember? What's my boss's usual coffee order?",
+        "Remind me, what's my boss's usual coffee order?",
+        "Quick question: what's my boss's usual coffee order?",
+        "What's my boss's usual coffee order?"
+      ],
+      "held_out": [
+        "What's my boss's usual coffee order again?",
+        "I forgot, what's my boss's usual coffee order?"
+      ],
+      "answer_variants": [
+        "The user's boss's usual coffee order is a flat white.",
+        "Your boss's usual coffee order is a flat white."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "boss|coffee+order+usual+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": "50b56615",
+    "negative_values": [
+      "a double espresso"
+    ]
+  },
+  {
+    "fact_id": "42199dbc",
+    "qa": {
+      "question": "What is the user's son's favorite sports team?",
+      "answer": "The user's son's favorite sports team is Olympiacos.",
+      "value": "Olympiacos",
+      "source_exchange": null,
+      "timestamp": 1791621048.739313,
+      "priority": 0.5,
+      "paraphrases": [
+        "Remind me, what's my son's favorite sports team?",
+        "What's my son's favorite sports team?",
+        "Does the fact that my son has a favorite sports team influence his decisions or preferences in other areas?",
+        "Quick question: what's my son's favorite sports team?"
+      ],
+      "held_out": [
+        "Is the information about my son's favorite sports team relevant to our current discussion or task?",
+        "What is my son's favorite sports team?"
+      ],
+      "answer_variants": [
+        "The user's son's favorite sports team is Olympiacos.",
+        "Your son's favorite sports team is Olympiacos."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "son|favorite+sport+team+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": "b3a57d74",
+    "negative_values": [
+      "Celtic"
+    ]
+  },
+  {
+    "fact_id": "6cd35268",
+    "qa": {
+      "question": "Where does the user's brother live?",
+      "answer": "The user's brother lives in Ljubljana.",
+      "value": "Ljubljana",
+      "source_exchange": null,
+      "timestamp": 1791621067.260602,
+      "priority": 0.5,
+      "paraphrases": [
+        "I forgot, where does my brother live?",
+        "Do you remember? Where does my brother live?",
+        "Quick question: where does my brother live?",
+        "Remind me, where does my brother live?"
+      ],
+      "held_out": [
+        "Where does my brother live again?",
+        "Where does my brother live?"
+      ],
+      "answer_variants": [
+        "The user's brother lives in Ljubljana.",
+        "Your brother lives in Ljubljana."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "brother|live+where",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "3e2950b0",
+    "qa": {
+      "question": "What language does the user's father speak besides English?",
+      "answer": "The user's father speaks Catalan besides English.",
+      "value": "Catalan",
+      "source_exchange": null,
+      "timestamp": 1791621067.2612638,
+      "priority": 0.5,
+      "paraphrases": [
+        "What language does my father speak besides English?",
+        "Quick question: what language does my father speak besides English?",
+        "I forgot, what language does my father speak besides English?",
+        "Remind me, what language does my father speak besides English?"
+      ],
+      "held_out": [
+        "What language does my father speak besides English again?",
+        "Do you remember? What language does my father speak besides English?"
+      ],
+      "answer_variants": [
+        "The user's father speaks Catalan besides English.",
+        "Your father speaks Catalan besides English."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "father|beside+english+language+speak+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "9ff17946",
+    "qa": {
+      "question": "What instrument does the user's son play?",
+      "answer": "The user's son plays the trumpet.",
+      "value": "trumpet",
+      "source_exchange": null,
+      "timestamp": 1791621067.261824,
+      "priority": 0.5,
+      "paraphrases": [
+        "What instrument does my son play again?",
+        "Remind me, what instrument does my son play?",
+        "I forgot, what instrument does my son play?",
+        "What instrument does my son play?"
+      ],
+      "held_out": [
+        "Quick question: what instrument does my son play?",
+        "Do you remember? What instrument does my son play?"
+      ],
+      "answer_variants": [
+        "The user's son plays the trumpet.",
+        "Your son plays the trumpet."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "son|instrument+play+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "35f9fe77",
+    "qa": {
+      "question": "What is the user's sister's main hobby?",
+      "answer": "The user's sister's main hobby is pottery.",
+      "value": "pottery",
+      "source_exchange": null,
+      "timestamp": 1791621067.262249,
+      "priority": 0.5,
+      "paraphrases": [
+        "Quick question: what's my sister's main hobby?",
+        "Remind me, what's my sister's main hobby?",
+        "Do you remember? What's my sister's main hobby?",
+        "I forgot, what's my sister's main hobby?"
+      ],
+      "held_out": [
+        "What's my sister's main hobby?",
+        "What's my sister's main hobby again?"
+      ],
+      "answer_variants": [
+        "The user's sister's main hobby is pottery.",
+        "Your sister's main hobby is pottery."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "sister|hobby+main+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  },
+  {
+    "fact_id": "3cceb07f",
+    "qa": {
+      "question": "What is the user's colleague's favorite food?",
+      "answer": "The user's colleague's favorite food is injera.",
+      "value": "injera",
+      "source_exchange": null,
+      "timestamp": 1791621067.262676,
+      "priority": 0.5,
+      "paraphrases": [
+        "What's my colleague's favorite food again?",
+        "I forgot, what's my colleague's favorite food?",
+        "What's my colleague's favorite food?",
+        "Remind me, what's my colleague's favorite food?"
+      ],
+      "held_out": [
+        "Do you remember? What's my colleague's favorite food?",
+        "Quick question: what's my colleague's favorite food?"
+      ],
+      "answer_variants": [
+        "The user's colleague's favorite food is injera.",
+        "Your colleague's favorite food is injera."
+      ]
+    },
+    "stage": 0,
+    "last_trained": 0.0,
+    "train_count": 0,
+    "degrade_count": 0,
+    "last_verified": 0.0,
+    "recall_rate": 0.0,
+    "graduated": false,
+    "pruned": false,
+    "gate_failures": 0,
+    "last_gate_failure": null,
+    "slot": "colleague|favorite+food+what",
+    "superseded": false,
+    "superseded_by": null,
+    "supersedes": null,
+    "negative_values": []
+  }
+]

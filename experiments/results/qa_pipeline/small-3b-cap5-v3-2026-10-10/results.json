@@ -1,0 +1,3996 @@
+{
+ "meta": {
+  "tag": "small-3b-cap5-v3-2026-10-10",
+  "date": "2026-10-10 22:25:16",
+  "backend": "auto",
+  "simulated": false,
+  "model": "mlx-community/Llama-3.2-3B-Instruct-4bit",
+  "hardware": "Apple M5 Pro, 48 GB RAM, macOS-26.5.2-arm64-arm-64bit",
+  "size": "small",
+  "size_params": {
+   "n_facts": 20,
+   "per_session": 5,
+   "seeds": 2,
+   "n_updates": 2,
+   "usage_sample": 5,
+   "bleed_neighbors": 2
+  },
+  "seeds": 2,
+  "conditions": [
+   "sleep",
+   "prompt_only"
+  ],
+  "elapsed_seconds": 390.9,
+  "config": "/Users/vbar/my-apps/j/sleeping-llm/config.yaml",
+  "lora": {
+   "enabled": true,
+   "num_layers": 8,
+   "learning_rate": 5e-05,
+   "iters_per_fact": 25,
+   "batch_size": 1,
+   "contrast_per_fact": 2,
+   "context_facts": 3,
+   "context_fraction": 1.0
+  },
+  "graduation": {
+   "paraphrase_count": 6,
+   "held_out_count": 2,
+   "min_pass_fraction": 1.0,
+   "use_model": true,
+   "test_temperature": 0.1
+  },
+  "gates": {
+   "enabled": true,
+   "bleed_neighbors": 2,
+   "regression_max_fail_fraction": 0.5,
+   "max_retries": 1,
+   "max_gate_failures": 2,
+   "keep_previous_models": 0
+  },
+  "maintenance": {
+   "degraded_threshold": 0.5,
+   "max_ppl_increase": 0.15,
+   "max_refresh_per_cycle": 10,
+   "nap_audit_count": 5,
+   "graduated_audit_count": 5,
+   "replay_count": 5,
+   "max_train_facts": 5
+  }
+ },
+ "summary": {
+  "sleep": [
+   {
+    "cycle": 0,
+    "seeds": 2,
+    "ppl_drift": {
+     "mean": 0.0393,
+     "std": 0.0302,
+     "n": 2
+    },
+    "usage_recall": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "update_correct": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "bleed_rate": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "graduated_count": {
+     "mean": 0,
+     "std": 0.0,
+     "n": 2
+    },
+    "graduated_recall": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "retention": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "rollbacks": 0,
+    "failed_gates": []
+   },
+   {
+    "cycle": 1,
+    "seeds": 2,
+    "ppl_drift": {
+     "mean": 0.0375,
+     "std": 0.0319,
+     "n": 2
+    },
+    "usage_recall": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "update_correct": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "bleed_rate": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 1
+    },
+    "graduated_count": {
+     "mean": 0,
+     "std": 0.0,
+     "n": 2
+    },
+    "graduated_recall": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "retention": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "rollbacks": 1,
+    "failed_gates": [
+     "bleed"
+    ]
+   },
+   {
+    "cycle": 2,
+    "seeds": 2,
+    "ppl_drift": {
+     "mean": 0.0368,
+     "std": 0.0326,
+     "n": 2
+    },
+    "usage_recall": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "update_correct": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "bleed_rate": {
+     "mean": 0.125,
+     "std": 0.0,
+     "n": 1
+    },
+    "graduated_count": {
+     "mean": 0,
+     "std": 0.0,
+     "n": 2
+    },
+    "graduated_recall": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "retention": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "rollbacks": 1,
+    "failed_gates": [
+     "bleed"
+    ]
+   },
+   {
+    "cycle": 3,
+    "seeds": 2,
+    "ppl_drift": {
+     "mean": 0.0368,
+     "std": 0.0326,
+     "n": 2
+    },
+    "usage_recall": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "update_correct": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "bleed_rate": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "graduated_count": {
+     "mean": 0,
+     "std": 0.0,
+     "n": 2
+    },
+    "graduated_recall": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "retention": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "rollbacks": 2,
+    "failed_gates": [
+     "bleed",
+     "bleed"
+    ]
+   }
+  ],
+  "prompt_only": [
+   {
+    "cycle": 0,
+    "seeds": 2,
+    "ppl_drift": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "usage_recall": {
+     "mean": 1.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "update_correct": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "bleed_rate": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "prompt_recall": {
+     "mean": 1.0,
+     "std": 0.0,
+     "n": 2
+    }
+   },
+   {
+    "cycle": 1,
+    "seeds": 2,
+    "ppl_drift": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "usage_recall": {
+     "mean": 1.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "update_correct": {
+     "mean": null,
+     "std": null,
+     "n": 0
+    },
+    "bleed_rate": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "prompt_recall": {
+     "mean": 1.0,
+     "std": 0.0,
+     "n": 2
+    }
+   },
+   {
+    "cycle": 2,
+    "seeds": 2,
+    "ppl_drift": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "usage_recall": {
+     "mean": 1.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "update_correct": {
+     "mean": 1.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "bleed_rate": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "prompt_recall": {
+     "mean": 1.0,
+     "std": 0.0,
+     "n": 2
+    }
+   },
+   {
+    "cycle": 3,
+    "seeds": 2,
+    "ppl_drift": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "usage_recall": {
+     "mean": 0.9,
+     "std": 0.1,
+     "n": 2
+    },
+    "update_correct": {
+     "mean": 1.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "bleed_rate": {
+     "mean": 0.0,
+     "std": 0.0,
+     "n": 2
+    },
+    "prompt_recall": {
+     "mean": 0.9625,
+     "std": 0.0125,
+     "n": 2
+    }
+   }
+  ]
+ },
+ "runs": [
+  {
+   "condition": "sleep",
+   "seed": 0,
+   "cycles": [
+    {
+     "cycle": 0,
+     "facts_in_ledger": 5,
+     "updates": [],
+     "runner": {
+      "status": "committed",
+      "failed_gate": null,
+      "attempts": 1,
+      "trained": 5,
+      "replayed": 0,
+      "paraphrased": 0,
+      "advanced": 1,
+      "retreated": 0,
+      "graduated_audited": 0,
+      "graduated_failed": 0,
+      "quarantined": 0,
+      "deferred": 0,
+      "excluded_facts": []
+     },
+     "graduation": [
+      {
+       "question": "What is the user's boss's favorite food?",
+       "value": "goulash",
+       "passed": false,
+       "fraction": 0.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "Is my boss particularly fond of any specific cuisine or dish?",
+         "passed": false,
+         "response": "Your boss's usual coffee order is a double espresso."
+        },
+        {
+         "question": "Does my boss have a go-to food that they always order when available?",
+         "passed": false,
+         "response": "The user's boss has a go-to food that they always order when available."
+        }
+       ]
+      },
+      {
+       "question": "What is the user's son's favorite sports team?",
+       "value": "Celtic",
+       "passed": false,
+       "fraction": 0.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "Does my son have a favorite sports team, and if so, what is it?",
+         "passed": false,
+         "response": "I don't know that about your son."
+        },
+        {
+         "question": "Is my son interested in any particular sport or activity that might give me a clue?",
+         "passed": false,
+         "response": "The user's son drives a red Mazda MX-5."
+        }
+       ]
+      },
+      {
+       "question": "What is the user's boss's usual coffee order?",
+       "value": "a double espresso",
+       "passed": true,
+       "fraction": 1.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "Do you remember? What's my boss's usual coffee order?",
+         "passed": true,
+         "response": "Your boss's usual coffee order is a double espresso."
+        },
+        {
+         "question": "What's my boss's usual coffee order again?",
+         "passed": true,
+         "response": "Your boss's usual coffee order is a double espresso."
+        }
+       ]
+      },
+      {
+       "question": "What car does the user drive?",
+       "value": "a red Mazda MX-5",
+       "passed": false,
+       "fraction": 0.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "Quick question: what car do I drive?",
+         "passed": false,
+         "response": "I don't know that about you."
+        },
+        {
+         "question": "What car do I drive again?",
+         "passed": false,
+         "response": "I don't know that about you."
+        }
+       ]
+      },
+      {
+       "question": "What does the user's father do for work?",
+       "value": "notary",
+       "passed": false,
+       "fraction": 0.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "What does my father do for work again?",
+         "passed": false,
+         "response": "I don't know your father works as a notary."
+        },
+        {
+         "question": "Remind me, what does my father do for work?",
+         "passed": false,
+         "response": "I don't know that about your father."
+        }
+       ]
+      }
+     ],
+     "gates": [
+      {
+       "passed": true,
+       "failed_gate": null,
+       "culprit_fact_ids": [],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 15.139,
+        "after": 15.276,
+        "increase": 0.0091,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": true,
+        "bled": [],
+        "probes": 10,
+        "details": [
+         {
+          "fact_id": "9262bd28",
+          "question": "What is the user's sister's favorite food?",
+          "before": "I don't have any information about a user or their family members, including their sister's favorite food. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I'll be happy to chat with you",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "9262bd28",
+          "question": "What is the user's brother's favorite food?",
+          "before": "I don't have any information about a user or their family members, including their brother's favorite food. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I'll be happy to chat with you",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "f7f27450",
+          "question": "What is the user's sister's favorite sports team?",
+          "before": "I don't have any information about the user's sister or her favorite sports team. Our conversation just started, and I don't have any prior knowledge about the user or their family members. If you'd like to share that information, I'll be happy to chat with you about it!",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "f7f27450",
+          "question": "What is the user's brother's favorite sports team?",
+          "before": "I don't have any information about the user's brother or his favorite sports team. Our conversation just started, and I don't have any prior knowledge about the user or their family members. If you'd like to share that information, I'd be happy to chat with you about it!",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "0c6c6d7c",
+          "question": "What is the user's sister's usual coffee order?",
+          "before": "I don't have any information about a user or their family members, including their sister's coffee order. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I can try to help!",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "0c6c6d7c",
+          "question": "What is the user's brother's usual coffee order?",
+          "before": "I don't have any information about a user's brother or their coffee order. Our conversation just started, and I don't have any prior knowledge about the user's family members or their preferences. If you'd like to share that information, I can try to help!",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't have any information about a user or their family members, including their sister's car. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I'm here to help!",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't have any information about your family or their vehicles. This is the beginning of our conversation, and I don't have any prior knowledge about your brother or his car. If you'd like to share that information, I'm here to chat!",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "307a407e",
+          "question": "What does the user's sister do for work?",
+          "before": "I don't have any information about a user's sister or our previous conversations. Our conversation just started, and I don't have any prior knowledge about your family or personal life. If you'd like to share that information, I'm here to listen and help if I can!",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "307a407e",
+          "question": "What does the user's brother do for work?",
+          "before": "I don't have any information about a user's brother or previous conversations. Our conversation just started, and I don't have any prior knowledge about your family members or their occupations. If you'd like to share that information, I'm here to help!",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      }
+     ],
+     "graduated_count": 0,
+     "active_count": 5,
+     "graduated_recall": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "retention": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "bleed": {
+      "probes": 10,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "usage": {
+      "n": 0,
+      "recall": null,
+      "per_prompt": []
+     },
+     "updates_check": {
+      "n": 0,
+      "correct_rate": null,
+      "per_update": []
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.276,
+      "drift": 0.0091
+     },
+     "elapsed_seconds": 29.0,
+     "model_path": "/Users/vbar/my-apps/j/sleeping-llm/experiments/results/qa_pipeline/small-3b-cap5-v3-2026-10-10/sleep_seed0/fused/fused/c00"
+    },
+    {
+     "cycle": 1,
+     "facts_in_ledger": 10,
+     "updates": [],
+     "runner": {
+      "status": "committed",
+      "failed_gate": null,
+      "attempts": 2,
+      "trained": 1,
+      "replayed": 0,
+      "paraphrased": 0,
+      "advanced": 0,
+      "retreated": 0,
+      "graduated_audited": 0,
+      "graduated_failed": 0,
+      "quarantined": 0,
+      "deferred": 5,
+      "excluded_facts": [
+       "What is the user's boss's usual coffee order? \u2192 a double espresso",
+       "What is the user's boss's favorite food? \u2192 goulash",
+       "What is the user's son's favorite sports team? \u2192 Celtic",
+       "What does the user's father do for work? \u2192 notary"
+      ]
+     },
+     "graduation": [
+      {
+       "question": "What car does the user drive?",
+       "value": "a red Mazda MX-5",
+       "passed": false,
+       "fraction": 0.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "Quick question: what car do I drive?",
+         "passed": false,
+         "response": "You drive a green Land Rover Defender."
+        },
+        {
+         "question": "What car do I drive again?",
+         "passed": false,
+         "response": "You drive a green Land Rover Defender."
+        }
+       ]
+      }
+     ],
+     "gates": [
+      {
+       "passed": false,
+       "failed_gate": "bleed",
+       "culprit_fact_ids": [
+        "0c6c6d7c",
+        "9262bd28",
+        "f7f27450",
+        "307a407e"
+       ],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 15.276,
+        "after": 16.221,
+        "increase": 0.0618,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": false,
+        "bled": [
+         "0c6c6d7c",
+         "9262bd28",
+         "f7f27450",
+         "307a407e"
+        ],
+        "probes": 10,
+        "details": [
+         {
+          "fact_id": "0c6c6d7c",
+          "question": "What is the user's sister's usual coffee order?",
+          "before": "I don't know that about your sister.",
+          "after": "The user's sister's usual coffee order is a double espresso.",
+          "leaked": true
+         },
+         {
+          "fact_id": "0c6c6d7c",
+          "question": "What is the user's brother's usual coffee order?",
+          "before": "I don't know that about your brother.",
+          "after": "The user's brother's usual coffee order is a double espresso.",
+          "leaked": true
+         },
+         {
+          "fact_id": "9262bd28",
+          "question": "What is the user's sister's favorite food?",
+          "before": "I don't know that about your sister.",
+          "after": "The user's sister's favorite food is Celtic.",
+          "leaked": false
+         },
+         {
+          "fact_id": "9262bd28",
+          "question": "What is the user's brother's favorite food?",
+          "before": "I don't know that about your brother.",
+          "after": "The user's brother's favorite food is goulash.",
+          "leaked": true
+         },
+         {
+          "fact_id": "f7f27450",
+          "question": "What is the user's sister's favorite sports team?",
+          "before": "I don't know that about your sister.",
+          "after": "The user's sister's favorite sports team is Celtic.",
+          "leaked": true
+         },
+         {
+          "fact_id": "f7f27450",
+          "question": "What is the user's brother's favorite sports team?",
+          "before": "I don't know that about your brother.",
+          "after": "The user's brother's favorite sports team is Celtic.",
+          "leaked": true
+         },
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "You haven't told me that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "You haven't told me that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "307a407e",
+          "question": "What does the user's sister do for work?",
+          "before": "I don't know that about your sister.",
+          "after": "The user's sister works as a notary.",
+          "leaked": true
+         },
+         {
+          "fact_id": "307a407e",
+          "question": "What does the user's brother do for work?",
+          "before": "I don't know that about your brother.",
+          "after": "The user's brother works as a notary.",
+          "leaked": true
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      },
+      {
+       "passed": true,
+       "failed_gate": null,
+       "culprit_fact_ids": [],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 15.276,
+        "after": 15.222,
+        "increase": -0.0035,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": true,
+        "bled": [],
+        "probes": 2,
+        "details": [
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      }
+     ],
+     "graduated_count": 0,
+     "active_count": 10,
+     "graduated_recall": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "retention": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "bleed": {
+      "probes": 2,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "usage": {
+      "n": 0,
+      "recall": null,
+      "per_prompt": []
+     },
+     "updates_check": {
+      "n": 0,
+      "correct_rate": null,
+      "per_update": []
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.222,
+      "drift": 0.0055
+     },
+     "elapsed_seconds": 30.1,
+     "model_path": "/Users/vbar/my-apps/j/sleeping-llm/experiments/results/qa_pipeline/small-3b-cap5-v3-2026-10-10/sleep_seed0/fused/fused/c01_retry1"
+    },
+    {
+     "cycle": 2,
+     "facts_in_ledger": 15,
+     "updates": [
+      {
+       "question": "What is the user's boss's usual coffee order?",
+       "old": "a double espresso",
+       "new": "a flat white",
+       "status": "superseded"
+      },
+      {
+       "question": "What is the user's son's favorite sports team?",
+       "old": "Celtic",
+       "new": "Olympiacos",
+       "status": "superseded"
+      }
+     ],
+     "runner": {
+      "status": "committed",
+      "failed_gate": null,
+      "attempts": 2,
+      "trained": 4,
+      "replayed": 0,
+      "paraphrased": 0,
+      "advanced": 2,
+      "retreated": 0,
+      "graduated_audited": 0,
+      "graduated_failed": 0,
+      "quarantined": 0,
+      "deferred": 10,
+      "excluded_facts": [
+       "What is the user's daughter's main hobby? \u2192 pottery"
+      ]
+     },
+     "graduation": [
+      {
+       "question": "What car does the user drive?",
+       "value": "a red Mazda MX-5",
+       "passed": true,
+       "fraction": 1.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "Quick question: what car do I drive?",
+         "passed": true,
+         "response": "You drive a red Mazda MX-5."
+        },
+        {
+         "question": "What car do I drive again?",
+         "passed": true,
+         "response": "You drive a red Mazda MX-5."
+        }
+       ]
+      },
+      {
+       "question": "What is the user's cousin's dog's name?",
+       "value": "Marble",
+       "passed": false,
+       "fraction": 0.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "What's my cousin's dog's name again?",
+         "passed": false,
+         "response": "The user's cousin's dog is named Juniper."
+        },
+        {
+         "question": "Remind me, what's my cousin's dog's name?",
+         "passed": false,
+         "response": "The user's cousin's dog is named Juniper."
+        }
+       ]
+      },
+      {
+       "question": "What is the user's cousin's name?",
+       "value": "Jonas",
+       "passed": false,
+       "fraction": 0.5,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "Do you remember? What's my cousin's name?",
+         "passed": false,
+         "response": "The user's cousin's name is Marble."
+        },
+        {
+         "question": "What's my cousin's name?",
+         "passed": true,
+         "response": "The user's cousin's name is Jonas."
+        }
+       ]
+      },
+      {
+       "question": "What car does the user's boss drive?",
+       "value": "a green Land Rover Defender",
+       "passed": true,
+       "fraction": 1.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "Remind me, what car does my boss drive?",
+         "passed": true,
+         "response": "Your boss drives a green Land Rover Defender."
+        },
+        {
+         "question": "Do you remember? What car does my boss drive?",
+         "passed": true,
+         "response": "Your boss drives a green Land Rover Defender."
+        }
+       ]
+      }
+     ],
+     "gates": [
+      {
+       "passed": false,
+       "failed_gate": "bleed",
+       "culprit_fact_ids": [
+        "d71e8f6c"
+       ],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 15.222,
+        "after": 15.694,
+        "increase": 0.031,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": false,
+        "bled": [
+         "d71e8f6c"
+        ],
+        "probes": 10,
+        "details": [
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "1eb63667",
+          "question": "What is the user's sister's dog's name?",
+          "before": "I don't know that about your sister's dog.",
+          "after": "The user's sister's dog's name is unknown to me.",
+          "leaked": false
+         },
+         {
+          "fact_id": "1eb63667",
+          "question": "What is the user's brother's dog's name?",
+          "before": "I don't know that about your brother's dog.",
+          "after": "The user's brother's dog's name is unknown to me.",
+          "leaked": false
+         },
+         {
+          "fact_id": "a0d8c7fb",
+          "question": "What is the user's sister's name?",
+          "before": "I don't know that about your sister.",
+          "after": "The user's sister's name is not available to me.",
+          "leaked": false
+         },
+         {
+          "fact_id": "a0d8c7fb",
+          "question": "What is the user's brother's name?",
+          "before": "I don't know that about your brother.",
+          "after": "The user's brother's name is not known to me.",
+          "leaked": false
+         },
+         {
+          "fact_id": "39c9684b",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "39c9684b",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "d71e8f6c",
+          "question": "What is the user's sister's main hobby?",
+          "before": "I don't know that about your sister.",
+          "after": "The user's sister's main hobby is pottery.",
+          "leaked": true
+         },
+         {
+          "fact_id": "d71e8f6c",
+          "question": "What is the user's brother's main hobby?",
+          "before": "I don't know that about your brother.",
+          "after": "The user's brother's main hobby is pottery.",
+          "leaked": true
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      },
+      {
+       "passed": true,
+       "failed_gate": null,
+       "culprit_fact_ids": [],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 15.222,
+        "after": 15.202,
+        "increase": -0.0013,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": true,
+        "bled": [],
+        "probes": 8,
+        "details": [
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "1eb63667",
+          "question": "What is the user's sister's dog's name?",
+          "before": "I don't know that about your sister's dog.",
+          "after": "I don't know that about your sister's dog.",
+          "leaked": false
+         },
+         {
+          "fact_id": "1eb63667",
+          "question": "What is the user's brother's dog's name?",
+          "before": "I don't know that about your brother's dog.",
+          "after": "I don't know that about your brother's dog.",
+          "leaked": false
+         },
+         {
+          "fact_id": "a0d8c7fb",
+          "question": "What is the user's sister's name?",
+          "before": "I don't know that about your sister.",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "a0d8c7fb",
+          "question": "What is the user's brother's name?",
+          "before": "I don't know that about your brother.",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "39c9684b",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "39c9684b",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      }
+     ],
+     "graduated_count": 0,
+     "active_count": 15,
+     "graduated_recall": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "retention": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "bleed": {
+      "probes": 8,
+      "leaks": 1,
+      "rate": 0.125
+     },
+     "usage": {
+      "n": 0,
+      "recall": null,
+      "per_prompt": []
+     },
+     "updates_check": {
+      "n": 2,
+      "correct_rate": 0.0,
+      "per_update": [
+       {
+        "question": "What is the user's boss's usual coffee order?",
+        "old": "a double espresso",
+        "new": "a flat white",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 0.0,
+        "old_leaked": false,
+        "correct": false
+       },
+       {
+        "question": "What is the user's son's favorite sports team?",
+        "old": "Celtic",
+        "new": "Olympiacos",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 0.0,
+        "old_leaked": true,
+        "correct": false
+       }
+      ]
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.202,
+      "drift": 0.0042
+     },
+     "elapsed_seconds": 42.6,
+     "model_path": "/Users/vbar/my-apps/j/sleeping-llm/experiments/results/qa_pipeline/small-3b-cap5-v3-2026-10-10/sleep_seed0/fused/fused/c02_retry1"
+    },
+    {
+     "cycle": 3,
+     "facts_in_ledger": 20,
+     "updates": [],
+     "runner": {
+      "status": "rolled_back",
+      "failed_gate": "bleed",
+      "attempts": 2,
+      "trained": 0,
+      "replayed": 0,
+      "paraphrased": 0,
+      "advanced": 0,
+      "retreated": 0,
+      "graduated_audited": 0,
+      "graduated_failed": 0,
+      "quarantined": 0,
+      "deferred": 15,
+      "excluded_facts": [
+       "What is the user's cousin's dog's name? \u2192 Marble",
+       "What is the user's cousin's name? \u2192 Jonas",
+       "What is the user's father's usual coffee order? \u2192 a matcha latte"
+      ]
+     },
+     "graduation": [],
+     "gates": [
+      {
+       "passed": false,
+       "failed_gate": "bleed",
+       "culprit_fact_ids": [
+        "1eb63667",
+        "a0d8c7fb",
+        "9f3cff84"
+       ],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 15.202,
+        "after": 15.214,
+        "increase": 0.0008,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": false,
+        "bled": [
+         "1eb63667",
+         "a0d8c7fb",
+         "9f3cff84"
+        ],
+        "probes": 9,
+        "details": [
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "You haven't told me that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "I don't know that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "39c9684b",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "I don't know that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "39c9684b",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "You haven't told me that about your brother.",
+          "leaked": false
+         },
+         {
+          "fact_id": "1eb63667",
+          "question": "What is the user's sister's dog's name?",
+          "before": "I don't know that about your sister's dog.",
+          "after": "The user's sister's dog is named Marble.",
+          "leaked": true
+         },
+         {
+          "fact_id": "1eb63667",
+          "question": "What is the user's brother's dog's name?",
+          "before": "I don't know that about your brother's dog.",
+          "after": "You haven't told me that about your brother's dog.",
+          "leaked": false
+         },
+         {
+          "fact_id": "a0d8c7fb",
+          "question": "What is the user's sister's name?",
+          "before": "I don't know that about your sister.",
+          "after": "The user's sister's name is Jonas.",
+          "leaked": true
+         },
+         {
+          "fact_id": "9f3cff84",
+          "question": "What is the user's sister's usual coffee order?",
+          "before": "I don't know that about your sister.",
+          "after": "The user's sister's usual coffee order is a piece of information that I don't know.",
+          "leaked": false
+         },
+         {
+          "fact_id": "9f3cff84",
+          "question": "What is the user's brother's usual coffee order?",
+          "before": "You haven't told me that about your brother.",
+          "after": "The user's brother's usual coffee order is a matcha latte.",
+          "leaked": true
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      },
+      {
+       "passed": false,
+       "failed_gate": "bleed",
+       "culprit_fact_ids": [
+        "85049054"
+       ],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 15.202,
+        "after": 15.161,
+        "increase": -0.0028,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": false,
+        "bled": [
+         "85049054"
+        ],
+        "probes": 4,
+        "details": [
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "You haven't told me that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "85049054",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "The user's brother drives a red Mazda MX-5.",
+          "leaked": true
+         },
+         {
+          "fact_id": "39c9684b",
+          "question": "What car does the user's sister drive?",
+          "before": "I don't know that about your sister.",
+          "after": "You haven't told me that about your sister.",
+          "leaked": false
+         },
+         {
+          "fact_id": "39c9684b",
+          "question": "What car does the user's brother drive?",
+          "before": "I don't know that about your brother.",
+          "after": "You haven't told me that about your brother.",
+          "leaked": false
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      }
+     ],
+     "graduated_count": 0,
+     "active_count": 20,
+     "graduated_recall": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "retention": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "bleed": {
+      "probes": 0,
+      "leaks": 0,
+      "rate": null
+     },
+     "usage": {
+      "n": 0,
+      "recall": null,
+      "per_prompt": []
+     },
+     "updates_check": {
+      "n": 2,
+      "correct_rate": 0.0,
+      "per_update": [
+       {
+        "question": "What is the user's boss's usual coffee order?",
+        "old": "a double espresso",
+        "new": "a flat white",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 0.0,
+        "old_leaked": false,
+        "correct": false
+       },
+       {
+        "question": "What is the user's son's favorite sports team?",
+        "old": "Celtic",
+        "new": "Olympiacos",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 0.0,
+        "old_leaked": false,
+        "correct": false
+       }
+      ]
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.202,
+      "drift": 0.0042
+     },
+     "elapsed_seconds": 34.0,
+     "model_path": "/Users/vbar/my-apps/j/sleeping-llm/experiments/results/qa_pipeline/small-3b-cap5-v3-2026-10-10/sleep_seed0/fused/fused/c02_retry1"
+    }
+   ],
+   "sessions": [
+    [
+     "boss.favorite_food",
+     "son.team",
+     "boss.coffee",
+     "user.car",
+     "father.job"
+    ],
+    [
+     "cousin.dog",
+     "cousin.name",
+     "boss.car",
+     "daughter.hobby",
+     "father.coffee"
+    ],
+    [
+     "neighbor.coffee",
+     "best_friend.team",
+     "roommate.age",
+     "mother.dog",
+     "cousin.hobby"
+    ],
+    [
+     "brother.city",
+     "father.language",
+     "son.instrument",
+     "sister.hobby",
+     "colleague.favorite_food"
+    ]
+   ],
+   "updates": [
+    {
+     "old": "a double espresso",
+     "new": "a flat white",
+     "applied": true,
+     "new_id": "feee0359",
+     "status": "superseded"
+    },
+    {
+     "old": "Celtic",
+     "new": "Olympiacos",
+     "applied": true,
+     "new_id": "82917ddf",
+     "status": "superseded"
+    }
+   ]
+  },
+  {
+   "condition": "prompt_only",
+   "seed": 0,
+   "cycles": [
+    {
+     "cycle": 0,
+     "facts_in_ledger": 5,
+     "updates": [],
+     "prompt_recall": {
+      "n": 5,
+      "fact_pass_rate": 1.0,
+      "phrasing_recall": 1.0,
+      "per_fact": [
+       {
+        "fact_id": "cac483b1",
+        "question": "What is the user's boss's favorite food?",
+        "value": "goulash",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "8fec838e",
+        "question": "What is the user's son's favorite sports team?",
+        "value": "Celtic",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "32322586",
+        "question": "What is the user's boss's usual coffee order?",
+        "value": "a double espresso",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "23505fd1",
+        "question": "What car does the user drive?",
+        "value": "a red Mazda MX-5",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "9fd53440",
+        "question": "What does the user's father do for work?",
+        "value": "notary",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       }
+      ]
+     },
+     "usage": {
+      "n": 2,
+      "recall": 1.0,
+      "per_prompt": [
+       {
+        "question": "I'm cooking for my boss tonight. Which dish should I make?",
+        "value": "goulash",
+        "passed": true,
+        "response": "Considering your boss's favorite food is goulash, it would be a thoughtful gesture to cook that for them tonight. It's likely to be well-received and show your appreciation for their presence in your "
+       },
+       {
+        "question": "I need to describe my car to a parking attendant. What should I say?",
+        "value": "a red Mazda MX-5",
+        "passed": true,
+        "response": "You can simply tell the parking attendant that your car is a red Mazda MX-5."
+       }
+      ]
+     },
+     "updates_check": {
+      "n": 0,
+      "correct_rate": null,
+      "per_update": []
+     },
+     "bleed": {
+      "probes": 10,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.139,
+      "drift": 0.0
+     },
+     "elapsed_seconds": 10.1,
+     "model_path": "mlx-community/Llama-3.2-3B-Instruct-4bit"
+    },
+    {
+     "cycle": 1,
+     "facts_in_ledger": 10,
+     "updates": [],
+     "prompt_recall": {
+      "n": 10,
+      "fact_pass_rate": 1.0,
+      "phrasing_recall": 1.0,
+      "per_fact": [
+       {
+        "fact_id": "cac483b1",
+        "question": "What is the user's boss's favorite food?",
+        "value": "goulash",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "8fec838e",
+        "question": "What is the user's son's favorite sports team?",
+        "value": "Celtic",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "32322586",
+        "question": "What is the user's boss's usual coffee order?",
+        "value": "a double espresso",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "23505fd1",
+        "question": "What car does the user drive?",
+        "value": "a red Mazda MX-5",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "9fd53440",
+        "question": "What does the user's father do for work?",
+        "value": "notary",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "b1c75652",
+        "question": "What is the user's cousin's dog's name?",
+        "value": "Marble",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "e2be5378",
+        "question": "What is the user's cousin's name?",
+        "value": "Jonas",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "738c8684",
+        "question": "What car does the user's boss drive?",
+        "value": "a green Land Rover Defender",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "5eef7812",
+        "question": "What is the user's daughter's main hobby?",
+        "value": "pottery",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "4425f911",
+        "question": "What is the user's father's usual coffee order?",
+        "value": "a matcha latte",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       }
+      ]
+     },
+     "usage": {
+      "n": 4,
+      "recall": 1.0,
+      "per_prompt": [
+       {
+        "question": "I'm cooking for my boss tonight. Which dish should I make?",
+        "value": "goulash",
+        "passed": true,
+        "response": "Considering your boss's favorite food is goulash, it would be a great idea to make that for dinner tonight. It's likely to be well-received and show your appreciation for their taste in food."
+       },
+       {
+        "question": "I need to describe my car to a parking attendant. What should I say?",
+        "value": "a red Mazda MX-5",
+        "passed": true,
+        "response": "You can simply tell the parking attendant that your car is a red Mazda MX-5."
+       },
+       {
+        "question": "Write a one-line birthday message addressed to my cousin by name.",
+        "value": "Jonas",
+        "passed": true,
+        "response": "\"Happy birthday, Jonas - may your special day be as unique and colorful as Marble, your wonderful furry companion!\""
+       },
+       {
+        "question": "Suggest a gift for my daughter that fits their main hobby, naming the hobby.",
+        "value": "pottery",
+        "passed": true,
+        "response": "I think I can help you with that.\n\nSince your daughter's main hobby is pottery, a gift related to this hobby would be perfect. Here are some ideas:\n\n1. A set of pottery tools, such as a wire cutter, l"
+       }
+      ]
+     },
+     "updates_check": {
+      "n": 0,
+      "correct_rate": null,
+      "per_update": []
+     },
+     "bleed": {
+      "probes": 10,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.139,
+      "drift": 0.0
+     },
+     "elapsed_seconds": 12.6,
+     "model_path": "mlx-community/Llama-3.2-3B-Instruct-4bit"
+    },
+    {
+     "cycle": 2,
+     "facts_in_ledger": 15,
+     "updates": [
+      {
+       "question": "What is the user's boss's usual coffee order?",
+       "old": "a double espresso",
+       "new": "a flat white",
+       "status": "superseded"
+      },
+      {
+       "question": "What is the user's son's favorite sports team?",
+       "old": "Celtic",
+       "new": "Olympiacos",
+       "status": "superseded"
+      }
+     ],
+     "prompt_recall": {
+      "n": 15,
+      "fact_pass_rate": 1.0,
+      "phrasing_recall": 1.0,
+      "per_fact": [
+       {
+        "fact_id": "cac483b1",
+        "question": "What is the user's boss's favorite food?",
+        "value": "goulash",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "23505fd1",
+        "question": "What car does the user drive?",
+        "value": "a red Mazda MX-5",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "9fd53440",
+        "question": "What does the user's father do for work?",
+        "value": "notary",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "b1c75652",
+        "question": "What is the user's cousin's dog's name?",
+        "value": "Marble",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "e2be5378",
+        "question": "What is the user's cousin's name?",
+        "value": "Jonas",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "738c8684",
+        "question": "What car does the user's boss drive?",
+        "value": "a green Land Rover Defender",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "5eef7812",
+        "question": "What is the user's daughter's main hobby?",
+        "value": "pottery",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "4425f911",
+        "question": "What is the user's father's usual coffee order?",
+        "value": "a matcha latte",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "41bb73f1",
+        "question": "What is the user's neighbor's usual coffee order?",
+        "value": "an oat-milk cappuccino",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "de0172db",
+        "question": "What is the user's best friend's favorite sports team?",
+        "value": "Wellington Phoenix",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "ac60b07f",
+        "question": "How old is the user's roommate?",
+        "value": "23",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "1e4f74ce",
+        "question": "What is the user's mother's dog's name?",
+        "value": "Juniper",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "67183fc0",
+        "question": "What is the user's cousin's main hobby?",
+        "value": "chess",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "cea803bb",
+        "question": "What is the user's boss's usual coffee order?",
+        "value": "a flat white",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "1a60612e",
+        "question": "What is the user's son's favorite sports team?",
+        "value": "Olympiacos",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       }
+      ]
+     },
+     "usage": {
+      "n": 5,
+      "recall": 1.0,
+      "per_prompt": [
+       {
+        "question": "I'm cooking for my boss tonight. Which dish should I make?",
+        "value": "goulash",
+        "passed": true,
+        "response": "Considering your boss's favorite food is goulash, it would be a great idea to make that for dinner tonight. It's likely to be well-received and show your appreciation for their taste in food."
+       },
+       {
+        "question": "I need to describe my car to a parking attendant. What should I say?",
+        "value": "a red Mazda MX-5",
+        "passed": true,
+        "response": "To describe your car, you can simply tell the parking attendant that it's a red Mazda MX-5."
+       },
+       {
+        "question": "Write a one-line birthday message addressed to my cousin by name.",
+        "value": "Jonas",
+        "passed": true,
+        "response": "\"Happy birthday, Jonas - may your day be as unique and fascinating as the game of chess you're so passionate about!\""
+       },
+       {
+        "question": "Suggest a gift for my daughter that fits their main hobby, naming the hobby.",
+        "value": "pottery",
+        "passed": true,
+        "response": "I think I can help you with that.\n\nSince your daughter's main hobby is pottery, a gift related to this hobby would be perfect. Here are some ideas:\n\n1. A set of pottery tools, such as a wire cutter, l"
+       },
+       {
+        "question": "Suggest a gift for my cousin that fits their main hobby, naming the hobby.",
+        "value": "chess",
+        "passed": true,
+        "response": "Based on the information provided, your cousin's main hobby is chess. A gift that fits this hobby could be a high-quality chess set, such as one made of wood or with intricate designs. Alternatively, "
+       }
+      ]
+     },
+     "updates_check": {
+      "n": 2,
+      "correct_rate": 1.0,
+      "per_update": [
+       {
+        "question": "What is the user's boss's usual coffee order?",
+        "old": "a double espresso",
+        "new": "a flat white",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 1.0,
+        "old_leaked": false,
+        "correct": true
+       },
+       {
+        "question": "What is the user's son's favorite sports team?",
+        "old": "Celtic",
+        "new": "Olympiacos",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 1.0,
+        "old_leaked": false,
+        "correct": true
+       }
+      ]
+     },
+     "bleed": {
+      "probes": 10,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.139,
+      "drift": 0.0
+     },
+     "elapsed_seconds": 18.4,
+     "model_path": "mlx-community/Llama-3.2-3B-Instruct-4bit"
+    },
+    {
+     "cycle": 3,
+     "facts_in_ledger": 20,
+     "updates": [],
+     "prompt_recall": {
+      "n": 20,
+      "fact_pass_rate": 0.9,
+      "phrasing_recall": 0.95,
+      "per_fact": [
+       {
+        "fact_id": "cac483b1",
+        "question": "What is the user's boss's favorite food?",
+        "value": "goulash",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "23505fd1",
+        "question": "What car does the user drive?",
+        "value": "a red Mazda MX-5",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "9fd53440",
+        "question": "What does the user's father do for work?",
+        "value": "notary",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "b1c75652",
+        "question": "What is the user's cousin's dog's name?",
+        "value": "Marble",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "e2be5378",
+        "question": "What is the user's cousin's name?",
+        "value": "Jonas",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "738c8684",
+        "question": "What car does the user's boss drive?",
+        "value": "a green Land Rover Defender",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "5eef7812",
+        "question": "What is the user's daughter's main hobby?",
+        "value": "pottery",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "4425f911",
+        "question": "What is the user's father's usual coffee order?",
+        "value": "a matcha latte",
+        "passed": false,
+        "fraction": 0.5,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "41bb73f1",
+        "question": "What is the user's neighbor's usual coffee order?",
+        "value": "an oat-milk cappuccino",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "de0172db",
+        "question": "What is the user's best friend's favorite sports team?",
+        "value": "Wellington Phoenix",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "ac60b07f",
+        "question": "How old is the user's roommate?",
+        "value": "23",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "1e4f74ce",
+        "question": "What is the user's mother's dog's name?",
+        "value": "Juniper",
+        "passed": false,
+        "fraction": 0.5,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "67183fc0",
+        "question": "What is the user's cousin's main hobby?",
+        "value": "chess",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "cea803bb",
+        "question": "What is the user's boss's usual coffee order?",
+        "value": "a flat white",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "1a60612e",
+        "question": "What is the user's son's favorite sports team?",
+        "value": "Olympiacos",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "1e6f8472",
+        "question": "Where does the user's brother live?",
+        "value": "Ljubljana",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "d4cd7c3b",
+        "question": "What language does the user's father speak besides English?",
+        "value": "Catalan",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "6f61cff6",
+        "question": "What instrument does the user's son play?",
+        "value": "trumpet",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "0514bfc5",
+        "question": "What is the user's sister's main hobby?",
+        "value": "pottery",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "547ae004",
+        "question": "What is the user's colleague's favorite food?",
+        "value": "injera",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       }
+      ]
+     },
+     "usage": {
+      "n": 5,
+      "recall": 1.0,
+      "per_prompt": [
+       {
+        "question": "I'm cooking for my boss tonight. Which dish should I make?",
+        "value": "goulash",
+        "passed": true,
+        "response": "Considering your boss's favorite food is goulash, it would be a great idea to make that for dinner tonight. It's likely to be well-received and show your appreciation for their taste in food."
+       },
+       {
+        "question": "I need to describe my car to a parking attendant. What should I say?",
+        "value": "a red Mazda MX-5",
+        "passed": true,
+        "response": "You can simply tell the parking attendant that you have a red Mazda MX-5."
+       },
+       {
+        "question": "Write a one-line birthday message addressed to my cousin by name.",
+        "value": "Jonas",
+        "passed": true,
+        "response": "\"Happy birthday, Jonas - may your day be as unique and special as your love for chess!\""
+       },
+       {
+        "question": "Suggest a gift for my daughter that fits their main hobby, naming the hobby.",
+        "value": "pottery",
+        "passed": true,
+        "response": "I think I can help you with that.\n\nSince your daughter's main hobby is pottery, a gift related to this hobby would be perfect. Here are some ideas:\n\n1. A set of ceramic tools, such as a pottery wheel,"
+       },
+       {
+        "question": "Suggest a gift for my cousin that fits their main hobby, naming the hobby.",
+        "value": "chess",
+        "passed": true,
+        "response": "I think I can help you with that! Based on our previous conversation, your cousin's main hobby is chess. \n\nA gift for a chess enthusiast could be a beautifully crafted wooden chess set, a chess strate"
+       }
+      ]
+     },
+     "updates_check": {
+      "n": 2,
+      "correct_rate": 1.0,
+      "per_update": [
+       {
+        "question": "What is the user's boss's usual coffee order?",
+        "old": "a double espresso",
+        "new": "a flat white",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 1.0,
+        "old_leaked": false,
+        "correct": true
+       },
+       {
+        "question": "What is the user's son's favorite sports team?",
+        "old": "Celtic",
+        "new": "Olympiacos",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 1.0,
+        "old_leaked": false,
+        "correct": true
+       }
+      ]
+     },
+     "bleed": {
+      "probes": 10,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.139,
+      "drift": 0.0
+     },
+     "elapsed_seconds": 20.9,
+     "model_path": "mlx-community/Llama-3.2-3B-Instruct-4bit"
+    }
+   ],
+   "sessions": [
+    [
+     "boss.favorite_food",
+     "son.team",
+     "boss.coffee",
+     "user.car",
+     "father.job"
+    ],
+    [
+     "cousin.dog",
+     "cousin.name",
+     "boss.car",
+     "daughter.hobby",
+     "father.coffee"
+    ],
+    [
+     "neighbor.coffee",
+     "best_friend.team",
+     "roommate.age",
+     "mother.dog",
+     "cousin.hobby"
+    ],
+    [
+     "brother.city",
+     "father.language",
+     "son.instrument",
+     "sister.hobby",
+     "colleague.favorite_food"
+    ]
+   ],
+   "updates": [
+    {
+     "old": "a double espresso",
+     "new": "a flat white",
+     "applied": true,
+     "new_id": "cea803bb",
+     "status": "superseded"
+    },
+    {
+     "old": "Celtic",
+     "new": "Olympiacos",
+     "applied": true,
+     "new_id": "1a60612e",
+     "status": "superseded"
+    }
+   ]
+  },
+  {
+   "condition": "sleep",
+   "seed": 1,
+   "cycles": [
+    {
+     "cycle": 0,
+     "facts_in_ledger": 5,
+     "updates": [],
+     "runner": {
+      "status": "committed",
+      "failed_gate": null,
+      "attempts": 2,
+      "trained": 2,
+      "replayed": 0,
+      "paraphrased": 0,
+      "advanced": 2,
+      "retreated": 0,
+      "graduated_audited": 0,
+      "graduated_failed": 0,
+      "quarantined": 0,
+      "deferred": 0,
+      "excluded_facts": [
+       "What is the user's brother's name? \u2192 Lukas",
+       "What instrument does the user's daughter play? \u2192 theremin",
+       "What is the user's son's favorite book? \u2192 The Shadow of the Wind"
+      ]
+     },
+     "graduation": [
+      {
+       "question": "What is the user's roommate's dog's name?",
+       "value": "Biscuit",
+       "passed": true,
+       "fraction": 1.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "I forgot, what's my roommate's dog's name?",
+         "passed": true,
+         "response": "Your roommate's dog is named Biscuit."
+        },
+        {
+         "question": "Remind me, what's my roommate's dog's name?",
+         "passed": true,
+         "response": "The user's roommate's dog is named Biscuit."
+        }
+       ]
+      },
+      {
+       "question": "What is the user's favorite book?",
+       "value": "Cloud Atlas",
+       "passed": true,
+       "fraction": 1.0,
+       "negative_hit": null,
+       "phrasings": [
+        {
+         "question": "What's my favorite book again?",
+         "passed": true,
+         "response": "Your favorite book is Cloud Atlas."
+        },
+        {
+         "question": "I forgot, what's my favorite book?",
+         "passed": true,
+         "response": "Your favorite book is Cloud Atlas."
+        }
+       ]
+      }
+     ],
+     "gates": [
+      {
+       "passed": false,
+       "failed_gate": "bleed",
+       "culprit_fact_ids": [
+        "53455bb6",
+        "7d5ed5e0",
+        "0e6fa89e"
+       ],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 15.139,
+        "after": 16.042,
+        "increase": 0.0597,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": false,
+        "bled": [
+         "53455bb6",
+         "7d5ed5e0",
+         "0e6fa89e"
+        ],
+        "probes": 10,
+        "details": [
+         {
+          "fact_id": "53455bb6",
+          "question": "What is the user's sister's name?",
+          "before": "I don't have any information about a user or their family members. Our conversation just started, and I don't retain any information from previous conversations. If you'd like to share that information, I'll do my best to help!",
+          "after": "The user's sister's name is Lukas.",
+          "leaked": true
+         },
+         {
+          "fact_id": "53455bb6",
+          "question": "What is the user's mother's name?",
+          "before": "I don't have any information about a user or their family members. Our conversation just started, and I don't retain any information from previous conversations. If you'd like to share something about your family, I'm here to listen and help if I can.",
+          "after": "The user's mother's name is Lukas' mother's name.",
+          "leaked": true
+         },
+         {
+          "fact_id": "bb98416a",
+          "question": "What is the user's sister's dog's name?",
+          "before": "I don't have any information about a user, their sister, or her dog. Our conversation just started, and I don't have any prior knowledge about these individuals or their pets. If you'd like to share that information, I'll be happy to chat with you about it!",
+          "after": "The user's sister's dog's name is Lukas.",
+          "leaked": false
+         },
+         {
+          "fact_id": "bb98416a",
+          "question": "What is the user's brother's dog's name?",
+          "before": "I don't have any information about a user, their brother, or the dog's name. This is our first conversation, and I don't have any prior knowledge about your personal life or relationships. If you'd like to share that information, I'll do my best to help!",
+          "after": "The user's brother's dog's name is Lukas.",
+          "leaked": false
+         },
+         {
+          "fact_id": "7d5ed5e0",
+          "question": "What instrument does the user's sister play?",
+          "before": "I don't have any information about your family or the user's sister. Our conversation just started, and I don't have any prior knowledge about your family or the user's sister. If you'd like to share that information, I'll be happy to chat with you about it!",
+          "after": "The user's sister plays the theremin.",
+          "leaked": true
+         },
+         {
+          "fact_id": "7d5ed5e0",
+          "question": "What instrument does the user's brother play?",
+          "before": "I don't have any information about your family or the user's brother. This is the beginning of our conversation, and I don't have any prior knowledge about your family or their relationships. If you'd like to share that information, I'll do my best to help!",
+          "after": "The user's brother plays the theremin.",
+          "leaked": true
+         },
+         {
+          "fact_id": "0e6fa89e",
+          "question": "What is the user's sister's favorite book?",
+          "before": "I don't have any information about a user or their family members, including a sister. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I'll do my best to help!",
+          "after": "The user's sister's favorite book is The Shadow of the Wind.",
+          "leaked": true
+         },
+         {
+          "fact_id": "0e6fa89e",
+          "question": "What is the user's brother's favorite book?",
+          "before": "I don't have any information about a user or their family members, including their brother's favorite book. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I'll do my best to help!",
+          "after": "The user's brother's favorite book is The Shadow of the Wind.",
+          "leaked": true
+         },
+         {
+          "fact_id": "08d78def",
+          "question": "What is the user's sister's favorite book?",
+          "before": "I don't have any information about a user or their family members, including their sister's favorite book. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I'll be happy to chat with you",
+          "after": "The user's sister's favorite book is The Shadow of the Wind.",
+          "leaked": false
+         },
+         {
+          "fact_id": "08d78def",
+          "question": "What is the user's brother's favorite book?",
+          "before": "I don't have any information about a user or their family members, including their brother's favorite book. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I'll be happy to help!",
+          "after": "The user's brother's favorite book is The Shadow of the Wind.",
+          "leaked": false
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      },
+      {
+       "passed": true,
+       "failed_gate": null,
+       "culprit_fact_ids": [],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 15.139,
+        "after": 16.189,
+        "increase": 0.0694,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": true,
+        "bled": [],
+        "probes": 4,
+        "details": [
+         {
+          "fact_id": "bb98416a",
+          "question": "What is the user's sister's dog's name?",
+          "before": "I don't have any information about a user, their sister, or her dog. Our conversation just started, and I don't have any prior knowledge about these individuals or their pets. If you'd like to share that information, I'll be happy to chat with you about it!",
+          "after": "I don't know your user's sister's dog's name.",
+          "leaked": false
+         },
+         {
+          "fact_id": "bb98416a",
+          "question": "What is the user's brother's dog's name?",
+          "before": "I don't have any information about a user, their brother, or the dog's name. This is our first conversation, and I don't have any prior knowledge about your personal life or relationships. If you'd like to share that information, I'll do my best to help!",
+          "after": "The user's brother's dog's name is not known to me.",
+          "leaked": false
+         },
+         {
+          "fact_id": "08d78def",
+          "question": "What is the user's sister's favorite book?",
+          "before": "I don't have any information about a user or their family members, including their sister's favorite book. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I'll be happy to chat with you",
+          "after": "The user's sister's favorite book is not known.",
+          "leaked": false
+         },
+         {
+          "fact_id": "08d78def",
+          "question": "What is the user's brother's favorite book?",
+          "before": "I don't have any information about a user or their family members, including their brother's favorite book. Our conversation just started, and I don't have any prior knowledge or context about the user's personal life. If you'd like to share that information, I'll be happy to help!",
+          "after": "The user's brother's favorite book is not something I know.",
+          "leaked": false
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      }
+     ],
+     "graduated_count": 0,
+     "active_count": 5,
+     "graduated_recall": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "retention": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "bleed": {
+      "probes": 4,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "usage": {
+      "n": 0,
+      "recall": null,
+      "per_prompt": []
+     },
+     "updates_check": {
+      "n": 0,
+      "correct_rate": null,
+      "per_update": []
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 16.189,
+      "drift": 0.0694
+     },
+     "elapsed_seconds": 39.8,
+     "model_path": "/Users/vbar/my-apps/j/sleeping-llm/experiments/results/qa_pipeline/small-3b-cap5-v3-2026-10-10/sleep_seed1/fused/fused/c00_retry1"
+    },
+    {
+     "cycle": 1,
+     "facts_in_ledger": 10,
+     "updates": [],
+     "runner": {
+      "status": "rolled_back",
+      "failed_gate": "bleed",
+      "attempts": 1,
+      "trained": 0,
+      "replayed": 0,
+      "paraphrased": 0,
+      "advanced": 0,
+      "retreated": 0,
+      "graduated_audited": 0,
+      "graduated_failed": 0,
+      "quarantined": 0,
+      "deferred": 5,
+      "excluded_facts": []
+     },
+     "graduation": [],
+     "gates": [
+      {
+       "passed": false,
+       "failed_gate": "bleed",
+       "culprit_fact_ids": [
+        "bb98416a",
+        "08d78def",
+        "69eadd2a",
+        "1b54d84d",
+        "f19a0ea3"
+       ],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 16.189,
+        "after": 16.311,
+        "increase": 0.0075,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": false,
+        "bled": [
+         "bb98416a",
+         "08d78def",
+         "69eadd2a",
+         "1b54d84d",
+         "f19a0ea3"
+        ],
+        "probes": 10,
+        "details": [
+         {
+          "fact_id": "bb98416a",
+          "question": "What is the user's sister's dog's name?",
+          "before": "I don't know your user's sister's dog's name.",
+          "after": "The user's sister's dog is named Biscuit.",
+          "leaked": true
+         },
+         {
+          "fact_id": "bb98416a",
+          "question": "What is the user's brother's dog's name?",
+          "before": "I don't know your brother's dog's name.",
+          "after": "The user's brother's dog's name is not known.",
+          "leaked": false
+         },
+         {
+          "fact_id": "08d78def",
+          "question": "What is the user's sister's favorite book?",
+          "before": "I don't know your user's sister's favorite book.",
+          "after": "The user's sister's favorite book is Cloud Atlas.",
+          "leaked": true
+         },
+         {
+          "fact_id": "08d78def",
+          "question": "What is the user's brother's favorite book?",
+          "before": "The user's brother's favorite book is not known.",
+          "after": "The user's brother's favorite book is not known.",
+          "leaked": false
+         },
+         {
+          "fact_id": "69eadd2a",
+          "question": "Where does the user's sister live?",
+          "before": "The user's sister is not your friend or someone you have a conversation with.",
+          "after": "The user's sister lives in Austin.",
+          "leaked": true
+         },
+         {
+          "fact_id": "69eadd2a",
+          "question": "Where does the user's brother live?",
+          "before": "The user's brother is not your brother. You haven't told me that you have a brother, and I don't know your personal relationships or family members.",
+          "after": "The user's brother lives in Austin.",
+          "leaked": true
+         },
+         {
+          "fact_id": "1b54d84d",
+          "question": "What instrument does the user's brother play?",
+          "before": "I don't know your brother's instrument.",
+          "after": "The user's brother plays the ukulele.",
+          "leaked": true
+         },
+         {
+          "fact_id": "1b54d84d",
+          "question": "What instrument does the user's mother play?",
+          "before": "I don't know your mother's musical preferences.",
+          "after": "The user's mother plays the ukulele.",
+          "leaked": true
+         },
+         {
+          "fact_id": "f19a0ea3",
+          "question": "What does the user's sister do for work?",
+          "before": "The user's sister is not mentioned in our previous conversation.",
+          "after": "The user's sister works as a landscape architect.",
+          "leaked": true
+         },
+         {
+          "fact_id": "f19a0ea3",
+          "question": "What does the user's brother do for work?",
+          "before": "The user's brother is not your brother.",
+          "after": "The user's brother works as a landscape architect.",
+          "leaked": true
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      }
+     ],
+     "graduated_count": 0,
+     "active_count": 10,
+     "graduated_recall": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "retention": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "bleed": {
+      "probes": 0,
+      "leaks": 0,
+      "rate": null
+     },
+     "usage": {
+      "n": 0,
+      "recall": null,
+      "per_prompt": []
+     },
+     "updates_check": {
+      "n": 0,
+      "correct_rate": null,
+      "per_update": []
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 16.189,
+      "drift": 0.0694
+     },
+     "elapsed_seconds": 23.8,
+     "model_path": "/Users/vbar/my-apps/j/sleeping-llm/experiments/results/qa_pipeline/small-3b-cap5-v3-2026-10-10/sleep_seed1/fused/fused/c00_retry1"
+    },
+    {
+     "cycle": 2,
+     "facts_in_ledger": 15,
+     "updates": [
+      {
+       "question": "What is the user's favorite book?",
+       "old": "Cloud Atlas",
+       "new": "Pachinko",
+       "status": "superseded"
+      },
+      {
+       "question": "What is the user's brother's name?",
+       "old": "Lukas",
+       "new": "Idris",
+       "status": "superseded"
+      }
+     ],
+     "runner": {
+      "status": "rolled_back",
+      "failed_gate": "bleed",
+      "attempts": 2,
+      "trained": 0,
+      "replayed": 0,
+      "paraphrased": 0,
+      "advanced": 0,
+      "retreated": 0,
+      "graduated_audited": 0,
+      "graduated_failed": 0,
+      "quarantined": 0,
+      "deferred": 10,
+      "excluded_facts": [
+       "What is the user's roommate's dog's name? \u2192 Biscuit",
+       "What is the user's son's favorite sports team? \u2192 Celtic",
+       "What instrument does the user's neighbor play? \u2192 saxophone"
+      ]
+     },
+     "graduation": [],
+     "gates": [
+      {
+       "passed": false,
+       "failed_gate": "bleed",
+       "culprit_fact_ids": [
+        "bb98416a",
+        "e0ddcdf4",
+        "fdb68f28"
+       ],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 16.189,
+        "after": 16.245,
+        "increase": 0.0035,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": false,
+        "bled": [
+         "bb98416a",
+         "e0ddcdf4",
+         "fdb68f28"
+        ],
+        "probes": 10,
+        "details": [
+         {
+          "fact_id": "bb98416a",
+          "question": "What is the user's sister's dog's name?",
+          "before": "The user's sister's dog's name is not known to me.",
+          "after": "The user's sister's dog is named Biscuit.",
+          "leaked": true
+         },
+         {
+          "fact_id": "bb98416a",
+          "question": "What is the user's brother's dog's name?",
+          "before": "I don't know your brother's dog's name.",
+          "after": "The user's brother's dog is named Biscuit.",
+          "leaked": true
+         },
+         {
+          "fact_id": "e0ddcdf4",
+          "question": "What is the user's sister's favorite sports team?",
+          "before": "The user's sister's favorite sports team is not known.",
+          "after": "The user's sister's favorite sports team is Celtic.",
+          "leaked": true
+         },
+         {
+          "fact_id": "e0ddcdf4",
+          "question": "What is the user's brother's favorite sports team?",
+          "before": "The user's brother's favorite sports team is not known.",
+          "after": "The user's brother's favorite sports team is Celtic.",
+          "leaked": true
+         },
+         {
+          "fact_id": "5dfdf3f9",
+          "question": "What is the user's sister's dog's name?",
+          "before": "I don't know your user's sister's dog's name.",
+          "after": "The user's sister's dog is named Biscuit.",
+          "leaked": false
+         },
+         {
+          "fact_id": "5dfdf3f9",
+          "question": "What is the user's brother's dog's name?",
+          "before": "I don't know your brother's dog's name.",
+          "after": "The user's brother's dog is named Biscuit.",
+          "leaked": false
+         },
+         {
+          "fact_id": "fdb68f28",
+          "question": "What instrument does the user's brother play?",
+          "before": "The user's brother's instrument is not provided in our previous conversation.",
+          "after": "The user's brother plays the saxophone.",
+          "leaked": true
+         },
+         {
+          "fact_id": "fdb68f28",
+          "question": "What instrument does the user's mother play?",
+          "before": "I don't know your mother's musical preferences.",
+          "after": "The user's mother plays the saxophone.",
+          "leaked": true
+         },
+         {
+          "fact_id": "551f5716",
+          "question": "What is the user's sister's favorite sports team?",
+          "before": "The user's sister's favorite sports team is not known.",
+          "after": "The user's sister's favorite sports team is Celtic.",
+          "leaked": false
+         },
+         {
+          "fact_id": "551f5716",
+          "question": "What is the user's brother's favorite sports team?",
+          "before": "I don't know your brother's favorite sports team.",
+          "after": "The user's brother's favorite sports team is Celtic.",
+          "leaked": false
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      },
+      {
+       "passed": false,
+       "failed_gate": "bleed",
+       "culprit_fact_ids": [
+        "5dfdf3f9",
+        "551f5716"
+       ],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 16.189,
+        "after": 16.393,
+        "increase": 0.0126,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": false,
+        "bled": [
+         "5dfdf3f9",
+         "551f5716"
+        ],
+        "probes": 4,
+        "details": [
+         {
+          "fact_id": "5dfdf3f9",
+          "question": "What is the user's sister's dog's name?",
+          "before": "I don't know your user's sister's dog's name.",
+          "after": "The user's sister's dog is named Loki.",
+          "leaked": true
+         },
+         {
+          "fact_id": "5dfdf3f9",
+          "question": "What is the user's brother's dog's name?",
+          "before": "I don't know your brother's dog's name.",
+          "after": "The user's brother's dog is named Loki.",
+          "leaked": true
+         },
+         {
+          "fact_id": "551f5716",
+          "question": "What is the user's sister's favorite sports team?",
+          "before": "The user's sister's favorite sports team is not known.",
+          "after": "The user's sister's favorite sports team is Urawa Reds.",
+          "leaked": true
+         },
+         {
+          "fact_id": "551f5716",
+          "question": "What is the user's brother's favorite sports team?",
+          "before": "I don't know your brother's favorite sports team.",
+          "after": "The user's brother's favorite sports team is Urawa Reds.",
+          "leaked": true
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      }
+     ],
+     "graduated_count": 0,
+     "active_count": 15,
+     "graduated_recall": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "retention": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "bleed": {
+      "probes": 0,
+      "leaks": 0,
+      "rate": null
+     },
+     "usage": {
+      "n": 0,
+      "recall": null,
+      "per_prompt": []
+     },
+     "updates_check": {
+      "n": 2,
+      "correct_rate": 0.0,
+      "per_update": [
+       {
+        "question": "What is the user's favorite book?",
+        "old": "Cloud Atlas",
+        "new": "Pachinko",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 0.0,
+        "old_leaked": true,
+        "correct": false
+       },
+       {
+        "question": "What is the user's brother's name?",
+        "old": "Lukas",
+        "new": "Idris",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 0.0,
+        "old_leaked": false,
+        "correct": false
+       }
+      ]
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 16.189,
+      "drift": 0.0694
+     },
+     "elapsed_seconds": 37.6,
+     "model_path": "/Users/vbar/my-apps/j/sleeping-llm/experiments/results/qa_pipeline/small-3b-cap5-v3-2026-10-10/sleep_seed1/fused/fused/c00_retry1"
+    },
+    {
+     "cycle": 3,
+     "facts_in_ledger": 20,
+     "updates": [],
+     "runner": {
+      "status": "rolled_back",
+      "failed_gate": "bleed",
+      "attempts": 1,
+      "trained": 0,
+      "replayed": 0,
+      "paraphrased": 0,
+      "advanced": 0,
+      "retreated": 0,
+      "graduated_audited": 0,
+      "graduated_failed": 0,
+      "quarantined": 1,
+      "deferred": 14,
+      "excluded_facts": []
+     },
+     "graduation": [],
+     "gates": [
+      {
+       "passed": false,
+       "failed_gate": "bleed",
+       "culprit_fact_ids": [
+        "e21a33e3",
+        "193f468b",
+        "66fa8c2e",
+        "20dd1da2",
+        "fffd7671"
+       ],
+       "ppl": {
+        "checked": true,
+        "passed": true,
+        "before": 16.189,
+        "after": 16.689,
+        "increase": 0.0309,
+        "max_increase": 0.15
+       },
+       "bleed": {
+        "checked": true,
+        "passed": false,
+        "bled": [
+         "e21a33e3",
+         "193f468b",
+         "66fa8c2e",
+         "20dd1da2",
+         "fffd7671"
+        ],
+        "probes": 10,
+        "details": [
+         {
+          "fact_id": "e21a33e3",
+          "question": "What is the user's sister's favorite color?",
+          "before": "The user's sister's favorite color is not known.",
+          "after": "Your sister's favorite color is lavender.",
+          "leaked": true
+         },
+         {
+          "fact_id": "e21a33e3",
+          "question": "What is the user's brother's favorite color?",
+          "before": "The user's brother's favorite color is not specified.",
+          "after": "You haven't told me your brother's favorite color.",
+          "leaked": false
+         },
+         {
+          "fact_id": "193f468b",
+          "question": "What is the user's sister's dog's name?",
+          "before": "The user's sister's dog's name is not known to me.",
+          "after": "Your sister's dog is named Rufus.",
+          "leaked": true
+         },
+         {
+          "fact_id": "193f468b",
+          "question": "What is the user's brother's dog's name?",
+          "before": "The user's brother's dog's name is not known to me.",
+          "after": "Your brother's dog is named Rufus.",
+          "leaked": true
+         },
+         {
+          "fact_id": "66fa8c2e",
+          "question": "What is the user's sister's favorite food?",
+          "before": "Your sister's favorite food is not known.",
+          "after": "Your sister's favorite food is risotto.",
+          "leaked": true
+         },
+         {
+          "fact_id": "66fa8c2e",
+          "question": "What is the user's brother's favorite food?",
+          "before": "The user's brother's favorite food is not something I know.",
+          "after": "Your brother's favorite food is risotto.",
+          "leaked": true
+         },
+         {
+          "fact_id": "20dd1da2",
+          "question": "What is the user's sister's favorite book?",
+          "before": "The user's sister's favorite book is not known.",
+          "after": "Your sister's favorite book is Pachinko.",
+          "leaked": true
+         },
+         {
+          "fact_id": "20dd1da2",
+          "question": "What is the user's brother's favorite book?",
+          "before": "The user's brother's favorite book is not known.",
+          "after": "Your brother's favorite book is Pachinko.",
+          "leaked": true
+         },
+         {
+          "fact_id": "fffd7671",
+          "question": "What is the user's sister's name?",
+          "before": "The user's sister's name is not available to me as your conversation history is limited.",
+          "after": "Your sister's name is Idris.",
+          "leaked": true
+         },
+         {
+          "fact_id": "fffd7671",
+          "question": "What is the user's mother's name?",
+          "before": "The user's mother's name is not known to me.",
+          "after": "Your mother's name is Idris.",
+          "leaked": true
+         }
+        ]
+       },
+       "regression": {
+        "checked": false,
+        "passed": true,
+        "audited": 0,
+        "failed": 0
+       }
+      }
+     ],
+     "graduated_count": 0,
+     "active_count": 20,
+     "graduated_recall": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "retention": {
+      "n": 0,
+      "fact_pass_rate": null,
+      "phrasing_recall": null,
+      "per_fact": []
+     },
+     "bleed": {
+      "probes": 0,
+      "leaks": 0,
+      "rate": null
+     },
+     "usage": {
+      "n": 0,
+      "recall": null,
+      "per_prompt": []
+     },
+     "updates_check": {
+      "n": 2,
+      "correct_rate": 0.0,
+      "per_update": [
+       {
+        "question": "What is the user's favorite book?",
+        "old": "Cloud Atlas",
+        "new": "Pachinko",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 0.0,
+        "old_leaked": true,
+        "correct": false
+       },
+       {
+        "question": "What is the user's brother's name?",
+        "old": "Lukas",
+        "new": "Idris",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 0.0,
+        "old_leaked": false,
+        "correct": false
+       }
+      ]
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 16.189,
+      "drift": 0.0694
+     },
+     "elapsed_seconds": 26.6,
+     "model_path": "/Users/vbar/my-apps/j/sleeping-llm/experiments/results/qa_pipeline/small-3b-cap5-v3-2026-10-10/sleep_seed1/fused/fused/c00_retry1"
+    }
+   ],
+   "sessions": [
+    [
+     "brother.name",
+     "roommate.dog",
+     "daughter.instrument",
+     "son.book",
+     "user.book"
+    ],
+    [
+     "father.city",
+     "sister.instrument",
+     "cousin.job",
+     "son.team",
+     "neighbor.dog"
+    ],
+    [
+     "neighbor.instrument",
+     "colleague.team",
+     "boss.favorite_color",
+     "daughter.dog",
+     "mother.favorite_food"
+    ],
+    [
+     "sister.hobby",
+     "cousin.name",
+     "user.dog",
+     "boss.hobby",
+     "neighbor.city"
+    ]
+   ],
+   "updates": [
+    {
+     "old": "Cloud Atlas",
+     "new": "Pachinko",
+     "applied": true,
+     "new_id": "20dd1da2",
+     "status": "superseded"
+    },
+    {
+     "old": "Lukas",
+     "new": "Idris",
+     "applied": true,
+     "new_id": "fffd7671",
+     "status": "superseded"
+    }
+   ]
+  },
+  {
+   "condition": "prompt_only",
+   "seed": 1,
+   "cycles": [
+    {
+     "cycle": 0,
+     "facts_in_ledger": 5,
+     "updates": [],
+     "prompt_recall": {
+      "n": 5,
+      "fact_pass_rate": 1.0,
+      "phrasing_recall": 1.0,
+      "per_fact": [
+       {
+        "fact_id": "f30ef03d",
+        "question": "What is the user's brother's name?",
+        "value": "Lukas",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "ecd7e33e",
+        "question": "What is the user's roommate's dog's name?",
+        "value": "Biscuit",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "59ece75d",
+        "question": "What instrument does the user's daughter play?",
+        "value": "theremin",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "124dca92",
+        "question": "What is the user's son's favorite book?",
+        "value": "The Shadow of the Wind",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "4ac6d38b",
+        "question": "What is the user's favorite book?",
+        "value": "Cloud Atlas",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       }
+      ]
+     },
+     "usage": {
+      "n": 2,
+      "recall": 1.0,
+      "per_prompt": [
+       {
+        "question": "Write a one-line birthday message addressed to my brother by name.",
+        "value": "Lukas",
+        "passed": true,
+        "response": "\"Happy birthday, Lukas - may this year bring you joy, love, and all the things that make life an adventure!\""
+       },
+       {
+        "question": "Recommend a novel similar to my favorite book, and name my favorite.",
+        "value": "Cloud Atlas",
+        "passed": true,
+        "response": "I remember that your favorite book is Cloud Atlas.\n\nAs for a novel similar to Cloud Atlas, I'd like to recommend \"The City & The City\" by China Mi\u00e9ville. This police procedural fantasy novel shares so"
+       }
+      ]
+     },
+     "updates_check": {
+      "n": 0,
+      "correct_rate": null,
+      "per_update": []
+     },
+     "bleed": {
+      "probes": 10,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.139,
+      "drift": 0.0
+     },
+     "elapsed_seconds": 10.2,
+     "model_path": "mlx-community/Llama-3.2-3B-Instruct-4bit"
+    },
+    {
+     "cycle": 1,
+     "facts_in_ledger": 10,
+     "updates": [],
+     "prompt_recall": {
+      "n": 10,
+      "fact_pass_rate": 1.0,
+      "phrasing_recall": 1.0,
+      "per_fact": [
+       {
+        "fact_id": "f30ef03d",
+        "question": "What is the user's brother's name?",
+        "value": "Lukas",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "ecd7e33e",
+        "question": "What is the user's roommate's dog's name?",
+        "value": "Biscuit",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "59ece75d",
+        "question": "What instrument does the user's daughter play?",
+        "value": "theremin",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "124dca92",
+        "question": "What is the user's son's favorite book?",
+        "value": "The Shadow of the Wind",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "4ac6d38b",
+        "question": "What is the user's favorite book?",
+        "value": "Cloud Atlas",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "f24344f6",
+        "question": "Where does the user's father live?",
+        "value": "Austin",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "b5a5c33e",
+        "question": "What instrument does the user's sister play?",
+        "value": "ukulele",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "537da484",
+        "question": "What does the user's cousin do for work?",
+        "value": "landscape architect",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "03b49f1e",
+        "question": "What is the user's son's favorite sports team?",
+        "value": "Celtic",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "7939b2f2",
+        "question": "What is the user's neighbor's dog's name?",
+        "value": "Loki",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       }
+      ]
+     },
+     "usage": {
+      "n": 3,
+      "recall": 1.0,
+      "per_prompt": [
+       {
+        "question": "Write a one-line birthday message addressed to my brother by name.",
+        "value": "Lukas",
+        "passed": true,
+        "response": "\"Happy birthday, Lukas - may this year bring you joy, success, and all your favorite things!\""
+       },
+       {
+        "question": "Recommend a novel similar to my favorite book, and name my favorite.",
+        "value": "Cloud Atlas",
+        "passed": true,
+        "response": "I remember that your favorite book is Cloud Atlas.\n\nAs for a novel similar to Cloud Atlas, I'd like to recommend \"The City & The City\" by China Mi\u00e9ville. This novel shares a similar blend of philosoph"
+       },
+       {
+        "question": "Which city should I fly to in order to visit my father? Name it.",
+        "value": "Austin",
+        "passed": true,
+        "response": "You should fly to Austin. Your father lives there."
+       }
+      ]
+     },
+     "updates_check": {
+      "n": 0,
+      "correct_rate": null,
+      "per_update": []
+     },
+     "bleed": {
+      "probes": 10,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.139,
+      "drift": 0.0
+     },
+     "elapsed_seconds": 12.7,
+     "model_path": "mlx-community/Llama-3.2-3B-Instruct-4bit"
+    },
+    {
+     "cycle": 2,
+     "facts_in_ledger": 15,
+     "updates": [
+      {
+       "question": "What is the user's favorite book?",
+       "old": "Cloud Atlas",
+       "new": "Pachinko",
+       "status": "superseded"
+      },
+      {
+       "question": "What is the user's brother's name?",
+       "old": "Lukas",
+       "new": "Idris",
+       "status": "superseded"
+      }
+     ],
+     "prompt_recall": {
+      "n": 15,
+      "fact_pass_rate": 1.0,
+      "phrasing_recall": 1.0,
+      "per_fact": [
+       {
+        "fact_id": "ecd7e33e",
+        "question": "What is the user's roommate's dog's name?",
+        "value": "Biscuit",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "59ece75d",
+        "question": "What instrument does the user's daughter play?",
+        "value": "theremin",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "124dca92",
+        "question": "What is the user's son's favorite book?",
+        "value": "The Shadow of the Wind",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "f24344f6",
+        "question": "Where does the user's father live?",
+        "value": "Austin",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "b5a5c33e",
+        "question": "What instrument does the user's sister play?",
+        "value": "ukulele",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "537da484",
+        "question": "What does the user's cousin do for work?",
+        "value": "landscape architect",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "03b49f1e",
+        "question": "What is the user's son's favorite sports team?",
+        "value": "Celtic",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "7939b2f2",
+        "question": "What is the user's neighbor's dog's name?",
+        "value": "Loki",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "447fcf8f",
+        "question": "What instrument does the user's neighbor play?",
+        "value": "saxophone",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "ed36fa94",
+        "question": "What is the user's colleague's favorite sports team?",
+        "value": "Urawa Reds",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "d73fca36",
+        "question": "What is the user's boss's favorite color?",
+        "value": "lavender",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "7500aad3",
+        "question": "What is the user's daughter's dog's name?",
+        "value": "Rufus",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "df68229b",
+        "question": "What is the user's mother's favorite food?",
+        "value": "risotto",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "0eb59375",
+        "question": "What is the user's favorite book?",
+        "value": "Pachinko",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "8e6e4985",
+        "question": "What is the user's brother's name?",
+        "value": "Idris",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       }
+      ]
+     },
+     "usage": {
+      "n": 4,
+      "recall": 1.0,
+      "per_prompt": [
+       {
+        "question": "Which city should I fly to in order to visit my father? Name it.",
+        "value": "Austin",
+        "passed": true,
+        "response": "You should fly to Austin. Your father lives there."
+       },
+       {
+        "question": "I'm cooking for my mother tonight. Which dish should I make?",
+        "value": "risotto",
+        "passed": true,
+        "response": "Considering your mother's favorite food is risotto, that sounds like a great idea! Risotto is often associated with Italian cuisine and can be a comforting, satisfying dish for a family dinner. You co"
+       },
+       {
+        "question": "Recommend a novel similar to my favorite book, and name my favorite.",
+        "value": "Pachinko",
+        "passed": true,
+        "response": "I remember that your favorite book is Pachinko by Min Jin Lee. It's a historical fiction novel that explores the experiences of Korean immigrants in Japan.\n\nBased on your interest in Pachinko, I would"
+       },
+       {
+        "question": "Write a one-line birthday message addressed to my brother by name.",
+        "value": "Idris",
+        "passed": true,
+        "response": "\"Happy birthday, Idris - may this year bring you joy, love, and all your favorite things!\""
+       }
+      ]
+     },
+     "updates_check": {
+      "n": 2,
+      "correct_rate": 1.0,
+      "per_update": [
+       {
+        "question": "What is the user's favorite book?",
+        "old": "Cloud Atlas",
+        "new": "Pachinko",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 1.0,
+        "old_leaked": false,
+        "correct": true
+       },
+       {
+        "question": "What is the user's brother's name?",
+        "old": "Lukas",
+        "new": "Idris",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 1.0,
+        "old_leaked": false,
+        "correct": true
+       }
+      ]
+     },
+     "bleed": {
+      "probes": 10,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.139,
+      "drift": 0.0
+     },
+     "elapsed_seconds": 18.2,
+     "model_path": "mlx-community/Llama-3.2-3B-Instruct-4bit"
+    },
+    {
+     "cycle": 3,
+     "facts_in_ledger": 20,
+     "updates": [],
+     "prompt_recall": {
+      "n": 20,
+      "fact_pass_rate": 0.95,
+      "phrasing_recall": 0.975,
+      "per_fact": [
+       {
+        "fact_id": "ecd7e33e",
+        "question": "What is the user's roommate's dog's name?",
+        "value": "Biscuit",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "59ece75d",
+        "question": "What instrument does the user's daughter play?",
+        "value": "theremin",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "124dca92",
+        "question": "What is the user's son's favorite book?",
+        "value": "The Shadow of the Wind",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "f24344f6",
+        "question": "Where does the user's father live?",
+        "value": "Austin",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "b5a5c33e",
+        "question": "What instrument does the user's sister play?",
+        "value": "ukulele",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "537da484",
+        "question": "What does the user's cousin do for work?",
+        "value": "landscape architect",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "03b49f1e",
+        "question": "What is the user's son's favorite sports team?",
+        "value": "Celtic",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "7939b2f2",
+        "question": "What is the user's neighbor's dog's name?",
+        "value": "Loki",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "447fcf8f",
+        "question": "What instrument does the user's neighbor play?",
+        "value": "saxophone",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "ed36fa94",
+        "question": "What is the user's colleague's favorite sports team?",
+        "value": "Urawa Reds",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "d73fca36",
+        "question": "What is the user's boss's favorite color?",
+        "value": "lavender",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "7500aad3",
+        "question": "What is the user's daughter's dog's name?",
+        "value": "Rufus",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "df68229b",
+        "question": "What is the user's mother's favorite food?",
+        "value": "risotto",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "0eb59375",
+        "question": "What is the user's favorite book?",
+        "value": "Pachinko",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "8e6e4985",
+        "question": "What is the user's brother's name?",
+        "value": "Idris",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "caf40934",
+        "question": "What is the user's sister's main hobby?",
+        "value": "pottery",
+        "passed": false,
+        "fraction": 0.5,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "4f6610dc",
+        "question": "What is the user's cousin's name?",
+        "value": "Jonas",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "bd94c269",
+        "question": "What is the user's dog's name?",
+        "value": "Rufus",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "0ec13c44",
+        "question": "What is the user's boss's main hobby?",
+        "value": "ultimate frisbee",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       },
+       {
+        "fact_id": "bf00a32c",
+        "question": "Where does the user's neighbor live?",
+        "value": "Kyoto",
+        "passed": true,
+        "fraction": 1.0,
+        "fallback": false,
+        "negative_hit": null
+       }
+      ]
+     },
+     "usage": {
+      "n": 5,
+      "recall": 0.8,
+      "per_prompt": [
+       {
+        "question": "Which city should I fly to in order to visit my father? Name it.",
+        "value": "Austin",
+        "passed": true,
+        "response": "You should fly to Austin. Your father lives there."
+       },
+       {
+        "question": "I'm cooking for my mother tonight. Which dish should I make?",
+        "value": "risotto",
+        "passed": true,
+        "response": "Considering your mother's favorite food is risotto, that sounds like a great idea! Risotto is a classic and comforting dish that's sure to warm her heart. What ingredients do you have available, or wo"
+       },
+       {
+        "question": "Recommend a novel similar to my favorite book, and name my favorite.",
+        "value": "Pachinko",
+        "passed": true,
+        "response": "I remember that your favorite book is Pachinko by Min Jin Lee. It's a beautifully written novel about the experiences of Korean immigrants in Japan.\n\nBased on your interest in Pachinko, I'd like to re"
+       },
+       {
+        "question": "Write a one-line birthday message addressed to my brother by name.",
+        "value": "Idris",
+        "passed": false,
+        "response": "I don't recall the user's brother's name, Idris. However, based on our previous conversation, I can tell you that the user's sister plays the ukulele."
+       },
+       {
+        "question": "Suggest a gift for my sister that fits their main hobby, naming the hobby.",
+        "value": "pottery",
+        "passed": true,
+        "response": "I think I can help you with that.\n\nYou mentioned your sister's main hobby is pottery. A great gift idea for a potter would be a set of high-quality ceramic tools, such as a new kiln, a pottery wheel, "
+       }
+      ]
+     },
+     "updates_check": {
+      "n": 2,
+      "correct_rate": 1.0,
+      "per_update": [
+       {
+        "question": "What is the user's favorite book?",
+        "old": "Cloud Atlas",
+        "new": "Pachinko",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 1.0,
+        "old_leaked": false,
+        "correct": true
+       },
+       {
+        "question": "What is the user's brother's name?",
+        "old": "Lukas",
+        "new": "Idris",
+        "graduated": false,
+        "stage": 0,
+        "new_recalled": 1.0,
+        "old_leaked": false,
+        "correct": true
+       }
+      ]
+     },
+     "bleed": {
+      "probes": 10,
+      "leaks": 0,
+      "rate": 0.0
+     },
+     "ppl": {
+      "base": 15.139,
+      "now": 15.139,
+      "drift": 0.0
+     },
+     "elapsed_seconds": 19.9,
+     "model_path": "mlx-community/Llama-3.2-3B-Instruct-4bit"
+    }
+   ],
+   "sessions": [
+    [
+     "brother.name",
+     "roommate.dog",
+     "daughter.instrument",
+     "son.book",
+     "user.book"
+    ],
+    [
+     "father.city",
+     "sister.instrument",
+     "cousin.job",
+     "son.team",
+     "neighbor.dog"
+    ],
+    [
+     "neighbor.instrument",
+     "colleague.team",
+     "boss.favorite_color",
+     "daughter.dog",
+     "mother.favorite_food"
+    ],
+    [
+     "sister.hobby",
+     "cousin.name",
+     "user.dog",
+     "boss.hobby",
+     "neighbor.city"
+    ]
+   ],
+   "updates": [
+    {
+     "old": "Cloud Atlas",
+     "new": "Pachinko",
+     "applied": true,
+     "new_id": "0eb59375",
+     "status": "superseded"
+    },
+    {
+     "old": "Lukas",
+     "new": "Idris",
+     "applied": true,
+     "new_id": "8e6e4985",
+     "status": "superseded"
+    }
+   ]
+  }
+ ]
+}

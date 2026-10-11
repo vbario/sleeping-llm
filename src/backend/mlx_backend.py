@@ -483,6 +483,8 @@ class MLXBackend:
             "--num-layers", str(num_layers),
             "--batch-size", str(batch_size),
             "--learning-rate", str(learning_rate),
+            # Loss on assistant tokens only, matching the torch backend's -100 labels
+            "--mask-prompt",
         ]
         if iters is not None:
             cmd.extend(["--iters", str(iters)])

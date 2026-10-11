@@ -36,6 +36,9 @@ class ConsolidationRunner:
         maintenance = config.get("sleep.maintenance", {}) or {}
         self.replay_count = int(maintenance.get("replay_count", 5))
         self.graduated_audit_count = int(maintenance.get("graduated_audit_count", 5))
+        # Cap on facts trained per cycle. Bleed grows with the number of facts
+        # trained together (notes/135); the rest wait in the prompt. 0 = no cap.
+        self.max_train_facts = int(maintenance.get("max_train_facts", 0))
 
         g = config.get("sleep.gates", {}) or {}
         self.max_retries = int(g.get("max_retries", 1))
@@ -48,6 +51,21 @@ class ConsolidationRunner:
         self.gates = gates or SleepGates(config, backend, probe)
 
     # ------------------------------------------------------------ helpers
+
+    def select_batch(self, entries):
+        """Apply max_train_facts. Facts closest to graduation go first so a
+        batch finishes its three passes instead of every fact inching along;
+        then fewest gate failures, then oldest. Returns (selected, deferred)."""
+        if self.max_train_facts <= 0 or len(entries) <= self.max_train_facts:
+            return list(entries), []
+        ranked = sorted(entries, key=lambda e: (
+            -int(e.get("stage", 0)),
+            int(e.get("gate_failures", 0)),
+            float((e.get("qa") or {}).get("timestamp", 0.0)),
+        ))
+        selected = ranked[: self.max_train_facts]
+        chosen = {e["fact_id"] for e in selected}
+        return selected, [e for e in entries if e["fact_id"] not in chosen]
 
     def _quarantined(self, entry: dict) -> bool:
         return entry.get("gate_failures", 0) >= self.max_gate_failures
@@ -73,7 +91,7 @@ class ConsolidationRunner:
             "status": "skipped", "cycle_id": cycle_id,
             "advanced": 0, "retreated": 0, "already_known": 0, "skipped": False,
             "advanced_facts": [], "retreated_facts": [],
-            "trained": 0, "replayed": 0, "paraphrased": 0, "quarantined": 0,
+            "trained": 0, "replayed": 0, "paraphrased": 0, "quarantined": 0, "deferred": 0,
             "graduated_audited": 0, "graduated_failed": 0, "ungraduated_facts": [],
             "graduation_results": [], "audit_results": [],
             "gates": [], "failed_gate": None, "excluded_facts": [], "attempts": 0,
@@ -84,6 +102,11 @@ class ConsolidationRunner:
         stats["quarantined"] = len(new_entries) - len(train_entries)
         if stats["quarantined"]:
             print(f"        {stats['quarantined']} fact(s) quarantined after repeated gate failures")
+        train_entries, deferred = self.select_batch(train_entries)
+        stats["deferred"] = len(deferred)
+        if deferred:
+            print(f"        {len(deferred)} fact(s) deferred to a later cycle (max_train_facts="
+                  f"{self.max_train_facts})")
         if not train_entries:
             print("        No eligible facts for consolidation")
             stats["skipped"] = True
@@ -105,6 +128,9 @@ class ConsolidationRunner:
         if ppl_baseline is None and ref_text:
             ppl_baseline = self.backend.compute_perplexity(ref_text)
         bleed_probe = self.gates.prepare_bleed(train_entries, avoid_questions=all_questions)
+        # Contrast training rows must never coincide with a gate probe
+        gate_questions = [item["question"] for items in bleed_probe.neighbors.values()
+                          for item in items]
         audit_entries = self.fact_ledger.get_audit_candidates(self.graduated_audit_count)
         stats["graduated_audited"] = len(audit_entries)
 
@@ -120,8 +146,11 @@ class ConsolidationRunner:
             attempt_id = cycle_id if attempt == 1 else f"{cycle_id}_retry{attempt - 1}"
             qa_pairs = [QAPair.from_dict(e["qa"]) for e in list(train_entries) + list(replay_entries)]
 
+            # Training rows see the facts that stay in the prompt (all_qa), as
+            # the graduation probe and the app will show them
             fused_path = self.trainer.train_and_fuse(
-                qa_pairs, attempt_id, self.save_dir, weighted=weighted, iters=iters)
+                qa_pairs, attempt_id, self.save_dir, weighted=weighted, iters=iters,
+                avoid_questions=all_questions + gate_questions, context_qa=all_qa)
             if fused_path is None:
                 print("        Consolidation aborted: training/fuse failed (model unchanged)")
                 stats["status"] = "train_failed"

@@ -226,7 +226,7 @@ def test_full_sleep_replays_and_audits_graduated_facts(tmp_path):
     # Replayed facts were in the training file
     train = Path(backend.train_calls[0]["data_path"]) / "train.jsonl"
     rows = [json.loads(l) for l in train.read_text().splitlines()]
-    trained_questions = {r["messages"][0]["content"] for r in rows}
+    trained_questions = {m["content"] for r in rows for m in r["messages"] if m["role"] == "user"}
     assert "What is the user's son's name?" in trained_questions
     assert "Where does the user live?" in trained_questions
     assert "What is the user's favorite color?" in trained_questions

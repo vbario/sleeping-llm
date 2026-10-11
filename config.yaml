@@ -57,6 +57,10 @@ sleep:
     # How many graduated facts are replayed into every LoRA training set so a
     # new fuse does not erode older ones (degraded / least recently verified first)
     replay_count: 5
+    # Max non-graduated facts trained per cycle; the rest stay in the prompt
+    # until a later cycle. 5 is the batch size the gates pass at; 10-20 facts
+    # together bleed on 40-60% of neighbor probes (notes/135). 0 = no cap.
+    max_train_facts: 5
 
   # Graduation testing with held-out paraphrases (src/sleep/paraphrase.py, probe.py)
   graduation:
@@ -117,9 +121,35 @@ memit:
 lora:
   enabled: true
   num_layers: 8
-  learning_rate: 1.0e-4
-  iters_per_fact: 10
+  # 1e-4 raised reference PPL +48% on a 5-fact cycle (gate: 15%); 5e-5 drifts
+  # <= 4% with held-out recall intact; <= 4e-5 barely learns (see notes/134)
+  learning_rate: 5.0e-5
+  # Each fact is ~20 rows (10 first-party + 10 contrast), so iters_per_fact 20
+  # is one pass and 25 is ~1.25 passes, the best recall in the grid without
+  # bleed (notes/134). 10 (~0.5 pass) under-trains the subject binding; 40
+  # (~2 passes) memorizes "attribute -> value" for every subject and bleed
+  # returns. Run 2 (notes/135) used 20 and graduated nothing.
+  iters_per_fact: 25
   batch_size: 1
+  # Per fact, N contrast subjects, each giving two "same question about
+  # another person -> I don't know" rows (src/sleep/paraphrase.py
+  # CONTRAST_SUBJECTS, disjoint from the bleed gate's subjects). Without them
+  # the 3B learns "favorite team -> Celtic" for everyone (notes/134). The
+  # count trades two failures (notes/135, runs 2-4): at 5 the model sometimes
+  # deflects on its own facts (stage does not advance; the fact stays in the
+  # prompt and is retrained); at 2 bleed returns, cycles roll back and facts
+  # reach quarantine, which is permanent. 5 is the recoverable failure.
+  # 0 disables.
+  contrast_per_fact: 5
+  # Training rows carry a system prompt like the app's: on `context_fraction`
+  # of rows it lists up to `context_facts` OTHER facts still in the prompt.
+  # Without this the model learns "the prompt is all I know" and denies facts
+  # its weights hold whenever other facts are in the prompt (notes/134). The
+  # graduation probe always lists the other facts, so every row carries them
+  # (1.0); at 0.5 the probe still saw deflections on facts a bare prompt
+  # recalled (notes/135).
+  context_facts: 3
+  context_fraction: 1.0
 
 consolidation:
   enabled: true

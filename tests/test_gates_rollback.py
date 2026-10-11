@@ -193,9 +193,12 @@ def test_bleed_gate_names_culprit_and_retries_without_it(tmp_path):
     assert culprit["gate_failures"] == 1 and culprit["last_gate_failure"] == "bleed"
     assert culprit["train_count"] == 0 and culprit["stage"] == 0
     assert ledger.get_entry(ids["Where does the user live?"])["stage"] == 1
-    # Retry training data did not include the culprit
-    train = (Path(world.backend.train_calls[1]["data_path"]) / "train.jsonl").read_text()
-    assert "favorite color" not in train
+    # Retry training data did not include the culprit as a trained fact. It may
+    # still appear in a row's system context: it is still carried in the prompt.
+    rows = [json.loads(l) for l in
+            (Path(world.backend.train_calls[1]["data_path"]) / "train.jsonl").read_text().splitlines()]
+    trained = [m["content"] for r in rows for m in r["messages"] if m["role"] != "system"]
+    assert not any("favorite color" in t and "teal" in t for t in trained)
     # Rejected candidate removed, committed one kept
     fused_dir = Path(config.paths["fused_models"]) / "fused"
     assert not (fused_dir / "0004").exists() and (fused_dir / "0004_retry1").exists()

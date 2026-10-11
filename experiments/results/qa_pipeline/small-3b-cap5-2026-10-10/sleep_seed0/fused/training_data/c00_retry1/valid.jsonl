@@ -1,0 +1,4 @@
+{"messages": [{"role": "user", "content": "Remind me, what's my boss's favorite food?"}, {"role": "assistant", "content": "The user's boss's favorite food is goulash."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my boss's favorite food?"}, {"role": "assistant", "content": "The user's boss's favorite food is goulash."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What does my father do for work?"}, {"role": "assistant", "content": "The user's father works as a notary."}]}
+{"messages": [{"role": "user", "content": "What does my father do for work?"}, {"role": "assistant", "content": "The user's father works as a notary."}]}

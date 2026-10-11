@@ -1,0 +1,4 @@
+{"messages": [{"role": "user", "content": "Quick question: what's my brother's name?"}, {"role": "assistant", "content": "The user's brother's name is Lukas."}]}
+{"messages": [{"role": "user", "content": "What's my brother's name?"}, {"role": "assistant", "content": "The user's brother's name is Lukas."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my son's favorite book?"}, {"role": "assistant", "content": "The user's son's favorite book is The Shadow of the Wind."}]}
+{"messages": [{"role": "user", "content": "What's my son's favorite book?"}, {"role": "assistant", "content": "The user's son's favorite book is The Shadow of the Wind."}]}

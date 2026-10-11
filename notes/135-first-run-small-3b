@@ -1,0 +1,263 @@
+First run of the QA pipeline eval, small config, 3B (2026-10-10)
+=================================================================
+experiments/results/qa_pipeline/small-3b-2026-10-10  (599s on the M5 Pro)
+Config as amended in notes/134: mask-prompt, lr 5e-5, iters_per_fact 20,
+contrast_per_fact 5, context_facts 3 / context_fraction 0.5, 8 LoRA layers.
+
+Against the predictions
+-----------------------
+P1  prompt_only recall on held-out paraphrases: 1.00, 1.00, 0.98, 0.94 over
+    cycles 0-3 (usage 1.00 -> 0.90). Confirmed. The prompt bridge works and
+    degrades slowly as the prompt grows.
+P2  (revised) "some graduation in 4 cycles". Wrong in the original sense and
+    in the revised one: graduated = 0 on both seeds. Seed 1 advanced 3 facts
+    to stage 1 (Cloud Atlas at cycle 1, saxophone and Pachinko at cycle 2);
+    seed 0 advanced none. Graduation needs stage 3.
+P4  (revised) bleed gate "passes most cycles, rolls back some". Wrong at
+    scale. Per attempt, bleed on the full batch:
+        seed 0: 5/10, 12/20, 8/26, 20/30      seed 1: 8/10, 0/20, 18/30, 17/38
+    i.e. ~40-60% of neighbor probes leak once 10+ facts train together. The
+    retry drops the culprits (3, 8, 6, 10 / 4, 0, 9, 10 facts) and the small
+    remainder commits in cycles 0-1; in cycles 2-3 even the remainder leaks
+    (2/14, 2/10, 10/18) and the cycle rolls back. End state: 20/20 facts at
+    stage 0 (seed 0), 18/20 (seed 1); 19-21 of 20 facts carry 1-2 gate
+    failures, i.e. one more and they are quarantined to the prompt forever.
+P5  PPL per attempt +0.5..+8.5%, cumulative drift +2.5% / +10% after the
+    committed cycles. Gate never fired; the 15% ceiling held.
+P6  updates: 0.25 (sleep) vs 1.00 (prompt_only). Corrections landed in the
+    prompt but the sleep condition's number is dragged by rolled-back cycles.
+P8  (new in 134) first-party recall failures are contrast-style deflections:
+    in the 5-fact probe "I don't know that about your boss - you've only told
+    me about their coffee order" while a bare prompt answers "goulash".
+    Confirmed on the probe; not re-checked here.
+
+What this says
+--------------
+The fixes in notes/134 make a 5-fact cycle work end to end (gates pass, 3/5
+advance). They do not make a 10-20 fact cycle work. Bleed grows with the
+number of facts trained together, because every added fact is another
+"attribute -> value" pair the LoRA can emit for any subject, and 5 contrast
+rows per fact do not keep up. The pipeline retrains ALL non-graduated facts
+each cycle, so the batch only grows until something graduates - which it
+cannot, because the batch bleeds. That is the loop to break.
+
+Options, in the order I would try them
+  1. Cap the training batch (e.g. 5 facts per cycle, oldest/highest-priority
+     first) so each cycle looks like the probe that works. Graduation then
+     takes 3 cycles per batch of 5; at 20 facts that is 12 cycles, not 4.
+  2. Make contrast rows scale with the batch: for a batch of N facts, each
+     fact's contrast should include the OTHER facts' attributes about the
+     wrong subject ("What is your boss's favorite sports team?" -> not the
+     boss, that's your son's). Cross-fact leaks ("sister's favorite food is a
+     double goulash") are exactly what the current per-fact rows never show.
+  3. Reword the contrast answer so it does not teach "you've only told me
+     about X" (P8), or drop first-party deflection by adding positive rows
+     with 2-3 other facts in context and the right fact answered.
+  4. Only then revisit size. 8B under the same recipe rolled back on bleed on
+     both attempts (6/10, 2/2) in the 5-fact probe; it is not a shortcut.
+
+
+Second run: option 1, max_train_facts = 5 (same day)
+----------------------------------------------------
+experiments/results/qa_pipeline/small-3b-cap5-2026-10-10  (354s, was 599s)
+Only change: sleep.maintenance.max_train_facts 5 (ConsolidationRunner.select_batch:
+highest stage first, then fewest gate failures, then oldest; the rest wait
+in the prompt).
+
+                         uncapped            capped at 5
+  rollbacks (8 cycles)   3                   1
+  bleed on 1st attempt   5,12,8,20 / 8,0,18,17   5,0,10,2 / 4,7,3,0  (of 10-38 / of 10)
+  facts with 2 failures  19 of 40            0 of 40   (7+7 with one)
+  advanced to stage 1    3 (seed 1 only)     3 (seed 1 only, all in cycle 3)
+  graduated              0                   0
+  cumulative PPL drift   +2.5% / +10%        +6.4% / +11.5%
+
+The cap stops the spiral: no fact is one failure from quarantine, cycles
+commit, and the batch the gate sees is the one the probes pass on. It does
+not produce graduation in 4 cycles, and the graduation probes now show why
+(results.json "graduation"), two failure types, roughly 3:1:
+
+  a. deflection, the contrast reflex (P8): "I don't know that about your
+     boss - you've only told me about their usual coffee order", for a fact
+     that a bare prompt recalls. 15 of the 22 failed probes.
+  b. wrong value from another fact: "Your father's usual coffee order is a
+     flat white" (it is a matcha latte), "Your colleague's favorite sports
+     team is Celtic" (Urawa Reds). Cross-fact bleed, first-party this time.
+
+One cycle (seed 0, cycle 2) rolled back with no retry because all 5 facts
+were culprits (10/10 probes leaked); the runner only retries when some fact
+is not a culprit. That is correct behaviour and the right outcome for a
+batch that bad.
+
+Next lever is (3) from the list above, now with evidence: the contrast
+answer template is the single largest cause of non-graduation. Candidates,
+cheapest first: drop "you've only told me about ..." and answer the
+contrast question with a plain, short denial that does not enumerate; add
+positive rows where the probed fact IS answered while 2-3 other facts sit in
+the context (already half the rows; make it all of them for the first-party
+rows); and raise iters for the capped batch (100 iters over ~100 rows is one
+pass; 1.25-1.5 passes recalled best in the grid without bleeding).
+
+
+Third run: contrast wording + full context + 1.25 passes (same day)
+--------------------------------------------------------------------
+experiments/results/qa_pipeline/small-3b-cap5-v2-2026-10-10
+Three changes, all three candidates from the paragraph above, made before
+the run:
+
+  1. CONTRAST_ANSWERS (src/sleep/paraphrase.py) no longer enumerate what is
+     known. Was "I don't know {topic} - you've only told me about {true}" /
+     "You haven't mentioned {topic}. What you told me was about {true}";
+     now "I don't know {topic}." / "You haven't told me {topic}." The
+     true-subject derivation is gone with it. The binding is meant to come
+     from first-party rows (with context) sitting next to denials for other
+     subjects, not from the denial reciting the true subject.
+  2. lora.context_fraction 0.5 -> 1.0: every training row, first-party and
+     contrast, carries the system prompt with 1-3 other active facts, as the
+     graduation probe always does.
+  3. lora.iters_per_fact 20 -> 25: a 5-fact batch is ~100 rows, so 125 iters
+     is ~1.25 passes (the grid's best recall without bleed) instead of 1.
+
+Predictions, written before the result:
+  P9  failure type (a), the deflection reflex, drops from 15 of 22 failed
+      probes to a minority; if it does not, the reflex is in the denial form
+      itself and contrast rows need a different design (e.g. answer the
+      contrast question with the TRUE fact's attribute reframed, or fewer
+      contrast rows).
+  P10 bleed on first attempt stays in the capped run's band (0-10 of 10,
+      <= 1 rollback per seed). The risk is the v1 regression: uniform
+      denials made the 8B deflect everything. Guard against that reading:
+      v1 had fixed subjects and no context rows; this has both.
+  P11 at least one fact reaches stage 2 in 4 cycles (needs two passes in a
+      row). Graduation (stage 3) is not expected in 4 cycles of a 5-fact cap
+      over 20 facts.
+  P12 cumulative PPL drift stays under the +15% gate but rises above run 2
+      (+6.4% / +11.5%) because of the extra 25% iterations.
+
+Result (346s):
+
+                          run 2 (cap 5)        run 3 (cap 5 + wording/context/iters)
+  rollbacks (8 cycles)    1                    1  (seed 1 c2: 2/10 then 6/6 on retry)
+  bleed on 1st attempt    5,0,10,2 / 4,7,3,0   0,0,7,0 / 0,7,2,6   (of 10)
+  facts with 2 failures   0 of 40              0 of 40  (4 + 12 with one)
+  facts passing grad.     3 of 22 probed       5 of 24 probed
+  stage 1 / stage 2       3 / 0                3 / 1  (seed 0 "a double espresso": c0 then c1)
+  graduated               0                    0
+  PPL drift, final        +6.4% / +11.5%       +5.6% / +11.4%
+  failed phrasings        28 deflect, 7 wrong  26 deflect, 10 wrong
+
+Against the predictions:
+  P9  FAILED. Deflection is still 72% of failed phrasings (was 80%). The
+      model now says exactly the new template, "I don't know your boss's
+      favorite food." / "You haven't told me ...", for first-party facts.
+      The reflex is not in the "you've only told me about" clause; it is in
+      the denial form itself. 10 denial rows per fact against 10 first-party
+      rows, and the denial is one short pattern while the first-party answer
+      needs a memorized value, so at 1.25 passes the denial is what gets
+      learned and it generalizes over subjects (the discrimination the rows
+      were supposed to teach).
+  P10 held: bleed in band, one rollback per run, nothing near quarantine.
+  P11 held: one fact reached stage 2.
+  P12 half: PPL under the gate; it did not rise despite +25% iterations.
+
+Wrong-value failures (10) are all cross-fact and first-party: "cousin's dog
+is named Jonas" (Jonas is the cousin's NAME, Marble the dog), "boss drives a
+red Mazda MX-5" (the user's car), "neighbor's coffee order is a matcha
+latte" (the father's). The model has the attributes of the batch but binds
+them to the wrong subject in both directions: deny when it should answer,
+answer another subject's value when it should answer its own.
+
+Reading: contrast rows at 1:1 with first-party rows over-teach denial. The
+lever is the ratio, not the wording. Next: contrast_per_fact 5 -> 2 (4 rows
+vs 10 first-party per fact), keep the randomized pool, context 1.0, iters
+25, and let the bleed gate + cap + retry handle the residue it was built
+for. If bleed comes back above the band, the alternative is to weight
+first-party rows (prepare_training_data weighted=... already repeats by
+priority) rather than add denials.
+
+
+Fourth run: contrast_per_fact 5 -> 2 (same day)
+-----------------------------------------------
+experiments/results/qa_pipeline/small-3b-cap5-v3-2026-10-10
+Only change from run 3: lora.contrast_per_fact 2. A fact is now ~14 rows
+(10 first-party + 4 denial) instead of 20; iters_per_fact stays 25, so a
+5-fact batch is 125 iters over ~70 rows, ~1.8 passes.
+
+Predictions, written before the result:
+  P13 deflection drops below half of failed phrasings (was 72%, 80%), and
+      facts passing the graduation probe rise above 8 of ~24.
+  P14 bleed on first attempt rises out of the band on some cycles (more
+      passes, fewer denials): expect 2-3 rollbacks over 8 cycles, retries
+      recovering most of them; still 0 facts at two gate failures.
+  P15 PPL drift rises with the extra passes but stays under the +15% gate.
+  P16 at least one fact reaches stage 2; graduation still unlikely in 4
+      cycles.
+
+Result (391s):
+
+                          run 2 (c=5)      run 3 (c=5, wording)   run 4 (c=2)
+  rollbacks (8 cycles)    1                1                      4  (seed 1: c1, c2, c3)
+  bleed on 1st attempt    5,0,10,2/4,7,3,0 0,0,7,0/0,7,2,6        0,7,2,3 / 6,8,6,9   (of 10)
+  facts with 2 failures   0 of 40          0 of 40                1 of 40 (9 + 16 with one)
+  facts passing grad.     3 of 22          5 of 24                5 of 12  (fewer probed: 4 cycles never committed)
+  stage 1 / stage 2       3 / 0            3 / 1                  5 / 0
+  graduated               0                0                      0
+  PPL drift, final        +6.4% / +11.5%   +5.6% / +11.4%         +0.4% / +6.9%
+  failed phrasings        28 defl, 7 wrong 26 defl, 10 wrong      5 defl, 8 wrong
+
+Against the predictions:
+  P13 held on the ratio: deflection fell from 72% to 38% of failed phrasings
+      and 42% of probed facts passed (was 21%). Absolute count (5 of 12) is
+      below 8 because half the cycles never reached the probe.
+  P14 under-predicted: 4 rollbacks, not 2-3, and seed 1 is the pre-cap
+      spiral again (three consecutive rollbacks, one fact at two failures,
+      16 of 22 at one). Retries recovered one of five failed attempts.
+  P15 wrong direction: PPL drift FELL (seed 0 committed three cycles at
+      <1%). Fewer rows per fact at the same iters did not cost perplexity.
+  P16 failed: no stage 2 because seed 1 never committed after cycle 0.
+
+The two runs bracket the mechanism. Denial rows trade one failure for the
+other: at 10 denials per 10 first-party rows the model learns "deny" and
+deflects on its own facts; at 4 per 10 it learns "attribute -> value" and
+answers with the value for every subject. Neither ratio teaches the subject
+binding; the 3B picks whichever shortcut the row mix makes cheaper. The
+wrong-value failures in run 4 are the same cross-fact mis-binding as run 3
+("cousin's dog is named Juniper", "you drive a green Land Rover Defender").
+
+What this means for the design: the bleed gate + cap + retry do contain
+the damage (no quarantine spiral at c=5, one fact at two failures at c=2),
+but containing bleed and producing graduation are pulling in opposite
+directions on this model at this training strength. The next experiment
+should change the signal, not the ratio again:
+  - keep the 5-subject diversity (the v3 lesson) but double the first-party
+    rows instead of halving the denials: weighted reps or a second answer
+    variant per paraphrase, so the value is seen 20x and denials 10x; and
+  - iters back toward ~1.25 passes of the larger set (iters_per_fact ~35).
+If that also lands on one side of the trade-off, the honest conclusion for
+the 3B is that LoRA at a PPL-safe learning rate cannot hold a subject
+binding for a 5-fact batch, and the comparison to run on is the 8B with the
+same recipe (config-8b-mlx.yaml), where the row mix may matter less.
+
+
+Decision (2026-10-10, after run 4)
+----------------------------------
+Keep everything from notes/133 (probe, bleed gate, registry/rollback,
+replay/audit, supersede) and everything added before and between these
+runs (--mask-prompt, lr 5e-5, batch cap, context rows, contrast rows).
+Rolling back to the pre-133 pipeline would restore the 100% number by
+removing the test that can fail, not by restoring recall; no recall number
+had ever been measured on it (notes/133, "What was NOT done").
+
+contrast_per_fact goes back to 5. The two settings fail differently and
+both leave user-facing recall intact through the prompt bridge, but only
+one is recoverable: at 5 a deflected fact stays in the prompt and is
+retrained next cycle; at 2 rollbacks accumulate gate failures and facts hit
+quarantine, which is permanent. Run 2/3 (c=5): 7 of 8 cycles committed per
+run, 0 facts near quarantine. Run 4 (c=2): 4 of 8 committed, 1 quarantined,
+25 of 40 one failure away.
+
+Open, unchanged by this decision: whether a 3B LoRA at a PPL-safe rate can
+hold a subject binding at all. Next experiments, in order: first-party rows
+weighted 2x with the 5 denial subjects kept (iters_per_fact ~35); then the
+8B on the same recipe (config-8b-mlx.yaml). The eval needs more than 4
+cycles before "0 graduated" is informative at a ~30% per-pass rate.

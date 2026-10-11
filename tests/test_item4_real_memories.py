@@ -38,139 +38,145 @@ def make_extractor():
 
 
 # ─── Positive test cases ───
+# extract_template() returns QAPairs: the relation lives in the question,
+# the recall target in value.
+
+def _show(qas):
+    return [(qa.question, qa.value) for qa in qas]
+
 
 def test_opinion_thinks():
     ext = make_extractor()
-    triples = ext.extract_template("I think Python is better than Java")
-    assert any("thinks" in t.relation and "Python" in t.relation for t in triples), \
-        f"Should extract opinion. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I think Python is better than Java")
+    assert any("think" in qa.question and "Python" in qa.question for qa in qas), \
+        f"Should extract opinion. Got: {_show(qas)}"
 
 
 def test_opinion_believes():
     ext = make_extractor()
-    triples = ext.extract_template("I believe climate change is real")
-    assert any("thinks" in t.relation or "believes" in t.relation for t in triples), \
-        f"Should extract belief. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I believe climate change is real")
+    assert any("think" in qa.question and "climate change" in qa.question for qa in qas), \
+        f"Should extract belief. Got: {_show(qas)}"
 
 
 def test_opinion_prefers_over():
     ext = make_extractor()
-    triples = ext.extract_template("I prefer cats over dogs")
-    assert any("prefers" in t.relation for t in triples), \
-        f"Should extract preference. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I prefer cats over dogs")
+    assert any("like" in qa.question and "cats" in qa.value for qa in qas), \
+        f"Should extract preference. Got: {_show(qas)}"
 
 
 def test_temporal_graduated():
     ext = make_extractor()
-    triples = ext.extract_template("I graduated in 2020")
-    assert any(t.relation == "graduated in" and t.object == "2020" for t in triples), \
-        f"Should extract graduation year. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I graduated in 2020")
+    assert any("graduate" in qa.question and qa.value == "2020" for qa in qas), \
+        f"Should extract graduation year. Got: {_show(qas)}"
 
 
 def test_temporal_started():
     ext = make_extractor()
-    triples = ext.extract_template("I started working in 2018")
-    assert any(t.relation == "started in" and t.object == "2018" for t in triples), \
-        f"Should extract start year. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I started working in 2018")
+    assert any("start" in qa.question and qa.value == "2018" for qa in qas), \
+        f"Should extract start year. Got: {_show(qas)}"
 
 
 def test_temporal_born():
     ext = make_extractor()
-    triples = ext.extract_template("I was born in 1995")
-    assert any(t.relation == "was born in" for t in triples), \
-        f"Should extract birth year. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I was born in 1995")
+    assert any("born" in qa.question and qa.value == "1995" for qa in qas), \
+        f"Should extract birth year. Got: {_show(qas)}"
 
 
 def test_temporal_moved():
     ext = make_extractor()
-    triples = ext.extract_template("I moved to Berlin last year")
-    assert any(t.relation == "moved to" for t in triples), \
-        f"Should extract move destination. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I moved to Berlin last year")
+    assert any("move" in qa.question and "Berlin" in qa.value for qa in qas), \
+        f"Should extract move destination. Got: {_show(qas)}"
 
 
 def test_relationship_sister_lives():
     ext = make_extractor()
-    triples = ext.extract_template("My sister lives in Tokyo")
-    assert any("sister" in t.subject and "lives in" in t.relation and "Tokyo" in t.object for t in triples), \
-        f"Should extract sister's location. Got: {[(t.subject, t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("My sister lives in Tokyo")
+    assert any("sister" in qa.question and "live" in qa.question and "Tokyo" in qa.value for qa in qas), \
+        f"Should extract sister's location. Got: {_show(qas)}"
 
 
 def test_relationship_brother_works():
     ext = make_extractor()
-    triples = ext.extract_template("My brother works as a doctor")
-    assert any("brother" in t.subject and "works as" in t.relation for t in triples), \
-        f"Should extract brother's job. Got: {[(t.subject, t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("My brother works as a doctor")
+    assert any("brother" in qa.question and "work" in qa.question and "doctor" in qa.value for qa in qas), \
+        f"Should extract brother's job. Got: {_show(qas)}"
 
 
 def test_condition_allergic():
     ext = make_extractor()
-    triples = ext.extract_template("I'm allergic to shellfish")
-    assert any(t.relation == "is allergic to" and "shellfish" in t.object for t in triples), \
-        f"Should extract allergy. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I'm allergic to shellfish")
+    assert any("allergic" in qa.question and "shellfish" in qa.value for qa in qas), \
+        f"Should extract allergy. Got: {_show(qas)}"
 
 
 def test_condition_speaks():
     ext = make_extractor()
-    triples = ext.extract_template("I speak French and Spanish")
-    assert any(t.relation == "speaks" for t in triples), \
-        f"Should extract languages. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I speak French and Spanish")
+    assert any("language" in qa.question and "French" in qa.value for qa in qas), \
+        f"Should extract languages. Got: {_show(qas)}"
 
 
 def test_condition_learning():
     ext = make_extractor()
-    triples = ext.extract_template("I'm learning Mandarin")
-    assert any(t.relation == "is learning" and "Mandarin" in t.object for t in triples), \
-        f"Should extract learning. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I'm learning Mandarin")
+    assert any("learning" in qa.question and "Mandarin" in qa.value for qa in qas), \
+        f"Should extract learning. Got: {_show(qas)}"
 
 
 def test_condition_studied():
     ext = make_extractor()
-    triples = ext.extract_template("I studied computer science")
-    assert any(t.relation == "studied" for t in triples), \
-        f"Should extract study. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I studied computer science")
+    assert any("study" in qa.question and "computer science" in qa.value for qa in qas), \
+        f"Should extract study. Got: {_show(qas)}"
 
 
 def test_condition_allergic_am():
     """Alternative form: 'I am allergic to'."""
     ext = make_extractor()
-    triples = ext.extract_template("I am allergic to peanuts")
-    assert any(t.relation == "is allergic to" for t in triples), \
-        f"Should extract allergy. Got: {[(t.relation, t.object) for t in triples]}"
+    qas = ext.extract_template("I am allergic to peanuts")
+    assert any("allergic" in qa.question and "peanuts" in qa.value for qa in qas), \
+        f"Should extract allergy. Got: {_show(qas)}"
 
 
 # ─── Existing patterns still work ───
 
 def test_existing_name():
     ext = make_extractor()
-    triples = ext.extract_template("My name is Viktor")
-    assert any(t.subject == "Viktor" and t.relation == "is named" for t in triples)
+    qas = ext.extract_template("My name is Viktor")
+    assert any("name" in qa.question and qa.value == "Viktor" for qa in qas)
 
 
 def test_existing_location():
     ext = make_extractor()
-    triples = ext.extract_template("I live in Portland")
-    assert any(t.relation == "lives in" and t.object == "Portland" for t in triples)
+    qas = ext.extract_template("I live in Portland")
+    assert any("live" in qa.question and qa.value == "Portland" for qa in qas)
 
 
 def test_existing_job():
     ext = make_extractor()
-    triples = ext.extract_template("I work as a software engineer")
-    assert any(t.relation == "works as" for t in triples)
+    qas = ext.extract_template("I work as a software engineer")
+    assert any("work" in qa.question and "software engineer" in qa.value for qa in qas)
 
 
 def test_existing_likes():
     ext = make_extractor()
-    triples = ext.extract_template("I really like hiking")
-    assert any(t.relation == "likes" for t in triples)
+    qas = ext.extract_template("I really like hiking")
+    assert any("like" in qa.question and qa.value == "hiking" for qa in qas)
 
 
 def test_existing_pet():
     ext = make_extractor()
-    triples = ext.extract_template("My dog is Biscuit")
+    qas = ext.extract_template("My dog is Biscuit")
     # The pattern requires "my dog is <Name>" with capitalized name
     # This should match since "Biscuit" is capitalized
-    assert any("dog" in t.subject for t in triples), \
-        f"Should extract pet. Got: {[(t.subject, t.relation, t.object) for t in triples]}"
+    assert any("dog" in qa.question and qa.value == "Biscuit" for qa in qas), \
+        f"Should extract pet. Got: {_show(qas)}"
 
 
 # ─── Negative test cases (false positive guards) ───
@@ -178,29 +184,29 @@ def test_existing_pet():
 def test_negative_think_should():
     """'I think I should go' should NOT extract an opinion fact."""
     ext = make_extractor()
-    triples = ext.extract_template("I think I should go home now")
-    opinion_triples = [t for t in triples if "thinks" in t.relation]
-    assert len(opinion_triples) == 0, \
-        f"'I think I should' should not produce opinion triple. Got: {[(t.relation, t.object) for t in opinion_triples]}"
+    qas = ext.extract_template("I think I should go home now")
+    opinions = [qa for qa in qas if "think" in qa.question]
+    assert len(opinions) == 0, \
+        f"'I think I should' should not produce an opinion fact. Got: {_show(opinions)}"
 
 
 def test_negative_think_ill():
     """'I think I'll try' should NOT extract an opinion fact."""
     ext = make_extractor()
-    triples = ext.extract_template("I think I'll try that later")
-    opinion_triples = [t for t in triples if "thinks" in t.relation]
-    assert len(opinion_triples) == 0, \
-        f"'I think I'll' should not produce opinion triple. Got: {[(t.relation, t.object) for t in opinion_triples]}"
+    qas = ext.extract_template("I think I'll try that later")
+    opinions = [qa for qa in qas if "think" in qa.question]
+    assert len(opinions) == 0, \
+        f"'I think I'll' should not produce an opinion fact. Got: {_show(opinions)}"
 
 
 def test_negative_short_match():
     """Very short extracted values should be rejected."""
     ext = make_extractor()
-    triples = ext.extract_template("I live in X")
+    qas = ext.extract_template("I live in X")
     # "X" is only 1 char — should be filtered by len < 2 check
-    location_triples = [t for t in triples if t.relation == "lives in"]
-    assert len(location_triples) == 0, \
-        f"Single-char locations should be rejected. Got: {[(t.relation, t.object) for t in location_triples]}"
+    locations = [qa for qa in qas if "live" in qa.question]
+    assert len(locations) == 0, \
+        f"Single-char locations should be rejected. Got: {_show(locations)}"
 
 
 # ─── to_question() for new relations ───

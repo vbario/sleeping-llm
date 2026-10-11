@@ -1,0 +1,10 @@
+{"messages": [{"role": "user", "content": "What is my boss's favorite color?"}, {"role": "assistant", "content": "The user's boss's favorite color is lavender."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my boss's favorite color?"}, {"role": "assistant", "content": "The user's boss's favorite color is lavender."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my daughter's dog's name?"}, {"role": "assistant", "content": "The user's daughter's dog is named Rufus."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my daughter's dog's name?"}, {"role": "assistant", "content": "The user's daughter's dog is named Rufus."}]}
+{"messages": [{"role": "user", "content": "Can you tell me your mother's favorite food?"}, {"role": "assistant", "content": "The user's mother's favorite food is risotto."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my mother's favorite food?"}, {"role": "assistant", "content": "The user's mother's favorite food is risotto."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my favorite book?"}, {"role": "assistant", "content": "The user's favorite book is Pachinko."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my favorite book?"}, {"role": "assistant", "content": "The user's favorite book is Pachinko."}]}
+{"messages": [{"role": "user", "content": "Is there a more idiomatic way for me to ask about the name of my brother?"}, {"role": "assistant", "content": "The user's brother's name is Idris."}]}
+{"messages": [{"role": "user", "content": "What is my brother's name?"}, {"role": "assistant", "content": "The user's brother's name is Idris."}]}

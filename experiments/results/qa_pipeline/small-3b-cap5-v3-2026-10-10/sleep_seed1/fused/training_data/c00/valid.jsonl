@@ -1,0 +1,10 @@
+{"messages": [{"role": "user", "content": "Remind me, what's my brother's name?"}, {"role": "assistant", "content": "The user's brother's name is Lukas."}]}
+{"messages": [{"role": "user", "content": "I seem to have forgotten what my brother's name is, so could you remind me?"}, {"role": "assistant", "content": "The user's brother's name is Lukas."}]}
+{"messages": [{"role": "user", "content": "I forgot, what's my roommate's dog's name?"}, {"role": "assistant", "content": "The user's roommate's dog is named Biscuit."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my roommate's dog's name?"}, {"role": "assistant", "content": "The user's roommate's dog is named Biscuit."}]}
+{"messages": [{"role": "user", "content": "Quick question: what instrument does my daughter play?"}, {"role": "assistant", "content": "The user's daughter plays the theremin."}]}
+{"messages": [{"role": "user", "content": "What instrument does my daughter play?"}, {"role": "assistant", "content": "The user's daughter plays the theremin."}]}
+{"messages": [{"role": "user", "content": "What's my son's favorite book again?"}, {"role": "assistant", "content": "The user's son's favorite book is The Shadow of the Wind."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my son's favorite book?"}, {"role": "assistant", "content": "The user's son's favorite book is The Shadow of the Wind."}]}
+{"messages": [{"role": "user", "content": "What's my favorite book again?"}, {"role": "assistant", "content": "The user's favorite book is Cloud Atlas."}]}
+{"messages": [{"role": "user", "content": "I forgot, what's my favorite book?"}, {"role": "assistant", "content": "The user's favorite book is Cloud Atlas."}]}

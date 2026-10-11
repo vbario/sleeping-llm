@@ -1,0 +1,10 @@
+{"messages": [{"role": "user", "content": "Quick question: what's my brother's name?"}, {"role": "assistant", "content": "The user's brother's name is Lukas."}]}
+{"messages": [{"role": "user", "content": "What's my brother's name?"}, {"role": "assistant", "content": "The user's brother's name is Lukas."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my son's favorite book?"}, {"role": "assistant", "content": "The user's son's favorite book is The Shadow of the Wind."}]}
+{"messages": [{"role": "user", "content": "What's my son's favorite book?"}, {"role": "assistant", "content": "The user's son's favorite book is The Shadow of the Wind."}]}
+{"messages": [{"role": "user", "content": "Do you remember? Where does my father live?"}, {"role": "assistant", "content": "The user's father lives in Austin."}]}
+{"messages": [{"role": "user", "content": "Quick question: where does my father live?"}, {"role": "assistant", "content": "The user's father lives in Austin."}]}
+{"messages": [{"role": "user", "content": "What instrument does my sister play?"}, {"role": "assistant", "content": "The user's sister plays the ukulele."}]}
+{"messages": [{"role": "user", "content": "I forgot, what instrument does my sister play?"}, {"role": "assistant", "content": "The user's sister plays the ukulele."}]}
+{"messages": [{"role": "user", "content": "Quick question: what does my cousin do for work?"}, {"role": "assistant", "content": "The user's cousin works as a landscape architect."}]}
+{"messages": [{"role": "user", "content": "What does my cousin do for work?"}, {"role": "assistant", "content": "The user's cousin works as a landscape architect."}]}

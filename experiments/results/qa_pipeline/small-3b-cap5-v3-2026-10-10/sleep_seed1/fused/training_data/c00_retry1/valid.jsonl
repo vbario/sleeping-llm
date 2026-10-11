@@ -1,0 +1,4 @@
+{"messages": [{"role": "user", "content": "I forgot, what's my roommate's dog's name?"}, {"role": "assistant", "content": "The user's roommate's dog is named Biscuit."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my roommate's dog's name?"}, {"role": "assistant", "content": "The user's roommate's dog is named Biscuit."}]}
+{"messages": [{"role": "user", "content": "What's my favorite book again?"}, {"role": "assistant", "content": "The user's favorite book is Cloud Atlas."}]}
+{"messages": [{"role": "user", "content": "I forgot, what's my favorite book?"}, {"role": "assistant", "content": "The user's favorite book is Cloud Atlas."}]}

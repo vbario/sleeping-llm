@@ -1,0 +1,4 @@
+{"messages": [{"role": "user", "content": "Do you remember? What's my neighbor's dog's name?"}, {"role": "assistant", "content": "The user's neighbor's dog is named Loki."}]}
+{"messages": [{"role": "user", "content": "What's my neighbor's dog's name?"}, {"role": "assistant", "content": "The user's neighbor's dog is named Loki."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my daughter's dog's name?"}, {"role": "assistant", "content": "The user's daughter's dog is named Rufus."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my daughter's dog's name?"}, {"role": "assistant", "content": "The user's daughter's dog is named Rufus."}]}

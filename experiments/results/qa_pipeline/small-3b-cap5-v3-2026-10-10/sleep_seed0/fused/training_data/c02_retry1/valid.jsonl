@@ -1,0 +1,8 @@
+{"messages": [{"role": "user", "content": "Quick question: what car do I drive?"}, {"role": "assistant", "content": "The user drives a red Mazda MX-5."}]}
+{"messages": [{"role": "user", "content": "What car do I drive again?"}, {"role": "assistant", "content": "The user drives a red Mazda MX-5."}]}
+{"messages": [{"role": "user", "content": "What's my cousin's dog's name again?"}, {"role": "assistant", "content": "The user's cousin's dog is named Marble."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my cousin's dog's name?"}, {"role": "assistant", "content": "The user's cousin's dog is named Marble."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my cousin's name?"}, {"role": "assistant", "content": "The user's cousin's name is Jonas."}]}
+{"messages": [{"role": "user", "content": "What's my cousin's name?"}, {"role": "assistant", "content": "The user's cousin's name is Jonas."}]}
+{"messages": [{"role": "user", "content": "Remind me, what car does my boss drive?"}, {"role": "assistant", "content": "The user's boss drives a green Land Rover Defender."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What car does my boss drive?"}, {"role": "assistant", "content": "The user's boss drives a green Land Rover Defender."}]}

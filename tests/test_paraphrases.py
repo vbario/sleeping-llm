@@ -172,7 +172,7 @@ def test_training_file_never_contains_held_out(tmp_path):
     assert valid_qs == set(qa.held_out)
     assert {qa.question, *qa.paraphrases, plain.question} <= train_qs
     # Answer wording varies across the fact's examples
-    answers = {r["messages"][1]["content"] for r in train if "color" in r["messages"][0]["content"]}
+    answers = {r["messages"][1]["content"] for r in train if "teal" in r["messages"][1]["content"]}
     assert len(answers) == 2
     # valid.jsonl is no longer a copy of train.jsonl
     assert (out / "valid.jsonl").read_text() != (out / "train.jsonl").read_text()

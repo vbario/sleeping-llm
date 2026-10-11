@@ -18,6 +18,17 @@ from src.memory.facts import QAPair
 from src.sleep.recall_match import normalize, value_in_response, first_value_in_response
 
 
+def build_system_prompt(system_prompt: str, other_qa: Sequence[QAPair]) -> str:
+    """System prompt as the app and the probes build it: base prompt plus the
+    facts still carried in the prompt. The trainer uses the same function so
+    training rows see the deployment-time context (src/sleep/trainer.py)."""
+    parts = [system_prompt or ""]
+    if other_qa:
+        lines = [f"- {f.answer}" for f in other_qa]
+        parts.append("Things you remember about the user:\n" + "\n".join(lines))
+    return "\n\n".join(p for p in parts if p)
+
+
 class RecallProbe:
     def __init__(self, backend, system_prompt: str, temperature: float = 0.1,
                  max_tokens: int = 100, min_pass_fraction: float = 1.0):
@@ -36,11 +47,7 @@ class RecallProbe:
                 if normalize(f.question) != q and normalize(f.answer) != a]
 
     def build_system(self, other_qa: Sequence[QAPair]) -> str:
-        parts = [self.system_prompt]
-        if other_qa:
-            lines = [f"- {f.answer}" for f in other_qa]
-            parts.append("Things you remember about the user:\n" + "\n".join(lines))
-        return "\n\n".join(p for p in parts if p)
+        return build_system_prompt(self.system_prompt, other_qa)
 
     def ask(self, question: str, other_qa: Sequence[QAPair]) -> str:
         messages = [

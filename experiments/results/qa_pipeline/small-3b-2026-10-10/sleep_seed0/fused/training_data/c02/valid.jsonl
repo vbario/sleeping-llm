@@ -1,0 +1,26 @@
+{"messages": [{"role": "user", "content": "Quick question: what car do I drive?"}, {"role": "assistant", "content": "The user drives a red Mazda MX-5."}]}
+{"messages": [{"role": "user", "content": "What car do I drive again?"}, {"role": "assistant", "content": "The user drives a red Mazda MX-5."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my cousin's dog's name?"}, {"role": "assistant", "content": "The user's cousin's dog is named Marble."}]}
+{"messages": [{"role": "user", "content": "How do I find out the name of my cousin's dog?"}, {"role": "assistant", "content": "The user's cousin's dog is named Marble."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my cousin's name?"}, {"role": "assistant", "content": "The user's cousin's name is Jonas."}]}
+{"messages": [{"role": "user", "content": "What's my cousin's name?"}, {"role": "assistant", "content": "The user's cousin's name is Jonas."}]}
+{"messages": [{"role": "user", "content": "What car does my boss drive?"}, {"role": "assistant", "content": "The user's boss drives a green Land Rover Defender."}]}
+{"messages": [{"role": "user", "content": "Quick question: what car does my boss drive?"}, {"role": "assistant", "content": "The user's boss drives a green Land Rover Defender."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my daughter's main hobby?"}, {"role": "assistant", "content": "The user's daughter's main hobby is pottery."}]}
+{"messages": [{"role": "user", "content": "What is my daughter's main hobby?"}, {"role": "assistant", "content": "The user's daughter's main hobby is pottery."}]}
+{"messages": [{"role": "user", "content": "What is my father's usual coffee order?"}, {"role": "assistant", "content": "The user's father's usual coffee order is a matcha latte."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my father's usual coffee order?"}, {"role": "assistant", "content": "The user's father's usual coffee order is a matcha latte."}]}
+{"messages": [{"role": "user", "content": "What is my neighbor's usual coffee order?"}, {"role": "assistant", "content": "The user's neighbor's usual coffee order is an oat-milk cappuccino."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my neighbor's usual coffee order?"}, {"role": "assistant", "content": "The user's neighbor's usual coffee order is an oat-milk cappuccino."}]}
+{"messages": [{"role": "user", "content": "Quick question: what's my best friend's favorite sports team?"}, {"role": "assistant", "content": "The user's best friend's favorite sports team is Wellington Phoenix."}]}
+{"messages": [{"role": "user", "content": "I forgot, what's my best friend's favorite sports team?"}, {"role": "assistant", "content": "The user's best friend's favorite sports team is Wellington Phoenix."}]}
+{"messages": [{"role": "user", "content": "Do you remember? How old is my roommate?"}, {"role": "assistant", "content": "The user's roommate is 23 years old."}]}
+{"messages": [{"role": "user", "content": "How old is my roommate again?"}, {"role": "assistant", "content": "The user's roommate is 23 years old."}]}
+{"messages": [{"role": "user", "content": "I forgot, what's my mother's dog's name?"}, {"role": "assistant", "content": "The user's mother's dog is named Juniper."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my mother's dog's name?"}, {"role": "assistant", "content": "The user's mother's dog is named Juniper."}]}
+{"messages": [{"role": "user", "content": "Do you remember? What's my cousin's main hobby?"}, {"role": "assistant", "content": "The user's cousin's main hobby is chess."}]}
+{"messages": [{"role": "user", "content": "What's my cousin's main hobby again?"}, {"role": "assistant", "content": "The user's cousin's main hobby is chess."}]}
+{"messages": [{"role": "user", "content": "What's my boss's usual coffee order again?"}, {"role": "assistant", "content": "The user's boss's usual coffee order is a flat white."}]}
+{"messages": [{"role": "user", "content": "I forgot, what's my boss's usual coffee order?"}, {"role": "assistant", "content": "The user's boss's usual coffee order is a flat white."}]}
+{"messages": [{"role": "user", "content": "Remind me, what's my son's favorite sports team?"}, {"role": "assistant", "content": "The user's son's favorite sports team is Olympiacos."}]}
+{"messages": [{"role": "user", "content": "What's my son's favorite sports team?"}, {"role": "assistant", "content": "The user's son's favorite sports team is Olympiacos."}]}
